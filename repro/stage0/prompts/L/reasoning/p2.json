@@ -1,0 +1,30 @@
+{
+ "id": "L-reasoning-p2",
+ "block": "L",
+ "content": "reasoning",
+ "prompt_index": 2,
+ "thinking": true,
+ "messages": [
+  {
+   "role": "user",
+   "content": "What is the domain of the real-valued function $f(x)=\\frac{2x-7}{\\sqrt{x^2-5x+6}}$?\n\nPlease reason step by step, and put your final answer within \\boxed{}."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 69,
+  "cuteafd_thinking_off_adds": 0
+ },
+ "checker": {
+  "kind": "math",
+  "answer": "(-\\infty, 2) \\cup (3, \\infty)"
+ },
+ "item": {
+  "source": "math500",
+  "unique_id": "test/algebra/2043.json",
+  "answer": "(-\\infty, 2) \\cup (3, \\infty)"
+ }
+}

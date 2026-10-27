@@ -1,0 +1,32 @@
+{
+ "id": "L-json-p1",
+ "block": "L",
+ "content": "json",
+ "prompt_index": 1,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "Generate a product catalogue for a home lighting showroom as JSON.\n\nReturn exactly 180 records in one JSON array and nothing else: no explanation before or after it and no code fences. Every record must validate against this JSON Schema:\n\n{\n \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"required\": [\n  \"id\",\n  \"sku\",\n  \"name\",\n  \"category\",\n  \"price_cents\",\n  \"in_stock\",\n  \"tags\",\n  \"dimensions_mm\",\n  \"supplier\"\n ],\n \"properties\": {\n  \"id\": {\n   \"type\": \"integer\",\n   \"minimum\": 1\n  },\n  \"sku\": {\n   \"type\": \"string\",\n   \"pattern\": \"^[A-Z]{3}-[0-9]{5}$\"\n  },\n  \"name\": {\n   \"type\": \"string\",\n   \"minLength\": 3,\n   \"maxLength\": 60\n  },\n  \"category\": {\n   \"type\": \"string\",\n   \"enum\": [\n    \"tools\",\n    \"storage\",\n    \"lighting\",\n    \"outdoor\",\n    \"kitchen\",\n    \"electrical\",\n    \"garden\",\n    \"safety\"\n   ]\n  },\n  \"price_cents\": {\n   \"type\": \"integer\",\n   \"minimum\": 1,\n   \"maximum\": 10000000\n  },\n  \"in_stock\": {\n   \"type\": \"boolean\"\n  },\n  \"tags\": {\n   \"type\": \"array\",\n   \"minItems\": 1,\n   \"maxItems\": 4,\n   \"uniqueItems\": true,\n   \"items\": {\n    \"type\": \"string\",\n    \"pattern\": \"^[a-z][a-z0-9-]{1,19}$\"\n   }\n  },\n  \"dimensions_mm\": {\n   \"type\": \"object\",\n   \"additionalProperties\": false,\n   \"required\": [\n    \"length\",\n    \"width\",\n    \"height\"\n   ],\n   \"properties\": {\n    \"length\": {\n     \"type\": \"integer\",\n     \"minimum\": 1,\n     \"maximum\": 100000\n    },\n    \"width\": {\n     \"type\": \"integer\",\n     \"minimum\": 1,\n     \"maximum\": 100000\n    },\n    \"height\": {\n     \"type\": \"integer\",\n     \"minimum\": 1,\n     \"maximum\": 100000\n    }\n   }\n  },\n  \"supplier\": {\n   \"type\": \"object\",\n   \"additionalProperties\": false,\n   \"required\": [\n    \"name\",\n    \"country\"\n   ],\n   \"properties\": {\n    \"name\": {\n     \"type\": \"string\",\n     \"minLength\": 2,\n     \"maxLength\": 60\n    },\n    \"country\": {\n     \"type\": \"string\",\n     \"pattern\": \"^[A-Z]{2}$\"\n    }\n   }\n  }\n }\n}\n\nFurther rules:\n- The id values are 1 to 180, in order.\n- Every sku is unique.\n- Make the products varied and realistic for a home lighting showroom; do not repeat a name.\n- Write each record compactly on its own line."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 693,
+  "cuteafd_thinking_off_adds": 1
+ },
+ "checker": {
+  "kind": "json",
+  "n": 180,
+  "schema": "authored/json_task.json#record_schema"
+ },
+ "item": {
+  "source": "authored/json_task.json",
+  "theme": "a home lighting showroom",
+  "n": 180,
+  "est_output_tokens": 19440
+ }
+}

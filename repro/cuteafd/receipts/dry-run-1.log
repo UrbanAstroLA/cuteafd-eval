@@ -1,0 +1,3871 @@
+GLM5_FLASH_INDEX_CACHE=auto -> keys (head split keeps token keys)
+GLM5_FLASH_REPLAY_RECORDS=auto -> own (head split keeps its own records)
+GLM5_FLASH_DECODE_ROWS=auto -> 64 (128 rows remain opt-in; C16 and post-C16 C1 draft-cost gate)
+{
+  "version": 1,
+  "family": "glm5_flash",
+  "snapshot": "/hf/hub/models--wrldsuksgo2mars--GLM-5.3-Flash-EXL3-K3.25-Core-FP8/snapshots/d31ebc921f1f098b4a56d37aaccb3cdef4096184",
+  "rtx_gpus": 2,
+  "spark_ranks": 0,
+  "prefill_rows": 4096,
+  "topology": {
+    "tp": 0,
+    "ep": 1,
+    "wire": "canonical"
+  },
+  "roles": [],
+  "peers": [],
+  "speculator": "dflash2",
+  "admission": {
+    "kv_pool_size": null,
+    "memory_reservation": null,
+    "pool_tokens": 0
+  },
+  "spark_admission": "coordinator_authoritative",
+  "launch": {
+    "family": "glm5_flash",
+    "model_type": "glm5_next",
+    "first_expert_layer": 3,
+    "last_expert_layer": 44
+  },
+  "estimated_placement": {
+    "pool_tokens": 4884992,
+    "pool_limits": [
+      {
+        "gpu": 0,
+        "available_bytes": 15084717386,
+        "max_units": 19097,
+        "demands": [
+          {
+            "group": "KV records and metadata",
+            "bytes_per_unit": 789892,
+            "offset_units": 0,
+            "cap_units": 18446744073709551615
+          }
+        ]
+      },
+      {
+        "gpu": 1,
+        "available_bytes": 19560583910,
+        "max_units": 24763,
+        "demands": [
+          {
+            "group": "KV records and metadata",
+            "bytes_per_unit": 789892,
+            "offset_units": 0,
+            "cap_units": 18446744073709551615
+          }
+        ]
+      }
+    ],
+    "attention_placement": "context",
+    "attention_by_kind": [
+      [
+        "dsa",
+        "context"
+      ],
+      [
+        "kda",
+        "context"
+      ]
+    ],
+    "peer_row_bytes": 767360,
+    "onboard_layers": 42,
+    "layers": [
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "dense"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "dense"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "dense"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "context_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      },
+      {
+        "mode": {
+          "mode": "head_split"
+        },
+        "experts": {
+          "home": "rtx_tp2"
+        }
+      }
+    ],
+    "movables": [
+      [
+        "drafter",
+        0
+      ]
+    ],
+    "expert_ranges": [
+      {
+        "first": 3,
+        "layers": 0,
+        "peak_bytes": 0
+      },
+      {
+        "first": 3,
+        "layers": 0,
+        "peak_bytes": 0
+      }
+    ],
+    "residual": [
+      {
+        "home": "owned",
+        "gpu": 0
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      },
+      {
+        "home": "replicated"
+      }
+    ],
+    "hops": [
+      {
+        "at": {
+          "at": "entry"
+        },
+        "from": 0,
+        "to": 1,
+        "kind": "broadcast",
+        "storage": "receive_slots",
+        "row_bytes": 32768
+      }
+    ],
+    "tp2": {
+      "first": 3,
+      "layers": 42,
+      "peak_bytes": [
+        63641221044,
+        63641221044
+      ]
+    },
+    "items": [
+      [
+        {
+          "category": "runtime",
+          "group": "pending code",
+          "format": "",
+          "bytes": 0,
+          "basis": "calibrated",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "embedding",
+          "group": "embedding",
+          "format": "",
+          "bytes": 1268776960,
+          "basis": "exact",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "weights",
+          "group": "target weights",
+          "format": "",
+          "bytes": 5660947200,
+          "basis": "exact",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "KDA state and replay",
+          "format": "",
+          "bytes": 1341669376,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "DSA index tails and replay",
+          "format": "",
+          "bytes": 633600,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "commit tables",
+          "format": "",
+          "bytes": 768,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "prefix",
+          "group": "marks",
+          "format": "",
+          "bytes": 2510117728,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "runtime",
+          "group": "graphs",
+          "format": "",
+          "bytes": 2222232138,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "runtime",
+          "group": "graph growth",
+          "format": "",
+          "bytes": 444446428,
+          "basis": "formula",
+          "lifetime": "post_ready_reserve"
+        },
+        {
+          "category": "transport",
+          "group": "peer exchange",
+          "format": "",
+          "bytes": 402653440,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "peer abort word",
+          "format": "",
+          "bytes": 256,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "route abort word",
+          "format": "",
+          "bytes": 256,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "route exchange",
+          "format": "",
+          "bytes": 1048832,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "probe prefill logits",
+          "format": "",
+          "bytes": 0,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "steps",
+          "format": "",
+          "bytes": 3230293248,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "steps",
+          "format": "",
+          "bytes": 67633152,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "context staging",
+          "format": "",
+          "bytes": 1176502272,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "context exchange",
+          "format": "",
+          "bytes": 13647968,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "context workspace",
+          "format": "",
+          "bytes": 83423760,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "drafter",
+          "group": "Drafter",
+          "format": "",
+          "bytes": 2184229568,
+          "basis": "exact",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "DFlash linear/attention scratch",
+          "format": "",
+          "bytes": 132768768,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "records",
+          "format": "",
+          "bytes": 15072719144,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "experts",
+          "group": "TP2 expert layer halves 3..45",
+          "format": "tp2",
+          "bytes": 63641221044,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        }
+      ],
+      [
+        {
+          "category": "runtime",
+          "group": "pending code",
+          "format": "",
+          "bytes": 0,
+          "basis": "calibrated",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "embedding",
+          "group": "embedding",
+          "format": "",
+          "bytes": 0,
+          "basis": "exact",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "weights",
+          "group": "target weights",
+          "format": "",
+          "bytes": 5006725888,
+          "basis": "exact",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "KDA state and replay",
+          "format": "",
+          "bytes": 1341669376,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "DSA index tails and replay",
+          "format": "",
+          "bytes": 633600,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "commit tables",
+          "format": "",
+          "bytes": 768,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "prefix",
+          "group": "marks",
+          "format": "",
+          "bytes": 2510117728,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "runtime",
+          "group": "graphs",
+          "format": "",
+          "bytes": 2148082835,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "runtime",
+          "group": "graph growth",
+          "format": "",
+          "bytes": 429616567,
+          "basis": "formula",
+          "lifetime": "post_ready_reserve"
+        },
+        {
+          "category": "transport",
+          "group": "peer exchange",
+          "format": "",
+          "bytes": 402653440,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "peer abort word",
+          "format": "",
+          "bytes": 256,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "route abort word",
+          "format": "",
+          "bytes": 256,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "route exchange",
+          "format": "",
+          "bytes": 1048832,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "steps",
+          "format": "",
+          "bytes": 3165330688,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "steps",
+          "format": "",
+          "bytes": 112542720,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "context staging",
+          "format": "",
+          "bytes": 1176502272,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "transport",
+          "group": "context exchange",
+          "format": "",
+          "bytes": 13647968,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "workspace",
+          "group": "context workspace",
+          "format": "",
+          "bytes": 83423760,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "kv",
+          "group": "records",
+          "format": "",
+          "bytes": 15072719144,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        },
+        {
+          "category": "experts",
+          "group": "TP2 expert layer halves 3..45",
+          "format": "tp2",
+          "bytes": 63641221044,
+          "basis": "formula",
+          "lifetime": "ready_resident"
+        }
+      ]
+    ]
+  },
+  "memory_layout": {
+    "devices": [
+      {
+        "kind": "rtx",
+        "index": 0,
+        "capacity_bytes": 100494475264,
+        "items": [
+          {
+            "category": "runtime",
+            "group": "CUDA context",
+            "format": "",
+            "bytes": 586416128,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "second-rank context",
+            "format": "",
+            "bytes": 0,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "selected program setup",
+            "format": "",
+            "bytes": 12582912,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "target-load BLAS and driver state",
+            "format": "",
+            "bytes": 185912576,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "peer exchange mappings and setup",
+            "format": "",
+            "bytes": 97364992,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "EXL3 and route package driver state",
+            "format": "",
+            "bytes": 6817612,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "workspace BLAS and driver state",
+            "format": "",
+            "bytes": 138416896,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "pending code",
+            "format": "",
+            "bytes": 0,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "embedding",
+            "group": "embedding",
+            "format": "",
+            "bytes": 1268776960,
+            "basis": "exact",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "weights",
+            "group": "target weights",
+            "format": "",
+            "bytes": 5660947200,
+            "basis": "exact",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "KDA state and replay",
+            "format": "",
+            "bytes": 1341669376,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "DSA index tails and replay",
+            "format": "",
+            "bytes": 633600,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "commit tables",
+            "format": "",
+            "bytes": 768,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "prefix",
+            "group": "marks",
+            "format": "",
+            "bytes": 2510117728,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "graphs",
+            "format": "",
+            "bytes": 2222232138,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "graph growth",
+            "format": "",
+            "bytes": 444446428,
+            "basis": "formula",
+            "lifetime": "post_ready_reserve"
+          },
+          {
+            "category": "transport",
+            "group": "peer exchange",
+            "format": "",
+            "bytes": 402653440,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "peer abort word",
+            "format": "",
+            "bytes": 256,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "route abort word",
+            "format": "",
+            "bytes": 256,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "route exchange",
+            "format": "",
+            "bytes": 1048832,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "probe prefill logits",
+            "format": "",
+            "bytes": 0,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "steps",
+            "format": "",
+            "bytes": 3230293248,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "steps",
+            "format": "",
+            "bytes": 67633152,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "context staging",
+            "format": "",
+            "bytes": 1176502272,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "context exchange",
+            "format": "",
+            "bytes": 13647968,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "context workspace",
+            "format": "",
+            "bytes": 83423760,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "drafter",
+            "group": "Drafter",
+            "format": "",
+            "bytes": 2184229568,
+            "basis": "exact",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "DFlash linear/attention scratch",
+            "format": "",
+            "bytes": 132768768,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "records",
+            "format": "",
+            "bytes": 15072719144,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "experts",
+            "group": "TP2 expert layer halves 3..45",
+            "format": "tp2",
+            "bytes": 63641221044,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          }
+        ],
+        "kv_tokens": 4884992
+      },
+      {
+        "kind": "rtx",
+        "index": 1,
+        "capacity_bytes": 100494475264,
+        "items": [
+          {
+            "category": "runtime",
+            "group": "CUDA context",
+            "format": "",
+            "bytes": 586416128,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "second-rank context",
+            "format": "",
+            "bytes": 10485760,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "selected program setup",
+            "format": "",
+            "bytes": 12582912,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "target-load BLAS and driver state",
+            "format": "",
+            "bytes": 183725312,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "peer exchange mappings and setup",
+            "format": "",
+            "bytes": 97364992,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "EXL3 and route package driver state",
+            "format": "",
+            "bytes": 6817612,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "workspace BLAS and driver state",
+            "format": "",
+            "bytes": 3280640,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "pending code",
+            "format": "",
+            "bytes": 0,
+            "basis": "calibrated",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "embedding",
+            "group": "embedding",
+            "format": "",
+            "bytes": 0,
+            "basis": "exact",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "weights",
+            "group": "target weights",
+            "format": "",
+            "bytes": 5006725888,
+            "basis": "exact",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "KDA state and replay",
+            "format": "",
+            "bytes": 1341669376,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "DSA index tails and replay",
+            "format": "",
+            "bytes": 633600,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "commit tables",
+            "format": "",
+            "bytes": 768,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "prefix",
+            "group": "marks",
+            "format": "",
+            "bytes": 2510117728,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "graphs",
+            "format": "",
+            "bytes": 2148082835,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "runtime",
+            "group": "graph growth",
+            "format": "",
+            "bytes": 429616567,
+            "basis": "formula",
+            "lifetime": "post_ready_reserve"
+          },
+          {
+            "category": "transport",
+            "group": "peer exchange",
+            "format": "",
+            "bytes": 402653440,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "peer abort word",
+            "format": "",
+            "bytes": 256,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "route abort word",
+            "format": "",
+            "bytes": 256,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "route exchange",
+            "format": "",
+            "bytes": 1048832,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "steps",
+            "format": "",
+            "bytes": 3165330688,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "steps",
+            "format": "",
+            "bytes": 112542720,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "context staging",
+            "format": "",
+            "bytes": 1176502272,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "transport",
+            "group": "context exchange",
+            "format": "",
+            "bytes": 13647968,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "context workspace",
+            "format": "",
+            "bytes": 83423760,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "kv",
+            "group": "records",
+            "format": "",
+            "bytes": 15072719144,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "experts",
+            "group": "TP2 expert layer halves 3..45",
+            "format": "tp2",
+            "bytes": 63641221044,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "weights",
+            "group": "vision tower",
+            "format": "BF16 + FP32 vectors",
+            "bytes": 1128026176,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          },
+          {
+            "category": "workspace",
+            "group": "vision scratch",
+            "format": "resident",
+            "bytes": 791907584,
+            "basis": "formula",
+            "lifetime": "ready_resident"
+          }
+        ],
+        "kv_tokens": 4884992
+      }
+    ],
+    "pool_tokens": 4884992,
+    "waste": [],
+    "notes": [
+      "resolved context 1048576 tokens",
+      "KDA projections: FP8, state: F32; shared target/draft head: FP8",
+      "selected Spark ranks 0, prefill lanes 2, layers []",
+      "placement: attention context; pool 4884992 tokens; onboard 42 RTX expert layers: rtx0/rtx1: 42 TP2 expert layer halves (3..45); arenas [63641221044, 63641221044] B; TP1 dSpark 0 B",
+      "vision Rtx { gpu: 1 }: RTX: KV target preserved after tower + scratch admission; 1919933760 bytes admitted; shortfall 0 bytes"
+    ]
+  },
+  "encoder": {
+    "kind": {
+      "kind": "rtx",
+      "gpu": 1
+    },
+    "weights": 1128026176,
+    "scratch": 791907584,
+    "replicas": [],
+    "reason": "RTX: KV target preserved after tower + scratch admission",
+    "shortfall": 0
+  },
+  "audio_encoder": null,
+  "encoder_plan_hash": "54b6e1b15bcaa49861bead31ed142ccb80e564a30ea77daaebdc8deac4aff9bd",
+  "artifact_requirements": {
+    "verify_live_identity": true,
+    "verify_resolved_config_fingerprint": false,
+    "spark_tp_role": null,
+    "spark_tp_manifest": null,
+    "require_symbols_verified": false,
+    "verify_native_library_sha256": false
+  },
+  "executable": true,
+  "wip_launchable": true,
+  "report": {
+    "attention_placement": "context",
+    "vision": "auto",
+    "audio": "off",
+    "disabled_media_bytes": 0,
+    "encoder": {
+      "kind": {
+        "kind": "rtx",
+        "gpu": 1
+      },
+      "weights": 1128026176,
+      "scratch": 791907584,
+      "replicas": [],
+      "reason": "RTX: KV target preserved after tower + scratch admission",
+      "shortfall": 0
+    },
+    "audio_encoder": null,
+    "encoder_plan_hash": "54b6e1b15bcaa49861bead31ed142ccb80e564a30ea77daaebdc8deac4aff9bd",
+    "snapshot": "/hf/hub/models--wrldsuksgo2mars--GLM-5.3-Flash-EXL3-K3.25-Core-FP8/snapshots/d31ebc921f1f098b4a56d37aaccb3cdef4096184",
+    "family": "glm5_flash",
+    "architectures": [
+      "Glm5NextForConditionalGeneration"
+    ],
+    "quantization": null,
+    "module_numerics": {
+      "lm_head": "checkpoint_precision",
+      "model.language_model.embed_tokens": "checkpoint_precision",
+      "model.language_model.layers.0.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.0.mlp.down_proj": "checkpoint_precision",
+      "model.language_model.layers.0.mlp.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.0.mlp.up_proj": "checkpoint_precision",
+      "model.language_model.layers.0.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.0.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.1.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.1.mlp.down_proj": "checkpoint_precision",
+      "model.language_model.layers.1.mlp.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.1.mlp.up_proj": "checkpoint_precision",
+      "model.language_model.layers.1.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.1.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.10.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.10.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.10.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.10.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.10.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.10.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.10.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.11.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.11.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.11.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.11.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.11.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.11.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.11.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.12.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.12.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.12.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.12.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.12.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.12.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.12.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.13.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.13.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.13.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.13.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.13.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.13.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.13.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.14.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.14.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.14.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.14.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.14.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.14.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.14.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.15.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.15.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.15.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.15.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.15.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.15.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.15.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.16.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.16.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.16.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.16.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.16.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.16.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.16.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.17.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.17.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.17.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.17.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.17.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.17.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.17.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.18.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.18.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.18.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.18.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.18.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.18.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.18.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.19.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.19.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.19.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.19.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.19.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.19.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.19.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.2.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.2.mlp.down_proj": "checkpoint_precision",
+      "model.language_model.layers.2.mlp.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.2.mlp.up_proj": "checkpoint_precision",
+      "model.language_model.layers.2.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.2.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.20.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.20.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.20.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.20.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.20.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.20.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.20.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.21.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.21.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.21.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.21.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.21.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.21.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.21.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.22.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.22.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.22.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.22.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.22.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.22.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.22.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.23.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.23.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.23.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.23.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.23.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.23.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.23.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.24.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.24.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.24.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.24.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.24.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.24.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.24.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.25.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.25.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.25.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.25.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.25.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.25.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.25.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.26.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.26.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.26.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.26.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.26.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.26.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.26.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.27.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.27.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.27.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.27.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.27.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.27.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.27.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.28.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.28.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.28.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.28.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.28.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.28.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.28.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.29.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.29.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.29.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.29.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.29.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.29.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.29.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.3.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.3.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.3.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.3.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.3.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.3.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.3.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.30.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.30.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.30.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.30.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.30.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.30.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.30.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.31.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.31.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.31.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.31.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.31.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.31.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.31.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.32.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.32.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.32.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.32.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.32.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.32.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.32.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.33.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.33.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.33.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.33.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.33.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.33.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.33.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.34.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.34.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.34.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.34.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.34.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.34.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.34.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.35.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.35.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.35.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.35.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.35.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.35.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.35.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.36.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.36.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.36.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.36.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.36.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.36.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.36.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.37.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.37.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.37.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.37.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.37.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.37.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.37.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.38.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.38.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.38.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.38.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.38.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.38.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.38.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.39.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.39.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.39.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.39.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.39.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.39.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.39.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.4.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.4.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.4.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.4.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.4.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.4.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.4.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.40.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.40.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.40.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.40.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.40.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.40.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.40.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.41.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.41.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.41.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.41.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.41.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.41.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.41.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.42.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.42.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.42.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.42.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.42.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.42.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.42.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.43.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.43.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.43.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.43.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.43.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.43.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.43.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.44.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.44.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.44.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.44.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.44.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.44.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.44.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.45.eh_proj": "checkpoint_precision",
+      "model.language_model.layers.45.enorm": "checkpoint_precision",
+      "model.language_model.layers.45.hnorm": "checkpoint_precision",
+      "model.language_model.layers.45.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.45.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.45.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.45.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.45.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.45.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.45.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.45.shared_head.norm": "checkpoint_precision",
+      "model.language_model.layers.5.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.5.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.5.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.5.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.5.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.5.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.5.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.6.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.6.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.6.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.6.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.6.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.6.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.6.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.7.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.7.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.7.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.7.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.7.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.7.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.indexer.k_norm": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.indexer.weights_proj": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.indexer.wk": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.indexer.wq_b": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.kv_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.kv_a_proj_with_mqa": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.kv_b_proj": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.q_a_layernorm": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.q_a_proj": "checkpoint_precision",
+      "model.language_model.layers.7.self_attn.q_b_proj": "checkpoint_precision",
+      "model.language_model.layers.8.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.8.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.8.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.8.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.8.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.8.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.8.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.layers.9.input_layernorm": "checkpoint_precision",
+      "model.language_model.layers.9.mlp.gate": "checkpoint_precision",
+      "model.language_model.layers.9.mlp.shared_experts.down_proj": "checkpoint_precision",
+      "model.language_model.layers.9.mlp.shared_experts.gate_proj": "checkpoint_precision",
+      "model.language_model.layers.9.mlp.shared_experts.up_proj": "checkpoint_precision",
+      "model.language_model.layers.9.post_attention_layernorm": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.b_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.f_a_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.f_b_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.g_a_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.g_b_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.k_conv1d": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.k_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.o_norm": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.o_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.q_conv1d": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.q_proj": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.v_conv1d": "checkpoint_precision",
+      "model.language_model.layers.9.self_attn.v_proj": "checkpoint_precision",
+      "model.language_model.norm": "checkpoint_precision",
+      "model.visual.blocks.0.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.0.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.0.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.0.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.0.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.0.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.0.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.0.norm1": "checkpoint_precision",
+      "model.visual.blocks.0.norm2": "checkpoint_precision",
+      "model.visual.blocks.1.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.1.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.1.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.1.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.1.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.1.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.1.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.1.norm1": "checkpoint_precision",
+      "model.visual.blocks.1.norm2": "checkpoint_precision",
+      "model.visual.blocks.10.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.10.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.10.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.10.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.10.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.10.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.10.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.10.norm1": "checkpoint_precision",
+      "model.visual.blocks.10.norm2": "checkpoint_precision",
+      "model.visual.blocks.11.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.11.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.11.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.11.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.11.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.11.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.11.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.11.norm1": "checkpoint_precision",
+      "model.visual.blocks.11.norm2": "checkpoint_precision",
+      "model.visual.blocks.12.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.12.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.12.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.12.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.12.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.12.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.12.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.12.norm1": "checkpoint_precision",
+      "model.visual.blocks.12.norm2": "checkpoint_precision",
+      "model.visual.blocks.13.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.13.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.13.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.13.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.13.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.13.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.13.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.13.norm1": "checkpoint_precision",
+      "model.visual.blocks.13.norm2": "checkpoint_precision",
+      "model.visual.blocks.14.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.14.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.14.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.14.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.14.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.14.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.14.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.14.norm1": "checkpoint_precision",
+      "model.visual.blocks.14.norm2": "checkpoint_precision",
+      "model.visual.blocks.15.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.15.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.15.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.15.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.15.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.15.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.15.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.15.norm1": "checkpoint_precision",
+      "model.visual.blocks.15.norm2": "checkpoint_precision",
+      "model.visual.blocks.16.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.16.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.16.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.16.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.16.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.16.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.16.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.16.norm1": "checkpoint_precision",
+      "model.visual.blocks.16.norm2": "checkpoint_precision",
+      "model.visual.blocks.17.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.17.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.17.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.17.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.17.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.17.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.17.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.17.norm1": "checkpoint_precision",
+      "model.visual.blocks.17.norm2": "checkpoint_precision",
+      "model.visual.blocks.18.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.18.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.18.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.18.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.18.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.18.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.18.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.18.norm1": "checkpoint_precision",
+      "model.visual.blocks.18.norm2": "checkpoint_precision",
+      "model.visual.blocks.19.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.19.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.19.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.19.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.19.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.19.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.19.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.19.norm1": "checkpoint_precision",
+      "model.visual.blocks.19.norm2": "checkpoint_precision",
+      "model.visual.blocks.2.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.2.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.2.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.2.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.2.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.2.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.2.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.2.norm1": "checkpoint_precision",
+      "model.visual.blocks.2.norm2": "checkpoint_precision",
+      "model.visual.blocks.20.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.20.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.20.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.20.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.20.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.20.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.20.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.20.norm1": "checkpoint_precision",
+      "model.visual.blocks.20.norm2": "checkpoint_precision",
+      "model.visual.blocks.21.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.21.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.21.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.21.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.21.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.21.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.21.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.21.norm1": "checkpoint_precision",
+      "model.visual.blocks.21.norm2": "checkpoint_precision",
+      "model.visual.blocks.22.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.22.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.22.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.22.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.22.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.22.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.22.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.22.norm1": "checkpoint_precision",
+      "model.visual.blocks.22.norm2": "checkpoint_precision",
+      "model.visual.blocks.23.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.23.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.23.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.23.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.23.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.23.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.23.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.23.norm1": "checkpoint_precision",
+      "model.visual.blocks.23.norm2": "checkpoint_precision",
+      "model.visual.blocks.3.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.3.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.3.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.3.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.3.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.3.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.3.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.3.norm1": "checkpoint_precision",
+      "model.visual.blocks.3.norm2": "checkpoint_precision",
+      "model.visual.blocks.4.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.4.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.4.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.4.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.4.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.4.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.4.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.4.norm1": "checkpoint_precision",
+      "model.visual.blocks.4.norm2": "checkpoint_precision",
+      "model.visual.blocks.5.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.5.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.5.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.5.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.5.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.5.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.5.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.5.norm1": "checkpoint_precision",
+      "model.visual.blocks.5.norm2": "checkpoint_precision",
+      "model.visual.blocks.6.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.6.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.6.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.6.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.6.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.6.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.6.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.6.norm1": "checkpoint_precision",
+      "model.visual.blocks.6.norm2": "checkpoint_precision",
+      "model.visual.blocks.7.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.7.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.7.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.7.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.7.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.7.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.7.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.7.norm1": "checkpoint_precision",
+      "model.visual.blocks.7.norm2": "checkpoint_precision",
+      "model.visual.blocks.8.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.8.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.8.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.8.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.8.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.8.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.8.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.8.norm1": "checkpoint_precision",
+      "model.visual.blocks.8.norm2": "checkpoint_precision",
+      "model.visual.blocks.9.attn.k_norm": "checkpoint_precision",
+      "model.visual.blocks.9.attn.proj": "checkpoint_precision",
+      "model.visual.blocks.9.attn.q_norm": "checkpoint_precision",
+      "model.visual.blocks.9.attn.qkv": "checkpoint_precision",
+      "model.visual.blocks.9.mlp.down_proj": "checkpoint_precision",
+      "model.visual.blocks.9.mlp.gate_proj": "checkpoint_precision",
+      "model.visual.blocks.9.mlp.up_proj": "checkpoint_precision",
+      "model.visual.blocks.9.norm1": "checkpoint_precision",
+      "model.visual.blocks.9.norm2": "checkpoint_precision",
+      "model.visual.downsample": "checkpoint_precision",
+      "model.visual.merger.down_proj": "checkpoint_precision",
+      "model.visual.merger.gate_proj": "checkpoint_precision",
+      "model.visual.merger.post_projection_norm": "checkpoint_precision",
+      "model.visual.merger.proj": "checkpoint_precision",
+      "model.visual.merger.up_proj": "checkpoint_precision",
+      "model.visual.patch_embed.proj": "checkpoint_precision",
+      "model.visual.post_layernorm": "checkpoint_precision"
+    },
+    "precision_optimizations": [
+      "MLA and shared experts: FP8 block weights; W8A8 prefill (existing launcher default)",
+      "KDA projections: row-K128 FP8 weights (existing launcher default)",
+      "head: row-K128 FP8 weights (existing launcher default)",
+      "external drafter: FP8 weights and W8A8 draft linear (existing launcher default)"
+    ],
+    "numerics_deviations": [],
+    "runtime": "serving",
+    "config_error": null,
+    "spec": {
+      "family": "glm5_flash",
+      "architecture": "Glm5NextForConditionalGeneration",
+      "hidden": 4096,
+      "vocab": 154880,
+      "layers": [
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "dense",
+            "intermediate": 12288
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "dense",
+            "intermediate": 12288
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "dense",
+            "intermediate": 12288
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "mla_dsa",
+            "indexer": true
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        },
+        {
+          "attention": {
+            "kind": "kda"
+          },
+          "ffn": {
+            "kind": "moe"
+          },
+          "rope": null
+        }
+      ],
+      "moe": {
+        "experts": 288,
+        "top_k": 8,
+        "intermediate": 2048,
+        "shared_experts": 1,
+        "shared_intermediate": 2048,
+        "scoring": "sigmoid",
+        "routed_scaling": 2.5,
+        "groups": null
+      },
+      "speculator": {
+        "kind": "native_mtp",
+        "layers": 1
+      },
+      "tables": [],
+      "vision": true,
+      "notes": [
+        "mHC width 4, Sinkhorn 20 iterations, final collapse unweighted mean",
+        "MLA q_lora 1536 kv_lora 512 rope 0, qk nope 256 v 256 (absorbed query 512; FP8 latent record 528 B: E4M3 + 4 FP32 group scales, no RoPE)",
+        "DSA index top-k 2048 tokens = 512 pools of 4 (gated softmax pool keys + learned position bias), plus the open tail pool; dense causal up to 2051 tokens",
+        "KDA 64 heads x 128, short conv 4, gate lower bound -5; recurrent state 136.0 MiB per sequence (34 layers x FP32 64x128x128) plus conv state",
+        "SwiGLU clamp 10 (gate <= 10, |up| <= 10) in dense, shared and routed experts"
+      ]
+    },
+    "cache_requirements": {
+      "checkpoint_max_context_tokens": 1048576,
+      "compiled_index_extent_required": true,
+      "requested_kv_floor_tokens": 2097152,
+      "concurrency": 16,
+      "state_slots": 20,
+      "target_only_layouts": [
+        {
+          "logical_unit_rows": 256,
+          "placement": "single_device",
+          "ranks": [
+            {
+              "persistent_unit_bytes": 3021568,
+              "pool_metadata_unit_bytes": 4,
+              "active_state_per_sequence_bytes": 147619840,
+              "retained_mark_bytes": 147619840,
+              "speculative_replay_bytes": 321421312,
+              "fixed_state_bytes": 768,
+              "context_table_bytes_per_token": 0
+            }
+          ]
+        },
+        {
+          "logical_unit_rows": 256,
+          "placement": "replicated",
+          "ranks": [
+            {
+              "persistent_unit_bytes": 3021568,
+              "pool_metadata_unit_bytes": 4,
+              "active_state_per_sequence_bytes": 73809920,
+              "retained_mark_bytes": 73809920,
+              "speculative_replay_bytes": 160710656,
+              "fixed_state_bytes": 768,
+              "context_table_bytes_per_token": 0
+            },
+            {
+              "persistent_unit_bytes": 3021568,
+              "pool_metadata_unit_bytes": 4,
+              "active_state_per_sequence_bytes": 73809920,
+              "retained_mark_bytes": 73809920,
+              "speculative_replay_bytes": 160710656,
+              "fixed_state_bytes": 768,
+              "context_table_bytes_per_token": 0
+            }
+          ]
+        }
+      ],
+      "unavailable_layouts": []
+    },
+    "components": [
+      {
+        "component": "embedding",
+        "owner": "rtx",
+        "tensors": 1,
+        "bytes": 1268776960,
+        "formats": {
+          "bf16": 1
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "lm_head",
+        "owner": "rtx",
+        "tensors": 1,
+        "bytes": 1268776960,
+        "formats": {
+          "bf16": 1
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "norm",
+        "owner": "rtx",
+        "tensors": 91,
+        "bytes": 745472,
+        "formats": {
+          "bf16": 91
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "attention",
+        "owner": "rtx",
+        "tensors": 631,
+        "bytes": 10843067392,
+        "formats": {
+          "bf16": 475,
+          "f32": 68,
+          "fp8-block128x128/f32": 44
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "indexer",
+        "owner": "rtx",
+        "tensors": 77,
+        "bytes": 164381184,
+        "formats": {
+          "bf16": 66
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "hyper_connection",
+        "owner": "rtx",
+        "tensors": 270,
+        "bytes": 70788600,
+        "formats": {
+          "bf16": 90,
+          "f32": 180
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "router",
+        "owner": "rtx",
+        "tensors": 84,
+        "bytes": 99138816,
+        "formats": {
+          "bf16": 42,
+          "f32": 42
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "shared_expert",
+        "owner": "rtx",
+        "tensors": 252,
+        "bytes": 1057222656,
+        "formats": {
+          "fp8-block128x128/f32": 126
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "routed_expert",
+        "owner": "spark_sliced",
+        "tensors": 145152,
+        "bytes": 124110911232,
+        "formats": {
+          "exl3-k3": 27216,
+          "exl3-k4": 9072
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "dense_ffn",
+        "owner": "rtx",
+        "tensors": 18,
+        "bytes": 453095424,
+        "formats": {
+          "fp8-block128x128/f32": 9
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      },
+      {
+        "component": "speculator",
+        "owner": "rtx",
+        "tensors": 25,
+        "bytes": 0,
+        "formats": {
+          "bf16": 23,
+          "f32": 1
+        },
+        "status": "disabled",
+        "rejected": 24,
+        "rejections": [
+          {
+            "tensor": "model.language_model.layers.45.eh_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.enorm",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.hnorm",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.input_layernorm",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.gate",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.gate.e_score_correction_bias",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.shared_experts.down_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.shared_experts.gate_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          }
+        ]
+      },
+      {
+        "component": "speculator_expert",
+        "owner": "rtx",
+        "tensors": 3456,
+        "bytes": 0,
+        "formats": {
+          "exl3-k3": 864
+        },
+        "status": "disabled",
+        "rejected": 864,
+        "rejections": [
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.0.down_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.0.gate_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.0.up_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.1.down_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.1.gate_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.1.up_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.10.down_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          },
+          {
+            "tensor": "model.language_model.layers.45.mlp.experts.10.gate_proj",
+            "reason": "the native MTP layer is not run (speculation uses a DFlash2 drafter)"
+          }
+        ]
+      },
+      {
+        "component": "vision",
+        "owner": "rtx",
+        "tensors": 347,
+        "bytes": 1127254016,
+        "formats": {
+          "bf16": 224
+        },
+        "status": "ready",
+        "rejected": 0,
+        "rejections": []
+      }
+    ],
+    "unclassified": [],
+    "missing_shards": [],
+    "bytes_by_owner": {
+      "rtx": 15225993464,
+      "rtx (local)": 124110911232,
+      "rtx1 vision": 1919933760
+    },
+    "placement": {
+      "kind": "local"
+    },
+    "spark_ranks": 0,
+    "prefill_rows": 4096,
+    "experts": {
+      "package": "glmf:exl3-k34",
+      "block": 128,
+      "spark_worlds": [
+        2,
+        3,
+        4,
+        6
+      ],
+      "local": {
+        "Ok": "serve-glmf --local-experts (TP1 FP8, NVFP4 or EXL3 package)"
+      }
+    },
+    "placement_supported": true,
+    "min_spark_ranks": 2,
+    "spark_rank_share": 0.0,
+    "fits": true,
+    "launch": {
+      "family": "glm5_flash",
+      "model_type": "glm5_next",
+      "first_expert_layer": 3,
+      "last_expert_layer": 44
+    },
+    "expert_storage": "gptq_model",
+    "hints": [],
+    "memory_layout": {
+      "devices": [
+        {
+          "kind": "rtx",
+          "index": 0,
+          "capacity_bytes": 100494475264,
+          "items": [
+            {
+              "category": "runtime",
+              "group": "CUDA context",
+              "format": "",
+              "bytes": 586416128,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "second-rank context",
+              "format": "",
+              "bytes": 0,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "selected program setup",
+              "format": "",
+              "bytes": 12582912,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "target-load BLAS and driver state",
+              "format": "",
+              "bytes": 185912576,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "peer exchange mappings and setup",
+              "format": "",
+              "bytes": 97364992,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "EXL3 and route package driver state",
+              "format": "",
+              "bytes": 6817612,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "workspace BLAS and driver state",
+              "format": "",
+              "bytes": 138416896,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "pending code",
+              "format": "",
+              "bytes": 0,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "embedding",
+              "group": "embedding",
+              "format": "",
+              "bytes": 1268776960,
+              "basis": "exact",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "weights",
+              "group": "target weights",
+              "format": "",
+              "bytes": 5660947200,
+              "basis": "exact",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "KDA state and replay",
+              "format": "",
+              "bytes": 1341669376,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "DSA index tails and replay",
+              "format": "",
+              "bytes": 633600,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "commit tables",
+              "format": "",
+              "bytes": 768,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "prefix",
+              "group": "marks",
+              "format": "",
+              "bytes": 2510117728,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "graphs",
+              "format": "",
+              "bytes": 2222232138,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "graph growth",
+              "format": "",
+              "bytes": 444446428,
+              "basis": "formula",
+              "lifetime": "post_ready_reserve"
+            },
+            {
+              "category": "transport",
+              "group": "peer exchange",
+              "format": "",
+              "bytes": 402653440,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "peer abort word",
+              "format": "",
+              "bytes": 256,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "route abort word",
+              "format": "",
+              "bytes": 256,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "route exchange",
+              "format": "",
+              "bytes": 1048832,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "probe prefill logits",
+              "format": "",
+              "bytes": 0,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "steps",
+              "format": "",
+              "bytes": 3230293248,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "steps",
+              "format": "",
+              "bytes": 67633152,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "context staging",
+              "format": "",
+              "bytes": 1176502272,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "context exchange",
+              "format": "",
+              "bytes": 13647968,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "context workspace",
+              "format": "",
+              "bytes": 83423760,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "drafter",
+              "group": "Drafter",
+              "format": "",
+              "bytes": 2184229568,
+              "basis": "exact",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "DFlash linear/attention scratch",
+              "format": "",
+              "bytes": 132768768,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "records",
+              "format": "",
+              "bytes": 15072719144,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "experts",
+              "group": "TP2 expert layer halves 3..45",
+              "format": "tp2",
+              "bytes": 63641221044,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            }
+          ],
+          "kv_tokens": 4884992
+        },
+        {
+          "kind": "rtx",
+          "index": 1,
+          "capacity_bytes": 100494475264,
+          "items": [
+            {
+              "category": "runtime",
+              "group": "CUDA context",
+              "format": "",
+              "bytes": 586416128,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "second-rank context",
+              "format": "",
+              "bytes": 10485760,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "selected program setup",
+              "format": "",
+              "bytes": 12582912,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "target-load BLAS and driver state",
+              "format": "",
+              "bytes": 183725312,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "peer exchange mappings and setup",
+              "format": "",
+              "bytes": 97364992,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "EXL3 and route package driver state",
+              "format": "",
+              "bytes": 6817612,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "workspace BLAS and driver state",
+              "format": "",
+              "bytes": 3280640,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "pending code",
+              "format": "",
+              "bytes": 0,
+              "basis": "calibrated",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "embedding",
+              "group": "embedding",
+              "format": "",
+              "bytes": 0,
+              "basis": "exact",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "weights",
+              "group": "target weights",
+              "format": "",
+              "bytes": 5006725888,
+              "basis": "exact",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "KDA state and replay",
+              "format": "",
+              "bytes": 1341669376,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "DSA index tails and replay",
+              "format": "",
+              "bytes": 633600,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "commit tables",
+              "format": "",
+              "bytes": 768,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "prefix",
+              "group": "marks",
+              "format": "",
+              "bytes": 2510117728,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "graphs",
+              "format": "",
+              "bytes": 2148082835,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "runtime",
+              "group": "graph growth",
+              "format": "",
+              "bytes": 429616567,
+              "basis": "formula",
+              "lifetime": "post_ready_reserve"
+            },
+            {
+              "category": "transport",
+              "group": "peer exchange",
+              "format": "",
+              "bytes": 402653440,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "peer abort word",
+              "format": "",
+              "bytes": 256,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "route abort word",
+              "format": "",
+              "bytes": 256,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "route exchange",
+              "format": "",
+              "bytes": 1048832,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "steps",
+              "format": "",
+              "bytes": 3165330688,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "steps",
+              "format": "",
+              "bytes": 112542720,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "context staging",
+              "format": "",
+              "bytes": 1176502272,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "transport",
+              "group": "context exchange",
+              "format": "",
+              "bytes": 13647968,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "context workspace",
+              "format": "",
+              "bytes": 83423760,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "kv",
+              "group": "records",
+              "format": "",
+              "bytes": 15072719144,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "experts",
+              "group": "TP2 expert layer halves 3..45",
+              "format": "tp2",
+              "bytes": 63641221044,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "weights",
+              "group": "vision tower",
+              "format": "BF16 + FP32 vectors",
+              "bytes": 1128026176,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            },
+            {
+              "category": "workspace",
+              "group": "vision scratch",
+              "format": "resident",
+              "bytes": 791907584,
+              "basis": "formula",
+              "lifetime": "ready_resident"
+            }
+          ],
+          "kv_tokens": 4884992
+        }
+      ],
+      "pool_tokens": 4884992,
+      "waste": [],
+      "notes": [
+        "resolved context 1048576 tokens",
+        "KDA projections: FP8, state: F32; shared target/draft head: FP8",
+        "selected Spark ranks 0, prefill lanes 2, layers []",
+        "placement: attention context; pool 4884992 tokens; onboard 42 RTX expert layers: rtx0/rtx1: 42 TP2 expert layer halves (3..45); arenas [63641221044, 63641221044] B; TP1 dSpark 0 B",
+        "vision Rtx { gpu: 1 }: RTX: KV target preserved after tower + scratch admission; 1919933760 bytes admitted; shortfall 0 bytes"
+      ]
+    }
+  }
+}

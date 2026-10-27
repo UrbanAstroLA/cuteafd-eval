@@ -1,0 +1,204 @@
+{
+ "rule": {
+  "L_prose_items": "LongBench-Write items sorted by required length descending, ties by file index ascending; first 4.",
+  "L_code_items": "the 4 authored projects in prompts/L/code (minicalc, kvstore, graphkit, csvreport), SPEC.md in the L_code wrapper; hidden tests in each tests/ directory.",
+  "math_items": "MATH-500 level-5 items sorted by unique_id, random.Random(261005).shuffle; walk the list keeping items whose reference solution's last \\boxed answer is_equiv() its `answer` (checkers/math_check.py) and whose bare prompt fits 896 tokens; first 4 -> Block T, next 4 -> Block L.",
+  "json_items": "authored/json_task.json: Block T variants_T (n = 40); Block L themes with n from variants_L_rule.",
+  "L_prompt_shape": "user message = nonce line + '\\n' + task (no context).",
+  "thinking": "on for reasoning (chat_template_kwargs.enable_thinking=true), off for prose, code, json.",
+  "nonce": "see authored/wrappers.json nonce_rule; NONCE_GROUPS in prompts/nonce_groups.json."
+ },
+ "json_tokens_per_record_estimate": 108,
+ "json_variants": [
+  {
+   "theme": "an industrial safety equipment distributor",
+   "n": 50,
+   "est_tokens": 5400,
+   "cap_ref": 8192,
+   "fraction": 0.6
+  },
+  {
+   "theme": "a home lighting showroom",
+   "n": 180,
+   "est_tokens": 19440,
+   "cap_ref": 32768,
+   "fraction": 0.6
+  },
+  {
+   "theme": "an electrical wholesaler",
+   "n": 610,
+   "est_tokens": 65880,
+   "cap_ref": 131072,
+   "fraction": 0.5
+  },
+  {
+   "theme": "a self-storage and moving supplies shop",
+   "n": 1030,
+   "est_tokens": 111240,
+   "cap_ref": 131072,
+   "fraction": 0.85
+  }
+ ],
+ "prompts": [
+  {
+   "id": "L-prose-p0",
+   "content": "prose",
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 92,
+   "checker": "prose",
+   "file": "L/prose/p0.json",
+   "sha256": "dbca3937eb14afdf18a7bcee73166098b53e4d11f0a34b11799a5aebb44e64e7"
+  },
+  {
+   "id": "L-prose-p1",
+   "content": "prose",
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 37,
+   "checker": "prose",
+   "file": "L/prose/p1.json",
+   "sha256": "d860a8c83edac359e0c7ad1b0fff3343eb8258167ea73d996c2aa7a599f7d313"
+  },
+  {
+   "id": "L-prose-p2",
+   "content": "prose",
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 64,
+   "checker": "prose",
+   "file": "L/prose/p2.json",
+   "sha256": "2df98cd743a1c4d76c9856b966ba4d482954d4f6cbc1785acf11fea19c3424a9"
+  },
+  {
+   "id": "L-prose-p3",
+   "content": "prose",
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 349,
+   "checker": "prose",
+   "file": "L/prose/p3.json",
+   "sha256": "11e480e48b311431abaa63450919f3c884c2bdf05bdd486346aecd6abca59b50"
+  },
+  {
+   "id": "L-code-p0",
+   "content": "code",
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 1546,
+   "checker": "code",
+   "file": "L/code/p0.json",
+   "sha256": "28dd1e230d9d65cf0a175c15027ad5649c2a9b5e8632c2dae28cf108af22f3d3"
+  },
+  {
+   "id": "L-code-p1",
+   "content": "code",
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 1155,
+   "checker": "code",
+   "file": "L/code/p1.json",
+   "sha256": "8380e8de95304f8f4d42f77ed8a1f4ce5d893e3065dca95ba1b340520d75bf5e"
+  },
+  {
+   "id": "L-code-p2",
+   "content": "code",
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 1249,
+   "checker": "code",
+   "file": "L/code/p2.json",
+   "sha256": "876b28ef26a7f74f2d1772d6509295e1b1c99e7e53795dbe2a411dbf484cf32a"
+  },
+  {
+   "id": "L-code-p3",
+   "content": "code",
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 1330,
+   "checker": "code",
+   "file": "L/code/p3.json",
+   "sha256": "934c7fe05224d483fdf086400b34fb9666462a587d57daaa5bf7644cd651ce46"
+  },
+  {
+   "id": "L-reasoning-p0",
+   "content": "reasoning",
+   "prompt_index": 0,
+   "thinking": true,
+   "prompt_tokens": 98,
+   "checker": "math",
+   "file": "L/reasoning/p0.json",
+   "sha256": "7d25a162cc29ea7f54f4197832646cfac20e10d59e820868f578aefa4300d100"
+  },
+  {
+   "id": "L-reasoning-p1",
+   "content": "reasoning",
+   "prompt_index": 1,
+   "thinking": true,
+   "prompt_tokens": 100,
+   "checker": "math",
+   "file": "L/reasoning/p1.json",
+   "sha256": "eb90ed08574ab58908530b110a9ca0d0ce5f7cf2ce8468717c432daa78fd540b"
+  },
+  {
+   "id": "L-reasoning-p2",
+   "content": "reasoning",
+   "prompt_index": 2,
+   "thinking": true,
+   "prompt_tokens": 69,
+   "checker": "math",
+   "file": "L/reasoning/p2.json",
+   "sha256": "a966ea5329b086624a4501bfb8a50e5e45d35b24285fb72df4187d784301863c"
+  },
+  {
+   "id": "L-reasoning-p3",
+   "content": "reasoning",
+   "prompt_index": 3,
+   "thinking": true,
+   "prompt_tokens": 98,
+   "checker": "math",
+   "file": "L/reasoning/p3.json",
+   "sha256": "0ccec072e95241557bcc6d55b5f38fd39ff7db6142b127b413de89753e86d904"
+  },
+  {
+   "id": "L-json-p0",
+   "content": "json",
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 695,
+   "checker": "json",
+   "file": "L/json/p0.json",
+   "sha256": "a903d2b23fb0e128d5d906f61f3fc9ce13a623fa0aa4ad453c1b81c419c329ad"
+  },
+  {
+   "id": "L-json-p1",
+   "content": "json",
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 693,
+   "checker": "json",
+   "file": "L/json/p1.json",
+   "sha256": "e8829a040915e5c7523ba7e33bfd43d9130bb63993de16228b3bac1a0c2d6651"
+  },
+  {
+   "id": "L-json-p2",
+   "content": "json",
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 695,
+   "checker": "json",
+   "file": "L/json/p2.json",
+   "sha256": "68c83534c4360e13fe5b806cebe797668ebaab3b8f3647aebb400c63abe687a5"
+  },
+  {
+   "id": "L-json-p3",
+   "content": "json",
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 701,
+   "checker": "json",
+   "file": "L/json/p3.json",
+   "sha256": "70b680bfff53f1bf8461b0d4246867c3d9939941fe11e7aca6f06db6733cecdb"
+  }
+ ]
+}

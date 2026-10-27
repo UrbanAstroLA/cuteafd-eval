@@ -1,0 +1,30 @@
+{
+ "id": "L-reasoning-p0",
+ "block": "L",
+ "content": "reasoning",
+ "prompt_index": 0,
+ "thinking": true,
+ "messages": [
+  {
+   "role": "user",
+   "content": "Pat is to select six cookies from a tray containing only chocolate chip, oatmeal, and peanut butter cookies. There are at least six of each of these three kinds of cookies on the tray. How many different assortments of six cookies can be selected? (Note that cookies of the same type are not distinguishable.)\n\nPlease reason step by step, and put your final answer within \\boxed{}."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 98,
+  "cuteafd_thinking_off_adds": 0
+ },
+ "checker": {
+  "kind": "math",
+  "answer": "28"
+ },
+ "item": {
+  "source": "math500",
+  "unique_id": "test/counting_and_probability/1009.json",
+  "answer": "28"
+ }
+}

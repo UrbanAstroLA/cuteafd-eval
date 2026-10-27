@@ -1,0 +1,537 @@
+2026-10-27T10:51:14.930215145Z (APIServer pid=59) INFO 10-27 10:51:14 [api_utils.py:345] 
+2026-10-27T10:51:14.930272135Z (APIServer pid=59) INFO 10-27 10:51:14 [api_utils.py:345]        █     █     █▄   ▄█
+2026-10-27T10:51:14.930275722Z (APIServer pid=59) INFO 10-27 10:51:14 [api_utils.py:345]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.1.dev20051+g487ecf187
+2026-10-27T10:51:14.930277796Z (APIServer pid=59) INFO 10-27 10:51:14 [api_utils.py:345]   █▄█▀ █     █     █     █  model   /model-repo/snapshots/0490d2f708b12145f6516555ab066aaeb401cd21
+2026-10-27T10:51:14.930279810Z (APIServer pid=59) INFO 10-27 10:51:14 [api_utils.py:345]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+2026-10-27T10:51:14.930281774Z (APIServer pid=59) INFO 10-27 10:51:14 [api_utils.py:345] 
+2026-10-27T10:51:14.935187404Z (APIServer pid=59) INFO 10-27 10:51:14 [api_utils.py:273] non-default args: {'model_tag': '/model-repo/snapshots/0490d2f708b12145f6516555ab066aaeb401cd21', 'chat_template': '/opt/glm53/templates/glm53-zai-a5b45eb.jinja', 'enable_auto_tool_choice': True, 'tool_call_parser': 'glm47', 'enable_prompt_tokens_details': True, 'host': '0.0.0.0', 'port': 8001, 'model': '/model-repo/snapshots/0490d2f708b12145f6516555ab066aaeb401cd21', 'max_model_len': 1048576, 'served_model_name': ['wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1'], 'attention_backend': 'B12X_MLA_SPARSE', 'reasoning_parser': 'glm45', 'tensor_parallel_size': 2, 'gpu_memory_utilization': 0.95, 'kv_cache_dtype': 'fp8_ds_mla', 'enable_prefix_caching': True, 'mamba_cache_mode': 'align', 'language_model_only': True, 'max_num_batched_tokens': 2048, 'max_num_seqs': 16, 'max_cudagraph_capture_size': 64, 'enable_flashinfer_autotune': False, 'speculative_config': {'method': 'dflash', 'model': '/draft-repo/snapshots/bf582e4eacc1810f76656d1811693ff6c6737d2a', 'num_speculative_tokens': 3, 'kv_cache_dtype': 'bfloat16'}}
+2026-10-27T10:51:14.935688070Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_GLM53_MLA_OWNERS
+2026-10-27T10:51:14.935713489Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ADAPTIVE_MTP_DECISION_WINDOW
+2026-10-27T10:51:14.935748897Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_PCIE_ALLREDUCE_BACKEND
+2026-10-27T10:51:14.935775719Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_USE_B12X_MHC
+2026-10-27T10:51:14.935795978Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_EXL3_PREFILL_BLOCK_M
+2026-10-27T10:51:14.935822178Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_NVFP4_MLA_DYNAMIC_SCALE
+2026-10-27T10:51:14.935844722Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ADAPTIVE_MTP
+2026-10-27T10:51:14.935865502Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_PCIE_ONESHOT_ALLREDUCE_MAX_SIZE
+2026-10-27T10:51:14.935885861Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_B12X_GLM_H64_QUERY_PROJ
+2026-10-27T10:51:14.935921670Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_EXL3_PREFILL_CAPACITY
+2026-10-27T10:51:14.935961838Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_EXL3_TRELLIS_MIN_M
+2026-10-27T10:51:14.936035660Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ADAPTIVE_MTP_PROBE_INTERVAL
+2026-10-27T10:51:14.936041812Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_EXL3_PREFILL_TRELLIS
+2026-10-27T10:51:14.936044667Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_EXL3_TRELLIS_BLOCK_M
+2026-10-27T10:51:14.936047162Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ADAPTIVE_MTP_LOAD_THRESHOLDS
+2026-10-27T10:51:14.936053925Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_GLM53_EMBED_SPLIT
+2026-10-27T10:51:14.936059396Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_USE_B12X_KPOOL_INDEXER
+2026-10-27T10:51:14.936093321Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_B12X_PCIE_EAGER
+2026-10-27T10:51:14.936116706Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_GLM53_DRAFT_SLOT_SHARING
+2026-10-27T10:51:14.936140031Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_B12X_DCP_A2A
+2026-10-27T10:51:14.936162595Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_EXL3_TRELLIS_MAX_M
+2026-10-27T10:51:14.936183064Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ENABLE_PCIE_ALLREDUCE
+2026-10-27T10:51:14.936208653Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ADAPTIVE_MTP_HISTORY
+2026-10-27T10:51:14.936223522Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ADAPTIVE_MTP_PROBE_INTERVAL_MAX
+2026-10-27T10:51:14.936251386Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_ADAPTIVE_MTP_MIN_DEPTH
+2026-10-27T10:51:14.936271785Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_GLM53_NOPE_RECORD
+2026-10-27T10:51:14.936297385Z (APIServer pid=59) WARNING 10-27 10:51:14 [envs.py:2239] Unknown vLLM environment variable detected: VLLM_NVFP4_MLA_SCALES_FILE
+2026-10-27T10:51:14.952270568Z (APIServer pid=59) INFO 10-27 10:51:14 [model.py:679] Resolved architecture: Glm5NextForConditionalGeneration
+2026-10-27T10:51:14.952524498Z (APIServer pid=59) INFO 10-27 10:51:14 [model.py:1972] Using max model len 1048576
+2026-10-27T10:51:23.238337141Z (APIServer pid=59) INFO 10-27 10:51:23 [registry.py:141] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+2026-10-27T10:51:23.239408056Z (APIServer pid=59) INFO 10-27 10:51:23 [model.py:882] Disabled mm_prefix attention mode because multimodal inputs are configuration-disabled. Attention backends without mm_prefix support may now be selected.
+2026-10-27T10:51:23.607447826Z (APIServer pid=59) INFO 10-27 10:51:23 [cache.py:297] Using fp8_ds_mla data type to store kv cache. It reduces the GPU memory footprint and boosts the performance. Meanwhile, it may cause accuracy drop without a proper scaling factor
+2026-10-27T10:51:23.611843773Z (APIServer pid=59) INFO 10-27 10:51:23 [model.py:679] Resolved architecture: DFlash2DraftModel
+2026-10-27T10:51:23.611991918Z (APIServer pid=59) INFO 10-27 10:51:23 [model.py:1972] Using max model len 1048576
+2026-10-27T10:51:24.699848936Z (APIServer pid=59) INFO 10-27 10:51:24 [exl3.py:727] EXL3 standard fused MoE enabled for glm5_next: projection tiers (3, 4) via b12x
+2026-10-27T10:51:24.781141084Z (APIServer pid=59) INFO 10-27 10:51:24 [vllm.py:1336] Auto-enabling VLLM_USE_BREAKABLE_CUDAGRAPH=1. Set VLLM_USE_BREAKABLE_CUDAGRAPH=0 to opt out.
+2026-10-27T10:51:24.781476341Z (APIServer pid=59) INFO 10-27 10:51:24 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:51:24.781594980Z (APIServer pid=59) WARNING 10-27 10:51:24 [vllm.py:1866] max_num_scheduled_tokens is set to 2048 based on the speculative decoding settings. This may lead to suboptimal performance. Consider increasing max_num_batched_tokens to accommodate the additional draft token slots, or decrease num_speculative_tokens.
+2026-10-27T10:51:24.818828223Z (APIServer pid=59) INFO 10-27 10:51:24 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+2026-10-27T10:51:36.823629378Z (EngineCore pid=232) INFO 10-27 10:51:36 [core.py:122] Initializing a V1 LLM engine (v0.1.dev20051+g487ecf187) with config: model='/model-repo/snapshots/0490d2f708b12145f6516555ab066aaeb401cd21', speculative_config=SpeculativeConfig(method='dflash', model='/draft-repo/snapshots/bf582e4eacc1810f76656d1811693ff6c6737d2a', num_spec_tokens=3), tokenizer='/model-repo/snapshots/0490d2f708b12145f6516555ab066aaeb401cd21', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=1048576, download_dir=None, load_format=auto, tensor_parallel_size=2, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=exl3, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=fp8_ds_mla, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='glm45', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 64, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=False, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+2026-10-27T10:51:36.824346391Z (EngineCore pid=232) INFO 10-27 10:51:36 [multiproc_executor.py:149] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=<private-ip> (local), world_size=2, local_world_size=2
+2026-10-27T10:51:51.480702751Z INFO 10-27 10:51:51 [registry.py:141] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+2026-10-27T10:51:51.489597334Z (Worker pid=314) INFO 10-27 10:51:51 [parallel_state.py:1640] world_size=2 rank=0 local_rank=0 distributed_init_method=file://<tmp>/vllm_dist_f7759cf1866840d5967f4299267a795b backend=nccl
+2026-10-27T10:51:58.541971935Z INFO 10-27 10:51:58 [registry.py:141] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+2026-10-27T10:51:58.660156858Z (Worker pid=348) INFO 10-27 10:51:58 [parallel_state.py:1640] world_size=2 rank=1 local_rank=1 distributed_init_method=file://<tmp>/vllm_dist_f7759cf1866840d5967f4299267a795b backend=nccl
+2026-10-27T10:51:58.675511179Z (Worker pid=314) INFO 10-27 10:51:58 [pynccl.py:113] vLLM is using nccl==2.30.7
+2026-10-27T10:51:58.676380285Z NCCL version 2.30.7+cuda13.3
+2026-10-27T10:51:59.063707566Z (Worker pid=348) WARNING 10-27 10:51:59 [symm_mem.py:67] SymmMemCommunicator: Device capability 12.0 not supported, communicator is not available.
+2026-10-27T10:51:59.063751611Z (Worker pid=314) WARNING 10-27 10:51:59 [symm_mem.py:67] SymmMemCommunicator: Device capability 12.0 not supported, communicator is not available.
+2026-10-27T10:51:59.220458735Z (Worker pid=314) INFO 10-27 10:51:59 [b12x_pcie_all_reduce.py:103] Enabled B12x PCIe one-shot all-reduce (world_size=2, max_size=393216 bytes, graph_channel=single, eager=False).
+2026-10-27T10:51:59.220484975Z (Worker pid=314) INFO 10-27 10:51:59 [cuda_communicator.py:290] Using ['B12X_PCIE_ONESHOT', 'PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+2026-10-27T10:51:59.264291047Z (Worker pid=314) INFO 10-27 10:51:59 [cuda_communicator.py:290] Using ['PYNCCL'] all-reduce backends (in dispatch order) for group 'ep:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+2026-10-27T10:51:59.264333318Z (Worker pid=314) INFO 10-27 10:51:59 [parallel_state.py:1984] rank 0 in world size 2 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank 0, EPLB rank N/A
+2026-10-27T10:51:59.264338598Z (Worker pid=314) INFO 10-27 10:51:59 [gpu_worker.py:386] Using V2 Model Runner
+2026-10-27T10:52:00.146171087Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [model_runner.py:353] Loading model from scratch...
+2026-10-27T10:52:00.204148899Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [cuda.py:596] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+2026-10-27T10:52:00.204172144Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [mm_encoder_attention.py:375] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+2026-10-27T10:52:00.228582550Z (Worker_TP1 pid=348) INFO 10-27 10:52:00 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:52:00.229151537Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:52:00.229226011Z (Worker_TP0 pid=314) WARNING 10-27 10:52:00 [vllm.py:1866] max_num_scheduled_tokens is set to 2048 based on the speculative decoding settings. This may lead to suboptimal performance. Consider increasing max_num_batched_tokens to accommodate the additional draft token slots, or decrease num_speculative_tokens.
+2026-10-27T10:52:00.242253154Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+2026-10-27T10:52:00.613688468Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [sparse_attn_indexer_kpool.py:1204] Using B12x fused paged score+top-k for GLM kpool decode.
+2026-10-27T10:52:00.637150345Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [cuda.py:477] Using AttentionBackendEnum.B12X_MLA_SPARSE backend.
+2026-10-27T10:52:00.637521791Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:00.697477458Z (Worker_TP1 pid=348) INFO 10-27 10:52:00 [cuda.py:477] Using AttentionBackendEnum.B12X_MLA_SPARSE backend.
+2026-10-27T10:52:00.697871337Z (Worker_TP1 pid=348) INFO 10-27 10:52:00 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:00.915341836Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [b12x_mla_sparse.py:229] B12x sparse MLA decode plan vllm.b12x_mla_sparse.decode.h64.rows64.w2048.rec528: rows<=64 splits=32/32
+2026-10-27T10:52:00.990638197Z (Worker_TP0 pid=314) WARNING 10-27 10:52:00 [mla_attention.py:553] Sparse MLA impl has no dense-MHA prefill path; using the top-k MQA path only.
+2026-10-27T10:52:00.991035142Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [deep_gemm.py:191] deep_gemm not found in site-packages, trying vendored vllm.third_party.deep_gemm
+2026-10-27T10:52:00.991095168Z (Worker_TP0 pid=314) INFO 10-27 10:52:00 [deep_gemm.py:136] DeepGEMM E8M0 enabled on current platform.
+2026-10-27T10:52:01.011077785Z (Worker_TP1 pid=348) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.012736394Z (Worker_TP0 pid=314) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.026544123Z (Worker_TP1 pid=348) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.028755637Z (Worker_TP0 pid=314) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.041091377Z (Worker_TP1 pid=348) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.046203376Z (Worker_TP0 pid=314) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.056007414Z (Worker_TP1 pid=348) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.061940556Z (Worker_TP0 pid=314) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.076547165Z (Worker_TP0 pid=314) INFO 10-27 10:52:01 [b12x_mla_sparse.py:1760] B12X GLM MLA KV format: KV_FP8_ROPE=0 kv_gmem_stride=528 kv_cache_dtype=fp8_ds_mla
+2026-10-27T10:52:01.523382501Z (Worker_TP0 pid=314) INFO 10-27 10:52:01 [weight_utils.py:858] Filesystem type for checkpoints: EXT4. Checkpoint size: 136.16 GiB. Available RAM: 111.13 GiB.
+2026-10-27T10:52:01.523425003Z (Worker_TP0 pid=314) INFO 10-27 10:52:01 [weight_utils.py:888] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre) and the checkpoint size (136.16 GiB) exceeds 90% of available RAM (111.13 GiB).
+2026-10-27T10:52:01.524068544Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:   0% Completed | 0/18 [00:00<?, ?it/s]
+2026-10-27T10:52:05.601795775Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:   6% Completed | 1/18 [00:04<01:09,  4.08s/it]
+2026-10-27T10:52:11.261832939Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  11% Completed | 2/18 [00:09<01:20,  5.01s/it]
+2026-10-27T10:52:17.126799351Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  17% Completed | 3/18 [00:15<01:20,  5.40s/it]
+2026-10-27T10:52:22.788763029Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  22% Completed | 4/18 [00:21<01:17,  5.50s/it]
+2026-10-27T10:52:28.340813809Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  28% Completed | 5/18 [00:26<01:11,  5.52s/it]
+2026-10-27T10:52:34.000971759Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  33% Completed | 6/18 [00:32<01:06,  5.57s/it]
+2026-10-27T10:52:39.667844988Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  39% Completed | 7/18 [00:38<01:01,  5.60s/it]
+2026-10-27T10:52:46.054320513Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  44% Completed | 8/18 [00:44<00:58,  5.85s/it]
+2026-10-27T10:52:51.995797535Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  50% Completed | 9/18 [00:50<00:52,  5.88s/it]
+2026-10-27T10:53:05.219831082Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  56% Completed | 10/18 [01:03<01:05,  8.15s/it]
+2026-10-27T10:53:19.931049187Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  61% Completed | 11/18 [01:18<01:11, 10.16s/it]
+2026-10-27T10:53:27.288595685Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  67% Completed | 12/18 [01:25<00:55,  9.30s/it]
+2026-10-27T10:53:34.073685776Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  72% Completed | 13/18 [01:32<00:42,  8.54s/it]
+2026-10-27T10:53:45.206909163Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  78% Completed | 14/18 [01:43<00:37,  9.32s/it]
+2026-10-27T10:54:00.619804800Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  83% Completed | 15/18 [01:59<00:33, 11.16s/it]
+2026-10-27T10:54:10.300627300Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  89% Completed | 16/18 [02:08<00:21, 10.71s/it]
+2026-10-27T10:54:17.196520783Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:  94% Completed | 17/18 [02:15<00:09,  9.57s/it]
+2026-10-27T10:54:17.202377108Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards: 100% Completed | 18/18 [02:15<00:00,  7.54s/it]
+2026-10-27T10:54:17.202407767Z (Worker_TP0 pid=314) 
+2026-10-27T10:54:17.205135468Z (Worker_TP0 pid=314) INFO 10-27 10:54:17 [default_loader.py:430] Loading weights took 135.68 seconds
+2026-10-27T10:54:18.856054179Z (Worker_TP0 pid=314) INFO 10-27 10:54:18 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.3.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:18.856090328Z (Worker_TP1 pid=348) INFO 10-27 10:54:18 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.3.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:19.550170371Z (Worker_TP1 pid=348) INFO 10-27 10:54:19 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.4.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:19.550213454Z (Worker_TP0 pid=314) INFO 10-27 10:54:19 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.4.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:19.923900646Z (Worker_TP1 pid=348) INFO 10-27 10:54:19 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.5.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:19.928415625Z (Worker_TP0 pid=314) INFO 10-27 10:54:19 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.5.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:20.322267330Z (Worker_TP0 pid=314) INFO 10-27 10:54:20 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.6.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:20.322466374Z (Worker_TP1 pid=348) INFO 10-27 10:54:20 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.6.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:20.970646768Z (Worker_TP0 pid=314) INFO 10-27 10:54:20 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.7.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:21.051630046Z (Worker_TP1 pid=348) INFO 10-27 10:54:21 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.7.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:21.379081341Z (Worker_TP1 pid=348) INFO 10-27 10:54:21 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.8.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:21.379564242Z (Worker_TP0 pid=314) INFO 10-27 10:54:21 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.8.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:21.817273249Z (Worker_TP1 pid=348) INFO 10-27 10:54:21 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.9.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:21.817304118Z (Worker_TP0 pid=314) INFO 10-27 10:54:21 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.9.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:23.152715791Z (Worker_TP1 pid=348) INFO 10-27 10:54:23 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.10.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:23.192917660Z (Worker_TP0 pid=314) INFO 10-27 10:54:23 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.10.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:24.333909856Z (Worker_TP1 pid=348) INFO 10-27 10:54:24 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.11.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:24.334518931Z (Worker_TP0 pid=314) INFO 10-27 10:54:24 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.11.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:25.529358938Z (Worker_TP1 pid=348) INFO 10-27 10:54:25 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.12.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:25.529919359Z (Worker_TP0 pid=314) INFO 10-27 10:54:25 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.12.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:26.653632601Z (Worker_TP0 pid=314) INFO 10-27 10:54:26 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.13.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:26.653666877Z (Worker_TP1 pid=348) INFO 10-27 10:54:26 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.13.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:27.890069663Z (Worker_TP1 pid=348) INFO 10-27 10:54:27 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.14.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:27.890303725Z (Worker_TP0 pid=314) INFO 10-27 10:54:27 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.14.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:28.926835854Z (Worker_TP1 pid=348) INFO 10-27 10:54:28 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.15.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:28.927445650Z (Worker_TP0 pid=314) INFO 10-27 10:54:28 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.15.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:30.121208046Z (Worker_TP0 pid=314) INFO 10-27 10:54:30 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.16.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:30.126815171Z (Worker_TP1 pid=348) INFO 10-27 10:54:30 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.16.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:31.178970250Z (Worker_TP0 pid=314) INFO 10-27 10:54:31 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.17.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:31.179007913Z (Worker_TP1 pid=348) INFO 10-27 10:54:31 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.17.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:32.255607903Z (Worker_TP1 pid=348) INFO 10-27 10:54:32 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.18.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:32.255781538Z (Worker_TP0 pid=314) INFO 10-27 10:54:32 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.18.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:33.411638919Z [rank1]:[W1027 10:54:33.898041500 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 66060288, total: 101971001344).
+2026-10-27T10:54:33.425308244Z [rank0]:[W1027 10:54:33.909876357 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 6094848, total: 101973491712).
+2026-10-27T10:54:34.009663135Z (Worker_TP0 pid=314) INFO 10-27 10:54:34 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.19.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:34.015680451Z (Worker_TP1 pid=348) INFO 10-27 10:54:34 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.19.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:35.018288161Z (Worker_TP0 pid=314) INFO 10-27 10:54:35 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.20.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:35.018653977Z (Worker_TP1 pid=348) INFO 10-27 10:54:35 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.20.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:36.450057993Z (Worker_TP1 pid=348) (Worker_TP0 pid=314) INFO 10-27 10:54:36 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.21.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:36.450117247Z INFO 10-27 10:54:36 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.21.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:37.637891706Z (Worker_TP1 pid=348) INFO 10-27 10:54:37 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.22.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:37.822217782Z (Worker_TP0 pid=314) INFO 10-27 10:54:37 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.22.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:38.797885665Z (Worker_TP0 pid=314) INFO 10-27 10:54:38 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.23.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:38.799431547Z (Worker_TP1 pid=348) INFO 10-27 10:54:38 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.23.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:39.925015749Z (Worker_TP0 pid=314) INFO 10-27 10:54:39 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.24.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:39.930398491Z (Worker_TP1 pid=348) INFO 10-27 10:54:39 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.24.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:40.965085823Z (Worker_TP0 pid=314) INFO 10-27 10:54:40 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.25.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:40.972690250Z (Worker_TP1 pid=348) INFO 10-27 10:54:40 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.25.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:42.028466691Z (Worker_TP0 pid=314) INFO 10-27 10:54:42 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.26.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:42.038585708Z (Worker_TP1 pid=348) INFO 10-27 10:54:42 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.26.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:43.165364459Z (Worker_TP0 pid=314) INFO 10-27 10:54:43 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.27.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:43.173543906Z (Worker_TP1 pid=348) INFO 10-27 10:54:43 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.27.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:44.155685954Z (Worker_TP0 pid=314) INFO 10-27 10:54:44 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.28.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:44.162039859Z (Worker_TP1 pid=348) INFO 10-27 10:54:44 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.28.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:45.267859197Z (Worker_TP0 pid=314) INFO 10-27 10:54:45 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.29.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:45.279961179Z (Worker_TP1 pid=348) INFO 10-27 10:54:45 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.29.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:46.265471076Z (Worker_TP0 pid=314) INFO 10-27 10:54:46 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.30.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:46.275034241Z (Worker_TP1 pid=348) INFO 10-27 10:54:46 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.30.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:47.471117592Z [rank1]:[W1027 10:54:47.958294526 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 1 while trying to map 20971520 bytes (free: 53477376, total: 101971001344).
+2026-10-27T10:54:47.476112256Z (Worker_TP0 pid=314) INFO 10-27 10:54:47 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.31.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:47.818365563Z (Worker_TP1 pid=348) INFO 10-27 10:54:47 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.31.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:49.021562047Z (Worker_TP0 pid=314) INFO 10-27 10:54:49 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.32.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:49.024692665Z (Worker_TP1 pid=348) INFO 10-27 10:54:49 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.32.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:50.214633663Z (Worker_TP1 pid=348) INFO 10-27 10:54:50 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.33.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:50.220961689Z (Worker_TP0 pid=314) INFO 10-27 10:54:50 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.33.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:51.558108528Z (Worker_TP0 pid=314) INFO 10-27 10:54:51 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.34.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:51.560621304Z (Worker_TP1 pid=348) INFO 10-27 10:54:51 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.34.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:52.602700721Z [rank0]:[W1027 10:54:52.089826587 CUDACachingAllocator.cpp:508] expandable_segments: memory mapping failed with OOM on device 0 while trying to map 20971520 bytes (free: 14483456, total: 101973491712).
+2026-10-27T10:54:52.728861851Z (Worker_TP1 pid=348) INFO 10-27 10:54:52 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.35.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:52.935789413Z (Worker_TP0 pid=314) INFO 10-27 10:54:52 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.35.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:54.236773277Z (Worker_TP1 pid=348) INFO 10-27 10:54:54 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.36.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:54.239690704Z (Worker_TP0 pid=314) INFO 10-27 10:54:54 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.36.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:55.179164558Z (Worker_TP1 pid=348) INFO 10-27 10:54:55 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.37.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:55.179666747Z (Worker_TP0 pid=314) INFO 10-27 10:54:55 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.37.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:56.123265968Z (Worker_TP1 pid=348) INFO 10-27 10:54:56 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.38.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:56.125285835Z (Worker_TP0 pid=314) INFO 10-27 10:54:56 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.38.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:57.169911900Z (Worker_TP0 pid=314) INFO 10-27 10:54:57 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.39.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:57.194056570Z (Worker_TP1 pid=348) INFO 10-27 10:54:57 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.39.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:58.168225929Z (Worker_TP0 pid=314) INFO 10-27 10:54:58 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.40.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:58.186578568Z (Worker_TP1 pid=348) INFO 10-27 10:54:58 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.40.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:54:59.158824178Z (Worker_TP1 pid=348) INFO 10-27 10:54:59 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.41.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:54:59.159911535Z (Worker_TP0 pid=314) INFO 10-27 10:54:59 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.41.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:55:00.096130898Z (Worker_TP1 pid=348) INFO 10-27 10:55:00 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.42.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:55:00.098972789Z (Worker_TP0 pid=314) INFO 10-27 10:55:00 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.42.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:55:01.140493871Z (Worker_TP1 pid=348) INFO 10-27 10:55:01 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.43.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:55:01.147085555Z (Worker_TP0 pid=314) INFO 10-27 10:55:01 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.43.mlp.experts: tiers=(bits,gate,up,down)((3, 248, 221, 180), (4, 40, 67, 108))
+2026-10-27T10:55:02.131329641Z (Worker_TP0 pid=314) INFO 10-27 10:55:02 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.44.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:55:02.133603226Z (Worker_TP1 pid=348) INFO 10-27 10:55:02 [exl3.py:2536] EXL3 projection-mixed Trellis language_model.model.layers.44.mlp.experts: tiers=(bits,gate,up,down)((3, 247, 220, 180), (4, 41, 68, 108))
+2026-10-27T10:55:02.211399722Z (Worker_TP1 pid=348) (Worker_TP0 pid=314) INFO 10-27 10:55:02 [eagle3_utils.py:28] Using Eagle3 auxiliary layers from config: (6, 15, 25, 34, 43)
+2026-10-27T10:55:02.211428607Z INFO 10-27 10:55:02 [eagle3_utils.py:28] Using Eagle3 auxiliary layers from config: (6, 15, 25, 34, 43)
+2026-10-27T10:55:02.245382298Z (Worker_TP0 pid=314) (Worker_TP1 pid=348) INFO 10-27 10:55:02 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:02.245407316Z INFO 10-27 10:55:02 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:02.494622156Z (Worker_TP0 pid=314) INFO 10-27 10:55:02 [cuda.py:537] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+2026-10-27T10:55:02.494685418Z (Worker_TP0 pid=314) INFO 10-27 10:55:02 [flash_attn.py:873] Using FlashAttention version 2
+2026-10-27T10:55:02.513947812Z (Worker_TP0 pid=314) INFO 10-27 10:55:02 [weight_utils.py:858] Filesystem type for checkpoints: EXT4. Checkpoint size: 2.18 GiB. Available RAM: 38.04 GiB.
+2026-10-27T10:55:02.513964624Z (Worker_TP0 pid=314) INFO 10-27 10:55:02 [weight_utils.py:881] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+2026-10-27T10:55:02.515030640Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+2026-10-27T10:55:02.553034794Z (Worker_TP0 pid=314) 
+Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00, 26.41it/s]
+2026-10-27T10:55:02.553057788Z (Worker_TP0 pid=314) 
+2026-10-27T10:55:03.766330772Z (Worker_TP0 pid=314) INFO 10-27 10:55:03 [default_loader.py:430] Loading weights took 1.25 seconds
+2026-10-27T10:55:04.887794594Z (Worker_TP0 pid=314) INFO 10-27 10:55:04 [model_runner.py:374] Model loading took 68.68 GiB and 185.131838 seconds
+2026-10-27T10:55:04.901140025Z (Worker_TP0 pid=314) INFO 10-27 10:55:04 [placement.py:287] glm53-placement ledger {"gib": {"dense_mlp": 0.422, "draft": 1.533, "embed": 0.201, "kda_attention": 4.398, "layer_other": 0.133, "lm_head": 0.591, "mla_attention": 1.396, "other": 0.0, "routed_experts": 0.0, "router": 0.092, "shared_experts": 0.984}, "mla_owned": [3, 7, 11, 15, 19, 23], "rank": 0, "torch_allocated_gib": 68.703, "total_gib": 9.75}
+2026-10-27T10:55:04.903711455Z (Worker_TP1 pid=348) INFO 10-27 10:55:04 [model_runner.py:374] Model loading took 69.23 GiB and 185.151775 seconds
+2026-10-27T10:55:04.916482878Z (Worker_TP1 pid=348) INFO 10-27 10:55:04 [placement.py:287] glm53-placement ledger {"gib": {"dense_mlp": 0.422, "draft": 1.533, "embed": 0.981, "kda_attention": 4.398, "layer_other": 0.133, "lm_head": 0.591, "mla_attention": 1.163, "other": 0.0, "routed_experts": 0.0, "router": 0.092, "shared_experts": 0.984}, "mla_owned": [27, 31, 35, 39, 43], "rank": 1, "torch_allocated_gib": 69.251, "total_gib": 10.297}
+2026-10-27T10:55:04.932513278Z (Worker_TP0 pid=314) INFO 10-27 10:55:04 [topk_topp_sampler.py:62] Using FlashInfer for top-p & top-k sampling.
+2026-10-27T10:55:04.934302459Z (Worker_TP0 pid=314) INFO 10-27 10:55:04 [interface.py:635] Setting kv cache block size to 64 for DEEPSEEK_V32_INDEXER backend.
+2026-10-27T10:55:04.934528846Z (Worker_TP0 pid=314) INFO 10-27 10:55:04 [interface.py:926] Setting attention block size to 4352 tokens to ensure that attention page size is >= mamba page size.
+2026-10-27T10:55:04.934560276Z (Worker_TP0 pid=314) INFO 10-27 10:55:04 [interface.py:950] Padding mamba page size by 2.37% to ensure that mamba page size and attention page size are exactly equal.
+2026-10-27T10:55:04.934883971Z (Worker_TP1 pid=348) INFO 10-27 10:55:04 [interface.py:635] Setting kv cache block size to 64 for DEEPSEEK_V32_INDEXER backend.
+2026-10-27T10:55:04.935156336Z (Worker_TP1 pid=348) INFO 10-27 10:55:04 [interface.py:926] Setting attention block size to 4352 tokens to ensure that attention page size is >= mamba page size.
+2026-10-27T10:55:04.935754039Z (Worker_TP1 pid=348) INFO 10-27 10:55:04 [interface.py:950] Padding mamba page size by 2.37% to ensure that mamba page size and attention page size are exactly equal.
+2026-10-27T10:55:05.195635173Z (EngineCore pid=232) INFO 10-27 10:55:05 [torch_utils.py:263] Reducing Torch threads from 12 to 1 for serving. Set OMP_NUM_THREADS in the external environment to override.
+2026-10-27T10:55:06.346480147Z (Worker_TP1 pid=348) (Worker_TP0 pid=314) 2026-10-27 10:55:06  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`2026-10-27 10:55:06  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:55:06.346507460Z 
+2026-10-27T10:55:14.918525110Z (Worker_TP1 pid=348) (Worker_TP0 pid=314) 2026-10-27 10:55:14  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`2026-10-27 10:55:14  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:55:14.918557342Z 
+2026-10-27T10:55:16.152065555Z (Worker_TP1 pid=348) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+2026-10-27T10:55:16.152091085Z (Worker_TP1 pid=348)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+2026-10-27T10:55:16.153659209Z (Worker_TP0 pid=314) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+2026-10-27T10:55:16.153699026Z (Worker_TP0 pid=314)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+2026-10-27T10:55:16.353165144Z (Worker_TP1 pid=348) 2026-10-27 10:55:16  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_post_tilelang` with `out_idx=None`
+2026-10-27T10:55:16.356758855Z (Worker_TP0 pid=314) 2026-10-27 10:55:16  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_post_tilelang` with `out_idx=None`
+2026-10-27T10:55:16.735330748Z [10:55:16] : Warning: T.vectorized loop over `i_hci` with extent 4 is lowered as a serial loop because TileLang could not find a valid vectorization plan. Scalar accumulator updates inside the loop are a common cause; move reductions to T.unroll or T.serial if this is intended.
+2026-10-27T10:55:16.735863796Z [10:55:16] : Warning: T.vectorized loop over `i_hci` with extent 4 is lowered as a serial loop because TileLang could not find a valid vectorization plan. Scalar accumulator updates inside the loop are a common cause; move reductions to T.unroll or T.serial if this is intended.
+2026-10-27T10:55:17.981561374Z (Worker_TP0 pid=314) 2026-10-27 10:55:17  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_post_tilelang`
+2026-10-27T10:55:17.982017443Z (Worker_TP1 pid=348) 2026-10-27 10:55:17  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_post_tilelang`
+2026-10-27T10:55:26.186498479Z (Worker_TP0 pid=314) INFO 10-27 10:55:26 [exl3.py:3122] EXL3 rank-sliced runtime planned: Trellis m=1..32 block_m=8, prefill trellis block_m=64 arena=262.6MiB capacity=1024 chunk=128 topk=8
+2026-10-27T10:55:29.063440148Z (Worker_TP0 pid=314) (Worker_TP1 pid=348) INFO 10-27 10:55:29 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:29.063464325Z INFO 10-27 10:55:29 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:30.547800240Z (Worker_TP0 pid=314) INFO 10-27 10:55:30 [gpu_worker.py:565] Available KV cache memory: 17.4 GiB
+2026-10-27T10:55:37.886386742Z (EngineCore pid=232) INFO 10-27 10:55:37 [kv_cache_utils.py:1462] glm53 draft slot sharing: 5 draft layers in MLA slots, block_size=[1088], page=2228224 of 2297856 bytes
+2026-10-27T10:55:37.889512041Z (EngineCore pid=232) INFO 10-27 10:55:37 [kv_cache_utils.py:2284] glm53-placement kv-capacity {"num_blocks": 1275, "tensor_bytes": 18677260800, "groups": [{"spec": "MLAAttentionSpec", "layers": 12, "block_size": 4352, "page_bytes": 143616, "blocks_per_max_request": 241}, {"spec": "KpoolTailSpec", "layers": 6, "block_size": 8, "page_bytes": 143616, "blocks_per_max_request": 1}, {"spec": "MambaSpec", "layers": 5, "block_size": 4352, "page_bytes": 2297856, "blocks_per_max_request": 5}, {"spec": "MambaSpec", "layers": 5, "block_size": 4352, "page_bytes": 2297856, "blocks_per_max_request": 5}, {"spec": "MambaSpec", "layers": 5, "block_size": 4352, "page_bytes": 2297856, "blocks_per_max_request": 5}, {"spec": "MambaSpec", "layers": 5, "block_size": 4352, "page_bytes": 2297856, "blocks_per_max_request": 5}, {"spec": "MambaSpec", "layers": 5, "block_size": 4352, "page_bytes": 2297856, "blocks_per_max_request": 5}, {"spec": "MambaSpec", "layers": 5, "block_size": 4352, "page_bytes": 2297856, "blocks_per_max_request": 5}, {"spec": "MambaSpec", "layers": 4, "block_size": 4352, "page_bytes": 2297856, "blocks_per_max_request": 5}, {"spec": "SlidingWindowSpec", "layers": 5, "block_size": 1088, "page_bytes": 2297856, "blocks_per_max_request": 7}]}
+2026-10-27T10:55:37.889546778Z (EngineCore pid=232) INFO 10-27 10:55:37 [kv_cache_utils.py:2299] GPU KV cache size: 4,707,515 tokens, Maximum concurrency for 1,048,576 tokens per request: 4.49x
+2026-10-27T10:55:37.892780004Z (Worker_TP0 pid=314) INFO 10-27 10:55:37 [indexer.py:749] DSA indexer decode path: use_flattening=True supports_varlen=False (next_n=4, use_fp4_indexer_cache=False)
+2026-10-27T10:55:37.936311891Z (Worker_TP1 pid=348) INFO 10-27 10:55:37 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:37.936529962Z (Worker_TP0 pid=314) INFO 10-27 10:55:37 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:37.947376944Z (Worker_TP1 pid=348) INFO 10-27 10:55:37 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:37.948054812Z (Worker_TP0 pid=314) INFO 10-27 10:55:37 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T10:55:38.127020602Z (Worker_TP0 pid=314) INFO 10-27 10:55:38 [deepseek_v4_mhc_warmup.py:245] Warming up mHC TileLang kernels for Glm5NextDecoderLayer token sizes: [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 128, 192, 256, 320, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024, 1088, 1152, 1216, 1280, 1344, 1408, 1472, 1536, 1600, 1664, 1728, 1792, 1856, 1920, 1984, 2048]
+2026-10-27T10:55:38.127613366Z (Worker_TP1 pid=348) INFO 10-27 10:55:38 [deepseek_v4_mhc_warmup.py:245] Warming up mHC TileLang kernels for Glm5NextDecoderLayer token sizes: [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 128, 192, 256, 320, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024, 1088, 1152, 1216, 1280, 1344, 1408, 1472, 1536, 1600, 1664, 1728, 1792, 1856, 1920, 1984, 2048]
+2026-10-27T10:55:38.234023396Z (Worker_TP0 pid=314) 2026-10-27 10:55:38  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:55:38.242055128Z (Worker_TP1 pid=348) 2026-10-27 10:55:38  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:55:46.425317933Z (Worker_TP1 pid=348) 2026-10-27 10:55:46  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:55:46.503792240Z (Worker_TP0 pid=314) 2026-10-27 10:55:46  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:55:47.317418092Z (Worker_TP1 pid=348) 2026-10-27 10:55:47  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_fused_tilelang` with `out_idx=None`
+2026-10-27T10:55:47.377113727Z (Worker_TP0 pid=314) INFO 10-27 10:55:47 [mhc.py:507] Using B12x fused GLM H4096 mHC post+pre for decode M=1.
+2026-10-27T10:55:47.390693621Z (Worker_TP0 pid=314) 2026-10-27 10:55:47  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_fused_tilelang` with `out_idx=None`
+2026-10-27T10:55:48.682751158Z (Worker_TP1 pid=348) 2026-10-27 10:55:48  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_fused_tilelang`
+2026-10-27T10:55:48.738160756Z (Worker_TP0 pid=314) 2026-10-27 10:55:48  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_fused_tilelang`
+2026-10-27T10:55:49.225238640Z (Worker_TP1 pid=348) 2026-10-27 10:55:49  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:55:49.280209471Z (Worker_TP0 pid=314) 2026-10-27 10:55:49  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:55:57.251862865Z (Worker_TP1 pid=348) 2026-10-27 10:55:57  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:55:57.361355233Z (Worker_TP0 pid=314) 2026-10-27 10:55:57  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:55:58.003219456Z (Worker_TP1 pid=348) 2026-10-27 10:55:58  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_fused_tilelang` with `out_idx=None`
+2026-10-27T10:55:58.103544211Z (Worker_TP0 pid=314) 2026-10-27 10:55:58  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_fused_tilelang` with `out_idx=None`
+2026-10-27T10:55:59.342048948Z (Worker_TP1 pid=348) 2026-10-27 10:55:59  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_fused_tilelang`
+2026-10-27T10:55:59.450536428Z (Worker_TP0 pid=314) 2026-10-27 10:55:59  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_fused_tilelang`
+2026-10-27T10:55:59.893370817Z (Worker_TP1 pid=348) 2026-10-27 10:55:59  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:00.007962321Z (Worker_TP0 pid=314) 2026-10-27 10:56:00  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:07.898394458Z (Worker_TP1 pid=348) 2026-10-27 10:56:07  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:08.036252142Z (Worker_TP0 pid=314) 2026-10-27 10:56:08  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:08.736429704Z (Worker_TP1 pid=348) 2026-10-27 10:56:08  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:08.861314423Z (Worker_TP0 pid=314) 2026-10-27 10:56:08  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:16.780651095Z (Worker_TP1 pid=348) 2026-10-27 10:56:16  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:16.915340509Z (Worker_TP0 pid=314) 2026-10-27 10:56:16  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:17.650453154Z (Worker_TP1 pid=348) 2026-10-27 10:56:17  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:17.769439188Z (Worker_TP0 pid=314) 2026-10-27 10:56:17  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:25.695580436Z (Worker_TP1 pid=348) 2026-10-27 10:56:25  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:25.772245025Z (Worker_TP0 pid=314) 2026-10-27 10:56:25  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:26.539049239Z (Worker_TP1 pid=348) 2026-10-27 10:56:26  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:26.623789135Z (Worker_TP0 pid=314) 2026-10-27 10:56:26  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:34.586900935Z (Worker_TP1 pid=348) 2026-10-27 10:56:34  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:34.683814053Z (Worker_TP0 pid=314) 2026-10-27 10:56:34  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:35.441429500Z (Worker_TP1 pid=348) 2026-10-27 10:56:35  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:35.537971182Z (Worker_TP0 pid=314) 2026-10-27 10:56:35  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:39.137098723Z (EngineCore pid=232) INFO 10-27 10:56:39 [shm_broadcast.py:801] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+2026-10-27T10:56:43.518807079Z (Worker_TP1 pid=348) 2026-10-27 10:56:43  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:43.571228787Z (Worker_TP0 pid=314) 2026-10-27 10:56:43  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:44.372033160Z (Worker_TP1 pid=348) 2026-10-27 10:56:44  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:44.426142874Z (Worker_TP0 pid=314) 2026-10-27 10:56:44  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:52.430914097Z (Worker_TP1 pid=348) 2026-10-27 10:56:52  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:52.560956833Z (Worker_TP0 pid=314) 2026-10-27 10:56:52  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:56:53.273258236Z (Worker_TP1 pid=348) 2026-10-27 10:56:53  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:56:53.397461507Z (Worker_TP0 pid=314) 2026-10-27 10:56:53  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:01.423695107Z (Worker_TP1 pid=348) 2026-10-27 10:57:01  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:01.468714127Z (Worker_TP0 pid=314) 2026-10-27 10:57:01  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:02.270872667Z (Worker_TP1 pid=348) 2026-10-27 10:57:02  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:02.318607466Z (Worker_TP0 pid=314) 2026-10-27 10:57:02  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:10.330691175Z (Worker_TP1 pid=348) 2026-10-27 10:57:10  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:10.399227629Z (Worker_TP0 pid=314) 2026-10-27 10:57:10  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:11.161458869Z (Worker_TP1 pid=348) 2026-10-27 10:57:11  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:11.241676175Z (Worker_TP0 pid=314) 2026-10-27 10:57:11  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:19.291481031Z (Worker_TP1 pid=348) 2026-10-27 10:57:19  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:19.320628486Z (Worker_TP0 pid=314) 2026-10-27 10:57:19  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:20.120013160Z (Worker_TP1 pid=348) 2026-10-27 10:57:20  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:20.167982451Z (Worker_TP0 pid=314) 2026-10-27 10:57:20  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:28.189308054Z (Worker_TP1 pid=348) 2026-10-27 10:57:28  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:28.231388466Z (Worker_TP0 pid=314) 2026-10-27 10:57:28  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:29.024273319Z (Worker_TP1 pid=348) 2026-10-27 10:57:29  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:29.064417376Z (Worker_TP0 pid=314) 2026-10-27 10:57:29  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:37.075767046Z (Worker_TP1 pid=348) 2026-10-27 10:57:37  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:37.161677016Z (Worker_TP0 pid=314) 2026-10-27 10:57:37  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:37.925612593Z (Worker_TP1 pid=348) 2026-10-27 10:57:37  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:38.004330579Z (Worker_TP0 pid=314) 2026-10-27 10:57:38  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:39.192325816Z (EngineCore pid=232) INFO 10-27 10:57:39 [shm_broadcast.py:801] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+2026-10-27T10:57:45.980986814Z (Worker_TP1 pid=348) 2026-10-27 10:57:45  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:46.097777294Z (Worker_TP0 pid=314) 2026-10-27 10:57:46  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:46.822379423Z (Worker_TP1 pid=348) 2026-10-27 10:57:46  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:46.933065687Z (Worker_TP0 pid=314) 2026-10-27 10:57:46  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:54.872128632Z (Worker_TP1 pid=348) 2026-10-27 10:57:54  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:55.050674490Z (Worker_TP0 pid=314) 2026-10-27 10:57:55  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:57:55.714314999Z (Worker_TP1 pid=348) 2026-10-27 10:57:55  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:57:55.882697661Z (Worker_TP0 pid=314) 2026-10-27 10:57:55  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:03.803369537Z (Worker_TP1 pid=348) 2026-10-27 10:58:03  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:04.012471578Z (Worker_TP0 pid=314) 2026-10-27 10:58:04  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:04.638062926Z (Worker_TP1 pid=348) 2026-10-27 10:58:04  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:04.837047942Z (Worker_TP0 pid=314) 2026-10-27 10:58:04  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:12.671221195Z (Worker_TP1 pid=348) 2026-10-27 10:58:12  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:12.858578402Z (Worker_TP0 pid=314) 2026-10-27 10:58:12  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:13.495234850Z (Worker_TP1 pid=348) 2026-10-27 10:58:13  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:13.694656750Z (Worker_TP0 pid=314) 2026-10-27 10:58:13  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:21.522973418Z (Worker_TP1 pid=348) 2026-10-27 10:58:21  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:21.758527650Z (Worker_TP0 pid=314) 2026-10-27 10:58:21  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:22.354287633Z (Worker_TP1 pid=348) 2026-10-27 10:58:22  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:22.592652627Z (Worker_TP0 pid=314) 2026-10-27 10:58:22  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:30.409085483Z (Worker_TP1 pid=348) 2026-10-27 10:58:30  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:30.643289703Z (Worker_TP0 pid=314) 2026-10-27 10:58:30  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:31.235972544Z (Worker_TP1 pid=348) 2026-10-27 10:58:31  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:31.475188262Z (Worker_TP0 pid=314) 2026-10-27 10:58:31  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:39.248219985Z (EngineCore pid=232) INFO 10-27 10:58:39 [shm_broadcast.py:801] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+2026-10-27T10:58:39.278860312Z (Worker_TP1 pid=348) 2026-10-27 10:58:39  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:39.559790280Z (Worker_TP0 pid=314) 2026-10-27 10:58:39  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:40.115685731Z (Worker_TP1 pid=348) 2026-10-27 10:58:40  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:40.396892643Z (Worker_TP0 pid=314) 2026-10-27 10:58:40  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:129): TileLang begins to compile kernel `mhc_pre_big_fuse_with_norm_tilelang` with `out_idx=None`
+2026-10-27T10:58:48.184307232Z (Worker_TP1 pid=348) 2026-10-27 10:58:48  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:48.460648320Z (Worker_TP0 pid=314) 2026-10-27 10:58:48  [TileLang:tilelang.jit.kernel:INFO] (kernel.py:137): TileLang completes to compile kernel `mhc_pre_big_fuse_with_norm_tilelang`
+2026-10-27T10:58:48.918506966Z (Worker_TP1 pid=348) INFO 10-27 10:58:48 [deepseek_v4_mhc_warmup.py:255] mHC TileLang warmup finished in 190.79 seconds.
+2026-10-27T10:58:49.198866607Z (Worker_TP0 pid=314) INFO 10-27 10:58:49 [deepseek_v4_mhc_warmup.py:255] mHC TileLang warmup finished in 191.07 seconds.
+2026-10-27T10:58:49.377263745Z (Worker_TP1 pid=348) INFO 10-27 10:58:49 [spec_decode_rejection_warmup.py:64] Warming up spec-decode rejection sampler kernels (vocab=154880, num_spec=3, dtype_pairs=[('torch.bfloat16', 'torch.float32'), ('torch.float32', 'torch.float32'), ('torch.bfloat16', 'torch.bfloat16'), ('torch.float32', 'torch.bfloat16')], block_verify=False).
+2026-10-27T10:58:49.595180029Z (Worker_TP0 pid=314) INFO 10-27 10:58:49 [spec_decode_rejection_warmup.py:64] Warming up spec-decode rejection sampler kernels (vocab=154880, num_spec=3, dtype_pairs=[('torch.bfloat16', 'torch.bfloat16'), ('torch.float32', 'torch.bfloat16'), ('torch.bfloat16', 'torch.float32'), ('torch.float32', 'torch.float32')], block_verify=False).
+2026-10-27T10:58:53.197337139Z (Worker_TP0 pid=314) INFO 10-27 10:58:53 [kernel_warmup.py:95] Warming up ll_bf16 router GEMM kernels for shapes: ((4096, 288),).
+2026-10-27T10:58:54.464647480Z (Worker_TP0 pid=314) INFO 10-27 10:58:54 [kernel_warmup.py:170] Skipping FlashInfer autotune because it is disabled.
+2026-10-27T10:58:54.942045642Z (Worker_TP0 pid=314) INFO 10-27 10:58:54 [breakable_cudagraph.py:291] Breakable CUDA graph enabled
+2026-10-27T10:58:55.924159562Z (Worker_TP0 pid=314) 
+Capturing CUDA graphs (PIECEWISE):   0%|          | 0/11 [00:00<?, ?it/s](Worker_TP1 pid=348) /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+2026-10-27T10:58:55.924204238Z (Worker_TP1 pid=348)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+2026-10-27T10:58:56.024402848Z /usr/local/lib/python3.12/dist-packages/triton/language/core.py:2284: UserWarning: tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.
+2026-10-27T10:58:56.024429990Z (Worker_TP0 pid=314)   warn("tl.make_block_ptr is deprecated. Use TensorDescriptor or tl.make_tensor_descriptor instead.")
+2026-10-27T10:59:39.297396119Z (EngineCore pid=232) INFO 10-27 10:59:39 [shm_broadcast.py:801] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+2026-10-27T11:00:19.384123545Z (Worker_TP0 pid=314) 
+Capturing CUDA graphs (PIECEWISE):   9%|▉         | 1/11 [01:12<12:08, 72.81s/it]
+Capturing CUDA graphs (PIECEWISE):  18%|█▊        | 2/11 [01:13<04:35, 30.56s/it]
+Capturing CUDA graphs (PIECEWISE):  27%|██▋       | 3/11 [01:14<02:16, 17.05s/it]
+Capturing CUDA graphs (PIECEWISE):  36%|███▋      | 4/11 [01:15<01:14, 10.71s/it]
+Capturing CUDA graphs (PIECEWISE):  45%|████▌     | 5/11 [01:16<00:43,  7.20s/it]
+Capturing CUDA graphs (PIECEWISE):  55%|█████▍    | 6/11 [01:17<00:25,  5.09s/it]
+Capturing CUDA graphs (PIECEWISE):  64%|██████▎   | 7/11 [01:19<00:16,  4.09s/it]
+Capturing CUDA graphs (PIECEWISE):  73%|███████▎  | 8/11 [01:20<00:09,  3.10s/it]
+Capturing CUDA graphs (PIECEWISE):  82%|████████▏ | 9/11 [01:21<00:04,  2.39s/it]
+Capturing CUDA graphs (PIECEWISE):  91%|█████████ | 10/11 [01:22<00:01,  1.91s/it]
+Capturing CUDA graphs (PIECEWISE): 100%|██████████| 11/11 [01:24<00:00,  1.95s/it]
+Capturing CUDA graphs (PIECEWISE): 100%|██████████| 11/11 [01:24<00:00,  7.68s/it]
+2026-10-27T11:00:23.379076079Z (Worker_TP1 pid=348) INFO 10-27 11:00:23 [speculator.py:141] Capturing model for DFlash2 speculator...
+2026-10-27T11:00:23.381188504Z (Worker_TP1 pid=348) INFO 10-27 11:00:23 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:00:23.386077776Z (Worker_TP0 pid=314) 
+Capturing CUDA graphs (FULL):   0%|          | 0/9 [00:00<?, ?it/s]
+Capturing CUDA graphs (FULL):  11%|█         | 1/9 [00:00<00:07,  1.12it/s]
+Capturing CUDA graphs (FULL):  22%|██▏       | 2/9 [00:01<00:04,  1.48it/s]
+Capturing CUDA graphs (FULL):  33%|███▎      | 3/9 [00:01<00:03,  1.86it/s]
+Capturing CUDA graphs (FULL):  44%|████▍     | 4/9 [00:02<00:02,  2.12it/s]
+Capturing CUDA graphs (FULL):  56%|█████▌    | 5/9 [00:02<00:01,  2.28it/s]
+Capturing CUDA graphs (FULL):  67%|██████▋   | 6/9 [00:02<00:01,  2.37it/s]
+Capturing CUDA graphs (FULL):  78%|███████▊  | 7/9 [00:03<00:00,  2.61it/s]
+Capturing CUDA graphs (FULL):  89%|████████▉ | 8/9 [00:03<00:00,  2.78it/s]
+Capturing CUDA graphs (FULL): 100%|██████████| 9/9 [00:04<00:00,  2.56it/s]
+Capturing CUDA graphs (FULL): 100%|██████████| 9/9 [00:04<00:00,  2.25it/s]
+2026-10-27T11:00:23.386343729Z (Worker_TP0 pid=314) INFO 10-27 11:00:23 [speculator.py:141] Capturing model for DFlash2 speculator...
+2026-10-27T11:00:23.388521290Z (Worker_TP0 pid=314) INFO 10-27 11:00:23 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:00:39.337030572Z (EngineCore pid=232) INFO 10-27 11:00:39 [shm_broadcast.py:801] No available shared memory broadcast block found in 60 seconds. This typically happens when some processes are hanging or doing some time-consuming work (e.g. compilation, weight/kv cache quantization).
+2026-10-27T11:01:27.239093959Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.239796033Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.259713307Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.259860190Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.280803634Z (Worker_TP0 pid=314) (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.280837008Z INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.301009104Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.301643638Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.322906738Z (Worker_TP1 pid=348) (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.322932007Z INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.343799334Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.344493442Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.365621001Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.365673643Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.386665870Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.387999413Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.409820740Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.409862000Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.430849338Z (Worker_TP0 pid=314) (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.430873084Z INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.452761019Z (Worker_TP0 pid=314) (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.452790286Z INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.473720544Z (Worker_TP1 pid=348) (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.473759389Z INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.495032939Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.495058048Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.515842355Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.516203000Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.537293498Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.537323546Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.558169381Z (Worker_TP1 pid=348) (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.558195150Z INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.579433894Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.579462629Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:27.598714920Z (Worker_TP0 pid=314) 
+Capturing dflash2 CUDA graphs (FULL):   0%|          | 0/9 [00:00<?, ?it/s]
+Capturing dflash2 CUDA graphs (FULL):  11%|█         | 1/9 [01:03<08:30, 63.87s/it]
+Capturing dflash2 CUDA graphs (FULL):  44%|████▍     | 4/9 [01:03<01:00, 12.12s/it]
+Capturing dflash2 CUDA graphs (FULL):  78%|███████▊  | 7/9 [01:04<00:11,  5.64s/it]
+Capturing dflash2 CUDA graphs (FULL): 100%|██████████| 9/9 [01:04<00:00,  7.13s/it]
+2026-10-27T11:01:27.598773062Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [model_runner.py:1033] Graph capturing finished in 153 secs, took 0.55 GiB
+2026-10-27T11:01:27.598841575Z (Worker_TP1 pid=348) INFO 10-27 11:01:27 [gpu_worker.py:791] Free memory on device (91.91/94.97 GiB) on startup. Desired GPU memory utilization is (0.95, 90.22 GiB). Actual usage is 72.31 GiB for consumed memory (weights + non-torch), 1.66 GiB for peak activation, and 0.55 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=16693740749` (15.55 GiB) to fit into requested memory, or `--kv-cache-memory=18505922560` (17.23 GiB) to fully utilize gpu memory. Current kv cache memory in use is 16.25 GiB.
+2026-10-27T11:01:27.598889327Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [model_runner.py:1033] Graph capturing finished in 153 secs, took 0.56 GiB
+2026-10-27T11:01:27.598965744Z (Worker_TP0 pid=314) INFO 10-27 11:01:27 [gpu_worker.py:791] Free memory on device (93.88/94.97 GiB) on startup. Desired GPU memory utilization is (0.95, 90.22 GiB). Actual usage is 71.82 GiB for consumed memory (weights + non-torch), 1.0 GiB for peak activation, and 0.56 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=17920712295` (16.69 GiB) to fit into requested memory, or `--kv-cache-memory=21853698048` (20.35 GiB) to fully utilize gpu memory. Current kv cache memory in use is 17.4 GiB.
+2026-10-27T11:01:36.892230336Z (Worker_TP0 pid=314) INFO 10-27 11:01:36 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+2026-10-27T11:01:36.892275233Z (Worker_TP1 pid=348) INFO 10-27 11:01:36 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+2026-10-27T11:01:37.388182487Z (Worker_TP0 pid=314) INFO 10-27 11:01:37 [torch_utils.py:263] Reducing Torch threads from 12 to 1 for serving. Set OMP_NUM_THREADS in the external environment to override.
+2026-10-27T11:01:37.394672628Z (EngineCore pid=232) INFO 10-27 11:01:37 [core.py:363] init engine (profile, create kv cache, warmup model) took 392.16 s
+2026-10-27T11:01:39.122568811Z (EngineCore pid=232) INFO 10-27 11:01:39 [registry.py:141] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+2026-10-27T11:01:39.484815922Z (EngineCore pid=232) INFO 10-27 11:01:39 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+2026-10-27T11:01:39.484863814Z (EngineCore pid=232) WARNING 10-27 11:01:39 [vllm.py:1866] max_num_scheduled_tokens is set to 2048 based on the speculative decoding settings. This may lead to suboptimal performance. Consider increasing max_num_batched_tokens to accommodate the additional draft token slots, or decrease num_speculative_tokens.
+2026-10-27T11:01:39.495345976Z (EngineCore pid=232) INFO 10-27 11:01:39 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+2026-10-27T11:01:40.143604343Z (APIServer pid=59) INFO 10-27 11:01:40 [api_server.py:678] Supported tasks: ['generate']
+2026-10-27T11:01:43.555954975Z (APIServer pid=59) INFO 10-27 11:01:43 [parser_manager.py:37] "auto" tool choice has been enabled.
+2026-10-27T11:01:43.849980665Z (APIServer pid=59) INFO 10-27 11:01:43 [hf.py:551] Detected the chat template content format to be 'openai'. You can set `--chat-template-content-format` to override this.
+2026-10-27T11:01:44.073725891Z (APIServer pid=59) WARNING 10-27 11:01:44 [model.py:1720] Default vLLM sampling parameters have been overridden by the model's `generation_config.json`: `{'temperature': 1.0, 'top_p': 0.95}`. If this is not intended, please relaunch vLLM instance with `--generation-config vllm`.
+2026-10-27T11:01:44.193358775Z (APIServer pid=59) INFO 10-27 11:01:44 [api_server.py:682] Starting vLLM server on http://0.0.0.0:8001
+2026-10-27T11:01:44.195680043Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:51] Available routes are:
+2026-10-27T11:01:44.195701043Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /openapi.json, Methods: GET, HEAD
+2026-10-27T11:01:44.195751160Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /docs, Methods: GET, HEAD
+2026-10-27T11:01:44.195779695Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /docs/oauth2-redirect, Methods: GET, HEAD
+2026-10-27T11:01:44.195804222Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /redoc, Methods: GET, HEAD
+2026-10-27T11:01:44.195824331Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /load, Methods: GET
+2026-10-27T11:01:44.195847025Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /version, Methods: GET
+2026-10-27T11:01:44.195874869Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /health, Methods: GET
+2026-10-27T11:01:44.195908814Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /metrics, Methods: GET
+2026-10-27T11:01:44.195922601Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /tokenize, Methods: POST
+2026-10-27T11:01:44.195947829Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /detokenize, Methods: POST
+2026-10-27T11:01:44.195971275Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/models, Methods: GET
+2026-10-27T11:01:44.195994830Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /ping, Methods: GET
+2026-10-27T11:01:44.196013626Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /ping, Methods: POST
+2026-10-27T11:01:44.196036120Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /invocations, Methods: POST
+2026-10-27T11:01:44.196057681Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/chat/completions, Methods: POST
+2026-10-27T11:01:44.196080275Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/chat/completions/batch, Methods: POST
+2026-10-27T11:01:44.196099772Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/responses, Methods: POST
+2026-10-27T11:01:44.196120252Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/responses/{response_id}, Methods: GET
+2026-10-27T11:01:44.196143437Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/responses/{response_id}/cancel, Methods: POST
+2026-10-27T11:01:44.196164567Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/completions, Methods: POST
+2026-10-27T11:01:44.196184746Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/messages, Methods: POST
+2026-10-27T11:01:44.196205537Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/messages/count_tokens, Methods: POST
+2026-10-27T11:01:44.196228220Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /generative_scoring, Methods: POST
+2026-10-27T11:01:44.196248660Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /scale_elastic_ep, Methods: POST
+2026-10-27T11:01:44.196268678Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /is_scaling_elastic_ep, Methods: POST
+2026-10-27T11:01:44.196289879Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/chat/completions/render, Methods: POST
+2026-10-27T11:01:44.196312643Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/completions/render, Methods: POST
+2026-10-27T11:01:44.196334145Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/chat/completions/derender, Methods: POST
+2026-10-27T11:01:44.196353402Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /v1/completions/derender, Methods: POST
+2026-10-27T11:01:44.196374082Z (APIServer pid=59) INFO 10-27 11:01:44 [launcher.py:60] Route: /inference/v1/generate, Methods: POST
+2026-10-27T11:01:44.887139996Z (APIServer pid=59) INFO:     Started server process [59]
+2026-10-27T11:01:44.887760173Z (APIServer pid=59) INFO:     Waiting for application startup.
+2026-10-27T11:01:53.611627447Z (APIServer pid=59) INFO:     Application startup complete.
+2026-10-27T11:01:54.032036466Z (APIServer pid=59) INFO:     127.0.0.1:55002 - "GET /health HTTP/1.1" 200 OK
+2026-10-27T11:01:54.065461560Z (APIServer pid=59) INFO:     127.0.0.1:55014 - "GET /v1/models HTTP/1.1" 200 OK
+2026-10-27T11:01:54.221661349Z (Worker_TP0 pid=314) WARNING 10-27 11:01:54 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _kpool_tail_seed_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+2026-10-27T11:01:54.575514128Z (Worker_TP0 pid=314) WARNING 10-27 11:01:54 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _gumbel_sample_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+2026-10-27T11:01:54.737843733Z (Worker_TP0 pid=314) WARNING 10-27 11:01:54 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _prepare_dflash_inputs_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+2026-10-27T11:01:54.997409815Z (APIServer pid=59) INFO:     127.0.0.1:55016 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:01:54.999501110Z GLM release startup greedy C1 warmup completed in 0.93s
+2026-10-27T11:01:55.002361287Z (APIServer pid=59) INFO:     127.0.0.1:55020 - "POST /tokenize HTTP/1.1" 200 OK
+2026-10-27T11:01:55.024835785Z (APIServer pid=59) INFO:     127.0.0.1:55034 - "POST /v1/chat/completions/render HTTP/1.1" 200 OK
+2026-10-27T11:01:55.289447351Z (Worker_TP0 pid=314) WARNING 10-27 11:01:55 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _compute_local_logits_stats_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+2026-10-27T11:01:55.500780383Z (Worker_TP0 pid=314) WARNING 10-27 11:01:55 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _rejection_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+2026-10-27T11:01:55.833932788Z (Worker_TP0 pid=314) WARNING 10-27 11:01:55 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _resample_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+2026-10-27T11:01:56.200885890Z (APIServer pid=59) INFO:     127.0.0.1:55040 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:01:56.201478864Z GLM release startup rendered-chat warmup completed in 1.18s
+2026-10-27T11:01:56.210877235Z (APIServer pid=59) INFO:     127.0.0.1:55044 - "POST /tokenize HTTP/1.1" 200 OK
+2026-10-27T11:01:59.031456124Z (APIServer pid=59) INFO:     127.0.0.1:55060 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:01:59.032205069Z GLM release startup 8K code-depth warmup completed in 2.82s
+2026-10-27T11:02:02.531390717Z (APIServer pid=59) INFO:     127.0.0.1:60772 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:02:02.531916932Z GLM release startup long-prefill warmup completed in 3.50s
+2026-10-27T11:02:03.611653906Z (APIServer pid=59) INFO 10-27 11:02:03 [loggers.py:310] Engine 000: Avg prompt throughput: 1041.3 tokens/s, Avg generation throughput: 4.3 tokens/s, Running: 5 reqs, Waiting: 0 reqs, GPU KV cache usage: 12.2%, Prefix cache hit rate: 0.0%
+2026-10-27T11:02:03.614341862Z (APIServer pid=59) INFO 10-27 11:02:03 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.85, Accepted throughput: 2.56 tokens/s, Drafted throughput: 4.15 tokens/s, Accepted: 61 tokens, Drafted: 99 tokens, Per-position acceptance rate: 0.758, 0.636, 0.455, Avg Draft acceptance rate: 61.6%
+2026-10-27T11:02:04.143357827Z (Worker_TP0 pid=314) WARNING 10-27 11:02:04 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _topk_topp_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+2026-10-27T11:02:12.905106960Z (APIServer pid=59) INFO:     127.0.0.1:60776 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:02:12.907189879Z GLM release startup warmup 1/4 completed in 10.37s
+2026-10-27T11:02:13.614405941Z (APIServer pid=59) INFO 10-27 11:02:13 [loggers.py:310] Engine 000: Avg prompt throughput: 49.2 tokens/s, Avg generation throughput: 409.1 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+2026-10-27T11:02:13.614582271Z (APIServer pid=59) INFO 10-27 11:02:13 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.82, Accepted throughput: 264.40 tokens/s, Drafted throughput: 436.49 tokens/s, Accepted: 2644 tokens, Drafted: 4365 tokens, Per-position acceptance rate: 0.748, 0.598, 0.471, Avg Draft acceptance rate: 60.6%
+2026-10-27T11:02:21.223934851Z (APIServer pid=59) INFO:     127.0.0.1:37498 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:02:21.225014835Z GLM release startup warmup 2/4 completed in 7.32s
+2026-10-27T11:02:23.615518550Z (APIServer pid=59) INFO 10-27 11:02:23 [loggers.py:310] Engine 000: Avg prompt throughput: 131.2 tokens/s, Avg generation throughput: 466.9 tokens/s, Running: 16 reqs, Waiting: 0 reqs, GPU KV cache usage: 38.9%, Prefix cache hit rate: 0.0%
+2026-10-27T11:02:23.615655725Z (APIServer pid=59) INFO 10-27 11:02:23 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.90, Accepted throughput: 305.07 tokens/s, Drafted throughput: 482.96 tokens/s, Accepted: 3051 tokens, Drafted: 4830 tokens, Per-position acceptance rate: 0.760, 0.631, 0.504, Avg Draft acceptance rate: 63.2%
+2026-10-27T11:02:30.613286286Z (APIServer pid=59) INFO:     127.0.0.1:53062 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:02:30.614663463Z GLM release startup warmup 3/4 completed in 8.39s
+2026-10-27T11:02:33.616444925Z (APIServer pid=59) INFO 10-27 11:02:33 [loggers.py:310] Engine 000: Avg prompt throughput: 65.6 tokens/s, Avg generation throughput: 459.1 tokens/s, Running: 16 reqs, Waiting: 0 reqs, GPU KV cache usage: 38.9%, Prefix cache hit rate: 0.0%
+2026-10-27T11:02:33.616639270Z (APIServer pid=59) INFO 10-27 11:02:33 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.66, Accepted throughput: 286.68 tokens/s, Drafted throughput: 517.46 tokens/s, Accepted: 2867 tokens, Drafted: 5175 tokens, Per-position acceptance rate: 0.727, 0.536, 0.399, Avg Draft acceptance rate: 55.4%
+2026-10-27T11:02:39.623046216Z (APIServer pid=59) INFO:     127.0.0.1:41230 - "POST /v1/completions HTTP/1.1" 200 OK
+2026-10-27T11:02:39.623864975Z GLM release startup warmup 4/4 completed in 8.01s
+2026-10-27T11:02:40.803669753Z GLM release startup warmup complete; container is ready.

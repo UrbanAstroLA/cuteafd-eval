@@ -1,0 +1,21 @@
+Local launcher change against tpurtell/cuteafd v3.0.1 (9098781f): pass the coordinator's RDMA device only
+when /dev/infiniband exists. Apply from the repository root: git apply <this file>
+
+diff --git a/scripts/launch/run-family.sh b/scripts/launch/run-family.sh
+index 3db4111..523c7a6 100755
+--- a/scripts/launch/run-family.sh
++++ b/scripts/launch/run-family.sh
+@@ -2684,9 +2684,12 @@ release_serving_docker_args
+ cuteafd_cdi_gpu_args "$gpus" || exit 2
+ context_args=(--max-context "$(get MAX_CONTEXT_TOKENS "$default_context")")
+ [[ "$family" != qwen3_5 ]] || context_args=()
++# A Spark-free coordinator host may have no RDMA device (as wip.sh already allows).
++ib_args=()
++[[ ! -e /dev/infiniband ]] || ib_args=(--device=/dev/infiniband)
+ docker run -d "${RELEASE_SERVING_ARGS[@]}" --name "$coordinator_name" --restart no "${CUTEAFD_CDI_ARGS[@]}" --network host --ipc host \
+   --security-opt "seccomp=$repo_root/docker/seccomp-code-bench.json" \
+-  --ulimit memlock=-1:-1 --device=/dev/infiniband -e RUST_LOG=info "${shared_env_args[@]:0:4}" \
++  --ulimit memlock=-1:-1 ${ib_args[@]+"${ib_args[@]}"} -e RUST_LOG=info "${shared_env_args[@]:0:4}" \
+   "${bond_args[@]}" "${bench_nonce_env_args[@]}" "${tp2_env_args[@]}" "${graph_census_args[@]}" "${lane_env_args[@]}" "${thermal_args[@]}" \
+   "${shared_env_args[@]:4}" -e "CUTEAFD_IMAGE=$coordinator_image" "${wip_mount_args[@]}" "${device_map_args[@]}" \
+   -v "$hub:/hf/hub:ro" -v "$bench_dir:/run/cuteafd/bench" -v "$fidelity_cache:/run/cuteafd/fidelity" -e CUTEAFD_FIDELITY_CACHE=/run/cuteafd/fidelity \

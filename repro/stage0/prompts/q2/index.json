@@ -1,0 +1,167 @@
+{
+ "rule": "tokens = first L ids of the whole document's tokenization (raw text, no chat template, no BOS), L in 32,768 / 65,536 / 131,072, so the shorter windows of one document are prefixes of the longer; rows = the last 4,096 row indices L-4,096 .. L-1, where row p is the position whose prediction of token p is scored (it has seen tokens 0..p-1).",
+ "windows": [
+  {
+   "window_id": "q2-prose-pg28988-032k",
+   "kind": "prose",
+   "length": 32768,
+   "document": "pg28988",
+   "first_row": 28672,
+   "last_row": 32767,
+   "file": "q2/q2-prose-pg28988-032k.json"
+  },
+  {
+   "window_id": "q2-prose-pg28988-064k",
+   "kind": "prose",
+   "length": 65536,
+   "document": "pg28988",
+   "first_row": 61440,
+   "last_row": 65535,
+   "file": "q2/q2-prose-pg28988-064k.json"
+  },
+  {
+   "window_id": "q2-prose-pg28988-128k",
+   "kind": "prose",
+   "length": 131072,
+   "document": "pg28988",
+   "first_row": 126976,
+   "last_row": 131071,
+   "file": "q2/q2-prose-pg28988-128k.json"
+  },
+  {
+   "window_id": "q2-prose-pg7412-032k",
+   "kind": "prose",
+   "length": 32768,
+   "document": "pg7412",
+   "first_row": 28672,
+   "last_row": 32767,
+   "file": "q2/q2-prose-pg7412-032k.json"
+  },
+  {
+   "window_id": "q2-prose-pg7412-064k",
+   "kind": "prose",
+   "length": 65536,
+   "document": "pg7412",
+   "first_row": 61440,
+   "last_row": 65535,
+   "file": "q2/q2-prose-pg7412-064k.json"
+  },
+  {
+   "window_id": "q2-prose-pg7412-128k",
+   "kind": "prose",
+   "length": 131072,
+   "document": "pg7412",
+   "first_row": 126976,
+   "last_row": 131071,
+   "file": "q2/q2-prose-pg7412-128k.json"
+  },
+  {
+   "window_id": "q2-prose-pg30754-032k",
+   "kind": "prose",
+   "length": 32768,
+   "document": "pg30754",
+   "first_row": 28672,
+   "last_row": 32767,
+   "file": "q2/q2-prose-pg30754-032k.json"
+  },
+  {
+   "window_id": "q2-prose-pg30754-064k",
+   "kind": "prose",
+   "length": 65536,
+   "document": "pg30754",
+   "first_row": 61440,
+   "last_row": 65535,
+   "file": "q2/q2-prose-pg30754-064k.json"
+  },
+  {
+   "window_id": "q2-prose-pg30754-128k",
+   "kind": "prose",
+   "length": 131072,
+   "document": "pg30754",
+   "first_row": 126976,
+   "last_row": 131071,
+   "file": "q2/q2-prose-pg30754-128k.json"
+  },
+  {
+   "window_id": "q2-code-c0-032k",
+   "kind": "code",
+   "length": 32768,
+   "document": "c0",
+   "first_row": 28672,
+   "last_row": 32767,
+   "file": "q2/q2-code-c0-032k.json"
+  },
+  {
+   "window_id": "q2-code-c0-064k",
+   "kind": "code",
+   "length": 65536,
+   "document": "c0",
+   "first_row": 61440,
+   "last_row": 65535,
+   "file": "q2/q2-code-c0-064k.json"
+  },
+  {
+   "window_id": "q2-code-c0-128k",
+   "kind": "code",
+   "length": 131072,
+   "document": "c0",
+   "first_row": 126976,
+   "last_row": 131071,
+   "file": "q2/q2-code-c0-128k.json"
+  },
+  {
+   "window_id": "q2-code-c1-032k",
+   "kind": "code",
+   "length": 32768,
+   "document": "c1",
+   "first_row": 28672,
+   "last_row": 32767,
+   "file": "q2/q2-code-c1-032k.json"
+  },
+  {
+   "window_id": "q2-code-c1-064k",
+   "kind": "code",
+   "length": 65536,
+   "document": "c1",
+   "first_row": 61440,
+   "last_row": 65535,
+   "file": "q2/q2-code-c1-064k.json"
+  },
+  {
+   "window_id": "q2-code-c1-128k",
+   "kind": "code",
+   "length": 131072,
+   "document": "c1",
+   "first_row": 126976,
+   "last_row": 131071,
+   "file": "q2/q2-code-c1-128k.json"
+  },
+  {
+   "window_id": "q2-code-c2-032k",
+   "kind": "code",
+   "length": 32768,
+   "document": "c2",
+   "first_row": 28672,
+   "last_row": 32767,
+   "file": "q2/q2-code-c2-032k.json"
+  },
+  {
+   "window_id": "q2-code-c2-064k",
+   "kind": "code",
+   "length": 65536,
+   "document": "c2",
+   "first_row": 61440,
+   "last_row": 65535,
+   "file": "q2/q2-code-c2-064k.json"
+  },
+  {
+   "window_id": "q2-code-c2-128k",
+   "kind": "code",
+   "length": 131072,
+   "document": "c2",
+   "first_row": 126976,
+   "last_row": 131071,
+   "file": "q2/q2-code-c2-128k.json"
+  }
+ ]
+}

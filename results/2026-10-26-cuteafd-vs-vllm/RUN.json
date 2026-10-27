@@ -1,0 +1,170 @@
+{
+ "id": "2026-10-26-cuteafd-vs-vllm",
+ "kind": "measurement",
+ "title": "CuteAFD v3.0.1 vs tpurtell's vLLM fork v0.9.2: precision, throughput, long output",
+ "protocol": "protocol/PROTOCOL.md (v2 + amendments A1-A2), frozen 2026-10-26 17:32 UTC-7; follow-ups in protocol/FOLLOWUPS.md",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W), driver 595.84",
+ "arms": {
+  "V1": {
+   "engine": "tpurtell/glm-5.3-flash-ext3-2x-rtx v0.9.2 (tag f18f51f5)",
+   "image": "ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx:v0.9.2 index sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1@0490d2f708b12145f6516555ab066aaeb401cd21",
+   "drafter": "incoai/GLM-5.3-Flash-DFlash2@bf582e4eacc1810f76656d1811693ff6c6737d2a, 3 draft tokens",
+   "runs": "V1 and V1r (one launch), V2 (a second launch, F3)"
+  },
+  "C1": {
+   "engine": "tpurtell/cuteafd v3.0.1 (9098781f)",
+   "image": "ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8@d31ebc921f1f098b4a56d37aaccb3cdef4096184",
+   "drafter": "incoai/GLM-5.3-Flash-DFlash2@bf582e4eacc1810f76656d1811693ff6c6737d2a, CuteAFD defaults (adaptive)"
+  },
+  "C0": {
+   "engine": "as C1",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1@0490d2f7, GLM5_FLASH_FP8_MODEL_ID=off",
+   "role": "Block Q control"
+  }
+ },
+ "slots": {
+  "Q": {
+   "title": "Block Q, precision (V1, C1, C0)",
+   "status": "done",
+   "files": [
+    "q/RESULTS-Q.md",
+    "q/thinking-check-vllm.json",
+    "q/pa/pa-C1.json",
+    "q/pa/pa-C1r.json",
+    "q/pa/pa-V1.json",
+    "q/pa/pa-V1r.json",
+    "q/pa/pa-pair-C1-vs-C1r.json",
+    "q/pa/pa-pair-V1-vs-C1.json",
+    "q/pa/pa-pair-V1-vs-V1r.json",
+    "q/pb/pb-C0.json",
+    "q/pb/pb-C1.json",
+    "q/pb/pb-C1r.json",
+    "q/pb/pb-V1.json",
+    "q/pb/pb-V1r.json",
+    "q/pb/pb-pair-C0-C1.json",
+    "q/pb/pb-pair-C1-C1r.json",
+    "q/pb/pb-pair-V1-C1.json",
+    "q/pb/pb-pair-V1-V1r.json",
+    "q/q2/q2-C1-vs-V1.json",
+    "q/logs/pa.log",
+    "q/logs/pb-C0.log",
+    "q/logs/pb-C1.log",
+    "q/logs/pb-C1r.log",
+    "q/logs/pb-V1.log",
+    "q/logs/pb-V1r.log",
+    "q/logs/pb-pair-C0-C1.log",
+    "q/logs/pb-pair-C1-C1r.log",
+    "q/logs/pb-pair-V1-C1.log",
+    "q/logs/pb-pair-V1-V1r.log",
+    "q/logs/q2.log"
+   ]
+  },
+  "T.V1": {
+   "title": "Block T, throughput: vLLM fork v0.9.2 (V1)",
+   "status": "done",
+   "files": [
+    "t/V1-r1-block-t.json",
+    "t/V1-r1-block-t.log"
+   ]
+  },
+  "T.C1": {
+   "title": "Block T, throughput: CuteAFD v3.0.1 (C1)",
+   "status": "done",
+   "files": [
+    "t/C1-r1-block-t.json",
+    "t/C1-r1-block-t.log"
+   ]
+  },
+  "L.V1": {
+   "title": "Block L, long output: vLLM fork v0.9.2 (V1)",
+   "status": "done",
+   "files": [
+    "l/L-analysis-both.json"
+   ]
+  },
+  "L.C1": {
+   "title": "Block L, long output: CuteAFD v3.0.1 (C1)",
+   "status": "done",
+   "files": [
+    "l/L-analysis-both.json"
+   ]
+  },
+  "f1": {
+   "title": "Follow-up F1, CuteAFD FP8 switches: precision at 8-16K and speed (outside the frozen protocol)",
+   "status": "done",
+   "files": [
+    "f1/F1-RESULTS.json",
+    "f1/RESULTS-F1.md",
+    "f1/chain.log",
+    "f1/chain.sh",
+    "f1/f1_analysis.py",
+    "f1/pb-F1-f1a.log",
+    "f1/pb-F1-f1b.log",
+    "f1/pb-F1-f1c.log",
+    "f1/pb-F1-f1d.log",
+    "f1/speed-F1-base.json",
+    "f1/speed-F1-base.log",
+    "f1/speed-F1-f1a.json",
+    "f1/speed-F1-f1a.log",
+    "f1/speed-F1-f1b.json",
+    "f1/speed-F1-f1b.log",
+    "f1/speed-F1-f1c.json",
+    "f1/speed-F1-f1c.log",
+    "f1/speed-F1-f1d.json",
+    "f1/speed-F1-f1d.log"
+   ]
+  },
+  "f2": {
+   "title": "Follow-up F2, vLLM prefix-cache reuse on repeated prompts (outside the frozen protocol)",
+   "status": "done",
+   "files": [
+    "f2/RESULTS-F2.md",
+    "f2/f2.json",
+    "f2/f2.log",
+    "f2/f2_prefix_cache.py",
+    "f2/final.log",
+    "f2/final.sh",
+    "f2/server-log-cache-lines.txt"
+   ]
+  },
+  "f3": {
+   "title": "Follow-up F3, second vLLM launch for precision (outside the frozen protocol)",
+   "status": "done",
+   "files": [
+    "q/pb/pb-V2.json",
+    "q/pb/pb-vs-vllm-mean3.json",
+    "q/pa-v2/pa-C1.json",
+    "q/pa-v2/pa-V1.json",
+    "q/pa-v2/pa-V1r.json",
+    "q/pa-v2/pa-V2.json",
+    "q/pa-v2/pa-pair-V1-vs-V2.json",
+    "q/pa-v2/pa-pair-V2-vs-C1.json",
+    "q/logs/pa-v2.log",
+    "q/logs/pb-V2.log"
+   ]
+  },
+  "drift": {
+   "title": "Drift check, repeat subset on both engines",
+   "status": "done",
+   "files": [
+    "drift/C1-drift.json",
+    "drift/C1-drift.log",
+    "drift/RESULTS-DRIFT.md",
+    "drift/V1-drift.json",
+    "drift/V1-drift.log",
+    "drift/V1-spec-metrics-after.txt",
+    "drift/V1-spec-metrics-before.txt"
+   ]
+  },
+  "telemetry": {
+   "title": "GPU telemetry during the later runs (summary)",
+   "status": "done",
+   "files": [
+    "telemetry/gpu-telemetry-from-0050.csv",
+    "telemetry/gpu-telemetry-from-0050.summary.json"
+   ]
+  }
+ }
+}

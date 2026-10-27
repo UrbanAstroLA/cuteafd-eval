@@ -1,0 +1,34 @@
+{
+ "id": "L-code-p3",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 3,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `csvreport`: typed CSV reading, grouping with aggregates, and fixed-width table rendering. Python 3.12, standard library only.\n\n## Files\n\n- `csvreport/__init__.py` \u2014 re-exports `Column`, `Schema`, `read_rows`, `group_by`, `render_table`, `ReportError`, `SchemaError`, `RowError`.\n- `csvreport/errors.py` \u2014 the exception classes.\n- `csvreport/schema.py` \u2014 `Column`, `Schema`, and value parsing.\n- `csvreport/reader.py` \u2014 `read_rows`.\n- `csvreport/aggregate.py` \u2014 `group_by`.\n- `csvreport/table.py` \u2014 `render_table`.\n\n## errors.py\n\n- `ReportError(Exception)` \u2014 base class.\n- `SchemaError(ReportError)` \u2014 for header problems. Attribute `missing`: sorted list of missing column names.\n- `RowError(ReportError)` \u2014 `RowError(line, column, message)` with attributes `line` (int), `column` (str) and `message` (str). `str(err)` contains the line number and the column name.\n\n## schema.py\n\n- `Column(name, type, required=True)` \u2014 a frozen dataclass. `type` is one of `\"int\"`, `\"float\"`, `\"str\"`, `\"bool\"`, `\"date\"`; any other value raises `ValueError` at construction.\n- `Schema(columns)` \u2014 holds a list of `Column`; duplicate names raise `ValueError`. Attribute `columns` (list) and method `names()` (list of names in order).\n- `parse_value(column, text)` \u2014 convert one cell, after stripping surrounding whitespace:\n  - empty text: `None` if the column is not required, otherwise raise `ValueError(\"required\")`;\n  - `int`: Python `int(text)` (so `\"+3\"` and `\"-0\"` are accepted, `\"3.0\"` is not);\n  - `float`: Python `float(text)`, but `nan` and `inf` in any spelling are rejected;\n  - `str`: the stripped text;\n  - `bool`: case-insensitive `true`/`yes`/`1` \u2192 `True`, `false`/`no`/`0` \u2192 `False`, anything else invalid;\n  - `date`: exactly `YYYY-MM-DD` \u2192 `datetime.date` (`date.fromisoformat` on a 10-character string matching that shape).\n  - Invalid input raises `ValueError`.\n\n## reader.py\n\n`read_rows(text, schema) -> list[dict]` parses `text` with the `csv` module (default dialect). The first record is the header; header names are stripped of surrounding whitespace. If any schema column is absent from the header, raise `SchemaError` with the sorted missing names. Columns not in the schema are ignored; schema columns may appear in any order. Each data record becomes a dict whose keys are the schema names in schema order and whose values come from `parse_value`. Records that are completely empty (every cell blank, or a blank line) are skipped. A record with fewer cells than the header treats the missing cells as empty. A conversion failure raises `RowError(line, column_name, message)` where `line` is the `csv.reader`'s `line_num` after reading that record (the header is line 1).\n\n## aggregate.py\n\n`group_by(rows, keys, aggregations) -> list[dict]`.\n\n- `keys` is a list of column names; `aggregations` is a dict mapping an output name to a `(function, column)` pair, function one of `\"count\"`, `\"sum\"`, `\"mean\"`, `\"min\"`, `\"max\"`. Any other function raises `ValueError`.\n- Rows are grouped by the tuple of their key values. The output has one dict per group, containing the key columns followed by the aggregation outputs in `aggregations` order.\n- Groups are sorted by their key tuple, where within each position `None` sorts before every other value.\n- `(\"count\", None)` counts rows in the group; `(\"count\", col)` counts rows where `col` is not `None`.\n- `sum`, `mean`, `min`, `max` ignore `None`; if every value is `None` (or the group has none) the result is `None`. `mean` returns a `float`. `sum` of ints is an int.\n- `keys=[]` produces exactly one group holding all rows (even when `rows` is empty, with `count` 0).\n\n## table.py\n\n`render_table(rows, columns, float_digits=2) -> str` renders a list of dicts as a text table showing `columns` (a list of names) in that order.\n\n- Cell text: `None` \u2192 `\"\"`; `bool` \u2192 `\"true\"`/`\"false\"`; `float` \u2192 `f\"{x:.{float_digits}f}\"`; `datetime.date` \u2192 ISO format; anything else \u2192 `str(x)`. A missing key counts as `None`.\n- A column is numeric when it has at least one non-`None` value and all its non-`None` values are `int` or `float` (not `bool`). Numeric columns are right-aligned, all others left-aligned, and the header follows its column's alignment.\n- Column width is the longest of the header and its cells.\n- Output lines: the header line, a separator line, then one line per row. Cells are joined with `\" | \"`; the separator line is, for each column, `\"-\"` repeated to its width, joined with `\"-+-\"`. Every line has trailing whitespace removed. Lines are joined with `\"\\n\"`, with no trailing newline.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: csvreport/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1330,
+  "cuteafd_thinking_off_adds": 1
+ },
+ "checker": {
+  "kind": "code",
+  "project": "csvreport",
+  "package": "csvreport",
+  "tests_dir": "L/code/csvreport/tests",
+  "tests_sha256": {
+   "test_csvreport.py": "42f71f6fb70b506a4e5b10d09278a4064a69a3980db66091715a1f239f33d87a"
+  }
+ },
+ "item": {
+  "source": "authored",
+  "project": "csvreport"
+ }
+}

@@ -1,0 +1,12 @@
+{"source": "server logs (docker logs -t), times from container start to 'startup warmup complete; container is ready'",
+ "runs": [
+  {"label": "vLLM v0.9.2, JIT caches not persisted", "ready_s": 697,
+   "phases": [{"name": "process start + weight loading", "s": 242}, {"name": "TileLang JIT (49 compiles)", "s": 222},
+              {"name": "CUDA graph capture", "s": 153}, {"name": "warm-up", "s": 73}, {"name": "other", "s": 7}]},
+  {"label": "vLLM v0.9.2, JIT caches persisted (warm)", "ready_s": 382,
+   "phases": [{"name": "process start + weight loading", "s": 254}, {"name": "memory profiling", "s": 6},
+              {"name": "CUDA graph capture", "s": 58}, {"name": "warm-up", "s": 64}]},
+  {"label": "CuteAFD v3.0.1", "ready_s": 89,
+   "phases": [{"name": "start to ready (AOT kernels; experts loaded in 30.6 s)", "s": 89}]}],
+ "first_start_after_change_s": 714,
+ "note": "The first start after persisting the caches fills them and is no faster (714 s); every later start is warm."}

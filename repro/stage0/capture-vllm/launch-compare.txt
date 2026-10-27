@@ -1,0 +1,15 @@
+same  image: 
+same  serve args: 
+same  container name: 
+same  port binding: 
+same  restart policy: 
+same  gpus: 
+same  ipc / shm: 
+same  served mounts all present: missing=[]
+note  extra mounts (expected 3, all /kld-*): ['<run>/stage0/capture-vllm/plugin:/kld-plugin:ro', '<run>/stage0/capture-vllm/registry:/kld-registry:ro', '<run>/vllm-v092-dumps:/kld-out']
+note  env GLM53_CAP_ENABLE: served=None capture='1'
+note  env GLM53_CAP_OUT: served=None capture='/kld-out/staging'
+note  env GLM53_CAP_REGISTRY: served=None capture='/kld-registry'
+note  env PYTHONPATH: served='/opt/b12x:/usr/local/lib/python3.12/dist-packages' capture='/kld-plugin:/opt/b12x:/usr/local/lib/python3.12/dist-packages'
+note  env VLLM_PLUGINS: served='lora_filesystem_resolver,lora_hf_hub_resolver' capture='lora_filesystem_resolver,lora_hf_hub_resolver,glm53_capture'
+RESULT: only the documented differences

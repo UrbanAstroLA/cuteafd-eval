@@ -1,0 +1,11 @@
+vllm prompt_logprob.py sha256: 4cf22d390e7bf59e44c458cff7180268db63e95d06af2f1e14d720a2d77c9663
+PASS  core_units                0.0s  row arithmetic, rows specs, hash
+PASS  decode_first              0.3s  window at batch rows 12..1511, 1499 rows exact; chosen max diff 1.91e-06
+PASS  multi_prefill             0.2s  order ['d0', 'U', 'A', 'B'], qsl [0, 1, 401, 1101, 2001]; B spans logits calls [[0, 1024], [1024, 977]]; both exact
+PASS  chunked_across_steps      0.3s  steps (start,len,rows,batch_off) [(0, 2045, 0, 0), (2045, 2045, 303, 8), (4090, 210, 209, 13)]; 512 rows exact
+PASS  full_vocab               10.7s  600 x 154880 exact; file 371715144 B; logits dtype torch.bfloat16
+PASS  guards                    0.3s  7 guard cases behave
+PASS  rank1_inert               0.0s  rank 1 writes nothing, result unchanged
+PASS  old_plugin_row_offset           24.8s  old plugin: dump row 0 == decode request d0's logits (row-offset issue reproduced); new plugin exact on same layout (t_decode_first)
+ALL PASS
+exit 0

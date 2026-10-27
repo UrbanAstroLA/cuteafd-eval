@@ -1,0 +1,30 @@
+{
+ "id": "L-prose-p2",
+ "block": "L",
+ "content": "prose",
+ "prompt_index": 2,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "Write an anti-war novel about Sony Wang, a young painter living in Vienna who is drafted into the army in 1916, the more detailed the better. The story should be at least 10000 words long."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 64,
+  "cuteafd_thinking_off_adds": 1
+ },
+ "checker": {
+  "kind": "prose",
+  "required_words": 10000
+ },
+ "item": {
+  "source": "longwriter",
+  "index": 57,
+  "required_words": 10000
+ }
+}

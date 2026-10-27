@@ -1,0 +1,12 @@
+{
+ "about": "Authored prompt wrappers for Blocks T and L (written 2026-10-26, before any run). {placeholders} are filled by build_prompts.py with str.replace, never str.format.",
+ "nonce_line": "Request {nonce}.",
+ "nonce_rule": "Driver-side: nonce = 4 groups of 3 digits, each group an element of NONCE_GROUPS (the 3-digit strings 000-999 that encode to exactly one token, sorted); group k = NONCE_GROUPS[int(sha256(f'{salt}:{seed}:{k}').hexdigest(), 16) % len(NONCE_GROUPS)]. The nonce line plus '\\n' is prepended to the first user message. Its token count is constant (verified by build_prompts.py), so every prompt keeps its recorded length.",
+ "context_frame": "The material between the two marker lines below is background reading. It is not part of the task, and the task does not refer to it.\n<<<BEGIN MATERIAL>>>\n{context}\n<<<END MATERIAL>>>\n\n{task}",
+ "T_prose": "{prompt}",
+ "T_code_humaneval": "Complete the following Python function. Give the complete function in one fenced Python code block, then write a pytest test module for it with at least 15 test cases covering edge cases, then explain the algorithm and its time and space complexity.\n\n```python\n{prompt}```",
+ "T_code_mbpp": "{prompt}\nYour code should pass this test:\n```python\n{test}\n```\nGive the complete solution in one fenced Python code block, then write a pytest test module for it with at least 15 test cases covering edge cases, then explain the algorithm and its time and space complexity.",
+ "reasoning": "{problem}\n\nPlease reason step by step, and put your final answer within \\boxed{}.",
+ "L_prose": "{prompt}",
+ "L_code": "You are given the specification of a small Python project. Implement it completely.\n\n{spec}\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: {package}/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+}

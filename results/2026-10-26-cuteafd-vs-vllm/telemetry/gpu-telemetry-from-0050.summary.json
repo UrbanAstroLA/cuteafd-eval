@@ -1,0 +1,49 @@
+{
+ "about": "Summary of the GPU telemetry CSV in this folder (nvidia-smi every 5 s; first and last sample below, UTC-7). It covers F1 from its second arm on, CuteAFD's Block L, the drift runs, F3 and F2; both engines' Block T ran before it began. Busy = utilization of at least 50%. Clock event reason 0x4 is the software power cap.",
+ "first": "2026/10/27 01:06:26.574",
+ "last": "2026/10/27 04:31:46.546",
+ "gpus": {
+  "0": {
+   "samples": 2464,
+   "busy_samples_util_ge_50pct": 1842,
+   "busy_power_w": {
+    "median": 299.9,
+    "p95": 300.42,
+    "limit": 300.0
+   },
+   "busy_sm_clock_mhz": {
+    "median": 1890.0,
+    "p5": 1822.0
+   },
+   "busy_temperature_c": {
+    "median": 87.0,
+    "max": 88.0
+   },
+   "busy_clock_event_reasons": {
+    "0x0000000000000000": 223,
+    "0x0000000000000004": 1619
+   }
+  },
+  "1": {
+   "samples": 2464,
+   "busy_samples_util_ge_50pct": 1873,
+   "busy_power_w": {
+    "median": 287.51,
+    "p95": 294.55,
+    "limit": 300.0
+   },
+   "busy_sm_clock_mhz": {
+    "median": 2100.0,
+    "p5": 1935.0
+   },
+   "busy_temperature_c": {
+    "median": 85.0,
+    "max": 89.0
+   },
+   "busy_clock_event_reasons": {
+    "0x0000000000000000": 522,
+    "0x0000000000000004": 1351
+   }
+  }
+ }
+}

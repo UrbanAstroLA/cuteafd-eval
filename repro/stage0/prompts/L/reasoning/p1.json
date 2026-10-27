@@ -1,0 +1,30 @@
+{
+ "id": "L-reasoning-p1",
+ "block": "L",
+ "content": "reasoning",
+ "prompt_index": 1,
+ "thinking": true,
+ "messages": [
+  {
+   "role": "user",
+   "content": "How many zeroes are at the end of $42!$ (42 factorial)?  (Reminder: The number $n!$ is the product of the integers from 1 to $n$.  For example, $5!=5\\cdot 4\\cdot3\\cdot2\\cdot 1= 120$.)\n\nPlease reason step by step, and put your final answer within \\boxed{}."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 100,
+  "cuteafd_thinking_off_adds": 0
+ },
+ "checker": {
+  "kind": "math",
+  "answer": "9"
+ },
+ "item": {
+  "source": "math500",
+  "unique_id": "test/prealgebra/1297.json",
+  "answer": "9"
+ }
+}

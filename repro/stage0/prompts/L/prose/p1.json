@@ -1,0 +1,30 @@
+{
+ "id": "L-prose-p1",
+ "block": "L",
+ "content": "prose",
+ "prompt_index": 1,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "Write 10000-word essay about mathematical fundamentals of Phased Antenna Arrays. Math=true"
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 37,
+  "cuteafd_thinking_off_adds": 1
+ },
+ "checker": {
+  "kind": "prose",
+  "required_words": 10000
+ },
+ "item": {
+  "source": "longwriter",
+  "index": 56,
+  "required_words": 10000
+ }
+}

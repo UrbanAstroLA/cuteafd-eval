@@ -1,0 +1,258 @@
+{
+ "math": {
+  "reference_solutions_match": "500/500",
+  "equiv_cases": [
+   [
+    "\\dfrac{1}{2}",
+    "\\frac12",
+    true
+   ],
+   [
+    "0.5",
+    "\\frac{1}{2}",
+    true
+   ],
+   [
+    "1,000",
+    "1000",
+    true
+   ],
+   [
+    "\\text{(C)}",
+    "(C)",
+    true
+   ],
+   [
+    "x = 5",
+    "5",
+    true
+   ],
+   [
+    "10\\%",
+    "10",
+    true
+   ],
+   [
+    "90^\\circ",
+    "90",
+    true
+   ],
+   [
+    "3.0",
+    "3",
+    true
+   ],
+   [
+    "-\\frac{3}{4}",
+    "-0.75",
+    true
+   ],
+   [
+    "\\left( 3, \\frac{\\pi}{2} \\right)",
+    "(3,\\frac{\\pi}{2})",
+    true
+   ],
+   [
+    "\\$18.90",
+    "18.90",
+    true
+   ],
+   [
+    "3/4",
+    "\\frac34",
+    true
+   ]
+  ],
+  "non_equiv_cases": [
+   [
+    "2",
+    "3",
+    true
+   ],
+   [
+    "\\sqrt{2}",
+    "2",
+    true
+   ],
+   [
+    "(1,2)",
+    "(2,1)",
+    true
+   ],
+   [
+    "",
+    "0",
+    true
+   ],
+   [
+    "12,34",
+    "1234",
+    true
+   ]
+  ]
+ },
+ "json": {
+  "valid": {
+   "valid": true,
+   "status": "valid",
+   "expected_valid": true
+  },
+  "valid_fenced": {
+   "valid": true,
+   "status": "valid",
+   "expected_valid": true
+  },
+  "valid_after_think": {
+   "valid": true,
+   "status": "valid",
+   "expected_valid": true
+  },
+  "wrong_count": {
+   "valid": false,
+   "status": "invalid",
+   "expected_valid": false
+  },
+  "trailing_prose": {
+   "valid": false,
+   "status": "parse_error",
+   "expected_valid": false
+  },
+  "bad_sku": {
+   "valid": false,
+   "status": "invalid",
+   "expected_valid": false
+  },
+  "dup_sku": {
+   "valid": false,
+   "status": "invalid",
+   "expected_valid": false
+  },
+  "ids_out_of_order": {
+   "valid": false,
+   "status": "invalid",
+   "expected_valid": false
+  },
+  "extra_field": {
+   "valid": false,
+   "status": "invalid",
+   "expected_valid": false
+  },
+  "truncated": {
+   "valid": false,
+   "status": "parse_error",
+   "expected_valid": false
+  },
+  "object_not_array": {
+   "valid": false,
+   "status": "not_array",
+   "expected_valid": false
+  }
+ },
+ "code": {
+  "minicalc/reference": {
+   "status": "all_pass",
+   "tests": 29,
+   "passed": 29,
+   "failures": 0,
+   "errors": 0,
+   "files": [
+    "minicalc/__init__.py",
+    "minicalc/ast.py",
+    "minicalc/errors.py",
+    "minicalc/evaluator.py",
+    "minicalc/lexer.py",
+    "minicalc/parser.py"
+   ]
+  },
+  "minicalc/reference_bold_after_think": {
+   "status": "all_pass",
+   "passed": 29
+  },
+  "minicalc/missing_file": {
+   "status": "fail",
+   "passed": 0,
+   "tests": 1,
+   "errors": 1
+  },
+  "kvstore/reference": {
+   "status": "all_pass",
+   "tests": 23,
+   "passed": 23,
+   "failures": 0,
+   "errors": 0,
+   "files": [
+    "kvstore/__init__.py",
+    "kvstore/commands.py",
+    "kvstore/errors.py",
+    "kvstore/persistence.py",
+    "kvstore/store.py"
+   ]
+  },
+  "kvstore/reference_bold_after_think": {
+   "status": "all_pass",
+   "passed": 23
+  },
+  "kvstore/missing_file": {
+   "status": "fail",
+   "passed": 0,
+   "tests": 1,
+   "errors": 1
+  },
+  "graphkit/reference": {
+   "status": "all_pass",
+   "tests": 23,
+   "passed": 23,
+   "failures": 0,
+   "errors": 0,
+   "files": [
+    "graphkit/__init__.py",
+    "graphkit/algorithms.py",
+    "graphkit/errors.py",
+    "graphkit/graph.py",
+    "graphkit/io.py"
+   ]
+  },
+  "graphkit/reference_bold_after_think": {
+   "status": "all_pass",
+   "passed": 23
+  },
+  "graphkit/missing_file": {
+   "status": "fail",
+   "passed": 0,
+   "tests": 1,
+   "errors": 1
+  },
+  "csvreport/reference": {
+   "status": "all_pass",
+   "tests": 34,
+   "passed": 34,
+   "failures": 0,
+   "errors": 0,
+   "files": [
+    "csvreport/__init__.py",
+    "csvreport/aggregate.py",
+    "csvreport/errors.py",
+    "csvreport/reader.py",
+    "csvreport/schema.py",
+    "csvreport/table.py"
+   ]
+  },
+  "csvreport/reference_bold_after_think": {
+   "status": "all_pass",
+   "passed": 34
+  },
+  "csvreport/missing_file": {
+   "status": "fail",
+   "passed": 0,
+   "tests": 1,
+   "errors": 1
+  },
+  "no_files": "no_files",
+  "outside_paths": [
+   "../evil.py",
+   "/etc/x.py"
+  ]
+ },
+ "sandbox_image": "sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a",
+ "failures": []
+}

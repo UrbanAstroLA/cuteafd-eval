@@ -1,0 +1,34 @@
+{
+ "id": "L-code-p1",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 1,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `kvstore`: an in-memory key-value store with expiring keys, nested transactions, JSON persistence and a line-oriented command interpreter. Python 3.12, standard library only.\n\n## Files\n\n- `kvstore/__init__.py` \u2014 re-exports `Store`, `Interpreter`, `dump`, `load`, `KVError`, `TransactionError`.\n- `kvstore/errors.py` \u2014 `KVError(Exception)` and `TransactionError(KVError)`.\n- `kvstore/store.py` \u2014 `Store`.\n- `kvstore/persistence.py` \u2014 `dump` and `load`.\n- `kvstore/commands.py` \u2014 `Interpreter`.\n\n## store.py\n\n`Store(clock=time.monotonic)`. `clock` is a zero-argument callable returning the current time in seconds (a float). Every time-dependent decision calls `clock()`; tests pass a fake clock.\n\nKeys and values are strings. A key with an expiry time `t` is live while `clock() < t` and behaves exactly as if absent once `clock() >= t`.\n\nMethods:\n\n- `set(key, value, ttl=None)` \u2014 store `value`. `ttl` is a number of seconds; the expiry time is `clock() + ttl`. `ttl=None` means no expiry. A `ttl` that is not greater than 0 raises `ValueError`. Setting a key replaces both its value and its expiry.\n- `get(key)` \u2014 the value of a live key, or `None`.\n- `delete(key)` \u2014 remove the key; return `True` if a live key was removed, else `False`.\n- `count(value)` \u2014 the number of live keys whose value equals `value`.\n- `keys(prefix=\"\")` \u2014 sorted list of live keys starting with `prefix`.\n- `ttl(key)` \u2014 remaining seconds (`expiry - clock()`) for a live key with an expiry, `None` for a live key without one, and `-1` for a missing or expired key.\n- `begin()` \u2014 open a transaction. Transactions nest without limit.\n- `rollback()` \u2014 discard every change (sets, deletes, expiries) made since the innermost open `begin()` and close that transaction. Raises `TransactionError` if no transaction is open.\n- `commit()` \u2014 make all changes permanent and close **all** open transactions. Raises `TransactionError` if no transaction is open.\n- `depth` \u2014 read-only property, the number of open transactions.\n- `snapshot()` \u2014 a new dict `{key: {\"value\": str, \"expires_at\": float | None}}` of every live key as currently visible (including uncommitted changes).\n\nReads inside a transaction see that transaction's own writes. `rollback()` restores a key's previous value and its previous expiry time exactly.\n\n## persistence.py\n\n- `dump(store, path)` \u2014 write `{\"version\": 1, \"items\": store.snapshot()}` as JSON to `path` (a `str` or `pathlib.Path`). Raises `TransactionError` if the store has an open transaction (nothing is written).\n- `load(path, clock=time.monotonic)` \u2014 return a new `Store(clock)` containing the file's items, skipping items whose `expires_at` is not `None` and is `<= clock()`. Expiry times are kept as absolute values. A file whose `version` is not `1` raises `KVError`.\n\n## commands.py\n\n`Interpreter(store=None)` wraps a `Store` (a new `Store()` if `None`); the wrapped store is available as attribute `store`. `execute(line: str) -> str` runs one command and returns its reply. The line is split on whitespace; the command word is case-insensitive; keys and values are case-sensitive and cannot contain spaces. A blank line returns `\"\"`.\n\n| Command | Reply |\n|---|---|\n| `SET key value` | `OK` |\n| `SET key value EX seconds` | `OK`; seconds is a positive number (int or float text) |\n| `GET key` | the value, or `NULL` |\n| `DEL key` | `1` if removed, else `0` |\n| `COUNT value` | the count as decimal text |\n| `KEYS` / `KEYS prefix` | the matching keys joined by single spaces, or `(empty)` |\n| `TTL key` | `-1` for missing; `none` for no expiry; otherwise the remaining seconds formatted with `format(x, \".3f\")` |\n| `BEGIN` | `OK` |\n| `ROLLBACK` | `OK`, or `ERR no transaction` |\n| `COMMIT` | `OK`, or `ERR no transaction` |\n\nAny other command word, a wrong number of arguments, `EX` misspelled, or a seconds value that is not a positive number returns a reply starting with `ERR ` (and changes nothing). `execute` never raises for bad input.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: kvstore/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1155,
+  "cuteafd_thinking_off_adds": 1
+ },
+ "checker": {
+  "kind": "code",
+  "project": "kvstore",
+  "package": "kvstore",
+  "tests_dir": "L/code/kvstore/tests",
+  "tests_sha256": {
+   "test_kvstore.py": "ee8672110ae05a93d4ca32011e36f19a341bc20268627dbffe3e9cf309d53372"
+  }
+ },
+ "item": {
+  "source": "authored",
+  "project": "kvstore"
+ }
+}

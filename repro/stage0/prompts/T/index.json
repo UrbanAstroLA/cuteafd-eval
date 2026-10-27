@@ -1,0 +1,557 @@
+{
+ "rule": {
+  "T_prompt_shape": "user message = nonce line + '\\n' + context_frame(context prefix, task). The context prefix is cut at a token boundary of the context document's own tokenization (character offset of the k-th token) and stripped of trailing whitespace, k searched so that the full templated prompt with the nonce line is exactly the target length (1,024 / 8,192 / 32,768 / 131,072); if no k gives an exact count, the character cut is moved character by character outward from the binary-search cut (within +-64 tokens), trying at each position the stripped cut and then the raw cut (trailing whitespace kept), and the nearest exact cut is taken (later cut first); any residual deviation is recorded per cell.",
+  "T_contexts": "prose -> PG-19 book 4; code -> code document 3; reasoning -> PG-19 book 5; json -> code document 4. One fixed context per content type; prompts differ only in the task and in where the cut falls.",
+  "T_lengths": "prose and code at 1K/8K/32K/128K; reasoning and json at 1K and 8K only (protocol).",
+  "T_prose_items": "LongBench-Write items with length >= 1,000 words, excluding the 4 Block L prose items, sorted by file index; random.Random(261002).shuffle; first 4.",
+  "T_code_items": "HumanEval+ task_ids sorted by number, random.Random(261003).shuffle, first 2 whose bare prompt fits 896 tokens; MBPP+ task_ids sorted, random.Random(261004).shuffle, first 2 that fit (MBPP prompt + test_list[0]). Prompt indices: HumanEval 0,1 then MBPP 2,3.",
+  "math_items": "MATH-500 level-5 items sorted by unique_id, random.Random(261005).shuffle; walk the list keeping items whose reference solution's last \\boxed answer is_equiv() its `answer` (checkers/math_check.py) and whose bare prompt fits 896 tokens; first 4 -> Block T, next 4 -> Block L.",
+  "json_items": "authored/json_task.json: Block T variants_T (n = 40); Block L themes with n from variants_L_rule.",
+  "thinking": "on for reasoning (chat_template_kwargs.enable_thinking=true), off for prose, code, json.",
+  "nonce": "see authored/wrappers.json nonce_rule; NONCE_GROUPS in prompts/nonce_groups.json."
+ },
+ "nonce_token_invariance": {
+  "prose": [
+   1024
+  ],
+  "code": [
+   1022
+  ],
+  "reasoning": [
+   1024
+  ],
+  "json": [
+   1024
+  ]
+ },
+ "cells": [
+  {
+   "id": "T-prose-001k-p0",
+   "content": "prose",
+   "input_length": 1024,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/prose/001k/p0.json",
+   "sha256": "d9a78f9dda5f2d69b35e0301a7ff8ca674432e3fcc8811787ef913dbe3cccf81"
+  },
+  {
+   "id": "T-prose-001k-p1",
+   "content": "prose",
+   "input_length": 1024,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/prose/001k/p1.json",
+   "sha256": "0cf6ce454246eeebfa5049d0d071a5876823ea8746d09af59d3262dccefd0a48"
+  },
+  {
+   "id": "T-prose-001k-p2",
+   "content": "prose",
+   "input_length": 1024,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/prose/001k/p2.json",
+   "sha256": "ffdd145461b7f74b099b2add25b8fdac1b8d8898879a480ef00a99b4d8cb75ad"
+  },
+  {
+   "id": "T-prose-001k-p3",
+   "content": "prose",
+   "input_length": 1024,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/prose/001k/p3.json",
+   "sha256": "181d3953984e404082d2c363ef730b627bd2188dcbeec21b84dabc63834cf51c"
+  },
+  {
+   "id": "T-prose-008k-p0",
+   "content": "prose",
+   "input_length": 8192,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/prose/008k/p0.json",
+   "sha256": "c616471a8a46643ed62cb9644d7d47d8165badaf25831287daaa170e128e6bc9"
+  },
+  {
+   "id": "T-prose-008k-p1",
+   "content": "prose",
+   "input_length": 8192,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/prose/008k/p1.json",
+   "sha256": "2699ad6e86308bfef70e0d16fb4a3dfab8e2c30c6e41da94dd17a809793ac0e3"
+  },
+  {
+   "id": "T-prose-008k-p2",
+   "content": "prose",
+   "input_length": 8192,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 8191,
+   "deviation": -1,
+   "file": "T/prose/008k/p2.json",
+   "sha256": "8cda01b0d42820cc31f5d92cf3805bd50d3e9f6b6462658c689e5c26688704fb"
+  },
+  {
+   "id": "T-prose-008k-p3",
+   "content": "prose",
+   "input_length": 8192,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 8191,
+   "deviation": -1,
+   "file": "T/prose/008k/p3.json",
+   "sha256": "48eee1c5b1d43da26f6653ad5eea387400380881d6d60ad143a09bc428ee1ff2"
+  },
+  {
+   "id": "T-prose-032k-p0",
+   "content": "prose",
+   "input_length": 32768,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/prose/032k/p0.json",
+   "sha256": "ee3273e92d27b4d2d0bcb27bde397b85865a33a169e785b3434f7b397e3209d2"
+  },
+  {
+   "id": "T-prose-032k-p1",
+   "content": "prose",
+   "input_length": 32768,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/prose/032k/p1.json",
+   "sha256": "3796646e72a6f77d7b1386f551617eb5f7f119b7fac446d98953f88837a8f2eb"
+  },
+  {
+   "id": "T-prose-032k-p2",
+   "content": "prose",
+   "input_length": 32768,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/prose/032k/p2.json",
+   "sha256": "dc68c758d4492dc1ac24bb1d159bc394c5f4d649c2107200eebcbc20de9811b6"
+  },
+  {
+   "id": "T-prose-032k-p3",
+   "content": "prose",
+   "input_length": 32768,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/prose/032k/p3.json",
+   "sha256": "b03f445db5572c9df601cc232950691404ae2615214e6d0223cf154df5b01dfa"
+  },
+  {
+   "id": "T-prose-128k-p0",
+   "content": "prose",
+   "input_length": 131072,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 131072,
+   "deviation": 0,
+   "file": "T/prose/128k/p0.json",
+   "sha256": "8d3c757e55d45627c9f3d10a34d185d0d057a21481360a59d7d03833aa1065d7"
+  },
+  {
+   "id": "T-prose-128k-p1",
+   "content": "prose",
+   "input_length": 131072,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 131072,
+   "deviation": 0,
+   "file": "T/prose/128k/p1.json",
+   "sha256": "9dca509ea03853c05d0713641aaa9647e65ffca48d730a3803bdd5388874e852"
+  },
+  {
+   "id": "T-prose-128k-p2",
+   "content": "prose",
+   "input_length": 131072,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 131072,
+   "deviation": 0,
+   "file": "T/prose/128k/p2.json",
+   "sha256": "709f094254cfabce06ce3902a7ec47dc3cf7aacfd3d953db67d6726af34d0a64"
+  },
+  {
+   "id": "T-prose-128k-p3",
+   "content": "prose",
+   "input_length": 131072,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 131072,
+   "deviation": 0,
+   "file": "T/prose/128k/p3.json",
+   "sha256": "b1a798e28ec771b86150b3a494187ff5bc906eaa07ec2f15ee1a7df8bc47ffe5"
+  },
+  {
+   "id": "T-code-001k-p0",
+   "content": "code",
+   "input_length": 1024,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 1022,
+   "deviation": -2,
+   "file": "T/code/001k/p0.json",
+   "sha256": "b522f5197e57001050aebffb3680a414d6657af09605e5e511d9c0f246e9ea21"
+  },
+  {
+   "id": "T-code-001k-p1",
+   "content": "code",
+   "input_length": 1024,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/code/001k/p1.json",
+   "sha256": "b66194c51c2bfc4e4d1753572904577bcb82f725bec6cdfde1275c8a60c61e8b"
+  },
+  {
+   "id": "T-code-001k-p2",
+   "content": "code",
+   "input_length": 1024,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/code/001k/p2.json",
+   "sha256": "cd027006c064cbf67ec3bf4463858dc75be918ac6d04dfda9bff316ab34b204e"
+  },
+  {
+   "id": "T-code-001k-p3",
+   "content": "code",
+   "input_length": 1024,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 1023,
+   "deviation": -1,
+   "file": "T/code/001k/p3.json",
+   "sha256": "5239842ceb8b176991f54b11a6b285d601b602a738ab354c10d230baebbb2ef8"
+  },
+  {
+   "id": "T-code-008k-p0",
+   "content": "code",
+   "input_length": 8192,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/code/008k/p0.json",
+   "sha256": "6151b9e2344ba094c0163ade361ac8f38c18c7110c79b8610acbe4b5987c2e0e"
+  },
+  {
+   "id": "T-code-008k-p1",
+   "content": "code",
+   "input_length": 8192,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/code/008k/p1.json",
+   "sha256": "3185ed5f40f6cbe4638d91d4a15634a913bcdeb4642b161760881a7013961c31"
+  },
+  {
+   "id": "T-code-008k-p2",
+   "content": "code",
+   "input_length": 8192,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/code/008k/p2.json",
+   "sha256": "3c85f978a482c78b64afd52ec6be1e1fb8166e1ae4685dcdca9a685016a42484"
+  },
+  {
+   "id": "T-code-008k-p3",
+   "content": "code",
+   "input_length": 8192,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/code/008k/p3.json",
+   "sha256": "1d2a0dafe0a439d57037d4d493099370e30563f45164b9df6e165703d0fd6a08"
+  },
+  {
+   "id": "T-code-032k-p0",
+   "content": "code",
+   "input_length": 32768,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/code/032k/p0.json",
+   "sha256": "6b262b71e3fc9b777be46d6db200ba895f923a70566ed3c7582a8d2d83908dca"
+  },
+  {
+   "id": "T-code-032k-p1",
+   "content": "code",
+   "input_length": 32768,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/code/032k/p1.json",
+   "sha256": "30a694cf701f17a0c38d3cfcf578a35a9b828d2c742b66b708c65d564f16acce"
+  },
+  {
+   "id": "T-code-032k-p2",
+   "content": "code",
+   "input_length": 32768,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/code/032k/p2.json",
+   "sha256": "4ff7f221d147a450f109bec9c2f2b14f4b40782ccff2337a12b696d003c0b393"
+  },
+  {
+   "id": "T-code-032k-p3",
+   "content": "code",
+   "input_length": 32768,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 32768,
+   "deviation": 0,
+   "file": "T/code/032k/p3.json",
+   "sha256": "3957868bbc7fbf1b7c036ff80adefbcac604a54cb3b8bb74eb50124c0eb21ce1"
+  },
+  {
+   "id": "T-code-128k-p0",
+   "content": "code",
+   "input_length": 131072,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 131072,
+   "deviation": 0,
+   "file": "T/code/128k/p0.json",
+   "sha256": "318f53e7648e6b186d403ff96229ad2a71ffefc287a3fbb5ab4cab9075c0059f"
+  },
+  {
+   "id": "T-code-128k-p1",
+   "content": "code",
+   "input_length": 131072,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 131071,
+   "deviation": -1,
+   "file": "T/code/128k/p1.json",
+   "sha256": "4f447804b31de56ad3e517abd512b12aa471b7663fcf8e669ab03a9676a9ef84"
+  },
+  {
+   "id": "T-code-128k-p2",
+   "content": "code",
+   "input_length": 131072,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 131072,
+   "deviation": 0,
+   "file": "T/code/128k/p2.json",
+   "sha256": "b7e5da897e78e75fac1a9f660060216b3017789131496d6a5867e20d7644cee5"
+  },
+  {
+   "id": "T-code-128k-p3",
+   "content": "code",
+   "input_length": 131072,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 131072,
+   "deviation": 0,
+   "file": "T/code/128k/p3.json",
+   "sha256": "155121cd033101e5ab3278f6c07497113f3b3e4fdf7c9859c54ea854b14f9b16"
+  },
+  {
+   "id": "T-reasoning-001k-p0",
+   "content": "reasoning",
+   "input_length": 1024,
+   "prompt_index": 0,
+   "thinking": true,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/reasoning/001k/p0.json",
+   "sha256": "20393502be411b90f532f7bf4ae5f5753afff247af42e98fb21c5549e6d0e6bb"
+  },
+  {
+   "id": "T-reasoning-001k-p1",
+   "content": "reasoning",
+   "input_length": 1024,
+   "prompt_index": 1,
+   "thinking": true,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/reasoning/001k/p1.json",
+   "sha256": "02ad633dc0504b81488485c687e860b33358e0b6c20d3a6bfec71dd7d8963acf"
+  },
+  {
+   "id": "T-reasoning-001k-p2",
+   "content": "reasoning",
+   "input_length": 1024,
+   "prompt_index": 2,
+   "thinking": true,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/reasoning/001k/p2.json",
+   "sha256": "8043b99eecb0826feaf89b0023a17b4e6565562cae41477920862a8441121d1e"
+  },
+  {
+   "id": "T-reasoning-001k-p3",
+   "content": "reasoning",
+   "input_length": 1024,
+   "prompt_index": 3,
+   "thinking": true,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/reasoning/001k/p3.json",
+   "sha256": "bfaaea23a897edb4754b74b6a384171e85e73914419ba0086b661c3717750e68"
+  },
+  {
+   "id": "T-reasoning-008k-p0",
+   "content": "reasoning",
+   "input_length": 8192,
+   "prompt_index": 0,
+   "thinking": true,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/reasoning/008k/p0.json",
+   "sha256": "d918d883cb1103fbac06a56d0be9e4010791208450ad80b18abd8077efdc01fd"
+  },
+  {
+   "id": "T-reasoning-008k-p1",
+   "content": "reasoning",
+   "input_length": 8192,
+   "prompt_index": 1,
+   "thinking": true,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/reasoning/008k/p1.json",
+   "sha256": "ad5ff0ce43936913e6b56dd149d44655bdcd33c5d8dc9c8d10dc082a4c0b4b48"
+  },
+  {
+   "id": "T-reasoning-008k-p2",
+   "content": "reasoning",
+   "input_length": 8192,
+   "prompt_index": 2,
+   "thinking": true,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/reasoning/008k/p2.json",
+   "sha256": "06b33d64a333bf35a8e230471015366bfd49ac1ef70c4e021dc311cdd00c7ab6"
+  },
+  {
+   "id": "T-reasoning-008k-p3",
+   "content": "reasoning",
+   "input_length": 8192,
+   "prompt_index": 3,
+   "thinking": true,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/reasoning/008k/p3.json",
+   "sha256": "bd8eba93303f7ca99ea77b70cb500f6d24244df2740fd6eaec790f37650d4b33"
+  },
+  {
+   "id": "T-json-001k-p0",
+   "content": "json",
+   "input_length": 1024,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/json/001k/p0.json",
+   "sha256": "f71bc9c450426dd532c40285660882930eb5c0a62018ed9be8513dfc13799952"
+  },
+  {
+   "id": "T-json-001k-p1",
+   "content": "json",
+   "input_length": 1024,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/json/001k/p1.json",
+   "sha256": "4b4f23b06603c27b2bdf9a297695c99d8b45dca76543114faa1dd17ca65be4a9"
+  },
+  {
+   "id": "T-json-001k-p2",
+   "content": "json",
+   "input_length": 1024,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/json/001k/p2.json",
+   "sha256": "93fd6d8ff4254cececf185325a743684960181fdf723c88a3ab68005be484317"
+  },
+  {
+   "id": "T-json-001k-p3",
+   "content": "json",
+   "input_length": 1024,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 1024,
+   "deviation": 0,
+   "file": "T/json/001k/p3.json",
+   "sha256": "87904e697ecf24203166828d8229a5095736c4852ba7a812727f6d1891988ea3"
+  },
+  {
+   "id": "T-json-008k-p0",
+   "content": "json",
+   "input_length": 8192,
+   "prompt_index": 0,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/json/008k/p0.json",
+   "sha256": "2f432c9bb7c815d86dde98be582b8d981c831f1a7e8225e8490fca4514262fe3"
+  },
+  {
+   "id": "T-json-008k-p1",
+   "content": "json",
+   "input_length": 8192,
+   "prompt_index": 1,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/json/008k/p1.json",
+   "sha256": "2e118e647183a930b1013328891644da67b62dd6dc74dcba802d29034f6d6d3f"
+  },
+  {
+   "id": "T-json-008k-p2",
+   "content": "json",
+   "input_length": 8192,
+   "prompt_index": 2,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/json/008k/p2.json",
+   "sha256": "9c2579c78feddfcdf4001406ed676e3245b5dd20770c6e5a1bc746bfeb3ffff5"
+  },
+  {
+   "id": "T-json-008k-p3",
+   "content": "json",
+   "input_length": 8192,
+   "prompt_index": 3,
+   "thinking": false,
+   "prompt_tokens": 8192,
+   "deviation": 0,
+   "file": "T/json/008k/p3.json",
+   "sha256": "eb0eef09caccc3408deb8b95bb07d8222df205d30f3d32486b2dd4fda451b74f"
+  }
+ ]
+}

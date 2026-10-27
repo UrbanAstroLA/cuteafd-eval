@@ -1,0 +1,901 @@
+{
+ "about": "The sha256 values recorded at the freeze (FROZEN.json) and in the Stage 0 prompt manifest, with the file in this repository that corresponds to each, and whether it is byte-identical. Copies whose text contains local paths carry placeholders instead, so their hashes differ from the frozen ones; files marked identical can be checked directly (tools/verify.py does).",
+ "frozen": [
+  {
+   "name": "PROTOCOL-DRAFT.md",
+   "frozen_sha256": "ea356f99a5ebed419759de1e7b16fae97cfe1c182d5749b3dc75cb840fe8f3c2",
+   "published": "protocol/PROTOCOL.md",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/MANIFEST.json",
+   "frozen_sha256": "1622039cc2be0af8e97b8f3411aba8fe77acb99bb9573541ed2a77db7755c24b",
+   "published": "repro/stage0/prompts/MANIFEST.json",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/drivers/block_t.py",
+   "frozen_sha256": "9497d75bbff4ee2006f6e8efc15bbd2b9fca5e4701ac688613b9717b53dab3e7",
+   "published": "repro/stage0/drivers/block_t.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/drivers/block_l.py",
+   "frozen_sha256": "efc4754d0133b06557cf7f0e4ec8a3eda8378c538257f653b073ffde84ba8b15",
+   "published": "repro/stage0/drivers/block_l.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/drivers/analyze_l.py",
+   "frozen_sha256": "0ba724d18fe0f26b1933ac05558478dfb2c5b6b114c0803a425ef5871bfc5ada",
+   "published": "repro/stage0/drivers/analyze_l.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/score_pa.py",
+   "frozen_sha256": "393f84482bfb5632b7f4ef5b1009736e786bb1917a86a37bab0323d7f226fc00",
+   "published": "repro/stage0/scorers/score_pa.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/score_pb.py",
+   "frozen_sha256": "2aabc8ea04bf4983baa41e9c7af00a55a18268020edf0d15c309ef53657830e2",
+   "published": "repro/stage0/scorers/score_pb.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/score_q2.py",
+   "frozen_sha256": "94edbc2cf53cc91f52ed064b73f470400e5718224b7d0aa965db22c6e00e52b0",
+   "published": "repro/stage0/scorers/score_q2.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/plans/pa.cuteafd-plan.json",
+   "frozen_sha256": "c7977da1530072eee26600890da0d36cb07988270d867cc91a35e7cd0d5d7165",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/plans/pb.vllm-registry.json",
+   "frozen_sha256": "f68c31e262a38388d48804ba4675a0988388e20e1071c7c05f4b66ea5f34f010",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/plans/pa.vllm-registry.json",
+   "frozen_sha256": "ce4ab41dcd2d6cbdaec37ff4a855c5b36a8dfac1683953b7667588760a4141a6",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/plans/q2.cuteafd-plan.json",
+   "frozen_sha256": "6d3ad9770a1cc5247f2505109a2e7b4f9d47a2383234c83676368b4492bbe25d",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/scorers/plans/q2.vllm-registry.json",
+   "frozen_sha256": "bbb17874033cf9028e6f0138a3d7a90bf0dc5e15bbb212e4922978e17613f81b",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/capture-vllm/capture.py",
+   "frozen_sha256": "38c0448bad7939b56190cc5b9935d4403880a0fd27143fe599dfaf102d5edd3c",
+   "published": "repro/stage0/capture-vllm/capture.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/capture-vllm/start-v092-capture.sh",
+   "frozen_sha256": "59e5d3e796774df6cd7fb937930a78f4fb2356fb0a8e9317c81461ccc91cd362",
+   "published": "repro/stage0/capture-vllm/start-v092-capture.sh",
+   "published_identical": false
+  },
+  {
+   "name": "<datasets>/2026-10-26-engine-compare/SOURCES.json",
+   "frozen_sha256": "cc81a093f75e06066632246d618e824ab648f359b27dc1633e04fde8024b4b66",
+   "published": "protocol/SOURCES.json",
+   "published_identical": true
+  }
+ ],
+ "stage0_manifest": [
+  {
+   "name": "stage0/drivers/README.md",
+   "frozen_sha256": "07272b043f883ff0502897d28e6ca244ea86331fc08af124791a48ad6c7486c6",
+   "published": "repro/stage0/drivers/README.md",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/drivers/analyze_l.py",
+   "frozen_sha256": "0ba724d18fe0f26b1933ac05558478dfb2c5b6b114c0803a425ef5871bfc5ada",
+   "published": "repro/stage0/drivers/analyze_l.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/drivers/block_l.py",
+   "frozen_sha256": "a7654908024f1982af5c15d66c3a954e71576b79777b142c6a0d07f833e6aa4b",
+   "published": "repro/stage0/drivers/block_l.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/drivers/block_t.py",
+   "frozen_sha256": "8aee21ac725011724e3e860af62fcdd290b00b3e9a13267fbfb2a7ca18baa4ae",
+   "published": "repro/stage0/drivers/block_t.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/drivers/client.py",
+   "frozen_sha256": "232f96683d904eedbb16500503e95567a33aa7b010f1b805f11c523997888b19",
+   "published": "repro/stage0/drivers/client.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/SPEC.md",
+   "frozen_sha256": "2590e0fc399ffd8dddd056c6a1871ce6f4540cf21c734a5e454c8783cdddacb2",
+   "published": "repro/stage0/prompts/L/code/csvreport/SPEC.md",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/reference/csvreport/__init__.py",
+   "frozen_sha256": "78479799f70901e0b327faf15f73885908173d7ca4e8556e116bd5c4636f2604",
+   "published": "repro/stage0/prompts/L/code/csvreport/reference/csvreport/__init__.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/reference/csvreport/aggregate.py",
+   "frozen_sha256": "917016fe4ec2410400de77b56aee50b1438ada54ec7eaffd5e9068119ad09504",
+   "published": "repro/stage0/prompts/L/code/csvreport/reference/csvreport/aggregate.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/reference/csvreport/errors.py",
+   "frozen_sha256": "dc086eedb47cf8acef0e61da91dba7129be1761dc92ddc0026e818019016bd4f",
+   "published": "repro/stage0/prompts/L/code/csvreport/reference/csvreport/errors.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/reference/csvreport/reader.py",
+   "frozen_sha256": "e7634d044c4a171a73a7c4369711dc68893f891d57bce3bb9f192da26b54ae68",
+   "published": "repro/stage0/prompts/L/code/csvreport/reference/csvreport/reader.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/reference/csvreport/schema.py",
+   "frozen_sha256": "fb6e57b123b409c0c1499367b8535b09dbaece1c6517424f42ad9cba6eec33bd",
+   "published": "repro/stage0/prompts/L/code/csvreport/reference/csvreport/schema.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/reference/csvreport/table.py",
+   "frozen_sha256": "e9969677a2bfef8291c66a6363327c5ce5d55c275f593b369e5a1ceefea8bdaa",
+   "published": "repro/stage0/prompts/L/code/csvreport/reference/csvreport/table.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/csvreport/tests/test_csvreport.py",
+   "frozen_sha256": "42f71f6fb70b506a4e5b10d09278a4064a69a3980db66091715a1f239f33d87a",
+   "published": "repro/stage0/prompts/L/code/csvreport/tests/test_csvreport.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/graphkit/SPEC.md",
+   "frozen_sha256": "da6dc9a1bd7637fbfec26aaf1e0869b242fc0061394b2bbe931bbeacfdb0ae8e",
+   "published": "repro/stage0/prompts/L/code/graphkit/SPEC.md",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/graphkit/reference/graphkit/__init__.py",
+   "frozen_sha256": "095f54f8cf8ae053f78f421c71e330f9d98e2451308748f4d6dffc7d25c661a6",
+   "published": "repro/stage0/prompts/L/code/graphkit/reference/graphkit/__init__.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/graphkit/reference/graphkit/algorithms.py",
+   "frozen_sha256": "8485ffdfe8672d8489eb84198794d9d01de195f7dc5844e1b5d508422a564dc5",
+   "published": "repro/stage0/prompts/L/code/graphkit/reference/graphkit/algorithms.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/graphkit/reference/graphkit/errors.py",
+   "frozen_sha256": "6c2dde2cc7a3685195bfffc8ddd86e9f0f5850ec31d29c563f3864458c129892",
+   "published": "repro/stage0/prompts/L/code/graphkit/reference/graphkit/errors.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/graphkit/reference/graphkit/graph.py",
+   "frozen_sha256": "baf6710fd08fcb38122ef953c67f6401e896837c5a041e949c4bf20f2bec82ec",
+   "published": "repro/stage0/prompts/L/code/graphkit/reference/graphkit/graph.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/graphkit/reference/graphkit/io.py",
+   "frozen_sha256": "0b776bc59a26e52ac679de807ba846a9ac597e6eb1d19d42af24010d1d13749b",
+   "published": "repro/stage0/prompts/L/code/graphkit/reference/graphkit/io.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/graphkit/tests/test_graphkit.py",
+   "frozen_sha256": "6ecfb5be52b378074dbb9fee9c977e93c123abf9baa1222bacebede45c79e3fd",
+   "published": "repro/stage0/prompts/L/code/graphkit/tests/test_graphkit.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/kvstore/SPEC.md",
+   "frozen_sha256": "d167f44b780c41f3af0e20dbd92f461c8f30126985e58253e7ffbde5d0e45300",
+   "published": "repro/stage0/prompts/L/code/kvstore/SPEC.md",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/kvstore/reference/kvstore/__init__.py",
+   "frozen_sha256": "6d4f2ad04c92e34fea2f95cc65c17deabf8bc494d27d1c97ef6ab837c13d8479",
+   "published": "repro/stage0/prompts/L/code/kvstore/reference/kvstore/__init__.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/kvstore/reference/kvstore/commands.py",
+   "frozen_sha256": "616f1c830ce62fe6fcbaa1e015acca5ccbf62914cff0193539dfbec226248192",
+   "published": "repro/stage0/prompts/L/code/kvstore/reference/kvstore/commands.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/kvstore/reference/kvstore/errors.py",
+   "frozen_sha256": "f623b0b8781d1627e95b9a7466e9468173e62f5cea159b0c70a9933b7b406718",
+   "published": "repro/stage0/prompts/L/code/kvstore/reference/kvstore/errors.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/kvstore/reference/kvstore/persistence.py",
+   "frozen_sha256": "33ebe4ff0638759d9b4a6ba85f6707369304bf00e613b5575698d1e24b7a93e9",
+   "published": "repro/stage0/prompts/L/code/kvstore/reference/kvstore/persistence.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/kvstore/reference/kvstore/store.py",
+   "frozen_sha256": "9e7c641ae0db1203a634b6c6f76e39024bbea8de94aca909efde68ebaf9b03a5",
+   "published": "repro/stage0/prompts/L/code/kvstore/reference/kvstore/store.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/kvstore/tests/test_kvstore.py",
+   "frozen_sha256": "ee8672110ae05a93d4ca32011e36f19a341bc20268627dbffe3e9cf309d53372",
+   "published": "repro/stage0/prompts/L/code/kvstore/tests/test_kvstore.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/SPEC.md",
+   "frozen_sha256": "c827567fe3b8e454e56550b8ab15c5c7c82b8e6f62f62ea18dc101969df7fc4d",
+   "published": "repro/stage0/prompts/L/code/minicalc/SPEC.md",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/reference/minicalc/__init__.py",
+   "frozen_sha256": "c16e3da046929f7b77858d31700d21a27979f3b352d064c71430f9a3f0fb29d3",
+   "published": "repro/stage0/prompts/L/code/minicalc/reference/minicalc/__init__.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/reference/minicalc/ast.py",
+   "frozen_sha256": "31c29958bd623843aa60277a8e8a012ae79325d56877f9510ca915e00c0904f1",
+   "published": "repro/stage0/prompts/L/code/minicalc/reference/minicalc/ast.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/reference/minicalc/errors.py",
+   "frozen_sha256": "94b5800e83b49b9e6aae5cc5086fb0146af3b6002b131220be88a5ad98327940",
+   "published": "repro/stage0/prompts/L/code/minicalc/reference/minicalc/errors.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/reference/minicalc/evaluator.py",
+   "frozen_sha256": "3882806a87e92afec272dfdfd0b6e9af4773bb9126546085d56b529ba098c91b",
+   "published": "repro/stage0/prompts/L/code/minicalc/reference/minicalc/evaluator.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/reference/minicalc/lexer.py",
+   "frozen_sha256": "f9c0523b546b3934e12a63d9172c06273f5fbd723b0b938a85f229efb975c20a",
+   "published": "repro/stage0/prompts/L/code/minicalc/reference/minicalc/lexer.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/reference/minicalc/parser.py",
+   "frozen_sha256": "f2cbee347a5c86c527b955162e34245545e3bd33a08d477f97a2930739c5b6f1",
+   "published": "repro/stage0/prompts/L/code/minicalc/reference/minicalc/parser.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/minicalc/tests/test_minicalc.py",
+   "frozen_sha256": "313bf035483873373f1242c3eb09d03b2cd36208b3def028b52b056770732d00",
+   "published": "repro/stage0/prompts/L/code/minicalc/tests/test_minicalc.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/p0.json",
+   "frozen_sha256": "28dd1e230d9d65cf0a175c15027ad5649c2a9b5e8632c2dae28cf108af22f3d3",
+   "published": "repro/stage0/prompts/L/code/p0.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/p1.json",
+   "frozen_sha256": "8380e8de95304f8f4d42f77ed8a1f4ce5d893e3065dca95ba1b340520d75bf5e",
+   "published": "repro/stage0/prompts/L/code/p1.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/p2.json",
+   "frozen_sha256": "876b28ef26a7f74f2d1772d6509295e1b1c99e7e53795dbe2a411dbf484cf32a",
+   "published": "repro/stage0/prompts/L/code/p2.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/code/p3.json",
+   "frozen_sha256": "934c7fe05224d483fdf086400b34fb9666462a587d57daaa5bf7644cd651ce46",
+   "published": "repro/stage0/prompts/L/code/p3.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/index.json",
+   "frozen_sha256": "19ea0a65ae7e83432da1b71768762d488422ab3bc896250cddea22598b4a9a34",
+   "published": "repro/stage0/prompts/L/index.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/json/p0.json",
+   "frozen_sha256": "a903d2b23fb0e128d5d906f61f3fc9ce13a623fa0aa4ad453c1b81c419c329ad",
+   "published": "repro/stage0/prompts/L/json/p0.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/json/p1.json",
+   "frozen_sha256": "e8829a040915e5c7523ba7e33bfd43d9130bb63993de16228b3bac1a0c2d6651",
+   "published": "repro/stage0/prompts/L/json/p1.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/json/p2.json",
+   "frozen_sha256": "68c83534c4360e13fe5b806cebe797668ebaab3b8f3647aebb400c63abe687a5",
+   "published": "repro/stage0/prompts/L/json/p2.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/json/p3.json",
+   "frozen_sha256": "70b680bfff53f1bf8461b0d4246867c3d9939941fe11e7aca6f06db6733cecdb",
+   "published": "repro/stage0/prompts/L/json/p3.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/prose/p0.json",
+   "frozen_sha256": "dbca3937eb14afdf18a7bcee73166098b53e4d11f0a34b11799a5aebb44e64e7",
+   "published": "repro/stage0/prompts/L/prose/p0.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/prose/p1.json",
+   "frozen_sha256": "d860a8c83edac359e0c7ad1b0fff3343eb8258167ea73d996c2aa7a599f7d313",
+   "published": "repro/stage0/prompts/L/prose/p1.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/prose/p2.json",
+   "frozen_sha256": "2df98cd743a1c4d76c9856b966ba4d482954d4f6cbc1785acf11fea19c3424a9",
+   "published": "repro/stage0/prompts/L/prose/p2.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/prose/p3.json",
+   "frozen_sha256": "11e480e48b311431abaa63450919f3c884c2bdf05bdd486346aecd6abca59b50",
+   "published": "repro/stage0/prompts/L/prose/p3.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/reasoning/p0.json",
+   "frozen_sha256": "7d25a162cc29ea7f54f4197832646cfac20e10d59e820868f578aefa4300d100",
+   "published": "repro/stage0/prompts/L/reasoning/p0.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/reasoning/p1.json",
+   "frozen_sha256": "eb90ed08574ab58908530b110a9ca0d0ce5f7cf2ce8468717c432daa78fd540b",
+   "published": "repro/stage0/prompts/L/reasoning/p1.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/reasoning/p2.json",
+   "frozen_sha256": "a966ea5329b086624a4501bfb8a50e5e45d35b24285fb72df4187d784301863c",
+   "published": "repro/stage0/prompts/L/reasoning/p2.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/L/reasoning/p3.json",
+   "frozen_sha256": "0ccec072e95241557bcc6d55b5f38fd39ff7db6142b127b413de89753e86d904",
+   "published": "repro/stage0/prompts/L/reasoning/p3.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/README.md",
+   "frozen_sha256": "ae76f9adb9c5f79439b4b88875980b5a230c70a643f5ed605408d1a986517103",
+   "published": "repro/stage0/prompts/README.md",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/RULES.json",
+   "frozen_sha256": "46d3a051b8e4ad4f38af1482193be95c7085db28eb384a5af127cf28c21b2cda",
+   "published": "repro/stage0/prompts/RULES.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/T/code/001k/p0.json",
+   "frozen_sha256": "b522f5197e57001050aebffb3680a414d6657af09605e5e511d9c0f246e9ea21",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/001k/p1.json",
+   "frozen_sha256": "b66194c51c2bfc4e4d1753572904577bcb82f725bec6cdfde1275c8a60c61e8b",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/001k/p2.json",
+   "frozen_sha256": "cd027006c064cbf67ec3bf4463858dc75be918ac6d04dfda9bff316ab34b204e",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/001k/p3.json",
+   "frozen_sha256": "5239842ceb8b176991f54b11a6b285d601b602a738ab354c10d230baebbb2ef8",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/008k/p0.json",
+   "frozen_sha256": "6151b9e2344ba094c0163ade361ac8f38c18c7110c79b8610acbe4b5987c2e0e",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/008k/p1.json",
+   "frozen_sha256": "3185ed5f40f6cbe4638d91d4a15634a913bcdeb4642b161760881a7013961c31",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/008k/p2.json",
+   "frozen_sha256": "3c85f978a482c78b64afd52ec6be1e1fb8166e1ae4685dcdca9a685016a42484",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/008k/p3.json",
+   "frozen_sha256": "1d2a0dafe0a439d57037d4d493099370e30563f45164b9df6e165703d0fd6a08",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/032k/p0.json",
+   "frozen_sha256": "6b262b71e3fc9b777be46d6db200ba895f923a70566ed3c7582a8d2d83908dca",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/032k/p1.json",
+   "frozen_sha256": "30a694cf701f17a0c38d3cfcf578a35a9b828d2c742b66b708c65d564f16acce",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/032k/p2.json",
+   "frozen_sha256": "4ff7f221d147a450f109bec9c2f2b14f4b40782ccff2337a12b696d003c0b393",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/032k/p3.json",
+   "frozen_sha256": "3957868bbc7fbf1b7c036ff80adefbcac604a54cb3b8bb74eb50124c0eb21ce1",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/128k/p0.json",
+   "frozen_sha256": "318f53e7648e6b186d403ff96229ad2a71ffefc287a3fbb5ab4cab9075c0059f",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/128k/p1.json",
+   "frozen_sha256": "4f447804b31de56ad3e517abd512b12aa471b7663fcf8e669ab03a9676a9ef84",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/128k/p2.json",
+   "frozen_sha256": "b7e5da897e78e75fac1a9f660060216b3017789131496d6a5867e20d7644cee5",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/code/128k/p3.json",
+   "frozen_sha256": "155121cd033101e5ab3278f6c07497113f3b3e4fdf7c9859c54ea854b14f9b16",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/index.json",
+   "frozen_sha256": "4639ab7d10445a4efb3e87425baa0f32ab4aa507f08a2ef1daab93b4757384a5",
+   "published": "repro/stage0/prompts/T/index.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/T/json/001k/p0.json",
+   "frozen_sha256": "f71bc9c450426dd532c40285660882930eb5c0a62018ed9be8513dfc13799952",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/json/001k/p1.json",
+   "frozen_sha256": "4b4f23b06603c27b2bdf9a297695c99d8b45dca76543114faa1dd17ca65be4a9",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/json/001k/p2.json",
+   "frozen_sha256": "93fd6d8ff4254cececf185325a743684960181fdf723c88a3ab68005be484317",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/json/001k/p3.json",
+   "frozen_sha256": "87904e697ecf24203166828d8229a5095736c4852ba7a812727f6d1891988ea3",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/json/008k/p0.json",
+   "frozen_sha256": "2f432c9bb7c815d86dde98be582b8d981c831f1a7e8225e8490fca4514262fe3",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/json/008k/p1.json",
+   "frozen_sha256": "2e118e647183a930b1013328891644da67b62dd6dc74dcba802d29034f6d6d3f",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/json/008k/p2.json",
+   "frozen_sha256": "9c2579c78feddfcdf4001406ed676e3245b5dd20770c6e5a1bc746bfeb3ffff5",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/json/008k/p3.json",
+   "frozen_sha256": "eb0eef09caccc3408deb8b95bb07d8222df205d30f3d32486b2dd4fda451b74f",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/001k/p0.json",
+   "frozen_sha256": "d9a78f9dda5f2d69b35e0301a7ff8ca674432e3fcc8811787ef913dbe3cccf81",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/001k/p1.json",
+   "frozen_sha256": "0cf6ce454246eeebfa5049d0d071a5876823ea8746d09af59d3262dccefd0a48",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/001k/p2.json",
+   "frozen_sha256": "ffdd145461b7f74b099b2add25b8fdac1b8d8898879a480ef00a99b4d8cb75ad",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/001k/p3.json",
+   "frozen_sha256": "181d3953984e404082d2c363ef730b627bd2188dcbeec21b84dabc63834cf51c",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/008k/p0.json",
+   "frozen_sha256": "c616471a8a46643ed62cb9644d7d47d8165badaf25831287daaa170e128e6bc9",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/008k/p1.json",
+   "frozen_sha256": "2699ad6e86308bfef70e0d16fb4a3dfab8e2c30c6e41da94dd17a809793ac0e3",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/008k/p2.json",
+   "frozen_sha256": "8cda01b0d42820cc31f5d92cf3805bd50d3e9f6b6462658c689e5c26688704fb",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/008k/p3.json",
+   "frozen_sha256": "48eee1c5b1d43da26f6653ad5eea387400380881d6d60ad143a09bc428ee1ff2",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/032k/p0.json",
+   "frozen_sha256": "ee3273e92d27b4d2d0bcb27bde397b85865a33a169e785b3434f7b397e3209d2",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/032k/p1.json",
+   "frozen_sha256": "3796646e72a6f77d7b1386f551617eb5f7f119b7fac446d98953f88837a8f2eb",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/032k/p2.json",
+   "frozen_sha256": "dc68c758d4492dc1ac24bb1d159bc394c5f4d649c2107200eebcbc20de9811b6",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/032k/p3.json",
+   "frozen_sha256": "b03f445db5572c9df601cc232950691404ae2615214e6d0223cf154df5b01dfa",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/128k/p0.json",
+   "frozen_sha256": "8d3c757e55d45627c9f3d10a34d185d0d057a21481360a59d7d03833aa1065d7",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/128k/p1.json",
+   "frozen_sha256": "9dca509ea03853c05d0713641aaa9647e65ffca48d730a3803bdd5388874e852",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/128k/p2.json",
+   "frozen_sha256": "709f094254cfabce06ce3902a7ec47dc3cf7aacfd3d953db67d6726af34d0a64",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/prose/128k/p3.json",
+   "frozen_sha256": "b1a798e28ec771b86150b3a494187ff5bc906eaa07ec2f15ee1a7df8bc47ffe5",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/001k/p0.json",
+   "frozen_sha256": "20393502be411b90f532f7bf4ae5f5753afff247af42e98fb21c5549e6d0e6bb",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/001k/p1.json",
+   "frozen_sha256": "02ad633dc0504b81488485c687e860b33358e0b6c20d3a6bfec71dd7d8963acf",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/001k/p2.json",
+   "frozen_sha256": "8043b99eecb0826feaf89b0023a17b4e6565562cae41477920862a8441121d1e",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/001k/p3.json",
+   "frozen_sha256": "bfaaea23a897edb4754b74b6a384171e85e73914419ba0086b661c3717750e68",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/008k/p0.json",
+   "frozen_sha256": "d918d883cb1103fbac06a56d0be9e4010791208450ad80b18abd8077efdc01fd",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/008k/p1.json",
+   "frozen_sha256": "ad5ff0ce43936913e6b56dd149d44655bdcd33c5d8dc9c8d10dc082a4c0b4b48",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/008k/p2.json",
+   "frozen_sha256": "06b33d64a333bf35a8e230471015366bfd49ac1ef70c4e021dc311cdd00c7ab6",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/T/reasoning/008k/p3.json",
+   "frozen_sha256": "bd8eba93303f7ca99ea77b70cb500f6d24244df2740fd6eaec790f37650d4b33",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/authored/json_task.json",
+   "frozen_sha256": "a01f8958e6f5f8cd7fb24b944a94849fe882b9049a432abd725f591ad160b9fc",
+   "published": "repro/stage0/prompts/authored/json_task.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/authored/wrappers.json",
+   "frozen_sha256": "13642efba70b42eeb13e50cb477628ddecee28aa81157fd209cc322b2b8dca33",
+   "published": "repro/stage0/prompts/authored/wrappers.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/build/build_prompts.py",
+   "frozen_sha256": "4fa79b26ff3769adcec0fbbebaacc525f9963f8fbaf87d13c41fafeacb9ab8dc",
+   "published": "repro/stage0/prompts/build/build_prompts.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/build/make_manifest.py",
+   "frozen_sha256": "7ee1d1993fa0f3f96027b3b538778b929354cbd5f1e9a83ad655f3cd05b89ec9",
+   "published": "repro/stage0/prompts/build/make_manifest.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/build/run_build.sh",
+   "frozen_sha256": "d8c99e3e52b7d6deb123b76a05c4c55b02fd0af0cd075d8d435a6df0f4c2f269",
+   "published": "repro/stage0/prompts/build/run_build.sh",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/checkers/code_check.py",
+   "frozen_sha256": "fef9245a0148d54f003b07b10ddc97520bc731fb681d4b225174c7b0ea8e37a7",
+   "published": "repro/stage0/prompts/checkers/code_check.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/checkers/json_check.py",
+   "frozen_sha256": "fb893dc04528bbb2d015ee942ac0012408148c47b468dcab28a32b04a4d47e1a",
+   "published": "repro/stage0/prompts/checkers/json_check.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/checkers/math_check.py",
+   "frozen_sha256": "04138be6a7eb147a2abf5df118dc838a6e3c3b3a54e5c4229c1e8674fd0b8eaa",
+   "published": "repro/stage0/prompts/checkers/math_check.py",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/checkers/selftest.py",
+   "frozen_sha256": "0f82c616057689d7bfd562289dd042cb1b94a799e105dac4767b23f7594d29e0",
+   "published": "repro/stage0/prompts/checkers/selftest.py",
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/nonce_groups.json",
+   "frozen_sha256": "008199862a9e25a5bac398fd2db6bf58526ec6193087204e6256cc20ad976d88",
+   "published": "repro/stage0/prompts/nonce_groups.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/q2/index.json",
+   "frozen_sha256": "983970a83f43229e7a977757da8dbd39ce835d5f9eaa39c0e9cc9a7f89ef9d61",
+   "published": "repro/stage0/prompts/q2/index.json",
+   "published_identical": true
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c0-032k.json",
+   "frozen_sha256": "16783cd4c395d903343ef69e01a3ae8103744e978a6e35c0b53105ac27e2c0c2",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c0-064k.json",
+   "frozen_sha256": "113150a7944eecf9dc646a4ca590a1ff01e8524693f3f3dab4f36138ee5f0fb5",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c0-128k.json",
+   "frozen_sha256": "c137244397dffe0eff56de86279eb47ff3b7968d9cc8d62b149facf196a44b1d",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c1-032k.json",
+   "frozen_sha256": "e205ced483377dcaf767ad29bbb8ad6d3bf86807fee63d69119c376cea8a07c9",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c1-064k.json",
+   "frozen_sha256": "d68e1fdd0e7c6e8ae8d714a964d1258305d03068bf3bf4a3fa44de3432099461",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c1-128k.json",
+   "frozen_sha256": "15df0179012f2511f4b825f679dff12685c8e6d009354eb7ce86f81fc49b37b1",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c2-032k.json",
+   "frozen_sha256": "fac1706aca20b161544901941d1e38d700c10d899b968ef651dd70a51fa4ff02",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c2-064k.json",
+   "frozen_sha256": "6b3710f9e0bf7a886f15c8540a512f459ff8780b01735960ed5099cd1f48e80e",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-code-c2-128k.json",
+   "frozen_sha256": "b82e3facfe69180ce806977cf3f26d756f174332864fbf62e04a6f6bf6206845",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg28988-032k.json",
+   "frozen_sha256": "65f2dc5c2f169908972d04b7e6c5296317cc7f396bdcfa8fe33d759d49454c4e",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg28988-064k.json",
+   "frozen_sha256": "35fc0e108453ed296ee172d8e2c6e1d97d9d966d904cc558991c6df943271961",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg28988-128k.json",
+   "frozen_sha256": "f7684d921412765c8b54fdafe1060ef22779400fa5ffdad14892559cd61e46d6",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg30754-032k.json",
+   "frozen_sha256": "5018060c326777e43c2df64714a0c98c2215b6ca09c1944c70e78198d1f40c8d",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg30754-064k.json",
+   "frozen_sha256": "48b0ac1973b3ee288fd60afdf8fa4357c2a8241e7e0b185f6fa8d43bd5186f7a",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg30754-128k.json",
+   "frozen_sha256": "a2c7716a0a1aaf916a855ae7b6fa6cb5afacc6e4b9808d8a23bd156c64ccaea1",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg7412-032k.json",
+   "frozen_sha256": "30242f44ed4040fa7b82e384f2b8ff23130833215e9e1a7df1ced8960a3445de",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg7412-064k.json",
+   "frozen_sha256": "6c017dbc67fbbcd572ce8897d864483ec8be9d6a646637a16f67a3a1b60d4afb",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/q2/q2-prose-pg7412-128k.json",
+   "frozen_sha256": "6031ff83538aa52fd7cff86900816beb2a47425126cecfb64640313174f94421",
+   "published": null,
+   "published_identical": false
+  },
+  {
+   "name": "stage0/prompts/selftest/checkers_selftest.json",
+   "frozen_sha256": "40fa37160bb8bdd1be358c3921b13ef9cd02765d6eea511e96ba7d7103e16f1b",
+   "published": "repro/stage0/prompts/selftest/checkers_selftest.json",
+   "published_identical": true
+  }
+ ]
+}

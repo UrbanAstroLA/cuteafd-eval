@@ -1,0 +1,28 @@
+run0-baseline-uncached: ready 697s after container start; weights 135.68s; TileLang compiles 49 (first 242.938602, last 465.05277); graph capture 153s
+run1-populate: ready 714s after container start; weights 136.33s; TileLang compiles 48 (first 257.470354, last 482.989956); graph capture 151s
+TRITON_CACHE_DIR=/root/.cache/triton
+CUDA_CACHE_PATH=/root/.cache/nv/ComputeCache
+TORCHINDUCTOR_CACHE_DIR=/root/.cache/torchinductor
+TILELANG_CACHE_DIR=/root/.cache/tilelang
+113M	<cache>/vllm-v090/b12x
+12K	<cache>/vllm-v090/flashinfer
+du: cannot read directory '<cache>/vllm-v090/nv': Permission denied
+4.0K	<cache>/vllm-v090/nv
+11M	<cache>/vllm-v090/tilelang
+6.1M	<cache>/vllm-v090/torchinductor
+88M	<cache>/vllm-v090/triton
+1.4M	<cache>/vllm-v090/vllm
+run2-warm: ready 382s after container start; weights 139.29s; TileLang compiles 0 (first None, last None); graph capture 43s
+TRITON_CACHE_DIR=/root/.cache/triton
+CUDA_CACHE_PATH=/root/.cache/nv/ComputeCache
+TORCHINDUCTOR_CACHE_DIR=/root/.cache/torchinductor
+TILELANG_CACHE_DIR=/root/.cache/tilelang
+115M	<cache>/vllm-v090/b12x
+12K	<cache>/vllm-v090/flashinfer
+du: cannot read directory '<cache>/vllm-v090/nv': Permission denied
+4.0K	<cache>/vllm-v090/nv
+11M	<cache>/vllm-v090/tilelang
+6.1M	<cache>/vllm-v090/torchinductor
+88M	<cache>/vllm-v090/triton
+1.4M	<cache>/vllm-v090/vllm
+done 2026-10-27T11:14:02-07:00

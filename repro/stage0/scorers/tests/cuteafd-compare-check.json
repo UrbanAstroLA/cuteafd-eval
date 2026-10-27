@@ -1,0 +1,119 @@
+{
+ "image": "ghcr.io/tpurtell/cuteafd-coordinator@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a",
+ "command": "docker run --rm --network none --user 1000:1000 -v <run>/stage0/scorers/_tmp_compare:/w --entrypoint /opt/cuteafd/bin/cuteafd ghcr.io/tpurtell/cuteafd-coordinator@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a bench fidelity compare /w/B.json /w/A.json --score-path prefill --bootstrap 5000 --seed 20260829 --out /w/his.json",
+ "exit_code": 3,
+ "compare": {
+  "positions": {
+   "cuteafd": 15104,
+   "port": 15104,
+   "abs_diff": 0
+  },
+  "windows": {
+   "cuteafd": 53,
+   "port": 53,
+   "abs_diff": 0
+  },
+  "baseline_only": {
+   "cuteafd": 947,
+   "port": 947,
+   "abs_diff": 0
+  },
+  "candidate_only": {
+   "cuteafd": 840,
+   "port": 840,
+   "abs_diff": 0
+  },
+  "discordance": {
+   "cuteafd": 0.11831302966101695,
+   "port": 0.11831302966101695,
+   "abs_diff": 0.0
+  },
+  "top1_loss": {
+   "cuteafd": 0.0070842161016949155,
+   "port": 0.0070842161016949155,
+   "abs_diff": 0.0
+  },
+  "top1_upper95": {
+   "cuteafd": 0.01228148152801601,
+   "port": 0.01228148152801601,
+   "abs_diff": 0.0
+  },
+  "top1_se_bootstrap": {
+   "cuteafd": 0.0031597130231907425,
+   "port": 0.0031597130231907434,
+   "abs_diff": 8.673617379884035e-19
+  },
+  "kl_delta": {
+   "cuteafd": 0.0019776875243253844,
+   "port": 0.0019776875243253844,
+   "abs_diff": 0.0
+  },
+  "kl_upper95": {
+   "cuteafd": 0.002070721605318337,
+   "port": 0.002070721605318336,
+   "abs_diff": 8.673617379884035e-19
+  },
+  "kl_se_clustered": {
+   "cuteafd": 5.720770500124191e-05,
+   "port": 5.720770500124189e-05,
+   "abs_diff": 2.0328790734103208e-20
+  },
+  "mcnemar_p": {
+   "cuteafd": 0.012158331624061634,
+   "port": 0.012158331624061634,
+   "abs_diff": 0.0
+  },
+  "confident_top1.baseline": {
+   "cuteafd": 0.9398713593987136,
+   "port": 0.9398713593987136,
+   "abs_diff": 0.0
+  },
+  "confident_top1.candidate": {
+   "cuteafd": 0.9338006793380068,
+   "port": 0.9338006793380068,
+   "abs_diff": 0.0
+  },
+  "confident_top1.loss": {
+   "cuteafd": 0.006070680060706801,
+   "port": 0.006070680060706801,
+   "abs_diff": 0.0
+  },
+  "confident_top1.lower95": {
+   "cuteafd": 0.0004428265216922728,
+   "port": 0.0004428265216922728,
+   "abs_diff": 0.0
+  },
+  "confident_top1.upper95": {
+   "cuteafd": 0.011377787702503956,
+   "port": 0.011377787702503956,
+   "abs_diff": 0.0
+  },
+  "top3.baseline": {
+   "cuteafd": 0.9643140889830508,
+   "port": 0.9643140889830508,
+   "abs_diff": 0.0
+  },
+  "top3.candidate": {
+   "cuteafd": 0.960010593220339,
+   "port": 0.960010593220339,
+   "abs_diff": 0.0
+  },
+  "top3.loss": {
+   "cuteafd": 0.004303495762711864,
+   "port": 0.004303495762711864,
+   "abs_diff": 0.0
+  },
+  "top3.lower95": {
+   "cuteafd": 0.000434555088204628,
+   "port": 0.000434555088204628,
+   "abs_diff": 0.0
+  },
+  "top3.upper95": {
+   "cuteafd": 0.008029807167188478,
+   "port": 0.008029807167188478,
+   "abs_diff": 0.0
+  }
+ },
+ "max_abs_diff": 8.673617379884035e-19,
+ "pass": true
+}

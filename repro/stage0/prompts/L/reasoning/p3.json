@@ -1,0 +1,30 @@
+{
+ "id": "L-reasoning-p3",
+ "block": "L",
+ "content": "reasoning",
+ "prompt_index": 3,
+ "thinking": true,
+ "messages": [
+  {
+   "role": "user",
+   "content": "If $x^3$ is a positive factor of $10!,$ how many possible integer values of $x$ are there?  (Reminder: For a positive integer $n$, the expression $n!$ stands for the product of the integers from 1 up to (and including) $n$.)\n\nPlease reason step by step, and put your final answer within \\boxed{}."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 98,
+  "cuteafd_thinking_off_adds": 0
+ },
+ "checker": {
+  "kind": "math",
+  "answer": "6"
+ },
+ "item": {
+  "source": "math500",
+  "unique_id": "test/number_theory/838.json",
+  "answer": "6"
+ }
+}

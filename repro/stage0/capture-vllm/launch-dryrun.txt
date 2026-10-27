@@ -1,0 +1,202 @@
+=== v0.9.2 capture launch ===
+image          : sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2
+recipe env     : <recipes>/glm53-flash-exl3-k3.25@tpurtell+v0.9.2/env.sh
+stack start.sh : <vllm-stack>/start.sh (sha256 e1196cbcd6b4, unmodified; temp copy <run>/stage0/capture-vllm/.start-capture.RLc8NZ.sh)
+plugin         : <run>/stage0/capture-vllm/plugin -> /kld-plugin (ro)
+registry       : <run>/stage0/capture-vllm/registry -> /kld-registry (ro)
+output         : <run>/vllm-v092-dumps -> /kld-out (rw); plugin writes /kld-out/staging
+forwarded env  : VLLM_PLUGINS=lora_filesystem_resolver,lora_hf_hub_resolver,glm53_capture PYTHONPATH=/kld-plugin:/opt/b12x:/usr/local/lib/python3.12/dist-packages GLM53_CAP_ENABLE=1 GLM53_CAP_REGISTRY=/kld-registry GLM53_CAP_OUT=/kld-out/staging
+patch          :
+    4c4
+    < SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+    ---
+    > SCRIPT_DIR="<vllm-stack>"
+    535a536,538
+    >   --volume "<run>/stage0/capture-vllm/plugin:/kld-plugin:ro" \
+    >   --volume "<run>/stage0/capture-vllm/registry:/kld-registry:ro" \
+    >   --volume "<run>/vllm-v092-dumps:/kld-out" \
+
+Validated 18 checkpoint shards
+Validated DFlash2 K3 draft checkpoint
+DOCKER-RUN-ARG	run
+DOCKER-RUN-ARG	--detach
+DOCKER-RUN-ARG	--name
+DOCKER-RUN-ARG	glm53-flash-exl3-b12x-vllm
+DOCKER-RUN-ARG	--restart
+DOCKER-RUN-ARG	unless-stopped
+DOCKER-RUN-ARG	--init
+DOCKER-RUN-ARG	--gpus
+DOCKER-RUN-ARG	all
+DOCKER-RUN-ARG	--ipc=host
+DOCKER-RUN-ARG	--shm-size
+DOCKER-RUN-ARG	32g
+DOCKER-RUN-ARG	--publish
+DOCKER-RUN-ARG	127.0.0.1:8001:8001
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	HF_HUB_OFFLINE=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	CUDA_LAUNCH_BLOCKING=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	TORCH_SHOW_CPP_STACKTRACES=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ENGINE_READY_TIMEOUT_S=3600
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	GLM53_STARTUP_WARMUP=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	GLM53_DFLASH_BOUNDARY_LOOKUP=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	GLM53_REPLAYSSM_ACTIVE=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	GLM53_STARTUP_WARMUP_TIMEOUT_S=1800
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ADAPTIVE_MTP=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ADAPTIVE_MTP_HISTORY=16
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ADAPTIVE_MTP_MIN_DEPTH=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ADAPTIVE_MTP_DECISION_WINDOW=8
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ADAPTIVE_MTP_PROBE_INTERVAL=32
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ADAPTIVE_MTP_PROBE_INTERVAL_MAX=256
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ADAPTIVE_MTP_LOAD_THRESHOLDS=0.28,0.45,0.55,0.75,0.90
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	NCCL_DEBUG=WARN
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_ENABLE_PCIE_ALLREDUCE=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_PCIE_ALLREDUCE_BACKEND=b12x
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_PCIE_ONESHOT_ALLREDUCE_MAX_SIZE=384KB
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_B12X_PCIE_EAGER=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_B12X_DCP_A2A=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_GLM53_MLA_OWNERS=split:25
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_GLM53_EMBED_SPLIT=0.17
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_GLM53_DRAFT_SLOT_SHARING=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_GLM53_NOPE_RECORD=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_USE_B12X_SPARSE_INDEXER=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_USE_B12X_KPOOL_INDEXER=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_DCP_GLOBAL_TOPK=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_DCP_QUERY_SPLIT=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_DCP_TOPK_OWNER_MERGE=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_B12X_DCP_TOPK_OWNER_EXCHANGE=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_B12X_DCP_TOPK_MIN_ROWS=128
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_B12X_DCP_TOPK_MAX_ROWS=2048
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	KV_FP8_ROPE=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_NVFP4_MLA_DYNAMIC_SCALE=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_NVFP4_MLA_SCALES_FILE=
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_EXL3_TRELLIS_MIN_M=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_EXL3_TRELLIS_MAX_M=32
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_EXL3_TRELLIS_BLOCK_M=8
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_EXL3_PREFILL_TRELLIS=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_EXL3_PREFILL_BLOCK_M=64
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_EXL3_PREFILL_CAPACITY=1024
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	B12X_EXL3_BF16_EPILOGUE=0
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	B12X_EXL3_BF16_GEMV=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_B12X_GLM_H64_QUERY_PROJ=auto
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_USE_B12X_MHC=auto
+DOCKER-RUN-ARG	--volume
+DOCKER-RUN-ARG	<hf-hub>/models--wrldsuksgo2mars--GLM-5.3-Flash-EXL3-K3.25-v1:/model-repo:ro
+DOCKER-RUN-ARG	--volume
+DOCKER-RUN-ARG	<hf-hub>/models--incoai--GLM-5.3-Flash-DFlash2:/draft-repo:ro
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	VLLM_PLUGINS=lora_filesystem_resolver,lora_hf_hub_resolver,glm53_capture
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	PYTHONPATH=/kld-plugin:/opt/b12x:/usr/local/lib/python3.12/dist-packages
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	GLM53_CAP_ENABLE=1
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	GLM53_CAP_REGISTRY=/kld-registry
+DOCKER-RUN-ARG	--env
+DOCKER-RUN-ARG	GLM53_CAP_OUT=/kld-out/staging
+DOCKER-RUN-ARG	--volume
+DOCKER-RUN-ARG	<cache>/vllm-v090:/root/.cache
+DOCKER-RUN-ARG	--volume
+DOCKER-RUN-ARG	<run>/stage0/capture-vllm/plugin:/kld-plugin:ro
+DOCKER-RUN-ARG	--volume
+DOCKER-RUN-ARG	<run>/stage0/capture-vllm/registry:/kld-registry:ro
+DOCKER-RUN-ARG	--volume
+DOCKER-RUN-ARG	<run>/vllm-v092-dumps:/kld-out
+DOCKER-RUN-ARG	sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2
+DOCKER-RUN-ARG	/model-repo/snapshots/0490d2f708b12145f6516555ab066aaeb401cd21
+DOCKER-RUN-ARG	--served-model-name
+DOCKER-RUN-ARG	wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1
+DOCKER-RUN-ARG	--host
+DOCKER-RUN-ARG	0.0.0.0
+DOCKER-RUN-ARG	--port
+DOCKER-RUN-ARG	8001
+DOCKER-RUN-ARG	--tensor-parallel-size
+DOCKER-RUN-ARG	2
+DOCKER-RUN-ARG	--decode-context-parallel-size
+DOCKER-RUN-ARG	1
+DOCKER-RUN-ARG	--speculative-config
+DOCKER-RUN-ARG	{"method":"dflash","model":"/draft-repo/snapshots/bf582e4eacc1810f76656d1811693ff6c6737d2a","num_speculative_tokens":3,"kv_cache_dtype":"bfloat16"}
+DOCKER-RUN-ARG	--language-model-only
+DOCKER-RUN-ARG	--enable-prefix-caching
+DOCKER-RUN-ARG	--mamba-cache-mode
+DOCKER-RUN-ARG	align
+DOCKER-RUN-ARG	--attention-backend
+DOCKER-RUN-ARG	B12X_MLA_SPARSE
+DOCKER-RUN-ARG	--max-model-len
+DOCKER-RUN-ARG	1048576
+DOCKER-RUN-ARG	--max-num-batched-tokens
+DOCKER-RUN-ARG	2048
+DOCKER-RUN-ARG	--max-num-seqs
+DOCKER-RUN-ARG	16
+DOCKER-RUN-ARG	--max-cudagraph-capture-size
+DOCKER-RUN-ARG	64
+DOCKER-RUN-ARG	--gpu-memory-utilization
+DOCKER-RUN-ARG	0.95
+DOCKER-RUN-ARG	--kv-cache-dtype
+DOCKER-RUN-ARG	fp8_ds_mla
+DOCKER-RUN-ARG	--no-enable-flashinfer-autotune
+DOCKER-RUN-ARG	--enable-auto-tool-choice
+DOCKER-RUN-ARG	--tool-call-parser
+DOCKER-RUN-ARG	glm47
+DOCKER-RUN-ARG	--reasoning-parser
+DOCKER-RUN-ARG	glm45
+DOCKER-RUN-ARG	--enable-prompt-tokens-details
+DOCKER-RUN-ARG	--chat-template
+DOCKER-RUN-ARG	/opt/glm53/templates/glm53-zai-a5b45eb.jinja
+Started glm53-flash-exl3-b12x-vllm on http://127.0.0.1:127.0.0.1:8001/v1. Initial B12x/CuTe compilation can take several minutes.
+Target: k325 profile, wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1@0490d2f708b12145f6516555ab066aaeb401cd21
+Profile: fp8, KV cache: fp8_ds_mla, max length: 1048576, max sequences: 16, GPU memory utilization: 0.95
+MoE topology: TP2, EP1
+Speculation: DFlash2 K3, bfloat16 draft KV, from incoai/GLM-5.3-Flash-DFlash2@bf582e4eacc1810f76656d1811693ff6c6737d2a
+State rollback: baseline full-state rollback
+Vision: disabled (language-model-only mode)
+Follow startup: docker logs -f glm53-flash-exl3-b12x-vllm
+DRY_RUN=1: rendered only (start.sh exit 0); nothing started.

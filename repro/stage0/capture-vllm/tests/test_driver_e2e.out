@@ -1,0 +1,7 @@
+PASS  register generic JSON                      23:52:28 set q2: 2 windows (2 written, 0 unchanged), 6,500 tokens, 1,238 rows, dump 0.0 GB
+PASS  register refuses duplicate tokens          obj1: same tokens already registered as q2/obj1
+PASS  capture + --verify-chosen                  23:52:29 [1/2] doc-5k       n=  5000 rows= 1024    0.4s steps=3 busy_steps=3 chosen=1.9e-06 api=0.0e+00  OK; 23:52:29 [2/2] obj1         n=  1500 rows=  214    0.2s steps=1 busy_steps=1 chosen=1.9e-06 api=9.5e-07  OK
+PASS  resume skips; second run tag recaptures    23:52:30 done: 1 windows in <tmp>/e2e-4es4g9e1/out/runs/r2/q2; request time 0s, wall 0s; manifest <tmp>/e2e-4es4g9e1/out/runs/r2/q2/capture-manifest.json
+PASS  verify passes clean, flags a corrupted row OK      doc-5k 
+ALL PASS
+exit 0

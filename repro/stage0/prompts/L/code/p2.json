@@ -1,0 +1,34 @@
+{
+ "id": "L-code-p2",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 2,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `graphkit`: a directed, weighted graph with standard algorithms and a plain-text edge-list format. Python 3.12, standard library only.\n\n## Files\n\n- `graphkit/__init__.py` \u2014 re-exports `Graph`, `GraphError`, `CycleError`, `NodeNotFound`, `topological_sort`, `has_cycle`, `shortest_path`, `strongly_connected_components`, `reachable`, `parse_edge_list`, `to_edge_list`.\n- `graphkit/errors.py` \u2014 the exception classes.\n- `graphkit/graph.py` \u2014 `Graph`.\n- `graphkit/algorithms.py` \u2014 the algorithms.\n- `graphkit/io.py` \u2014 the text format.\n\n## errors.py\n\n- `GraphError(Exception)` \u2014 base class.\n- `NodeNotFound(GraphError, KeyError)` \u2014 raised when an operation names a node that is not in the graph.\n- `CycleError(GraphError)` \u2014 `CycleError(cycle)` stores attribute `cycle`: a list of nodes `[n0, n1, ..., nk]` with `nk == n0` and an edge from each element to the next.\n\n## graph.py\n\nNodes are hashable values (tests use strings and ints). The graph remembers insertion order: a node's *index* is its position in insertion order, and every ordering rule below refers to it.\n\n- `Graph()` \u2014 empty graph.\n- `add_node(n)` \u2014 add `n` if absent (adding an existing node changes nothing, including its index).\n- `add_edge(u, v, weight=1.0)` \u2014 add both endpoints if absent (`u` first), then add or replace the edge `u -> v`. `weight` is an int or float `>= 0`; a negative weight raises `ValueError`. Self-loops are allowed.\n- `remove_edge(u, v)` \u2014 remove the edge; raises `GraphError` if it does not exist.\n- `remove_node(n)` \u2014 remove `n` and all edges touching it; raises `NodeNotFound` if missing. The remaining nodes keep their relative order.\n- `has_edge(u, v)`, `weight(u, v)` (raises `GraphError` if there is no such edge).\n- `nodes()` \u2014 list of nodes in index order.\n- `edges()` \u2014 list of `(u, v, weight)` sorted by the index of `u`, then by the order in which the edges leaving `u` were first added (replacing an edge's weight keeps its place).\n- `successors(n)` \u2014 list of `v` for edges `n -> v`, in the same order as `edges()`; `predecessors(n)` \u2014 list of `u` for edges `u -> n`, in index order of `u`. Both raise `NodeNotFound` for a missing node.\n- `len(g)` is the number of nodes; `n in g` tests membership.\n\n## algorithms.py\n\n- `topological_sort(g) -> list` \u2014 Kahn's algorithm, where among all nodes that are ready at any step the one with the smallest index is taken next. Raises `CycleError` (with a valid `cycle`) if the graph has a cycle, including a self-loop.\n- `has_cycle(g) -> bool`.\n- `shortest_path(g, src, dst) -> (distance, path)` \u2014 Dijkstra on the edge weights. `path` is the list of nodes from `src` to `dst` inclusive. `src == dst` gives `(0, [src])`. If `dst` is unreachable, return `(math.inf, [])`. Raises `NodeNotFound` if either node is missing.\n- `reachable(g, src) -> list` \u2014 every node reachable from `src` (including `src`), in index order. Raises `NodeNotFound` if missing.\n- `strongly_connected_components(g) -> list[list]` \u2014 every node appears in exactly one component; nodes inside a component are in index order; components are ordered by the index of their first node. Must not hit Python's recursion limit on a 5,000-node path graph.\n\n## io.py\n\n- `parse_edge_list(text) -> Graph`. One item per line. Leading and trailing whitespace is ignored; blank lines and lines whose first non-space character is `#` are skipped. A line with one field `n` adds node `n`. A line with two fields `u v` adds an edge with weight 1. A line with three fields `u v w` adds an edge with weight `float(w)`. Node names are strings. A weight that is not a number, a negative weight, or a line with more than three fields raises `ValueError` whose message contains `line N` with `N` the 1-based line number.\n- `to_edge_list(g) -> str`. First one line `u v w` for every edge in `edges()` order, where `w` is `format(float(weight), \"g\")`; then one line `n` for every node with no incoming and no outgoing edges, in index order. Lines are joined with `\\n` and the result ends with a single `\\n` (the empty graph gives `\"\"`). Nodes are written with `str()`.\n\nRound trip: for a graph whose nodes are strings without whitespace, `parse_edge_list(to_edge_list(g))` has the same `edges()` (weights as floats) and the same set of nodes.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: graphkit/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1249,
+  "cuteafd_thinking_off_adds": 1
+ },
+ "checker": {
+  "kind": "code",
+  "project": "graphkit",
+  "package": "graphkit",
+  "tests_dir": "L/code/graphkit/tests",
+  "tests_sha256": {
+   "test_graphkit.py": "6ecfb5be52b378074dbb9fee9c977e93c123abf9baa1222bacebede45c79e3fd"
+  }
+ },
+ "item": {
+  "source": "authored",
+  "project": "graphkit"
+ }
+}
