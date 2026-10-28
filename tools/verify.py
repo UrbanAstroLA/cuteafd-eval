@@ -16,13 +16,15 @@ Checks
      sit in a comparison table with measured ones.
   0. A self-test of the content patterns (absolute paths after ":-", "=", quotes and brackets are caught; relative
      segments such as "humanevalplus/data/x" are not).
+  7. Block Q tails: tools/kl_tails.py --check recomputes every results/<run>/q/tails/<panel>-tails.json whose
+     per-position file is in the repository and requires byte-identical output.
   6. Content scan of every file, docs/ included: local paths, machine and user names, private IP addresses, e-mail addresses
      other than the maintainer's public no-reply address, credentials, GPU identifiers, benchmark names that
      must not appear, and attribution lines. Every hit is printed as file:line.
 
 Standard library only (Python 3.10+). Exit status 1 on any failure.
 """
-import hashlib, json, re, sys
+import hashlib, json, re, subprocess, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -176,6 +178,13 @@ def scan():
     return hits
 
 
+def check_tails():
+    tool = ROOT / "tools" / "kl_tails.py"
+    if not tool.exists(): return
+    r = subprocess.run([sys.executable, "-B", str(tool), "--check"], capture_output=True, text=True, cwd=ROOT)
+    if r.returncode: fails.append("tools/kl_tails.py --check: " + " | ".join((r.stdout + r.stderr).strip().splitlines()))
+
+
 def main(argv):
     quiet = "--quiet" in argv
     self_test()
@@ -184,7 +193,7 @@ def main(argv):
         if mp.exists(): n += check_manifest(mp)
         else: fails.append(f"{rel(mp)} missing")
     pages = check_site(); check_hashes()
-    kinds = check_runs(); check_readme_links(kinds)
+    kinds = check_runs(); check_readme_links(kinds); check_tails()
     files = len(files_under(ROOT)); hits = scan()
     if not quiet:
         print(f"self-test: {len(SELF_TEST)} cases; site pages: {pages}; manifests: {1 + len(list((ROOT / 'results').glob('*/MANIFEST.json')))} ({n} entries); files scanned: {files}; "

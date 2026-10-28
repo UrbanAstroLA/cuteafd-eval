@@ -277,6 +277,7 @@ def facts():
         b = [x for x in d["batches"] if x["kind"] == "cached"]
         return b[0]["summary"]["ttft_median_s"] if b else None
     F["cached"] = (cached(rec["V1"]), cached(rec["C1"]))
+    F["T"] = tails()
     return F
 
 
@@ -291,6 +292,133 @@ def span(a, b): return f"{abs(100 * (a - 1)):.0f}-{abs(100 * (b - 1)):.0f}%"
 def kl(x): return f"{x:.4f}"
 def dkl(x): return f"{x:+.4f}"
 def civ(v, nd=4, s=1.0): return f'<span class="ci">[{v[1] * s:+.{nd}f}, {v[2] * s:+.{nd}f}]</span>'
+
+
+# ------------------------------------------------------------------ per-position tails (results/<run>/q/tails, from tools/kl_tails.py)
+
+def tails():
+    out = {}
+    for k in ("pa", "pb", "q2"):
+        p = D / "q" / "tails" / f"{k}-tails.json"
+        if p.exists(): out[k] = B.load(p)
+    return out
+
+
+def num(x): return f"{x:,.0f}" if float(x).is_integer() else f"{x:,.1f}"
+def hist(c): return f"{num(c['min'])} / {num(c['median'])} / {num(c['max'])}"
+def hist_short(c): return f"{num(c['min'])}-{num(c['max'])} tokens of history, median {num(c['median'])}"
+
+
+def pb_band(T, b):
+    return next(x for x in T["pb"]["by_position"] if x["band"] == b)
+
+
+def vmean(arms, key, names=("V1", "V1r", "V2")):
+    import statistics as st
+    return st.mean(arms[a][key] for a in names if a in arms)
+
+
+ARM = {"V1": "vLLM fork V1", "V1r": "vLLM fork V1r", "V2": "vLLM fork V2", "C1": "CuteAFD C1", "C0": "CuteAFD C0 (control)"}
+
+
+def tails_table(T, key):
+    P = T[key]; rows = []
+    for a, s in P["arms"].items():
+        rows.append([ARM[a], f"{s['kl_mean']:.4f}", f"{s['kl_p50']:.4f}", f"{s['kl_p90']:.3f}", f"{s['kl_p99']:.3f}",
+                     f"{s['kl_p99.9']:.2f}", f"{s['kl_max']:.2f}", f"{100 * s['top1']:.2f}%",
+                     f"{100 * s['confident_top1']:.2f}%" if "confident_top1" in s else "n/a"])
+    return htable(["Arm", "Mean", "p50", "p90", "p99", "p99.9", "Max", "Top-1", "Confident top-1"], rows)
+
+
+def band_table(T, key):
+    P = T[key]; rows = []
+    for b in P["by_position"]:
+        for a, s in b["arms"].items():
+            rows.append([E(b["band"]) if a == next(iter(b["arms"])) else "", hist(b["context"]) if a == next(iter(b["arms"])) else "",
+                         ARM[a], f"{s['kl_mean']:.4f}", f"{s['kl_p99']:.3f}", f"{s['kl_p99.9']:.2f}", f"{100 * s['top1']:.2f}%"])
+    return htable(["Positions", "History, tokens (min / median / max)", "Arm", "Mean KL", "p99", "p99.9", "Top-1"], rows)
+
+
+def chart_position(T):
+    """P-A mean KL by position band: vLLM fork (mean of its runs) and CuteAFD, direct labels at the right end."""
+    bands = T["pa"]["by_position"]
+    W, H, l, r, t, b = 340, 230, 40, 128, 24, 42
+    y0, y1 = 0.0, 0.12
+    X = lambda i: l + 18 + i * ((W - l - r - 30) / (len(bands) - 1))
+    Y = lambda v: t + (H - t - b) * (y1 - v) / (y1 - y0)
+    o = [svg(W, H, "KL from the BF16 teacher by position, panel P-A"), tx(2, 11, "KL from BF16 (lower is closer)")]
+    for v in (0.0, 0.04, 0.08, 0.12):
+        o.append(f'<line class="{"axis" if v == 0 else "grid"}" x1="{l}" x2="{W - r + 14}" y1="{Y(v):.1f}" y2="{Y(v):.1f}"/>'
+                 + tx(l - 5, Y(v) + 4, f"{v:.2f}", "", "end"))
+    for i, bd in enumerate(bands):
+        c = bd["context"]
+        o.append(tx(X(i), H - 26, f"{num(c['min'])}-{num(c['max'])}", "", "middle"))
+    o.append(tx(X(1), H - 8, "tokens of history behind the scored position", "", "middle"))
+    series = [("vLLM fork", "ln1", "c1", lambda bd: vmean(bd["arms"], "kl_mean")),
+              ("CuteAFD", "ln2", "c2", lambda bd: bd["arms"]["C1"]["kl_mean"])]
+    ends = []
+    for name, ln, dot, val in series:
+        pts = [(X(i), Y(val(bd))) for i, bd in enumerate(bands)]
+        o.append(f'<polyline class="{ln}" points="{" ".join(f"{x:.1f},{y:.1f}" for x, y in pts)}"/>')
+        o += [tip(f"{name}, {bd['band']} (history {hist(bd['context'])}): mean KL {val(bd):.4f}",
+                  f'<circle class="hit" cx="{x:.1f}" cy="{y:.1f}" r="12"/><circle class="{dot}" cx="{x:.1f}" cy="{y:.1f}" r="4"/>')
+              for (x, y), bd in zip(pts, bands)]
+        ends.append([pts[-1][1], name, val(bands[-1])])
+    ends.sort()
+    for k in range(1, len(ends)):
+        if ends[k][0] - ends[k - 1][0] < 14: ends[k][0] = ends[k - 1][0] + 14
+    for y, name, v in ends:
+        o.append(f'<line class="conn" x1="{X(len(bands) - 1) + 6:.1f}" x2="{X(len(bands) - 1) + 12:.1f}" y1="{y:.1f}" y2="{y:.1f}"/>'
+                 + tx(X(len(bands) - 1) + 15, y + 4, f"{name} {v:.4f}"))
+    o.append("</svg>")
+    return "".join(o), band_table(T, "pa")
+
+
+def what_scored(T):
+    pa = T["pa"]["scored"]["context"]
+    return ('<h2 id="what-was-scored">What was scored</h2>' + scored_table(T) +
+            f'<p class="plain">P-A scores every position of each 2,048-token window, so the history behind a scored token runs '
+            f'from {num(pa["min"])} to {num(pa["max"])} tokens (median {num(pa["median"])}), as the teacher dataset defines its '
+            '2,047 prediction positions per window. P-B and Q2 score the end of each window, so every primary scored position '
+            f'there (P-B\'s generated positions, all of Q2\'s) has at least {num(T["pb"]["scored"]["context"]["min"])} tokens '
+            'of history.</p>'
+            '<p class="sign">KL values are not comparable across panels (different metric, text and reference), and NLL is '
+            'per tokenizer and per text. Teacher dataset identity, the 25 windows and their hashes: '
+            f'<a href="{REPO_URL}/blob/main/{RD}/q/pa/PROVENANCE.json"><code>q/pa/PROVENANCE.json</code></a>; rebuilding the '
+            'P-A numbers: <a href="reproduce.html#5a-panel-p-a-from-the-teacher-dataset">Reproduce, step 5a</a>. Per-position '
+            f'scores: <a href="{REPO_URL}/blob/main/{RD}/q/rows/README.md"><code>q/rows/</code></a>; tails: '
+            '<a href="precision.html#tails">Precision</a>.</p>')
+
+
+def scored_table(T):
+    """'What was scored': one row per panel, numbers from the tails files."""
+    pa, pb, q2 = T["pa"]["scored"], T["pb"]["scored"], T["q2"]["scored"]
+    rows = [
+        ["<b>P-A</b> BF16 teacher panel (brandonmusic)", f"{pa['windows']}", hist(pa["tokens_per_window"]),
+         f"all {num(pa['scored_positions_per_window']['median'])} (rows 0-2046)", f"{pa['selected_positions_total']:,}",
+         hist(pa["context"]),
+         "the dataset's 25 qualification windows <code>final-0000</code> to <code>final-0024</code>; domains "
+         "<code>axis1_general</code>, <code>axis2_legal</code>, <code>axis3_code_agentic</code>, "
+         "<code>axis4_reasoning_termination</code>",
+         "BF16 teacher: <code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>a6c167b6</code>, full-vocabulary FP32 logits",
+         "full-vocabulary KL(teacher ‖ engine), float64; NLL; top-1"],
+        ["<b>P-B</b> tpurtell's fidelity panel (<code>cuteafd-fidelity</code>, glm5_flash v2)", f"{pb['windows']}",
+         hist(pb["tokens_per_window"]),
+         f"last 512; generated positions (primary) per window: {hist(pb['selected_positions_per_window'])} "
+         f"(min / median / max), in {pb['windows_with_selected_positions']} windows",
+         f"{pb['selected_positions_total']:,} generated ({pb['windows'] * 512:,} recorded)", hist(pb["context"]),
+         "replies written by the official FP8 model after conditioning and repository-source context; blocks A-E "
+         "(B: long code reading); buckets 0-2K, 2-8K, 8-16K",
+         "BF16 reference run: <code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>a5b45eb4</code>, stored as its top 1,024 ids "
+         "plus a tail bin",
+         "coarse KL (top-1,024 + tail; a lower bound on full-vocabulary KL); NLL; top-1"],
+        ["<b>Q2</b> long human-written text", f"{q2['windows']}", hist(q2["tokens_per_window"]),
+         f"last {num(q2['scored_positions_per_window']['median'])}", f"{q2['selected_positions_total']:,}", hist(q2["context"]),
+         "3 PG-19 books and 3 Apache-2.0 vLLM source files, each at 32K, 64K and 128K tokens", "none",
+         "NLL only; KL between the two engines as disagreement"]]
+    return htable(["Panel", "Windows", "Tokens per window (min / median / max)", "Scored positions per window",
+                   "Total scored", "History behind each scored token, tokens (min / median / max)", "Text",
+                   "Reference", "Metric"], rows)
 
 
 # ------------------------------------------------------------------ charts (inline SVG, no scripts; colours from CSS variables)
@@ -324,7 +452,8 @@ def hero_rows(F, S):
     out.append(("Precision (KL from BF16)", "v" if k[1] > 0 else "c", F["kl_c"]["all"] / F["kl_v"]["all"],
                 f"{dkl(k[0])} KL", k[1] > 0 or k[2] < 0,
                 f"CuteAFD {kl(F['kl_c']['all'])} vs vLLM fork {kl(F['kl_v']['all'])} (mean of {F['n_vruns']} runs); "
-                f"difference {dkl(k[0])} [{k[1]:+.4f}, {k[2]:+.4f}]"))
+                f"difference {dkl(k[0])} [{k[1]:+.4f}, {k[2]:+.4f}]; panel P-B generated positions, "
+                f"{hist_short(F['T']['pb']['scored']['context'])}"))
     dec = [x for r in rows.values() for x in r["dec_all"]]
     out.append(("Single-stream decode", "c", st.median(dec), f"{min(dec):.2f}-{max(dec):.2f}x", min(dec) > 1,
                 f"CuteAFD ÷ vLLM fork, one request at a time, {len(dec)} cells; median {st.median(dec):.2f}x"))
@@ -424,8 +553,9 @@ def chart_context(F):
                          f'<circle class="{cls}" cx="{X(v[0]):.1f}" cy="{y + dy:.1f}" r="4"/>'))
         y += rh
     o.append("</svg>")
-    table = htable(["Context", "CuteAFD − vLLM fork", "W8A16 prefill − vLLM fork"],
-                   [[lab, f"{dkl(d[(b, 'kl', 'C1')][0])} [{d[(b, 'kl', 'C1')][1]:+.4f}, {d[(b, 'kl', 'C1')][2]:+.4f}]",
+    T = F["T"]; H_ = lambda b: hist(T["pb"]["scored"]["context"] if b == "all" else pb_band(T, b)["context"])
+    table = htable(["Context", "History, tokens (min / median / max)", "CuteAFD − vLLM fork", "W8A16 prefill − vLLM fork"],
+                   [[lab, H_(b), f"{dkl(d[(b, 'kl', 'C1')][0])} [{d[(b, 'kl', 'C1')][1]:+.4f}, {d[(b, 'kl', 'C1')][2]:+.4f}]",
                      f"{dkl(d[(b, 'kl', 'F1c')][0])} [{d[(b, 'kl', 'F1c')][1]:+.4f}, {d[(b, 'kl', 'F1c')][2]:+.4f}]"] for b, lab in bk])
     return "".join(o), table
 
@@ -621,6 +751,7 @@ def chart_precision(F):
     for y, name, v, dot in ends:
         o.append(f'<line class="conn" x1="{X(2) + 6:.1f}" x2="{X(2) + 12:.1f}" y1="{y:.1f}" y2="{y:.1f}"/>' + tx(X(2) + 15, y + 4, f"{name} {v:.4f}"))
     o.append("</svg>")
+    tab.append(["<i>History, tokens (min / median / max)</i>"] + [hist(pb_band(F["T"], bkt)["context"]) for bkt in xs])
     return "".join(o), htable(["Configuration", "0-2K", "2-8K", "8-16K"], tab)
 
 
@@ -648,8 +779,10 @@ def cards(F):
         ("Precision", f"{F['kl_v']['all']:.3f} vs {F['kl_c']['all']:.3f}",
          "Both engines stay close to the original BF16 model; the 3.25-bit quantization matters more than the engine. "
          "The vLLM fork is slightly closer, mainly when reading long code (8-16K tokens).",
-         f"KL from BF16, vLLM fork vs CuteAFD, tpurtell's fidelity set. His official FP8 model scores 0.0216 on the same set. "
-         f"At 8-16K: {kl(F['kl_v']['8-16K'])} vs {kl(F['kl_c']['8-16K'])}."),
+         f"KL from BF16, vLLM fork vs CuteAFD, tpurtell's fidelity set: {F['T']['pb']['scored']['selected_positions_total']:,} "
+         f"generated positions with {hist_short(F['T']['pb']['scored']['context'])}. His official FP8 model scores 0.0216 on "
+         f"the same set. At 8-16K ({hist_short(pb_band(F['T'], '8-16K')['context'])}): {kl(F['kl_v']['8-16K'])} vs "
+         f"{kl(F['kl_c']['8-16K'])}."),
         ("Speed", f"{pct(lo)} to {pct(hi)}",
          f"CuteAFD generates faster for a single user and finishes long-prompt work {span(al, ah)} faster. "
          f"The vLLM fork answers short prompts sooner ({tt1[0][0]:.2f} vs {tt1[0][1]:.2f} s to first token at 1K).",
@@ -730,6 +863,10 @@ def glossary():
               "0 means identical; lower is better. Measured in nats. tpurtell's fidelity set treats a paired change below 0.005 "
               "as within its bar."),
              ("Top-1", "How often the engine's most likely next token is the reference's most likely one."),
+             ("History", "The number of tokens before a scored position: what the model had read when it made that "
+              "prediction. Each headline KL states the range (minimum, median, maximum) of its scored positions."),
+             ("Tail (p99, p99.9)", "The per-position KL that 1% (0.1%) of scored positions exceed. A mean can hide a few "
+              "positions where the distributions differ a lot; the tail shows them."),
              ("NLL", "Negative log-likelihood of the actual text: lower means the engine found the text less surprising."),
              ("TTFT", "Time to first token: from sending a request to the first generated token; mostly prompt processing."),
              ("Prefill", "Processing the prompt before generation starts. Decode: generating tokens one step at a time."),
@@ -803,21 +940,52 @@ def main():
 
     # precision
     bk = [("all", "All"), ("0-2K", "0-2K"), ("2-8K", "2-8K"), ("8-16K", "8-16K, long code")]
-    key = [[lab, kl(F["kl_v"][b]), kl(F["kl_c"][b]), f'<b>{dkl(d[(b, "kl", "C1")][0])}</b> {civ(d[(b, "kl", "C1")])}'
+    T = F["T"]; ctx_of = lambda b: T["pb"]["scored"]["context"] if b == "all" else pb_band(T, b)["context"]
+    key = [[lab, hist(ctx_of(b)), kl(F["kl_v"][b]), kl(F["kl_c"][b]), f'<b>{dkl(d[(b, "kl", "C1")][0])}</b> {civ(d[(b, "kl", "C1")])}'
             f'<br>W8A16: {dkl(d[(b, "kl", "F1c")][0])} {civ(d[(b, "kl", "F1c")])}'] for b, lab in bk]
+    pa_s, pb_s = T["pa"]["arms"], T["pb"]["arms"]; pab = T["pa"]["by_position"]
+    pbv = [pb_s[a]["kl_p99"] for a in ("V1", "V1r", "V2")]
+    tails_sec = (
+        '<h2 id="tails">Tails and position</h2>'
+        f'<p class="plain">Most positions sit far below the mean: the median position\'s KL is {pa_s["V1"]["kl_p50"]:.4f} '
+        f'(vLLM fork) and {pa_s["C1"]["kl_p50"]:.4f} (CuteAFD) on P-A, against means of {pa_s["V1"]["kl_mean"]:.4f} and {pa_s["C1"]["kl_mean"]:.4f}: '
+        f'the highest-KL 5% of positions carry {100*pa_s["V1"]["kl_share_top5pct"]:.0f}% of the vLLM fork\'s mean and {100*pa_s["C1"]["kl_share_top5pct"]:.0f}% of CuteAFD\'s '
+        f'(top 10%: {100*pa_s["V1"]["kl_share_top10pct"]:.0f}% and {100*pa_s["C1"]["kl_share_top10pct"]:.0f}%). '
+        f'p99 on P-A: vLLM fork {pa_s["V1"]["kl_p99"]:.3f}, CuteAFD {pa_s["C1"]["kl_p99"]:.3f}; on P-B generated positions: '
+        f'vLLM fork {min(pbv):.3f}-{max(pbv):.3f} over its three runs, CuteAFD {pb_s["C1"]["kl_p99"]:.3f}. On P-A, positions with '
+        f'a short history carry more KL on both engines (history {num(pab[0]["context"]["min"])}-{num(pab[0]["context"]["max"])} '
+        f'tokens: {vmean(pab[0]["arms"], "kl_mean"):.3f} and {pab[0]["arms"]["C1"]["kl_mean"]:.3f}; '
+        f'{num(pab[-1]["context"]["min"])}-{num(pab[-1]["context"]["max"])} tokens: {vmean(pab[-1]["arms"], "kl_mean"):.3f} and '
+        f'{pab[-1]["arms"]["C1"]["kl_mean"]:.3f}), so a panel\'s mean depends on which positions it scores.</p>'
+        + figure("KL by position, panel P-A", chart_position(T),
+                 "Mean KL from the BF16 teacher per position band; both engines follow the same shape. The vLLM fork line is "
+                 "the mean of its three runs, which agree to four decimals on P-A.")
+        + '<h3 id="tails-pa">P-A, all 2,047 positions of 25 windows (full-vocabulary KL)</h3>' + tails_table(T, "pa")
+        + f'<h3 id="tails-pb">P-B, {T["pb"]["scored"]["selected_positions_total"]:,} generated positions (coarse KL)</h3>'
+        + tails_table(T, "pb") + details("P-B by length bucket: mean, p99, p99.9 and top-1 per arm", band_table(T, "pb"))
+        + '<p class="sign">Per-position KL in nats; p99 is the value 1% of positions exceed. Confident top-1: top-1 over '
+        'positions where the reference\'s top probability is at least 0.5. P-A and P-B KL are different metrics (full '
+        'vocabulary vs top-1,024 plus tail) on different texts: compare engines within a panel, not panels with each other. '
+        f'Computed by <a href="{REPO_URL}/blob/main/tools/kl_tails.py"><code>tools/kl_tails.py</code></a> from the per-position '
+        f'files in <a href="{REPO_URL}/tree/main/{RD}/q/rows"><code>q/rows/</code></a> (P-B, Q2; P-A\'s is not published, '
+        f'see its README) into <a href="{REPO_URL}/tree/main/{RD}/q/tails"><code>q/tails/</code></a>.</p>')
     top = [[lab, f'{100 * d[(b, "top1", "C1")][0]:+.2f} pts<br>{civ(d[(b, "top1", "C1")], 2, 100)}'] for b, lab in bk]
     rq = strip_title(read(f"{RD}/q/RESULTS-Q.md")); f1 = strip_title(read(f"{RD}/f1/RESULTS-F1.md"))
     page("precision.html", "Precision", "How close each engine's next-token probabilities stay to the original BF16 model.",
          f'<p class="plain">Both engines are close to BF16; CuteAFD is slightly further, by {dkl(d[("all", "kl", "C1")][0])} KL '
-         f'overall and {dkl(d[("8-16K", "kl", "C1")][0])} at 8-16K, where the panel is long code reading. Below 8K the '
-         'intervals include zero. W8A16 prefill removes about half of the overall difference. On human-written text at '
+         f'overall on the fidelity panel\'s generated positions ({hist_short(ctx_of("all"))}) and '
+         f'{dkl(d[("8-16K", "kl", "C1")][0])} at 8-16K ({hist_short(ctx_of("8-16K"))}), where the panel is long code reading. '
+         'Below 8K the intervals include zero. W8A16 prefill removes about half of the overall difference. On human-written text at '
          '32K-128K the engines\' NLL differs by no more than about ±0.005 nat (six documents, no BF16 reference there).</p>' +
          fig_ctx + fig_trade() + fig_p + f'<p class="sign">KL from BF16 on generated rows; vLLM = mean of {F["n_vruns"]} runs. Difference = CuteAFD '
          'minus vLLM: positive means CuteAFD is further from BF16; the second line is CuteAFD with W8A16 prefill. In grey: 95% '
-         'interval.</p>' + htable(["Context", "vLLM", "CuteAFD", "Difference"], key) +
+         'interval. History: tokens before each scored position (min / median / max).</p>' +
+         htable(["Context", "History, tokens", "vLLM", "CuteAFD", "Difference"], key) +
          details("Top-1 agreement, CuteAFD minus vLLM fork", htable(["Context", "Difference"], top)) +
          f'<p class="sign">The 2K full-vocabulary panel (P-A) gives {dkl(F["pa"]["B_minus_A"])} '
-         f'<span class="ci">[{F["pa"]["ci95"][0]:+.4f}, {F["pa"]["ci95"][1]:+.4f}]</span>. Intervals: 95%, paired bootstrap over windows.</p>' +
+         f'<span class="ci">[{F["pa"]["ci95"][0]:+.4f}, {F["pa"]["ci95"][1]:+.4f}]</span>, over every position of 25 '
+         f'2,048-token windows ({hist_short(T["pa"]["scored"]["context"])}). Intervals: 95%, paired bootstrap over windows.</p>' +
+         tails_sec +
          f'<details class="more" id="block-q"><summary>Block Q in full: panels P-A, P-B and Q2, controls, the audit\'s items</summary>{md(rq, f"{RD}/q", 1)}</details>' +
          f'<details class="more" id="follow-up-f1"><summary>Follow-up F1 in full: every CuteAFD FP8 switch, precision and speed</summary>{md(f1, f"{RD}/f1", 1)}</details>' +
          details("All bucket tables", md(B.q_buckets())))
@@ -884,7 +1052,7 @@ def main():
          '<p class="plain">Each engine ran as its author ships it, with a short list of local changes, on one machine. Precision '
          'was scored teacher-forced against a BF16 reference; speed and long output with one client, unique prompts and a '
          'distinct seed per request. The protocol was frozen before the speed and long-output runs; three follow-ups and a drift '
-         'check were declared later and are labelled as such.</p>' +
+         'check were declared later and are labelled as such.</p>' + what_scored(F["T"]) +
          '<h2 id="limits">Limits</h2>' + summary_block("Limits") +
          '<h2 id="status">Status</h2>' + md(B.status_lines()) +
          f'<details class="more" id="setup"><summary>Setup: hardware, engines, checkpoints, settings</summary>{md(R.get("Setup", ""))}</details>' +

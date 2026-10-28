@@ -77,7 +77,7 @@ def sec(secs, key):
 
 # ------------------------------------------------------------------ Block Q
 
-def q_buckets():
+def q_buckets(prefix=f"results/{RUN}/"):
     """P-B generated rows by bucket, CuteAFD minus the mean of the vLLM runs (pb-vs-vllm-mean3.json), with F1 arms."""
     q = D / "q"
     m3 = q / "pb/pb-vs-vllm-mean3.json"
@@ -86,12 +86,20 @@ def q_buckets():
     nrows = {"all": pair["overall"]["rows"], **{k: v["rows"] for k, v in pair["by_bucket"].items()}}
     def kl(k): return f"{sgn(m[k][0])} {ci(m[k][1:])}" if k in m else "n/a"
     def t1(k): return f"{100 * m[k][0]:+.2f} pts {ci(m[k][1:], 2, 100)}" if k in m else "n/a"
-    rows = [[{"all": "all generated rows"}.get(b, b), f"{nrows.get(b, 0):,}", kl(f"{b}|kl|C1"), t1(f"{b}|top1|C1"),
+    tp = q / "tails/pb-tails.json"
+    T = load(tp) if tp.exists() else None
+    def hist(b):
+        if not T: return "n/a"
+        c = T["scored"]["context"] if b == "all" else next(x["context"] for x in T["by_position"] if x["band"] == b)
+        n = lambda x: f"{x:,.0f}" if float(x).is_integer() else f"{x:,.1f}"
+        return f"{n(c['min'])} / {n(c['median'])} / {n(c['max'])}"
+    rows = [[{"all": "all generated rows"}.get(b, b), f"{nrows.get(b, 0):,}", hist(b), kl(f"{b}|kl|C1"), t1(f"{b}|top1|C1"),
              kl(f"{b}|kl|F1c"), kl(f"{b}|kl|F1d")] for b in ("all", "0-2K", "2-8K", "8-16K")]
     return ("Panel P-B, generated rows, against the mean of the three vLLM runs (two launches; `pb-vs-vllm-mean3.json`). "
             "The 8-16K bucket is block B, long code reading; whether length or content drives the difference is not "
-            "separated here. F1c and F1d are follow-up F1 arms of CuteAFD, outside the frozen protocol.\n\n" +
-            table(["Bucket", "Rows", "KL, CuteAFD − vLLM", "Top-1, CuteAFD − vLLM", "KL, F1c (W8A16 prefill) − vLLM",
+            "separated here. F1c and F1d are follow-up F1 arms of CuteAFD, outside the frozen protocol. History: the tokens "
+            "before each scored position. Tails (p99, p99.9) and KL by position: [`q/tails/`](" + prefix + "q/tails/).\n\n" +
+            table(["Bucket", "Rows", "History, tokens (min / median / max)", "KL, CuteAFD − vLLM", "Top-1, CuteAFD − vLLM", "KL, F1c (W8A16 prefill) − vLLM",
                    "KL, F1d (KDA, head, prefill) − vLLM"], rows))
 
 
@@ -266,7 +274,7 @@ def substitutions(prefix):
     return {"{{STATUS}}": status_lines(), "{{S_INTRO}}": intro, "{{S_PRECISION}}": sec(secs, "Precision"),
             "{{S_THROUGHPUT}}": sec(secs, "Throughput"), "{{S_LONG}}": sec(secs, "Long output to 128K"),
             "{{S_OBSERVATIONS}}": sec(secs, "Observations"), "{{S_LIMITS}}": sec(secs, "Limits"),
-            "{{Q_BUCKETS}}": q_buckets(), "{{T_TABLE}}": t_table(), "{{T_COUNTS}}": t_counts(), "{{T_LINK}}": t_link(),
+            "{{Q_BUCKETS}}": q_buckets(prefix), "{{T_TABLE}}": t_table(), "{{T_COUNTS}}": t_counts(), "{{T_LINK}}": t_link(),
             "{{L_TABLE}}": l_table(), "{{L_DETAIL}}": l_table(detail=True), "{{L_NOTE}}": L_NOTE,
             "{{OTHER_RUNS}}": other_runs()}
 

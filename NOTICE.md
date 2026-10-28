@@ -19,10 +19,14 @@ The material below keeps its own licence.
 - **cuteafd-fidelity** by tpurtell, Hugging Face dataset `wrldsuksgo2mars/cuteafd-fidelity` @ `a7e7d1b4`, config
   `glm5_flash-v2_20261005_bf16root`, MIT licence. Panel P-B. `repro/stage0/scorers/score_pb.py` ports his scoring rule
   (the CuteAFD source `reference.rs`, Copyright (c) 2026 T.J. Purtell, MIT licence) to Python; it was validated against
-  his own CLI with zero difference.
+  his own CLI with zero difference. `results/2026-10-26-cuteafd-vs-vllm/q/rows/pb-rows.csv` holds the per-position scores
+  computed against this panel, with the panel's reference NLL of each next token; released under CC BY 4.0 with this
+  attribution.
 - **GLM-5.3-Flash BF16 teacher logits** from Brandon M. Music (brandonmusic): 25 windows of 2,048 tokens, full-vocabulary
-  logits of `zai-org/GLM-5.3-Flash-BF16` @ `a6c167b6`, dataset revision `95f4fdd9`. Panel P-A. Only summary statistics
-  computed against it are published here.
+  logits of `zai-org/GLM-5.3-Flash-BF16` @ `a6c167b6`, Hugging Face dataset `brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits`
+  @ `95f4fdd94bf29989db2e0d1054e4931f55edb6aa`; its card gives the licence as "other". Panel P-A. Only summary statistics
+  computed against it are published here (per window, tails and position bands); the per-position scores are not.
+  Provenance and hashes: `results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json`.
 - **Checkpoints**: `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1`, `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8`
   (tpurtell), `incoai/GLM-5.3-Flash-DFlash2`, `zai-org/GLM-5.3-Flash`. Their licences are on their model cards.
 - Hugh Madden's `klgate.py` was used as an independent cross-check of the P-A scorer; it is not included.

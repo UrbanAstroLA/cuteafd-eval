@@ -7,13 +7,13 @@ Thinking on for every generation request (the stacks handle thinking off differe
 
 ## Precision (teacher-forced, prefill-shaped; `RESULTS-Q.md`, `f1/RESULTS-F1.md`)
 
-| | vLLM (mean of 3 runs) | CuteAFD as shipped | CuteAFD − vLLM |
-|---|---|---|---|
-| Full-vocab KL, 25 x 2K panel | 0.0458 | 0.0476 | +0.0017 [+0.0006, +0.0028] |
-| Panel P-B, generated rows, all | ~0.0451 | 0.0484 | +0.0033 [+0.0016, +0.0049]; top-1 −0.46 pts |
-| P-B 0-8K | | | KL within ±0.0017, intervals include 0 |
-| P-B 8-16K (long code reading) | | 0.0557 | **+0.0054 [+0.0034, +0.0074]; top-1 −0.81 pts** |
-| NLL, human text 32K-128K (no teacher) | | | no difference beyond about ±0.005 nat (6 documents) |
+| | vLLM (mean of 3 runs) | CuteAFD as shipped | CuteAFD − vLLM | Scored history, tokens (min / median / max) |
+|---|---|---|---|---|
+| Full-vocab KL, 25 x 2K panel | 0.0458 | 0.0476 | +0.0017 [+0.0006, +0.0028] | 1 / 1,024 / 2,047 |
+| Panel P-B, generated rows, all | ~0.0451 | 0.0484 | +0.0033 [+0.0016, +0.0049]; top-1 −0.46 pts | 1,084 / 5,751.5 / 14,402 |
+| P-B 0-8K | | | KL within ±0.0017, intervals include 0 | 1,084 / 2,194 / 5,781 |
+| P-B 8-16K (long code reading) | | 0.0557 | **+0.0054 [+0.0034, +0.0074]; top-1 −0.81 pts** | 10,284 / 12,069 / 14,402 |
+| NLL, human text 32K-128K (no teacher) | | | no difference beyond about ±0.005 nat (6 documents) | 28,672 / 63,487.5 / 131,071 |
 
 Follow-up F1 (CuteAFD switches, 8-16K, vs vLLM mean of 3 runs): W8A16 prefill instead of W8A8 → +0.0022 [+0.0005,
 +0.0041] at ~4% longer time to first token and no decode cost; BF16 head → no change at ~6% decode cost; all three

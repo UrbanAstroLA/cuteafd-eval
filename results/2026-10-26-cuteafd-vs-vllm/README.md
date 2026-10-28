@@ -14,6 +14,7 @@ control). Expert bytes are identical in all three.
 ## Slots
 
 - Block Q, precision (V1, C1, C0): done
+- Block Q per-position scores (P-B, Q2) and tail and position statistics (P-A, P-B, Q2): done
 - Block T, throughput: vLLM fork v0.9.2 (V1): done
 - Block T, throughput: CuteAFD v3.0.1 (C1): done
 - Block L, long output: vLLM fork v0.9.2 (V1): done
@@ -33,13 +34,13 @@ Thinking on for every generation request (the stacks handle thinking off differe
 
 ### Precision (teacher-forced, prefill-shaped; [`RESULTS-Q.md`](q/RESULTS-Q.md), [`f1/RESULTS-F1.md`](f1/RESULTS-F1.md))
 
-| | vLLM (mean of 3 runs) | CuteAFD as shipped | CuteAFD − vLLM |
-|---|---|---|---|
-| Full-vocab KL, 25 x 2K panel | 0.0458 | 0.0476 | +0.0017 [+0.0006, +0.0028] |
-| Panel P-B, generated rows, all | ~0.0451 | 0.0484 | +0.0033 [+0.0016, +0.0049]; top-1 −0.46 pts |
-| P-B 0-8K | | | KL within ±0.0017, intervals include 0 |
-| P-B 8-16K (long code reading) | | 0.0557 | **+0.0054 [+0.0034, +0.0074]; top-1 −0.81 pts** |
-| NLL, human text 32K-128K (no teacher) | | | no difference beyond about ±0.005 nat (6 documents) |
+| | vLLM (mean of 3 runs) | CuteAFD as shipped | CuteAFD − vLLM | Scored history, tokens (min / median / max) |
+|---|---|---|---|---|
+| Full-vocab KL, 25 x 2K panel | 0.0458 | 0.0476 | +0.0017 [+0.0006, +0.0028] | 1 / 1,024 / 2,047 |
+| Panel P-B, generated rows, all | ~0.0451 | 0.0484 | +0.0033 [+0.0016, +0.0049]; top-1 −0.46 pts | 1,084 / 5,751.5 / 14,402 |
+| P-B 0-8K | | | KL within ±0.0017, intervals include 0 | 1,084 / 2,194 / 5,781 |
+| P-B 8-16K (long code reading) | | 0.0557 | **+0.0054 [+0.0034, +0.0074]; top-1 −0.81 pts** | 10,284 / 12,069 / 14,402 |
+| NLL, human text 32K-128K (no teacher) | | | no difference beyond about ±0.005 nat (6 documents) | 28,672 / 63,487.5 / 131,071 |
 
 Follow-up F1 (CuteAFD switches, 8-16K, vs vLLM mean of 3 runs): W8A16 prefill instead of W8A8 → +0.0022 [+0.0005,
 +0.0041] at ~4% longer time to first token and no decode cost; BF16 head → no change at ~6% decode cost; all three
@@ -47,14 +48,14 @@ Follow-up F1 (CuteAFD switches, 8-16K, vs vLLM mean of 3 runs): W8A16 prefill in
 difference sits in the W8A8 prefill GEMMs. Decode-shaped precision (the path generated tokens use) was not scored.
 CuteAFD is bit-deterministic; vLLM's multi-chunk prefill is not run-to-run deterministic.
 
-Panel P-B, generated rows, against the mean of the three vLLM runs (two launches; `pb-vs-vllm-mean3.json`). The 8-16K bucket is block B, long code reading; whether length or content drives the difference is not separated here. F1c and F1d are follow-up F1 arms of CuteAFD, outside the frozen protocol.
+Panel P-B, generated rows, against the mean of the three vLLM runs (two launches; `pb-vs-vllm-mean3.json`). The 8-16K bucket is block B, long code reading; whether length or content drives the difference is not separated here. F1c and F1d are follow-up F1 arms of CuteAFD, outside the frozen protocol. History: the tokens before each scored position. Tails (p99, p99.9) and KL by position: [`q/tails/`](q/tails/).
 
-| Bucket | Rows | KL, CuteAFD − vLLM | Top-1, CuteAFD − vLLM | KL, F1c (W8A16 prefill) − vLLM | KL, F1d (KDA, head, prefill) − vLLM |
-|---|---|---|---|---|---|
-| all generated rows | 15,104 | +0.0033 [+0.0016, +0.0049] | -0.46 pts [-0.73, -0.17] | +0.0017 [+0.0006, +0.0028] | +0.0010 [-0.0002, +0.0021] |
-| 0-2K | 4,035 | +0.0017 [-0.0006, +0.0044] | -0.38 pts [-0.88, +0.05] | +0.0007 [-0.0010, +0.0027] | +0.0008 [-0.0011, +0.0028] |
-| 2-8K | 3,547 | +0.0007 [-0.0029, +0.0032] | +0.19 pts [-0.16, +0.52] | +0.0016 [+0.0007, +0.0026] | -0.0001 [-0.0017, +0.0013] |
-| 8-16K | 7,522 | +0.0054 [+0.0034, +0.0074] | -0.81 pts [-1.22, -0.44] | +0.0022 [+0.0005, +0.0041] | +0.0016 [-0.0005, +0.0033] |
+| Bucket | Rows | History, tokens (min / median / max) | KL, CuteAFD − vLLM | Top-1, CuteAFD − vLLM | KL, F1c (W8A16 prefill) − vLLM | KL, F1d (KDA, head, prefill) − vLLM |
+|---|---|---|---|---|---|---|
+| all generated rows | 15,104 | 1,084 / 5,751.5 / 14,402 | +0.0033 [+0.0016, +0.0049] | -0.46 pts [-0.73, -0.17] | +0.0017 [+0.0006, +0.0028] | +0.0010 [-0.0002, +0.0021] |
+| 0-2K | 4,035 | 1,084 / 1,735 / 2,361 | +0.0017 [-0.0006, +0.0044] | -0.38 pts [-0.88, +0.05] | +0.0007 [-0.0010, +0.0027] | +0.0008 [-0.0011, +0.0028] |
+| 2-8K | 3,547 | 2,083 / 4,254 / 5,781 | +0.0007 [-0.0029, +0.0032] | +0.19 pts [-0.16, +0.52] | +0.0016 [+0.0007, +0.0026] | -0.0001 [-0.0017, +0.0013] |
+| 8-16K | 7,522 | 10,284 / 12,069 / 14,402 | +0.0054 [+0.0034, +0.0074] | -0.81 pts [-1.22, -0.44] | +0.0022 [+0.0005, +0.0041] | +0.0016 [-0.0005, +0.0033] |
 
 ### Throughput (Block T, 1,008 requests per engine, 0 errors; [`t/T-SUMMARY.md`](t/T-SUMMARY.md), [`t/CAVEATS.md`](t/CAVEATS.md))
 
