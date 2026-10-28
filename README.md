@@ -35,7 +35,7 @@ sponsorship, certification or verification of this evaluation or its results by 
 - K4: Block Q per-position scores and tails (P-A, P-B, Q2): done
 - K4: Block T, throughput, with drift repeats: done
 - K4: Block L, long output: done
-- K4: Follow-up F1-K4, CuteAFD W8A16 prefill on K4 (outside the frozen protocol): done
+- K4: Follow-ups F1-K4 (W8A16 prefill), F1-K4b (FP8 switches) and K4c (W8A16 + amax), CuteAFD on K4 (outside the frozen protocol): done
 - K4: Q2 document c2: rows where vLLM differs from itself: done
 
 <!-- results:start -->

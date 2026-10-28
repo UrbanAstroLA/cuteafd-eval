@@ -972,6 +972,8 @@ def k4_precision(K):
             'Core-FP8 checkpoint (official FP8 projections) and converts K4\'s BF16 projections at load.</p>' +
             md(B.k4_quant_table(K)) +
             '<h3 id="k4-f1">Follow-up F1-K4: W8A16 prefill on K4 (outside the frozen protocol)</h3>' + md(B.k4_f1_tables(K)) +
+            '<h3 id="k4-f1b">Follow-ups F1-K4b and K4c: CuteAFD\'s FP8 switches on K4 (outside the frozen protocol)</h3>' +
+            md(strip_title(read(f"{R4}/f1k4/RESULTS-F1K4b.md")), R4) +
             f'<h3 id="k4-tails">K4 tails (top-20 measures)</h3><p class="sign">P-A, every position of 25 windows '
             f'({hist_short(T["pa"]["scored"]["context"])}):</p>' + k4_tails_table(T["pa"]) +
             f'<p class="sign">P-B, {T["pb"]["scored"]["selected_positions_total"]:,} generated positions '
@@ -1014,8 +1016,11 @@ def k4_observations(K):
         "and shared projections in 128×128 blocks with pow2 scales, head and KDA projections per row. On K3.25 those "
         "projections came from the official FP8 checkpoint. The vLLM fork serves them in BF16.",
         "**W8A16 prefill moves less of the long-code difference on K4 than on K3.25** (follow-up F1-K4): about 21% of the "
-        "8-16K difference, against about 59% on K3.25. Candidates for the rest, not tested: the load-time FP8 conversion "
-        "and its scale rule, the FP8 head, the FP8 KDA projections.",
+        "8-16K difference, against about 59% on K3.25. **Follow-ups F1-K4b and K4c tested the other FP8 choices:** no single "
+        "switch accounts for most of it (BF16 KDA projections about 39%, the amax scale rule about 25% not resolved, BF16 "
+        "head about 3%); W8A16 prefill together with the amax scale rule moves about 68%, leaving +0.0030 at 8-16K and no "
+        "resolved difference on P-A or Q2, at about 4% longer time to first token. BF16 KDA projections and head do not "
+        "fit a serving launch on two RTX cards with K4.",
         "**Literal `<think>` text in a prompt** (smoke check S2 and Block T): the vLLM stack parses it as a special token, "
         "CuteAFD keeps it as text, so the 128K code prompts are longer on CuteAFD (as on K3.25).",
         "**Same seed, same prompt** (smoke, 3 prompts): CuteAFD returned identical text 3 of 3 times, the vLLM fork 1 of 3; "
