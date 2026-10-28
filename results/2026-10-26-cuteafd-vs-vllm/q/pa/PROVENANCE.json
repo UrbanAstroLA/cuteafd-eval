@@ -1,10 +1,21 @@
 {
  "about": "Identity of panel P-A's reference: the BF16 teacher logits dataset, the 25 qualification windows scored, and the hashes a reader checks a download against. How to rebuild the P-A numbers: repro/REPRODUCE.md, step 5a.",
  "dataset": {
-  "repo": "https://huggingface.co/datasets/brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits",
-  "repo_id": "brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits",
-  "revision": "95f4fdd94bf29989db2e0d1054e4931f55edb6aa",
-  "card_licence": "other",
+  "repo": "https://huggingface.co/datasets/brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence",
+  "repo_id": "brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence",
+  "revision": "32afb8875f830528d5545c20a51846b56c537f44",
+  "licence": "none stated on the dataset card or in the repository",
+  "files_in_repo": {
+   "teacher": "teacher/logits/window-%04d.safetensors",
+   "tokens": "calibration/windows/arrays/final-%04d.tokens.npy",
+   "mask": "calibration/windows/arrays/causal-mask-2048.npy"
+  },
+  "layout_note": "teacher_file and tokens_file below are the paths of the local layout repro/REPRODUCE.md step 5a builds (the layout of the dataset originally scored)",
+  "originally_scored_from": {
+   "repo_id": "brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits",
+   "revision": "95f4fdd94bf29989db2e0d1054e4931f55edb6aa",
+   "note": "no longer publicly reachable; its 25 teacher files, 25 token arrays and the mask are byte-identical (sha256) to the files above"
+  },
   "source_model": "zai-org/GLM-5.3-Flash-BF16",
   "source_model_revision": "a6c167b62691b2bac901344b65cb651a70f53e43",
   "vocab_size": 154880,
@@ -23,7 +34,7 @@
   "command": "score_pa.py score --arm C1=<C1 rows> --arm C1r=<C1 repeat> --arm V1=<V1 rows> --arm V1r=<V1 repeat> --pair C1,C1r --pair V1,V1r --pair V1,C1 --out <out> --jobs 8 (V2: the same with --arm V2)",
   "plan": "repro/stage0/scorers/plans/pa.meta.json (window list, token hashes, plan file hashes)",
   "receipts": "results/2026-10-26-cuteafd-vs-vllm/q/pa/*.json, q/pa-v2/*.json, q/logs/pa.log, q/logs/pa-v2.log",
-  "per_position": "not in this repository (see q/rows/README.md); summaries and tails only",
+  "per_position": "results/2026-10-26-cuteafd-vs-vllm/q/rows/pa-rows.csv",
   "tails": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json"
  },
  "windows": [

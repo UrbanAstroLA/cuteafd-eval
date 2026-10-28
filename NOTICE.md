@@ -23,10 +23,13 @@ The material below keeps its own licence.
   computed against this panel, with the panel's reference NLL of each next token; released under CC BY 4.0 with this
   attribution.
 - **GLM-5.3-Flash BF16 teacher logits** from Brandon M. Music (brandonmusic): 25 windows of 2,048 tokens, full-vocabulary
-  logits of `zai-org/GLM-5.3-Flash-BF16` @ `a6c167b6`, Hugging Face dataset `brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits`
-  @ `95f4fdd94bf29989db2e0d1054e4931f55edb6aa`; its card gives the licence as "other". Panel P-A. Only summary statistics
-  computed against it are published here (per window, tails and position bands); the per-position scores are not.
-  Provenance and hashes: `results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json`.
+  logits of `zai-org/GLM-5.3-Flash-BF16` @ `a6c167b6`, publicly available in the Hugging Face dataset
+  `brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence` @ `32afb8875f830528d5545c20a51846b56c537f44` (no licence stated).
+  Panel P-A. They were first scored from `brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits` @ `95f4fdd9`, no longer
+  public; all 25 teacher files, token arrays and the mask are byte-identical in the Evidence repository.
+  `results/2026-10-26-cuteafd-vs-vllm/q/rows/pa-rows.csv` holds per-position scores computed against it (no logits, no
+  token ids): our KL, NLL and top-1 columns under CC BY 4.0; `teacher_nll` and `teacher_confident` are derived from
+  his teacher logits and credited to him. Provenance and hashes: `results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json`.
 - **Checkpoints**: `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1`, `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8`
   (tpurtell), `incoai/GLM-5.3-Flash-DFlash2`, `zai-org/GLM-5.3-Flash`. Their licences are on their model cards.
 - Hugh Madden's `klgate.py` was used as an independent cross-check of the P-A scorer; it is not included.

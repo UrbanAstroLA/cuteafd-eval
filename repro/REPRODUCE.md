@@ -103,31 +103,42 @@ The published summaries are in `../results/2026-10-26-cuteafd-vs-vllm/q/`.
 
 ## 5a. Panel P-A from the teacher dataset
 
-P-A's reference is brandonmusic's dataset
-[`brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits`](https://huggingface.co/datasets/brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits)
-at revision `95f4fdd94bf29989db2e0d1054e4931f55edb6aa`: full-vocabulary FP32 logits of `zai-org/GLM-5.3-Flash-BF16` @
-`a6c167b62691b2bac901344b65cb651a70f53e43` for the dataset's 25 qualification windows, `final-0000` to `final-0024`
-(2,048 tokens each, 2,047 prediction positions, vocabulary 154,880). Its card gives the licence as "other". The
-dataset identity, every window and the hashes to check a download against are in
+P-A's reference is brandonmusic's BF16 teacher: full-vocabulary FP32 logits of `zai-org/GLM-5.3-Flash-BF16` @
+`a6c167b62691b2bac901344b65cb651a70f53e43` for 25 qualification windows, `final-0000` to `final-0024` (2,048 tokens
+each, 2,047 prediction positions, vocabulary 154,880). Its public home is
+[`brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence`](https://huggingface.co/datasets/brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence)
+at revision `32afb8875f830528d5545c20a51846b56c537f44` (no licence stated). This comparison first scored the same
+files from `brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits` @ `95f4fdd9`, which is no longer public; every teacher
+file, token array and the mask are byte-identical. Identity, windows and hashes:
 `../results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json`.
 
 1. **Download only what P-A reads** (about 31.7 GB):
    ```bash
-   huggingface-cli download brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits --repo-type dataset \
-     --revision 95f4fdd94bf29989db2e0d1054e4931f55edb6aa --local-dir <datasets>/glm53-flash-teacher-logits \
-     --include "README.md" "dataset-manifest.json" "capture-receipt.json" "token-panel-receipt.json" "backend.json" \
-       "logits/window-00*.safetensors" "calibration/panel-v1/panel.json" \
-       "calibration/panel-v1/arrays/final-*.tokens.npy" "calibration/panel-v1/arrays/causal-mask-2048.npy"
+   huggingface-cli download brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence --repo-type dataset \
+     --revision 32afb8875f830528d5545c20a51846b56c537f44 --local-dir <datasets>/glm53-k4-evidence \
+     --include "README.md" "SHA256SUMS" "teacher/logits/window-00*.safetensors" \
+       "calibration/windows/arrays/final-*.tokens.npy" "calibration/windows/arrays/causal-mask-2048.npy"
    ```
-2. **Check it** against `PROVENANCE.json`: each `logits/window-%04d.safetensors` (one F32 tensor `logits`,
-   `[2047, 154880]`) against `teacher_sha256`, each `final-%04d.tokens.npy` (int32, 2,048 ids) against
-   `tokens_npy_sha256`, the shared mask against `causal-mask-2048.npy sha256` (it is a 1-D all-ones validity mask:
-   every position is scored):
+2. **Lay it out and check it.** The tools read the layout of the dataset originally scored (`logits/`,
+   `calibration/panel-v1/arrays/`, `dataset-manifest.json`). This links the downloaded files into that layout, writes
+   the small manifest `plans.py` reads from `PROVENANCE.json`, and checks every hash:
    ```bash
    python3 - <<'EOF'
-   import hashlib, json
-   T = "<datasets>/glm53-flash-teacher-logits"
+   import hashlib, json, os
+   E, T = "<datasets>/glm53-k4-evidence", "<datasets>/glm53-flash-teacher-logits"
    P = json.load(open("results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json"))
+   os.makedirs(f"{T}/logits", exist_ok=True); os.makedirs(f"{T}/calibration/panel-v1/arrays", exist_ok=True)
+   def link(src, dst):
+       if not os.path.lexists(f"{T}/{dst}"): os.symlink(os.path.abspath(f"{E}/{src}"), f"{T}/{dst}")
+   for w in P["windows"]:
+       n = w["window_id"].split("-")[1]
+       link(f"teacher/logits/window-{n}.safetensors", w["teacher_file"])
+       link(f"calibration/windows/arrays/{w['window_id']}.tokens.npy", w["tokens_file"])
+   link("calibration/windows/arrays/causal-mask-2048.npy", "calibration/panel-v1/arrays/causal-mask-2048.npy")
+   json.dump({"model_revision": P["dataset"]["source_model_revision"], "logit_files": [
+       {"window_id": w["window_id"], "path": w["teacher_file"], "token_ids_sha256": w["tokens_npy_sha256"],
+        "document_id": w["document_id"], "domain": w["domain"]} for w in P["windows"]]},
+       open(f"{T}/dataset-manifest.json", "w"), indent=1)
    def h(rel):
        d = hashlib.sha256()
        with open(f"{T}/{rel}", "rb") as f:
@@ -139,9 +150,15 @@ dataset identity, every window and the hashes to check a download against are in
    print("mismatches:", bad or "none")
    EOF
    ```
+   Each teacher file is one F32 tensor `logits`, `[2047, 154880]`; each token array is int32, 2,048 ids; the mask is
+   a 1-D all-ones validity mask (every position is scored).
 3. **Plans.** `cd stage0/scorers && python3 -B plans.py --out plans --panels pa --teacher <datasets>/glm53-flash-teacher-logits`
    writes the CuteAFD plan and the vLLM registry for rows 0-2046 of every window; their sha256 must equal those in
-   `stage0/scorers/plans/pa.meta.json` (and the scorers README, section 2).
+   `stage0/scorers/plans/pa.meta.json` (and the scorers README, section 2). The meta file's `dataset_manifest_sha256`
+   will differ: it hashes the original dataset's manifest, which step 2 replaces with a minimal one. The vLLM
+   registry also differs from the recorded sha256 in one field only: its `schema` label was renamed for publication
+   (`engine-compare.vllm-registry/1`); with `schema` removed, its content equals the original (checked 2026-10-28).
+   The CuteAFD plan's sha256 matches exactly.
 4. **Capture each arm twice** (step 5): CuteAFD through its bench endpoint, with the scoring config and an API key in
    `CUTEAFD_API_KEY`,
    ```bash
@@ -167,8 +184,8 @@ dataset identity, every window and the hashes to check a download against are in
    `../results/2026-10-26-cuteafd-vs-vllm/q/rows/README.md` and run `python3 tools/kl_tails.py --pa <that file>`; compare
    with `q/tails/pa-tails.json`, which records the sha256 of the file it was computed from.
 
-The P-A per-position file itself is not in this repository (`q/rows/README.md` gives the reason); the summaries,
-tails and position bands are.
+The P-A per-position file is `../results/2026-10-26-cuteafd-vs-vllm/q/rows/pa-rows.csv`; `python3 tools/kl_tails.py
+--check` recomputes the published tails from it.
 
 ## 6. Block T: throughput
 

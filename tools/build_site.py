@@ -967,8 +967,7 @@ def main():
         'positions where the reference\'s top probability is at least 0.5. P-A and P-B KL are different metrics (full '
         'vocabulary vs top-1,024 plus tail) on different texts: compare engines within a panel, not panels with each other. '
         f'Computed by <a href="{REPO_URL}/blob/main/tools/kl_tails.py"><code>tools/kl_tails.py</code></a> from the per-position '
-        f'files in <a href="{REPO_URL}/tree/main/{RD}/q/rows"><code>q/rows/</code></a> (P-B, Q2; P-A\'s is not published, '
-        f'see its README) into <a href="{REPO_URL}/tree/main/{RD}/q/tails"><code>q/tails/</code></a>.</p>')
+        f'files in <a href="{REPO_URL}/tree/main/{RD}/q/rows"><code>q/rows/</code></a> (P-A, P-B, Q2) into <a href="{REPO_URL}/tree/main/{RD}/q/tails"><code>q/tails/</code></a>.</p>')
     top = [[lab, f'{100 * d[(b, "top1", "C1")][0]:+.2f} pts<br>{civ(d[(b, "top1", "C1")], 2, 100)}'] for b, lab in bk]
     rq = strip_title(read(f"{RD}/q/RESULTS-Q.md")); f1 = strip_title(read(f"{RD}/f1/RESULTS-F1.md"))
     page("precision.html", "Precision", "How close each engine's next-token probabilities stay to the original BF16 model.",
