@@ -1,0 +1,124 @@
+{
+ "id": "2026-10-27-k4-vllm-cuteafd",
+ "kind": "measurement",
+ "title": "K4 (brandonmusic GLM-5.3-Flash-tr3-4bpw) on tpurtell's vLLM fork v0.9.2 and CuteAFD v3.0.1: precision, throughput, long output",
+ "protocol": "frozen 2026-10-27T17:58:09-07:00 (FROZEN.json sha256 368e17007486ba0bf160077b4621bf54b7a262f1c18e882616ce1e3caa0dfa86); restated for the two published arms in METHOD.md; follow-up F1-K4 outside it",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W), driver 595.84",
+ "checkpoint": {
+  "repo": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw",
+  "revision": "a5fee929cf4888b1824323e33e8a19b60129e025",
+  "author": "Local Inference Lab, Inc.",
+  "project_home": "https://local-inference-lab.ai/",
+  "licence": "Local Inference Lab Attribution License 1.0 (LICENSE file in the checkpoint at this revision); see NOTICE.md"
+ },
+ "arms": {
+  "V": {
+   "engine": "tpurtell/glm-5.3-flash-ext3-2x-rtx v0.9.2 (tag f18f51f5)",
+   "image": "ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx:v0.9.2 index sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2",
+   "launch": "repro/k4/vllm/env.sh (MODEL_PROFILE=k4) with the v0.9.0 repository's launcher",
+   "runs": "Block Q: V-r1 and V-r1b (launch 1), V-r2 (launch 2); Block T: V-r1, drift V-d1, final drift V-d2"
+  },
+  "C": {
+   "engine": "tpurtell/cuteafd v3.0.1 (9098781f)",
+   "image": "ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a",
+   "launch": "repro/k4/cuteafd/glm53-flash-exl3-k4-2rtx.config (serving), glm53-flash-exl3-k4-2rtx-score.config (Block Q)",
+   "runs": "Block Q: C-r1 and C-r1b (one scoring launch); Block T: C-r1, drift C-d1"
+  }
+ },
+ "slots": {
+  "startup": {
+   "title": "Startup and smoke checks (Stage 1, before the freeze)",
+   "status": "done",
+   "files": [
+    "startup/startup.json"
+   ]
+  },
+  "Q": {
+   "title": "Block Q, precision (top-20 measures): P-A, P-B, Q2",
+   "status": "done",
+   "files": [
+    "q/pa20.json",
+    "q/pb20.json",
+    "q/q2-top20.json",
+    "q/logs/score-pa20.log",
+    "q/logs/score-pb20.log",
+    "q/logs/score-q2.log",
+    "q/q2_rows.py",
+    "q/k325-top20-reference.json"
+   ]
+  },
+  "Qrows": {
+   "title": "Block Q per-position scores and tails (P-A, P-B, Q2)",
+   "status": "done",
+   "files": [
+    "q/rows/pa-rows.csv",
+    "q/rows/pb-rows.csv",
+    "q/rows/q2-rows.csv",
+    "q/tails/pa-tails.json",
+    "q/tails/pb-tails.json",
+    "q/tails/q2-tails.json",
+    "q/rows/README.md"
+   ]
+  },
+  "T": {
+   "title": "Block T, throughput, with drift repeats",
+   "status": "done",
+   "files": [
+    "t/V-r1.json",
+    "t/V-r1.log",
+    "t/C-r1.json",
+    "t/C-r1.log",
+    "t/V-d1.json",
+    "t/V-d1.log",
+    "t/C-d1.json",
+    "t/C-d1.log",
+    "t/V-d2.json",
+    "t/V-d2.log",
+    "t/t-compare.json"
+   ]
+  },
+  "L": {
+   "title": "Block L, long output",
+   "status": "done",
+   "files": [
+    "l/L-analysis-VC.json",
+    "l/LOOP-RULES-VC.json"
+   ]
+  },
+  "f1k4": {
+   "title": "Follow-up F1-K4, CuteAFD W8A16 prefill on K4 (outside the frozen protocol)",
+   "status": "done",
+   "files": [
+    "f1k4/FOLLOWUPS-K4.md",
+    "f1k4/RESULTS-F1K4.md",
+    "f1k4/score-pa.log",
+    "f1k4/score-pb.log",
+    "f1k4/score-q2.log",
+    "f1k4/score/pa20.json",
+    "f1k4/score/pb20.json",
+    "f1k4/score/q2-top20.json",
+    "f1k4/score/f1c-minus-c1.json",
+    "f1k4/t/C-base1.json",
+    "f1k4/t/C-base1.log",
+    "f1k4/t/C-f1c.json",
+    "f1k4/t/C-f1c.log",
+    "f1k4/t/C-base2.json",
+    "f1k4/t/C-base2.log",
+    "f1k4/q/C-f1c-pa.log",
+    "f1k4/q/C-f1c-pb.log",
+    "f1k4/q/C-f1c-q2.log"
+   ]
+  },
+  "c2": {
+   "title": "Q2 document c2: rows where vLLM differs from itself",
+   "status": "done",
+   "files": [
+    "c2/README.md",
+    "c2/c2-summary.json",
+    "c2/c2_summary.py",
+    "c2/c2-rows.json",
+    "c2/copy-rows.json"
+   ]
+  }
+ }
+}

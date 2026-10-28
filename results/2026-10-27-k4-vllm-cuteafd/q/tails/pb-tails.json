@@ -1,0 +1,216 @@
+{
+ "about": "Computed by tools/kl_tails.py from the per-position file named in 'input' (definitions in the tool's docstring and results/2026-10-27-k4-vllm-cuteafd/q/rows/README.md).",
+ "input": "results/2026-10-27-k4-vllm-cuteafd/q/rows/pb-rows.csv",
+ "input_sha256": "9f911a78bb41a021a8bacef1a50baa296a7df3aeb27b2b568dc708b219880a00",
+ "input_published": true,
+ "quantiles": "type 7 (linear interpolation between order statistics)",
+ "panel": "P-B, tpurtell's cuteafd-fidelity panel (glm5_flash v2)",
+ "metric": "KL_pb20: top-20 truncation of tpurtell's top-1,024-plus-tail rule, nats (about 0.98-0.99 of the published rule's KL on generated rows)",
+ "selection": "generated positions (role gen), the panel's primary rows",
+ "scored": {
+  "windows": 64,
+  "windows_with_selected_positions": 53,
+  "tokens_per_window": {
+   "min": 513,
+   "median": 2777.5,
+   "max": 14403
+  },
+  "scored_positions_per_window": {
+   "min": 512,
+   "median": 512.0,
+   "max": 512
+  },
+  "selected_positions_per_window": {
+   "min": 6,
+   "median": 248.0,
+   "max": 512
+  },
+  "selected_positions_total": 15104,
+  "context": {
+   "min": 1084,
+   "median": 5751.5,
+   "max": 14402
+  }
+ },
+ "arms": {
+  "Vr1": {
+   "n": 15104,
+   "kl_mean": 0.03059599076804444,
+   "kl_p50": 0.00081139745,
+   "kl_p90": 0.08167106300000002,
+   "kl_p99": 0.39443572799999943,
+   "kl_p99.9": 1.1933866890000147,
+   "kl_max": 3.798289,
+   "kl_share_top1pct": 0.23805663894684656,
+   "kl_share_top5pct": 0.545039591537858,
+   "kl_share_top10pct": 0.7224297794610351,
+   "nll_mean": 0.210705235316124,
+   "top1": 0.9487552966101694,
+   "confident_top1": 0.9745609597456096,
+   "confident_positions": 13837,
+   "published_kl_mean": 0.030595990770667082,
+   "kl_mean_minus_published": -2.622641687155536e-12
+  },
+  "Vr1b": {
+   "n": 15104,
+   "kl_mean": 0.03106652217187724,
+   "kl_p50": 0.00078109785,
+   "kl_p90": 0.07953056800000004,
+   "kl_p99": 0.43585476599999967,
+   "kl_p99.9": 1.2268624820000298,
+   "kl_max": 2.649454,
+   "kl_share_top1pct": 0.24192357690386912,
+   "kl_share_top5pct": 0.5565426370570804,
+   "kl_share_top10pct": 0.7324677013343146,
+   "nll_mean": 0.20964913971725327,
+   "top1": 0.9490863347457628,
+   "confident_top1": 0.9747777697477777,
+   "confident_positions": 13837,
+   "published_kl_mean": 0.031066522191839984,
+   "kl_mean_minus_published": -1.996274326399039e-11
+  },
+  "Vr2": {
+   "n": 15104,
+   "kl_mean": 0.03035466790745707,
+   "kl_p50": 0.00078414265,
+   "kl_p90": 0.07814367200000003,
+   "kl_p99": 0.4146227169999972,
+   "kl_p99.9": 1.1759040730000143,
+   "kl_max": 4.528034,
+   "kl_share_top1pct": 0.24100715874252557,
+   "kl_share_top5pct": 0.552804339428545,
+   "kl_share_top10pct": 0.7268787689816599,
+   "nll_mean": 0.20913406440589144,
+   "top1": 0.9498808262711864,
+   "confident_top1": 0.9765845197658451,
+   "confident_positions": 13837,
+   "published_kl_mean": 0.030354667823903937,
+   "kl_mean_minus_published": 8.355313316221746e-11
+  },
+  "Cr1": {
+   "n": 15104,
+   "kl_mean": 0.03582405673512092,
+   "kl_p50": 0.001505179,
+   "kl_p90": 0.09466463700000008,
+   "kl_p99": 0.4551009409999996,
+   "kl_p99.9": 1.20334355800001,
+   "kl_max": 4.473736,
+   "kl_share_top1pct": 0.2250569675797676,
+   "kl_share_top5pct": 0.5213230563094731,
+   "kl_share_top10pct": 0.6965417476391471,
+   "nll_mean": 0.23132768713433038,
+   "top1": 0.9459083686440678,
+   "confident_top1": 0.9741273397412734,
+   "confident_positions": 13837,
+   "published_kl_mean": 0.035824056624536645,
+   "kl_mean_minus_published": 1.105842778459376e-10
+  }
+ },
+ "by_position": [
+  {
+   "band": "0-2K",
+   "positions": 4035,
+   "context": {
+    "min": 1084,
+    "median": 1735.0,
+    "max": 2361
+   },
+   "arms": {
+    "Vr1": {
+     "kl_mean": 0.03228060811398827,
+     "kl_p99": 0.4895221379999997,
+     "kl_p99.9": 1.3287550579999854,
+     "top1": 0.9558859975216852
+    },
+    "Vr1b": {
+     "kl_mean": 0.03247130135112065,
+     "kl_p99": 0.4934427339999993,
+     "kl_p99.9": 1.3299554619999892,
+     "top1": 0.9541511771995044
+    },
+    "Vr2": {
+     "kl_mean": 0.03271940857754802,
+     "kl_p99": 0.5027714059999996,
+     "kl_p99.9": 1.3287550579999854,
+     "top1": 0.955638166047088
+    },
+    "Cr1": {
+     "kl_mean": 0.0343372812640578,
+     "kl_p99": 0.5683161839999987,
+     "kl_p99.9": 1.3823410459999952,
+     "top1": 0.9541511771995044
+    }
+   }
+  },
+  {
+   "band": "2-8K",
+   "positions": 3547,
+   "context": {
+    "min": 2083,
+    "median": 4254.0,
+    "max": 5781
+   },
+   "arms": {
+    "Vr1": {
+     "kl_mean": 0.02171844515562944,
+     "kl_p99": 0.3075117579999995,
+     "kl_p99.9": 1.1530086080000195,
+     "top1": 0.9650408796165774
+    },
+    "Vr1b": {
+     "kl_mean": 0.02282017859364271,
+     "kl_p99": 0.34620278,
+     "kl_p99.9": 1.0641651356000672,
+     "top1": 0.9656047363969552
+    },
+    "Vr2": {
+     "kl_mean": 0.022162793629634105,
+     "kl_p99": 0.33592062999999983,
+     "kl_p99.9": 1.0263661042000627,
+     "top1": 0.9641950944460107
+    },
+    "Cr1": {
+     "kl_mean": 0.023477930080799268,
+     "kl_p99": 0.3767211139999998,
+     "kl_p99.9": 0.8506451248000035,
+     "top1": 0.9647589512263886
+    }
+   }
+  },
+  {
+   "band": "8-16K",
+   "positions": 7522,
+   "context": {
+    "min": 10284,
+    "median": 12069.0,
+    "max": 14402
+   },
+   "arms": {
+    "Vr1": {
+     "kl_mean": 0.03387852510683102,
+     "kl_p99": 0.38755978399999996,
+     "kl_p99.9": 0.947754919200035,
+     "top1": 0.9372507311885137
+    },
+    "Vr1b": {
+     "kl_mean": 0.03420152571930489,
+     "kl_p99": 0.43536377399999987,
+     "kl_p99.9": 1.1296717170000252,
+     "top1": 0.938580164849774
+    },
+    "Vr2": {
+     "kl_mean": 0.03294903768406184,
+     "kl_p99": 0.39181930199999987,
+     "kl_p99.9": 0.8330063947000055,
+     "top1": 0.9400425418771603
+    },
+    "Cr1": {
+     "kl_mean": 0.042443419972108244,
+     "kl_p99": 0.451844386,
+     "kl_p99.9": 1.206922630000008,
+     "top1": 0.9325977133741026
+    }
+   }
+  }
+ ]
+}

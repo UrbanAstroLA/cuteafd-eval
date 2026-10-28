@@ -1,0 +1,152 @@
+{
+ "about": "Stage 1 of the K4 measurement: startup timing (drivers/startup.py: start command to the first HTTP 200 on /v1/models, to the engine's ready line, and to the first streamed token of a fixed 1K request), the capacity each engine reports at startup, and the smoke checks. One cold and one warm start per engine: descriptive. 'cold' is the first start of the engine in the stage; page-cache state is recorded, not controlled (the checkpoint is larger than RAM).",
+ "launches": {
+  "V-cold": {
+   "engine": "vLLM fork v0.9.2 (tpurtell, image ea0430aa)",
+   "launch": "cold",
+   "started": "2026-10-27T17:35:18-0700",
+   "timing_valid": true,
+   "cpu_idle_share_30s": 0.991,
+   "t_models_s": 248.8,
+   "t_ready_s": 307.0,
+   "t_first_token_s": 307.7,
+   "first_request_ttft_s": 0.585,
+   "host_mem_available_before_gib": 117.1,
+   "page_cache_before_gib": 35.51,
+   "capacity": {
+    "pool_tokens": 1377179,
+    "max_streams": 16,
+    "window": 1048576,
+    "unit": "vllm-blocks",
+    "block_tokens": 4352
+   },
+   "capacity_line": "ngineCore pid=236) INFO 10-28 00:38:49 [kv_cache_utils.py:2299] GPU KV cache size: 1,377,179 tokens, Maximum concurrency for 1,048,576 tokens per request: 1.31x"
+  },
+  "V-warm": {
+   "engine": "vLLM fork v0.9.2 (tpurtell, image ea0430aa)",
+   "launch": "warm",
+   "started": "2026-10-27T17:41:08-0700",
+   "timing_valid": true,
+   "cpu_idle_share_30s": 0.991,
+   "t_models_s": 200.2,
+   "t_ready_s": 257.4,
+   "t_first_token_s": 257.7,
+   "first_request_ttft_s": 0.275,
+   "host_mem_available_before_gib": 117.85,
+   "page_cache_before_gib": 105.45,
+   "capacity": {
+    "pool_tokens": 1377179,
+    "max_streams": 16,
+    "window": 1048576,
+    "unit": "vllm-blocks",
+    "block_tokens": 4352
+   },
+   "capacity_line": "ngineCore pid=236) INFO 10-28 00:44:04 [kv_cache_utils.py:2299] GPU KV cache size: 1,377,179 tokens, Maximum concurrency for 1,048,576 tokens per request: 1.31x"
+  },
+  "C-cold": {
+   "engine": "CuteAFD v3.0.1 (tpurtell, image 392db7c0)",
+   "launch": "cold",
+   "started": "2026-10-27T17:46:03-0700",
+   "timing_valid": true,
+   "cpu_idle_share_30s": 0.988,
+   "t_models_s": 73.7,
+   "t_ready_s": 75.7,
+   "t_first_token_s": 76.1,
+   "first_request_ttft_s": 0.41,
+   "host_mem_available_before_gib": 117.95,
+   "page_cache_before_gib": 105.7,
+   "capacity": {
+    "pool_tokens": 447488,
+    "max_streams": 16,
+    "window": 262144,
+    "unit": "tokens",
+    "block_tokens": null
+   },
+   "capacity_line": "2026-10-28T00:46:15.189117Z INFO cuteafd::families::glm5_flash: GLM Flash admission before weights placement=attention context; pool 447488 tokens; onboard 42 RTX expert layers: rtx0/rtx1: 42 TP2 exp"
+  },
+  "C-warm": {
+   "engine": "CuteAFD v3.0.1 (tpurtell, image 392db7c0)",
+   "launch": "warm",
+   "started": "2026-10-27T17:48:00-0700",
+   "timing_valid": true,
+   "cpu_idle_share_30s": 0.99,
+   "t_models_s": 79.4,
+   "t_ready_s": 85.5,
+   "t_first_token_s": 85.9,
+   "first_request_ttft_s": 0.41,
+   "host_mem_available_before_gib": 117.95,
+   "page_cache_before_gib": 105.79,
+   "capacity": {
+    "pool_tokens": 447488,
+    "max_streams": 16,
+    "window": 262144,
+    "unit": "tokens",
+    "block_tokens": null
+   },
+   "capacity_line": "2026-10-28T00:48:11.274284Z INFO cuteafd::families::glm5_flash: GLM Flash admission before weights placement=attention context; pool 447488 tokens; onboard 42 RTX expert layers: rtx0/rtx1: 42 TP2 exp"
+  },
+  "C-score": {
+   "engine": "CuteAFD v3.0.1 (tpurtell, image 392db7c0)",
+   "launch": "score",
+   "started": "2026-10-27T17:50:08-0700",
+   "timing_valid": true,
+   "cpu_idle_share_30s": 0.991,
+   "t_models_s": 88.4,
+   "t_ready_s": 90.4,
+   "t_first_token_s": null,
+   "first_request_ttft_s": null,
+   "host_mem_available_before_gib": 117.93,
+   "page_cache_before_gib": 110.44,
+   "capacity": {
+    "pool_tokens": 451584,
+    "max_streams": 16,
+    "window": 262144,
+    "unit": "tokens",
+    "block_tokens": null
+   },
+   "capacity_line": "2026-10-28T00:50:19.256306Z INFO cuteafd::families::glm5_flash: GLM Flash admission before weights placement=attention context; pool 451584 tokens; onboard 42 RTX expert layers: rtx0/rtx1: 42 TP2 exp"
+  }
+ },
+ "smoke": {
+  "S1 prompt tokens (chat smoke)": {
+   "V": 26,
+   "C": 26
+  },
+  "S1 reasoning returned separately": {
+   "V": true,
+   "C": true
+  },
+  "S2 literal <think> tags in a user turn": {
+   "prompt_tokens_with_tags": {
+    "V": 33,
+    "C": 37
+   },
+   "prompt_tokens_without_tags": {
+    "V": 29,
+    "C": 29
+   },
+   "reading": "vLLM parses the tags as special tokens; CuteAFD keeps them as text (+4 tokens)"
+  },
+  "S3 Block T prose 1K prompt tokens with the nonce": {
+   "V": 1024,
+   "C": 1024
+  },
+  "P1 P-A window 0, top-20 rows": {
+   "V": {
+    "rows": 2047,
+    "ids_per_row_ok": true,
+    "mean_nll": 1.797926593403583,
+    "flags": {
+     "clamped": 0,
+     "boundary_ties": 5,
+     "non_finite": 0
+    }
+   },
+   "C": "see the scoring launch smoke (not summarised)"
+  },
+  "same seed twice, same prompt (3 prompts)": {
+   "V": "identical text 1 of 3",
+   "C": "identical text 3 of 3"
+  }
+ }
+}

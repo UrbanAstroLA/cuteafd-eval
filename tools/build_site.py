@@ -880,6 +880,187 @@ def sign_note():
     return '<p class="sign">Sign convention: a positive KL difference means CuteAFD is further from the BF16 model than the vLLM fork.</p>'
 
 
+# ------------------------------------------------------------------ K4 run (results/2026-10-27-k4-vllm-cuteafd)
+# Numbers from the run's published files via tools/build_readme.py (B.k4_*). Its precision numbers are top-20 measures;
+# every K4 table says so, and none shares a column with the K3.25 run's full-vocabulary KL.
+
+R4 = f"results/{B.K4}"
+ARM4 = {"Vr1": "vLLM launch 1", "Vr1b": "vLLM launch 1, repeat", "Vr2": "vLLM launch 2", "Cr1": "CuteAFD"}
+K4_ATTR = ('<p class="sign">K4 is GLM-5.3-Flash-tr3-4bpw by <b>Local Inference Lab, Inc.</b> '
+           '(<a href="https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw">huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw</a>; '
+           'project home <a href="https://local-inference-lab.ai/">local-inference-lab.ai</a>), evaluated at revision '
+           '<code>a5fee929</code>. Attribution does not imply endorsement, sponsorship, certification or verification of this '
+           f'evaluation or its results by the author or the licensor (<a href="{REPO_URL}/blob/main/NOTICE.md">NOTICE.md</a>).</p>')
+K4_TOP20 = ('<p class="note"><b>Top-20 measures.</b> K4 was scored from the engines\' own 20 most likely ids plus the actual '
+            'token (KL20 on P-A, KL_pb20 on P-B, KL20n between engines on Q2), identically on both arms. They are not '
+            'full-vocabulary KL: on P-A KL20 reads about 0.8 of it, on P-B generated rows KL_pb20 keeps about 98-99% of the '
+            'published coarse KL, and every K3.25 difference kept its sign and significance under the truncation. K4 numbers '
+            'are compared with K3.25 only under the same top-20 definition.</p>')
+
+
+def k4_cards(K):
+    s = B.k4_facts_text(K); T = K["T"]
+    share = -s["f1_816"]["diff"] / s["d_816"]["B_minus_A"]
+    m25 = B.load(D / "q/pb/pb-vs-vllm-mean3.json")
+    share25 = (m25["8-16K|kl|C1"][0] - m25["8-16K|kl|F1c"][0]) / m25["8-16K|kl|C1"][0]
+    b816 = pb_band(T, "8-16K")["context"]
+    items = [
+        ("K4 against K3.25", f"{s['pa25_v']:.4f} → {s['pa_v']:.4f}",
+         "A quantization comparison: K4's 4-bit experts sit roughly half as far from the BF16 teacher as K3.25's, on both "
+         "engines.", f"P-A teacher KL20 (top-20, same definition on both checkpoints), vLLM; CuteAFD {s['pa25_c']:.4f} → "
+         f"{s['pa_c']:.4f}. Every position of 25 windows: {hist_short(T['pa']['scored']['context'])}."),
+        ("Precision on K4", f"{dkl(s['d_816']['B_minus_A'])}",
+         "vLLM stays closer to BF16. The difference sits in long code reading (8-16K), as on K3.25, and reads larger "
+         f"({dkl(s['d25_816']['diff'])} on K3.25; intervals overlap).",
+         f"P-B KL_pb20 at 8-16K, CuteAFD − vLLM [{s['d_816']['ci95'][0]:+.4f}, {s['d_816']['ci95'][1]:+.4f}], "
+         f"{hist_short(b816)}. All generated rows {dkl(s['d_pb']['B_minus_A'])}; P-A {dkl(s['d_pa']['B_minus_A'])}."),
+        ("Speed on K4", f"{s['dec1'][0]:.2f}-{s['dec1'][1]:.2f}x",
+         f"CuteAFD decodes faster in {s['dec_read'][0]} of {s['dec_read'][3]} cells and level in the other "
+         f"{s['dec_read'][1] + s['dec_read'][2]}. Its first token comes sooner at one stream from 8K up; vLLM's comes sooner "
+         "at 1K and at 32K with four streams.",
+         f"Single-stream decode, CuteAFD ÷ vLLM; at four streams {s['dec4'][0]:.2f}-{s['dec4'][1]:.2f}x. 1 and 4 streams "
+         "at 1K-32K, 1 stream at 128K."),
+        ("W8A16 prefill on K4", f"{100 * share:.0f}%",
+         f"Of the 8-16K difference, W8A16 prefill moves about {100 * share:.0f}% on K4 (about {100 * share25:.0f}% on "
+         "K3.25), for 3-4% longer time to first token.",
+         f"Follow-up F1-K4, outside the frozen protocol: {dkl(s['f1_816']['diff'])} [{s['f1_816']['ci95'][0]:+.4f}, "
+         f"{s['f1_816']['ci95'][1]:+.4f}]. On P-A, CuteAFD with W8A16 is not resolved from vLLM."),
+        ("Long output on K4", "pending", "Block L was still running when these pages were built.", "Filled in once both "
+         "engines' stages have finished and the frozen analysis has run.") if not B.k4_l_summaries() else
+        ("Long output on K4", "see Long output", "Both engines' Block L stages, analysed by the frozen K3.25 analyser.",
+         "Descriptive: 2 seeds per prompt, 4 prompts per content type.")]
+    return '<div class="cards">' + "".join(
+        f'<div class="card"><div class="k">{html.escape(k)}</div><div class="big">{html.escape(big)}</div><p>{html.escape(txt)}</p>'
+        f'<div class="ev">{html.escape(ev)}</div></div>' for k, big, txt, ev in items) + "</div>"
+
+
+def k4_index(K):
+    if not K: return ""
+    return ('<h2 id="k4">Second checkpoint: K4 (2026-10-27)</h2>'
+            '<p class="plain">The same two engines, machine, panels and prompts, on brandonmusic\'s GLM-5.3-Flash-tr3-4bpw '
+            '("K4", 4-bit EXL3 experts), under a second protocol frozen before its first request. <b>K4 against K3.25 is a '
+            'quantization comparison; the engine comparison on K4 repeats the K3.25 pattern:</b> vLLM closer to BF16, '
+            'CuteAFD faster.</p>' + k4_cards(K) + K4_ATTR +
+            f'<p class="sign">Detail: <a href="precision.html#k4">precision</a>, <a href="throughput.html#k4">throughput</a>, '
+            f'<a href="observations.html#k4">observations</a>, <a href="method.html#k4">method</a>; receipts in '
+            f'<a href="{REPO_URL}/tree/main/{R4}"><code>{R4}</code></a>.</p>')
+
+
+def k4_tails_table(P):
+    rows = []
+    for a, s in P["arms"].items():
+        rows.append([ARM4[a], f"{s['kl_mean']:.4f}", f"{s['kl_p50']:.4f}", f"{s['kl_p90']:.3f}", f"{s['kl_p99']:.3f}",
+                     f"{s['kl_p99.9']:.2f}", f"{s['kl_max']:.2f}", f"{100 * s['top1']:.2f}%",
+                     f"{100 * s['confident_top1']:.2f}%" if "confident_top1" in s else "n/a"])
+    return htable(["Run", "Mean", "p50", "p90", "p99", "p99.9", "Max", "Top-1", "Confident top-1"], rows)
+
+
+def k4_precision(K):
+    if not K: return ""
+    T = K["T"]
+    return ('<h2 id="k4">K4 (2026-10-27): top-20 measures</h2>' + K4_TOP20 +
+            '<p class="plain">On K4, CuteAFD is further from BF16 than the vLLM fork on both panels, most in long code '
+            'reading (8-16K); on human-written text at 32K-128K no NLL difference is resolved. Against K3.25 under the same '
+            'definition, K4 sits roughly half as far from the teacher on both engines.</p>' +
+            '<p class="sign">vLLM = per-row mean of two launches. Reading: "differs" needs the 95% interval to exclude 0 and '
+            'the difference to exceed vLLM\'s launch-to-launch difference on the same rows. History: tokens before each '
+            'scored position (min / median / max).</p>' + md(B.k4_precision_table(K)) +
+            md(B.k4_q2_note(K), R4) +
+            '<h3 id="k4-vs-k325">K4 against K3.25, same top-20 definition</h3>'
+            '<p class="sign">The K3.25 values are its full-vocabulary captures truncated to each engine\'s own top 20 '
+            '(computed before the K4 freeze); same panels and rows, so the same scored history as above. CuteAFD ran K3.25\'s '
+            'Core-FP8 checkpoint (official FP8 projections) and converts K4\'s BF16 projections at load.</p>' +
+            md(B.k4_quant_table(K)) +
+            '<h3 id="k4-f1">Follow-up F1-K4: W8A16 prefill on K4 (outside the frozen protocol)</h3>' + md(B.k4_f1_tables(K)) +
+            f'<h3 id="k4-tails">K4 tails (top-20 measures)</h3><p class="sign">P-A, every position of 25 windows '
+            f'({hist_short(T["pa"]["scored"]["context"])}):</p>' + k4_tails_table(T["pa"]) +
+            f'<p class="sign">P-B, {T["pb"]["scored"]["selected_positions_total"]:,} generated positions '
+            f'({hist_short(T["pb"]["scored"]["context"])}):</p>' + k4_tails_table(T["pb"]) +
+            f'<p class="sign">Computed by <code>tools/kl_tails.py --run k4</code> from '
+            f'<a href="{REPO_URL}/tree/main/{R4}/q/rows"><code>q/rows/</code></a>.</p>')
+
+
+def k4_throughput(K):
+    if not K: return ""
+    s = B.k4_facts_text(K)
+    return ('<h2 id="k4">K4 (2026-10-27)</h2><p class="plain">On K4, CuteAFD decodes faster than the vLLM fork in '
+            f'{s["dec_read"][0]} of {s["dec_read"][3]} cells, at one and at four streams, and level in the other '
+            f'{s["dec_read"][1] + s["dec_read"][2]} (8K and 128K prose, one stream). Its first token comes sooner at one stream from 8K up and at 8K with four '
+            'streams; the vLLM fork\'s comes sooner at 1K and at 32K with four streams.</p>'
+            '<p class="sign">Grid common to the protocol\'s arms (<a href="method.html#k4">Method</a>): 1 and 4 streams at '
+            '1K-32K, 1 stream at 128K, 1,024 output tokens, thinking on. Ratios are CuteAFD ÷ vLLM per content cell; readings '
+            'use the declared ±8% band.</p>' + md(B.k4_t_table(K)) + f'<p class="sign">{inline(B.k4_t_counts(K), R4)}</p>' +
+            '<h3 id="k4-startup">Startup on K4 (descriptive)</h3>' +
+            md(B.table(["Launch", "To /v1/models", "To ready", "Capacity at startup"], B.k4_startup_rows(K))))
+
+
+def k4_long(K):
+    if not K: return ""
+    if not B.k4_l_summaries():
+        return ('<h2 id="k4">K4 (2026-10-27): pending</h2><p class="plain">Block L on K4 (2 requests in flight; caps 8,192, '
+                '32,768 and 130,048 tokens; one-at-a-time subset at the last cap) was still running when these pages were '
+                'built. It appears here once both engines have finished and the frozen analysis has run on them.</p>')
+    return '<h2 id="k4">K4 (2026-10-27)</h2>' + md(B.k4_l_text(), R4)
+
+
+def k4_observations(K):
+    if not K: return ""
+    c2 = strip_title(read(f"{R4}/c2/README.md"))
+    items = [
+        "**CuteAFD needs one local setting to serve K4 on two RTX GPUs** (its planner's dry run and startup line): at its defaults the planner "
+        "refuses K4 (pool 260,608 tokens, below its 1,048,576-token context floor); `MAX_CONTEXT_TOKENS=262144` gives a "
+        "447,488-token pool beside the desktop's context on GPU 1.",
+        "**CuteAFD converts K4's BF16 projections to FP8 at load** (declared difference, read in source before the freeze): attention, dense "
+        "and shared projections in 128×128 blocks with pow2 scales, head and KDA projections per row. On K3.25 those "
+        "projections came from the official FP8 checkpoint. The vLLM fork serves them in BF16.",
+        "**W8A16 prefill moves less of the long-code difference on K4 than on K3.25** (follow-up F1-K4): about 21% of the "
+        "8-16K difference, against about 59% on K3.25. Candidates for the rest, not tested: the load-time FP8 conversion "
+        "and its scale rule, the FP8 head, the FP8 KDA projections.",
+        "**Literal `<think>` text in a prompt** (smoke check S2 and Block T): the vLLM stack parses it as a special token, "
+        "CuteAFD keeps it as text, so the 128K code prompts are longer on CuteAFD (as on K3.25).",
+        "**Same seed, same prompt** (smoke, 3 prompts): CuteAFD returned identical text 3 of 3 times, the vLLM fork 1 of 3; "
+        "the cause was not examined. Repeats in this run always use distinct seeds.",
+        "**CuteAFD's scoring launch turns its prefix cache off** (`PREFIX_CACHE_ENTRIES=0`): the full prefill-logits buffer "
+        "did not fit beside the desktop's context otherwise, and scoring probes never read the prefix cache, so no scored "
+        "value changes."]
+    return ('<h2 id="k4">K4 (2026-10-27)</h2>' + md("\n".join(f"- {x}" for x in items)) +
+            f'<h3 id="k4-c2">{html.escape(read(f"{R4}/c2/README.md").splitlines()[0][2:])}</h3>' + md(c2, f"{R4}/c2"))
+
+
+def k4_scored_table(K):
+    T = K["T"]; pa, pb, q2 = T["pa"]["scored"], T["pb"]["scored"], T["q2"]["scored"]
+    rows = [["<b>P-A</b> BF16 teacher panel (brandonmusic)", f"{pa['windows']}", hist(pa["tokens_per_window"]),
+             f"all {num(pa['scored_positions_per_window']['median'])}", f"{pa['selected_positions_total']:,}", hist(pa["context"]),
+             "KL20 (top-20 KL from the teacher); NLL; top-1"],
+            ["<b>P-B</b> tpurtell's fidelity panel", f"{pb['windows']}", hist(pb["tokens_per_window"]),
+             f"last 512; generated (primary) {hist(pb['selected_positions_per_window'])}",
+             f"{pb['selected_positions_total']:,} generated", hist(pb["context"]), "KL_pb20 (top-20 truncation of his rule); NLL; top-1"],
+            ["<b>Q2</b> long human-written text", f"{q2['windows']}", hist(q2["tokens_per_window"]),
+             f"last {num(q2['scored_positions_per_window']['median'])}", f"{q2['selected_positions_total']:,}", hist(q2["context"]),
+             "NLL; KL20n between runs as disagreement"]]
+    return htable(["Panel", "Windows", "Tokens per window (min / median / max)", "Scored positions per window", "Total scored",
+                   "History behind each scored token, tokens (min / median / max)", "Metric (top-20)"], rows)
+
+
+def k4_method(K):
+    if not K: return ""
+    m = strip_title(read(f"{R4}/METHOD.md"))
+    return ('<h2 id="k4">K4 (2026-10-27)</h2><p class="plain">The K4 measurement reused the K3.25 run\'s panels, prompts and '
+            'drivers, scored Block Q with top-20 measures, ran two vLLM launches around the CuteAFD captures, and was frozen '
+            'at 2026-10-27T17:58:09-07:00 before its first comparison request.</p>'
+            '<h3 id="k4-what-was-scored">What was scored (K4)</h3>' + k4_scored_table(K) +
+            f'<details class="more" id="k4-method"><summary>The K4 method in full</summary>{md(m, R4, 1)}</details>')
+
+
+def k4_reproduce(K):
+    if not K: return ""
+    return ('<h2 id="k4">K4 launch files</h2>' + md(strip_title(read("repro/k4/README.md")), "repro/k4", 1) +
+            '<pre><code>source repro/k4/vllm/env.sh   # then the v0.9.0 repository\'s start script\n'
+            './run.sh --config glm53-flash-exl3-k4-2rtx.config          # CuteAFD v3.0.1, serving\n'
+            './run.sh --config glm53-flash-exl3-k4-2rtx-score.config    # CuteAFD v3.0.1, Block Q scoring\n'
+            'python3 tools/kl_tails.py --run k4 --check                  # K4 tails from q/rows/</code></pre>')
+
+
 # ------------------------------------------------------------------ pages
 
 LINKS = [("precision.html", "Precision", "how close each engine stays to the BF16 model, by context length, with the W8A16 option"),
@@ -897,6 +1078,7 @@ def main():
     for p in DOCS.glob("*.html"): p.unlink()
     R = sections(readme())
     F = facts(); d = F["d"]; rows = F["len"]
+    K = B.k4_data() if B.k4_ok() else None
     run = f'<a href="{REPO_URL}/tree/main/{RD}">receipts</a>'
     lo, hi = F["dec_range"]
 
@@ -928,11 +1110,12 @@ def main():
 
     answer = ("On two RTX PRO 6000s, CuteAFD is the faster engine and tpurtell's vLLM fork is the slightly more precise one; "
               f"one CuteAFD setting (W8A16 prefill) halves the precision difference for about {pp(F['f1c_ttft'])} slower "
-              "first token.")
+              "first token." + (" On a second checkpoint, K4, both engines sit roughly half as far from BF16, and the engine "
+                                "pattern holds." if K else ""))
     page("index.html", "CuteAFD and tpurtell's vLLM fork on two RTX PRO 6000s", html.escape(answer),
          '<p class="lede">Both engines are tpurtell\'s. Same model (GLM-5.3-Flash with his 3.25-bit EXL3 experts), same '
          f'machine, measured under a frozen protocol with an independent audit. Every number comes from the {run} in the '
-         'repository.</p>' + fig_hero + cards(F) +
+         'repository.</p>' + fig_hero + cards(F) + k4_index(K) +
          '<h2 id="charts">The results in pictures</h2>' + fig_ctx + fig_trade("small") + fig_dumb +
          which_to_use(F) + how_sure() + glossary() +
          '<h2 id="detail">In detail</h2><ul class="links">' +
@@ -984,7 +1167,7 @@ def main():
          f'<p class="sign">The 2K full-vocabulary panel (P-A) gives {dkl(F["pa"]["B_minus_A"])} '
          f'<span class="ci">[{F["pa"]["ci95"][0]:+.4f}, {F["pa"]["ci95"][1]:+.4f}]</span>, over every position of 25 '
          f'2,048-token windows ({hist_short(T["pa"]["scored"]["context"])}). Intervals: 95%, paired bootstrap over windows.</p>' +
-         tails_sec +
+         tails_sec + k4_precision(K) +
          f'<details class="more" id="block-q"><summary>Block Q in full: panels P-A, P-B and Q2, controls, the audit\'s items</summary>{md(rq, f"{RD}/q", 1)}</details>' +
          f'<details class="more" id="follow-up-f1"><summary>Follow-up F1 in full: every CuteAFD FP8 switch, precision and speed</summary>{md(f1, f"{RD}/f1", 1)}</details>' +
          details("All bucket tables", md(B.q_buckets())))
@@ -1010,7 +1193,8 @@ def main():
          details("The headline cells", md(B.t_table()) + md(B.t_counts())) +
          f'<details class="more" id="drift"><summary>Drift check: the same cells hours later</summary>{md(dr, f"{RD}/drift", 1)}</details>' +
          f'<details class="more" id="follow-up-f2"><summary>Follow-up F2: the vLLM fork\'s prefix-cache reuse</summary>{md(f2, f"{RD}/f2", 1)}</details>' +
-         f'<details class="more" id="full-grid"><summary>Full grid: every cell, decode, aggregate, first token, prefill</summary>{md(ts, f"{RD}/t", 1)}</details>')
+         f'<details class="more" id="full-grid"><summary>Full grid: every cell, decode, aggregate, first token, prefill</summary>{md(ts, f"{RD}/t", 1)}</details>'
+         + k4_throughput(K))
 
     # long output
     L = F["L"]
@@ -1035,7 +1219,8 @@ def main():
          'a difference not separated from sampling.</p>' +
          fig_lo + f'<div class="outcomes">{cards_l}</div>' +
          '<p class="sign">At the 128K cap; 8 replies per content type (4 prompts, 2 seeds).</p>' +
-         details("Every stage, 8K, 32K, 128K and one at a time", md(B.L_NOTE) + md(B.l_table(detail=True))))
+         details("Every stage, 8K, 32K, 128K and one at a time", md(B.L_NOTE) + md(B.l_table(detail=True))) +
+         k4_long(K))
 
     page("observations.html", "Observations and confounds", "Behaviour differences between the two stacks, each with how it "
          "is known, and what else differs and how each block handles it.",
@@ -1044,7 +1229,8 @@ def main():
          + E(startup_sentence(short=True)) + '; the vLLM fork\'s '
          'long prefill is not bit-reproducible run to run, CuteAFD\'s is.</p>' +
          '<h2 id="observations-in-detail">Observations in detail</h2>' + md(R.get("Observations in detail", "")) + fig_su +
-         f'<details class="more" id="confounds"><summary>Confounds: what else differs, and how it is handled</summary>{md(R.get("Confounds", ""))}</details>')
+         f'<details class="more" id="confounds"><summary>Confounds: what else differs, and how it is handled</summary>{md(R.get("Confounds", ""))}</details>'
+         + k4_observations(K))
 
     proto = strip_title(read("protocol/PROTOCOL.md")); fol = strip_title(read("protocol/FOLLOWUPS.md"))
     page("method.html", "Method", "How the comparison was set up and measured.",
@@ -1058,7 +1244,8 @@ def main():
          f'<details class="more" id="protocol"><summary>The protocol, v2 with amendments A1-A2</summary>'
          f'{md(strip_title(read("protocol/README.md")).split(chr(10) + "## ")[0], "protocol")}{md(proto, "protocol", 2)}</details>' +
          f'<details class="more" id="follow-ups"><summary>Follow-ups F1-F3 and the drift check</summary>{md(fol, "protocol", 1)}</details>' +
-         f'<details class="more" id="other-runs"><summary>Other runs: checks and an exploratory test</summary>{md(R.get("Other runs", ""))}</details>')
+         f'<details class="more" id="other-runs"><summary>Other runs: checks and an exploratory test</summary>{md(R.get("Other runs", ""))}</details>'
+         + k4_method(K))
 
     au = strip_title(read(f"{RD}/AUDIT-2026-10-27.md"))
     page("audit.html", "Independent audit (2026-10-27)", "A read-only, CPU-only review of the precision and speed blocks and "
@@ -1071,7 +1258,7 @@ def main():
     page("ledger.html", "Ledger", "What was run and established, and when (times UTC−7).", md(R.get("Ledger", "")))
 
     page("reproduce.html", "Reproduce", "From the frozen protocol to the published summaries, step by step.",
-         md(strip_title(read("repro/REPRODUCE.md")), "repro", 1) + '<h2 id="verify">Verify and rebuild</h2>' + md(R.get("Reproduce", "")))
+         md(strip_title(read("repro/REPRODUCE.md")), "repro", 1) + k4_reproduce(K) + '<h2 id="verify">Verify and rebuild</h2>' + md(R.get("Reproduce", "")))
     print(f"wrote {len(PAGES)} pages to docs/")
 
 

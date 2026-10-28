@@ -20,7 +20,8 @@ Checks
      per-position file is in the repository and requires byte-identical output.
   6. Content scan of every file, docs/ included: local paths, machine and user names, private IP addresses, e-mail addresses
      other than the maintainer's public no-reply address, credentials, GPU identifiers, benchmark names that
-     must not appear, and attribution lines. Every hit is printed as file:line.
+     must not appear, names of the K4 protocol's unpublished arm (its project name, build tag, author and run
+     labels), and attribution lines. Every hit is printed as file:line.
 
 Standard library only (Python 3.10+). Exit status 1 on any failure.
 """
@@ -46,6 +47,8 @@ FORBIDDEN = [
     ("e-mail", re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,}\b")),
     ("excluded benchmark", re.compile(J(["(?i)gp", "qa"]))),
     ("excluded project", re.compile(J(["(?i)tensor", "fold|aevo", r"nix|\bm", r"ia\b"]))),
+    # an engine arm of the K4 protocol that is not published: its build tag, its author and its run labels
+    ("unpublished arm", re.compile(J(["(?i)tf1", "17|ashh", r"art|\bT-", r"[rqtd]1"]))),
     ("attribution", re.compile(J(["(?i)clau", "de|anthro", "pic|co-author", "ed-by|generated with \\[", "|\U0001F916"]))),
     ("credential", re.compile(J([r"\bs", r"k-[A-Za-z0-9_\-]{12,}|\bh", r"f_[A-Za-z0-9]{20,}|\bgh[pousr]", r"_[A-Za-z0-9]{20,}"]))),
     ("credential", re.compile(J([r"github_", r"pat_|AK", r"IA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIV", r"ATE KEY|Bear", r"er [A-Za-z0-9._\-]{20,}"]))),
@@ -61,6 +64,8 @@ SELF_TEST = [
     (D + "runs/x at line start", "local path"), ("X=" + T + "y", "local path"), ("(" + D + "x)", "local path"),
     ("'" + T + "x'", "local path"), ("--out=" + D + "x", "local path"), ("a ./" + "da" + "ta/x", "local path"),
     ("humanevalplus" + D + "test.parquet", None), ("tiering/p2p" + D + "x", None), ("<data>/x", None),
+    ("pair " + "T-" + "r1|C-r1", "unpublished arm"), ("--arm " + "T-" + "q1", "unpublished arm"), ("Ten" + "sorFold 1.1.7", "excluded project"),
+    ("V-r1|C-r1 and V-r2", None), ("Block T-SUMMARY.md, t-compare.json", None),
 ]
 
 
