@@ -277,7 +277,7 @@ protocol/                     the frozen protocol, amendments, follow-ups, datas
 results/<date>-<run>/         RUN.json (kind, arms, slot status), README.md, MANIFEST.json, per-block summaries
 repro/                        REPRODUCE.md; stage0/ (drivers, scorers, capture plugin, prompt build); cuteafd/ (configs, patch, plan receipts); k4/ (K4 launch files)
 iterations/                   how a new iteration is frozen, run, exported and verified; TEMPLATE/
-tools/                        verify.py, build_readme.py, build_site.py, README templates
+tools/                        verify.py, build_readme.py, build_site.py (its charts: site_charts.py), README templates
 docs/                         the results site (GitHub Pages, served from main /docs), built by tools/build_site.py
 MANIFEST.json                 sha256 of every file in the repository
 ```

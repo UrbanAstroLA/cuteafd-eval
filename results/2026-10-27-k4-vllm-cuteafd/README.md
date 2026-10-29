@@ -135,7 +135,7 @@ scoring launch with `GLM5_FLASH_FP8_PREFILL=off`, and a speed subset on serving 
 | 32K × 4, code | 0.968 | 1.036 | 0.924, 0.998 |
 | 32K × 4, prose | 0.970 | 1.035 | 1.019, 0.999 |
 
-The speed rows are per content cell (median per request, 16 requests each).
+The speed rows are per content cell (median per request, 8 requests per cell, 64 per launch).
 [`f1k4/RESULTS-F1K4.md`](f1k4/RESULTS-F1K4.md) reports medians of batch medians with code and prose pooled per cell;
 per content cell the direction is the same for time to first token (+3-4% everywhere) and for single-stream decode (not
 slower); at four streams the per-content decode ratios fall on both sides of 1, within the ±8% Block T band.

@@ -441,6 +441,21 @@ def k4_f1_speed_rows():
     return rows
 
 
+def k4_f1_speed_counts():
+    """How many requests the F1-K4 speed receipts hold: per (input, streams, content) cell and per launch."""
+    per_cell, per_launch = set(), set()
+    for n in ("C-base1", "C-f1c", "C-base2"):
+        cells = {}
+        for b in load(D4 / "f1k4" / "t" / f"{n}.json")["batches"]:
+            if b["kind"] != "measured": continue
+            for g in b["groups"]:
+                for r in g:
+                    k = (b["length"], b["level"], b["content"]); cells[k] = cells.get(k, 0) + 1
+        per_cell |= set(cells.values()); per_launch.add(sum(cells.values()))
+    j = lambda xs: "/".join(str(x) for x in sorted(xs))
+    return f"{j(per_cell)} requests per cell, {j(per_launch)} per launch"
+
+
 def k4_f1_tables(K):
     return (table(["Measure (top-20)", "CuteAFD as shipped − vLLM", "CuteAFD W8A16 prefill − vLLM", "W8A16 − as shipped (direct)"],
                   k4_f1_rows(K)) + "\n\n" +
@@ -611,7 +626,7 @@ scoring launch with `GLM5_FLASH_FP8_PREFILL=off`, and a speed subset on serving 
 
 {k4_f1_tables(K)}
 
-The speed rows are per content cell (median per request, 16 requests each).
+The speed rows are per content cell (median per request, {k4_f1_speed_counts()}).
 [`f1k4/RESULTS-F1K4.md`](f1k4/RESULTS-F1K4.md) reports medians of batch medians with code and prose pooled per cell;
 per content cell the direction is the same for time to first token (+3-4% everywhere) and for single-stream decode (not
 slower); at four streams the per-content decode ratios fall on both sides of 1, within the ±8% Block T band.
