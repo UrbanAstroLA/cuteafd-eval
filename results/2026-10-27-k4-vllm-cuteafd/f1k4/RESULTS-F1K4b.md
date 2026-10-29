@@ -53,6 +53,27 @@ Reading:
 - **W8A16 + amax accounts for most of the 8-16K difference** (−0.0061, about 68%, interval excluding 0), more than all
   switches together (all16: −0.0050) and more than the two single switches added (−0.0019 and −0.0023). CuteAFD remains
   +0.0030 [+0.0011, +0.0049] from vLLM there.
-- On the teacher panel and on long-context NLL it leaves no resolved difference from vLLM; the Q2 interval is also much
-  narrower than for any other CuteAFD arm (±0.001 against ±0.015-0.03). Not explained here.
+- On the teacher panel and on long-context NLL it leaves no resolved difference from vLLM. Its Q2 interval is narrow
+  (±0.001); K4d shows this is not a property of the arm (see K4d below).
 - It serves on 2x RTX with K4 (both switches cost no memory), at about 4% longer time to first token and level decode.
+
+## K4d: W8A16 prefill + best scale rule (2026-10-28)
+
+Declared in `FOLLOWUPS-K4b.md` section K4d before any request. `score-d/f1d2-summary.json`.
+
+| Arm | P-A KL20 − vLLM | P-B generated − vLLM | P-B 8-16K − vLLM | P-B 8-16K − as shipped | Q2 NLL − vLLM |
+|---|---|---|---|---|---|
+| W8A16 + amax (K4c) | +0.0006, not resolved | +0.0025 [+0.0013, +0.0038] | +0.0030 [+0.0011, +0.0048] | −0.0061 [−0.0095, −0.0029] | +0.0002 [−0.0009, +0.0012] |
+| **W8A16 + best** | +0.0009, not resolved | +0.0030 [+0.0018, +0.0043] | +0.0047 [+0.0030, +0.0065] | −0.0043 [−0.0068, −0.0023] | +0.0158 [−0.0245, +0.0560] |
+| best alone | +0.0009, not resolved | +0.0052 | +0.0080 | −0.0010, not resolved | +0.0003 [−0.0019, +0.0026] |
+
+Directly, W8A16 + best − W8A16 + amax: P-A +0.0003 [−0.0016, +0.0022]; P-B 8-16K +0.0018 [+0.0000, +0.0035].
+Speed (base, w16best, base; no errors): decode 0.95-1.06 per cell (band 0.99-1.04: level); time to first token +4%.
+
+Reading:
+- **W8A16 + best moves about 48% of the 8-16K difference** (−0.0043), just under the "most" bar (more than half).
+  W8A16 + amax moves more (about 68%); the direct difference between the two (+0.0018) sits at the edge of resolution.
+  On the teacher panel the two do not differ.
+- **The Q2 interval is not a property of the scale rule.** It is narrow for best alone and for W8A16 + amax, wide for
+  W8A16 + best and for W8A16 alone. Q2's six-document intervals are dominated by the hypersensitive window c2-064k
+  (see `analysis/c2/C2-FINDINGS.md`), so the K4c observation of a narrow Q2 interval should not be read as an effect.

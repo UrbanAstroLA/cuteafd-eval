@@ -67,3 +67,9 @@ as-shipped config + `GLM5_FLASH_FP8_PREFILL=off` + `FP8_SCALES=amax` (configs
 scoring launch fit with it). Precision: one scoring launch, P-A/P-B/Q2, scored as above. Speed: serving launches
 base, w16amax, base (drift subset, per cell and content, base-to-base band). Reading: report the 8-16K change vs as
 shipped and the remaining difference from vLLM; "accounts for most" rule as above. Expected ~1 GPU-hour.
+
+## K4d: W8A16 prefill + best scale rule (declared 2026-10-28, before any K4d request)
+
+Operator request after K4c. **Arm w16best** = as-shipped config + `GLM5_FLASH_FP8_PREFILL=off` + `FP8_SCALES=best`
+(configs `glm53-flash-exl3-k4-2rtx{,-score}-w16best.config`; drafter kept). Same precision and speed method as K4c
+(serving launches base, w16best, base). Reported beside K4c; same reading rule. Expected ~1 GPU-hour.
