@@ -883,6 +883,13 @@ def page_speed(F, K):
             + f'<p class="sign">More: {gh(f"{RD}/t/CAVEATS.md", "<code>t/CAVEATS.md</code>")}, the drift check '
             f'{gh(f"{RD}/drift/RESULTS-DRIFT.md", "<code>drift/RESULTS-DRIFT.md</code>")}, the K4 per-cell readings '
             f'{gh(f"{R4}/t/t-compare.json", "<code>t/t-compare.json</code>")}.</p>')
+    k4f = Path(ROOT / R4 / "f1k4/RESULTS-K4f.md")
+    if k4f.exists():
+        body += (h2("k4-concurrency", "K4 at 8 and 16 streams (follow-up K4f)") +
+                 '<p class="plain">The frozen K4 grid stopped at 4 streams; this follow-up ran the cells both engines admit, '
+                 'outside the protocol, with the same prompts and seeds.</p>' + md(strip_title(read(f"{R4}/f1k4/RESULTS-K4f.md")), R4))
+        lede = lede.replace("</p>", " On K4 at 16 streams CuteAFD completes 1.37-1.44x the vLLM fork's tokens per second "
+                            "(follow-up K4f, below).</p>", 1)
     page("speed.html", "Speed: tokens per second and first-token time", lede, body)
 
 

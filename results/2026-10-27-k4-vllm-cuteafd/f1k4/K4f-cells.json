@@ -1,0 +1,35 @@
+{
+ "about": "Follow-up K4f cells (not part of the frozen grid): input tokens and streams; 1,024 output tokens; the protocol's Block T prompts, seeds and nonce salt.",
+ "engines": [
+  "vLLM fork",
+  "CuteAFD"
+ ],
+ "cells": [
+  {
+   "input": 1024,
+   "levels": [
+    8,
+    16
+   ]
+  },
+  {
+   "input": 8192,
+   "levels": [
+    8,
+    16
+   ]
+  },
+  {
+   "input": 32768,
+   "levels": [
+    8
+   ]
+  },
+  {
+   "input": 131072,
+   "levels": [
+    2
+   ]
+  }
+ ]
+}
