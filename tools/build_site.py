@@ -3,14 +3,15 @@
 
     python3 tools/build_site.py
 
-Reads README.md (built by tools/build_readme.py), the run's SUMMARY.md, result markdown and JSON, the protocol, the audit
-and repro/REPRODUCE.md, and writes static HTML pages to docs/. No scripts, no external stylesheets, fonts or images:
-plain HTML with one inline stylesheet, light and dark (prefers-color-scheme), readable at phone width.
-Links between pages are relative; links to files in the repository point at REPO_URL, the one place the repository's
-address is assumed. Charts are static SVG drawn by tools/site_charts.py (one chart grammar, described there); the
-tails curves count the per-position files in results/<run>/q/rows/. Standard library only (Python 3.10+).
+One page per question. The home page and README.md share their text (tools/build_readme.py, home_parts()); every other
+page opens with a short answer, then its evidence. Reads README.md (built by tools/build_readme.py), the result markdown
+and JSON under results/, the protocol, the audit and repro/REPRODUCE.md, and writes static HTML pages to docs/. No
+scripts, no external stylesheets, fonts or images: plain HTML with one inline stylesheet, light and dark
+(prefers-color-scheme), readable at phone width. Links between pages are relative; links to files in the repository
+point at REPO_URL, the one place the repository's address is assumed. Charts are static SVG drawn by
+tools/site_charts.py (one chart grammar, described there). Standard library only (Python 3.10+).
 """
-import html, importlib.util, re, sys
+import html, importlib.util, re, statistics as st
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -21,20 +22,22 @@ B = importlib.util.module_from_spec(spec); spec.loader.exec_module(B)
 RUN, D = B.RUN, B.D
 RD = f"results/{RUN}"
 R4D = B.D4
+R4 = f"results/{B.K4}"
 _cs = importlib.util.spec_from_file_location("site_charts", ROOT / "tools" / "site_charts.py")
 C = importlib.util.module_from_spec(_cs); _cs.loader.exec_module(C)
 
-PAGES = [("index.html", "Results"), ("precision.html", "Precision"), ("throughput.html", "Throughput"),
-         ("long-output.html", "Long output"), ("observations.html", "Observations"), ("method.html", "Method"),
-         ("audit.html", "Audit"), ("ledger.html", "Ledger"), ("reproduce.html", "Reproduce")]
+PAGES = [("index.html", "Home"), ("precision.html", "Precision"), ("settings.html", "Settings"), ("speed.html", "Speed"),
+         ("long-tasks.html", "Long tasks"), ("running.html", "Running it"), ("method.html", "Method"), ("audit.html", "Audit"),
+         ("research.html", "Research"), ("reproduce.html", "Reproduce")]
+SITE = {p for p, _ in PAGES}
+# pages of the earlier site layout: a stub that sends the reader to the page that now answers the question
+MOVED = {"throughput.html": ("speed.html", "Speed"), "long-output.html": ("long-tasks.html", "Long tasks"),
+         "observations.html": ("running.html", "Running it"), "ledger.html": ("method.html#timeline", "Method: timeline")}
 # repository files that have a page of their own
-PAGE_OF = {f"{RD}/SUMMARY.md": "index.html", f"{RD}/AUDIT-2026-10-27.md": "audit.html", "repro/REPRODUCE.md": "reproduce.html",
-           f"{RD}/q/RESULTS-Q.md": "precision.html#block-q", f"{RD}/f1/RESULTS-F1.md": "precision.html#follow-up-f1",
-           f"{RD}/t/CAVEATS.md": "throughput.html#caveats", f"{RD}/drift/RESULTS-DRIFT.md": "throughput.html#drift",
-           f"{RD}/f2/RESULTS-F2.md": "throughput.html#follow-up-f2", f"{RD}/t/T-SUMMARY.md": "throughput.html#full-grid"}
+PAGE_OF = {f"{RD}/AUDIT-2026-10-27.md": "audit.html", "repro/REPRODUCE.md": "reproduce.html"}
 # README anchors -> pages
-ANCHOR_OF = {"ledger": "ledger.html", "observations-in-detail": "observations.html#observations-in-detail",
-             "setup": "method.html#setup", "confounds": "observations.html#confounds", "reproduce": "reproduce.html"}
+ANCHOR_OF = {"running-it-observations-in-detail": "running.html", "setup": "method.html#setup", "confounds": "method.html#confounds",
+             "reproduce": "reproduce.html", "timeline": "method.html#timeline"}
 
 CSS = """:root{color-scheme:light;--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
 --grid:#e1e0d9;--axis:#c3c2b7;--ring:rgba(11,11,11,.10);--s1:#2a78d6;--s2:#eb6834;--g1:#5f5e5a;--g2:#8f8e88;--on-g1:#ffffff;--good:#0ca30c;--crit:#d03b3b}
@@ -46,21 +49,28 @@ nav{display:flex;flex-wrap:wrap;gap:4px 18px;padding:14px 16px;max-width:980px;m
 nav a{color:var(--ink2);text-decoration:none}nav a.on{color:var(--ink);font-weight:600}nav .brand{color:var(--ink);font-weight:600;margin-right:12px}
 h1{font-size:28px;line-height:1.2;margin:8px 0 6px}h2{font-size:19px;margin:36px 0 6px}h3{font-size:16px;margin:26px 0 4px}
 h4{font-size:15px;margin:18px 0 4px}h5{font-size:14px;margin:14px 0 4px}p,li{color:var(--ink2)}li{margin:3px 0}
-a{color:var(--s1)}.lede{font-size:16px;max-width:760px}b,strong{color:var(--ink)}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:22px 0}
-.tile{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:14px 16px}
-.tile .lab{color:var(--ink2);font-size:13px}.tile .val{font-size:clamp(22px,2.4vw,26px);font-weight:600;margin:2px 0}.tile .sub{color:var(--muted);font-size:13px}
+a{color:var(--s1)}.lede{font-size:16px;max-width:820px}.lede p,.lede li{color:var(--ink)}b,strong{color:var(--ink)}
 table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13.5px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--grid);vertical-align:top}
 th{color:var(--ink2);font-weight:600}td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tbl{overflow-x:auto}.note{border-left:3px solid var(--axis);padding:6px 12px;margin:14px 0;color:var(--ink2);font-size:14px}
 blockquote{border-left:3px solid var(--axis);margin:14px 0;padding:2px 12px}
-code{font-size:12.5px;overflow-wrap:anywhere}pre{overflow-x:auto;background:var(--surface);border:1px solid var(--ring);border-radius:8px;padding:10px;font-size:12.5px}
-pre code{overflow-wrap:normal}
+code{font-size:12.5px;overflow-wrap:anywhere}pre{overflow-x:auto;background:var(--surface);border:1px solid var(--ring);border-radius:8px;padding:10px;font-size:12.5px;line-height:1.45}
+pre code{overflow-wrap:normal;white-space:pre}
 details.more{border-left:3px solid var(--grid);padding:2px 0 2px 12px;margin:10px 0}details.more>summary{cursor:pointer;color:var(--ink2);font-size:14px}
-details.more[open]>summary{margin-bottom:6px}.shows{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:4px 18px 8px;margin:16px 0}
-.shows h2{margin:12px 0 4px}.toc{font-size:14px;color:var(--ink2)}
-.answer{font-size:clamp(18px,4.6vw,22px);line-height:1.4;color:var(--ink);max-width:820px;margin:10px 0 18px;font-weight:500}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:18px 0}.card{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:14px 16px}.card .k{color:var(--ink2);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}.card .big{font-size:clamp(24px,6vw,30px);font-weight:650;margin:2px 0 4px;color:var(--ink);font-variant-numeric:tabular-nums}.card p{margin:4px 0;color:var(--ink)}.card .ev{color:var(--muted);font-size:12.5px}figure{background:var(--surface);border:1px solid var(--ring);border-radius:10px;margin:16px 0;padding:14px 14px 10px}figcaption .t{font-weight:600;color:var(--ink)}figcaption .s{color:var(--ink2);font-size:13.5px;margin-top:4px}svg{display:block;width:100%;height:auto;max-width:560px;margin:8px 0;font:12px system-ui,-apple-system,"Segoe UI",sans-serif}svg text{fill:var(--ink2)}svg .lab{fill:var(--ink)}svg .grid{stroke:var(--grid);stroke-width:1}svg .axis{stroke:var(--axis);stroke-width:1}svg .c1{fill:var(--s1);stroke:var(--s1)}svg .c2{fill:var(--s2);stroke:var(--s2)}svg .c2o{fill:var(--surface);stroke:var(--s2);stroke-width:2}svg .ln1{stroke:var(--s1);stroke-width:1.5;fill:none}svg .ln2{stroke:var(--s2);stroke-width:1.5;fill:none}svg .ln2d{stroke:var(--s2);stroke-width:1.5;fill:none;stroke-dasharray:4 3}svg .rng{stroke:var(--ink2);stroke-width:1.5}svg .g1{fill:var(--g1)}svg .g2{fill:var(--g2)}svg .lvl{fill:var(--grid)}svg .band{fill:var(--grid);opacity:.55}svg .hit{fill:transparent;stroke:none}svg .whisk{stroke:var(--ink2);stroke-width:1.5}svg .conn{stroke:var(--axis);stroke-width:2}svg .wash2{fill:var(--s2);opacity:.12}svg .inbar{fill:#fff;font-size:11px}svg .inbar.on-g1{fill:var(--on-g1)}svg .inbar.on-g2{fill:var(--ink)}svg circle.c1,svg circle.c2{stroke:var(--surface);stroke-width:2}svg g:hover>circle,svg g:hover>path,svg g:hover>rect:not(.hit){opacity:.8}details.data{margin:6px 0 0}details.data>summary{cursor:pointer;color:var(--ink2);font-size:13px}figure.small svg{max-width:420px}svg path.c1,svg path.c2,svg rect.c1,svg rect.c2,svg rect.g1,svg rect.g2{stroke:none}.ci{color:var(--muted);font-size:12px;white-space:nowrap}td .ci{white-space:normal}.outcomes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:14px 0}.outcomes .card h3{margin:2px 0 6px}.outcomes .row{display:flex;justify-content:space-between;gap:10px;margin:3px 0;color:var(--ink)}.outcomes .row span:first-child{color:var(--ink2)}.use li{margin:8px 0}.use b{color:var(--ink)}.sure{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.sure>div{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:6px 16px}.sure h3{margin:10px 0 2px}dl.gl dt{font-weight:600;margin-top:8px;color:var(--ink)}dl.gl dd{margin:2px 0 0 0;color:var(--ink2)}.links li{margin:6px 0}.plain{font-size:15.5px;color:var(--ink);max-width:820px}.sign{font-size:13px;color:var(--ink2)}footer{max-width:980px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}footer nav{padding:10px 0;border:0;margin:0;max-width:none}"""
+details.more[open]>summary{margin-bottom:6px}
+.answer{font-size:clamp(17px,4.4vw,20px);line-height:1.45;color:var(--ink);max-width:820px;margin:10px 0 18px;font-weight:500}
+figure{background:var(--surface);border:1px solid var(--ring);border-radius:10px;margin:16px 0;padding:14px 14px 10px}
+figcaption .t{font-weight:600;color:var(--ink)}svg{display:block;width:100%;height:auto;max-width:560px;margin:8px 0;font:12px system-ui,-apple-system,"Segoe UI",sans-serif}
+svg text{fill:var(--ink2)}svg .lab{fill:var(--ink)}svg .grid{stroke:var(--grid);stroke-width:1}svg .axis{stroke:var(--axis);stroke-width:1}
+svg .c1{fill:var(--s1);stroke:var(--s1)}svg .c2{fill:var(--s2);stroke:var(--s2)}svg .hit{fill:transparent;stroke:none}svg .inbar{fill:#fff;font-size:11px}
+details.data{margin:6px 0 0}details.data>summary{cursor:pointer;color:var(--ink2);font-size:13px}
+svg path.c1,svg path.c2,svg rect.c1,svg rect.c2{stroke:none}.ci{color:var(--muted);font-size:12px;white-space:nowrap}td .ci,p .ci,li .ci{white-space:normal}
+.sign{font-size:13px;color:var(--ink2)}dl.gl{columns:2 320px;column-gap:28px}dl.gl div{break-inside:avoid;margin:0 0 8px}
+dl.gl dt{font-weight:600;color:var(--ink);display:inline}dl.gl dt::after{content:": "}dl.gl dd{display:inline;margin:0;color:var(--ink2)}
+.pages li{margin:6px 0}.slot{border:1px dashed var(--axis);border-radius:10px;padding:8px 14px;margin:12px 0;color:var(--ink2)}
+footer{max-width:980px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}footer nav{padding:10px 0;border:0;margin:0;max-width:none}"""
 CSS += "\n" + C.CSS
+E = html.escape
 
 
 # ------------------------------------------------------------------ markdown -> HTML (the subset these files use)
@@ -78,6 +88,7 @@ def href(url, base):
         frag = url[1:]
         return ANCHOR_OF.get(frag, url)
     path, _, frag = url.partition("#")
+    if path in SITE: return url                                    # a page of this site
     parts = []
     for seg in (base.split("/") if base else []) + path.split("/"):
         if seg in ("", "."): continue
@@ -86,21 +97,24 @@ def href(url, base):
         else: parts.append(seg)
     p = "/".join(parts)
     if p.rstrip("/") in PAGE_OF: return PAGE_OF[p.rstrip("/")]
-    if p == "README.md": return "index.html" + (f"#{frag}" if frag else "")
+    if p == "README.md": return ANCHOR_OF.get(frag, "index.html" + (f"#{frag}" if frag else ""))
     target = ROOT / p
     kind = "tree" if target.is_dir() or path.endswith("/") else "blob"
     return f"{REPO_URL}/{kind}/main/{p.rstrip('/')}" + (f"#{frag}" if frag else "")
 
 
-def inline(text, base):
+def inline(text, base, codelink=None):
+    """codelink(span) -> html or None: lets a page turn `file` references into links (audit, reproduce)."""
     codes = []
     def keep(m):
-        codes.append(f"<code>{html.escape(m.group(1))}</code>"); return f"\x00{len(codes) - 1}\x00"
+        c = codelink(m.group(1)) if codelink else None
+        codes.append(c or f"<code>{E(m.group(1))}</code>"); return f"\x00{len(codes) - 1}\x00"
     text = re.sub(r"`([^`]+)`", keep, text)
-    text = html.escape(text, quote=False)
+    text = E(text, quote=False)
     def link(m):
         label, url = m.group(1), html.unescape(m.group(2))
-        return f'<a href="{html.escape(href(url, base))}">{label}</a>'
+        label = re.sub(r"\x00(\d+)\x00", lambda x: re.sub(r"</?a[^>]*>", "", codes[int(x.group(1))]), label)
+        return f'<a href="{E(href(url, base))}">{label}</a>'
     text = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link, text)
     text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
     text = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<i>\1</i>", text)
@@ -108,55 +122,62 @@ def inline(text, base):
     return re.sub(r"\x00(\d+)\x00", lambda m: codes[int(m.group(1))], text)
 
 
-NUM = re.compile(r"^[−\-+~]?[\d.,]+(?:%| pts| s|x)?$")
+NUM = re.compile(r"^[−\-+~]?[\d.,]+(?:-[\d.,]+)?(?:%| pts| s|x| tok/s)?$")
+FENCE = re.compile(r"^(\s*)```")
 
 
-def md(text, base="", shift=0):
-    """Convert markdown to HTML. base: repository directory of the source file (for links); shift: heading levels to add."""
+def md(text, base="", shift=0, codelink=None):
+    """Convert markdown to HTML. base: repository directory of the source file (for links); shift: heading levels to add.
+    Fenced code may be indented under a list item: it ends the list (an ordered list resumes with its own number) and
+    renders as one multi-line <pre>."""
+    il = lambda s: inline(s, base, codelink)
     lines, prev_tbl, fence = [], False, False
     for l in text.replace("\r\n", "\n").split("\n"):    # tables indented under a list item: lift them out of the list
-        if l.lstrip().startswith("```"): fence = not fence
+        if FENCE.match(l): fence = not fence
         is_tbl = not fence and bool(re.match(r"^\s+\|", l))
         if is_tbl and not prev_tbl: lines.append("")
         if prev_tbl and not is_tbl and l.strip(): lines.append("")
         lines.append(l.lstrip() if is_tbl else l); prev_tbl = is_tbl
     out, i = [], 0
     def para(buf):
-        if buf: out.append("<p>" + inline(" ".join(x.strip() for x in buf), base) + "</p>")
+        if buf: out.append("<p>" + il(" ".join(x.strip() for x in buf)) + "</p>")
     buf = []
     while i < len(lines):
         l = lines[i]
-        if l.startswith("```"):
-            para(buf); buf = []; j = i + 1
-            while j < len(lines) and not lines[j].startswith("```"): j += 1
-            out.append("<pre><code>" + html.escape("\n".join(lines[i + 1:j])) + "</code></pre>"); i = j + 1; continue
+        fm = FENCE.match(l)
+        if fm:
+            para(buf); buf = []; ind = len(fm.group(1)); j = i + 1
+            while j < len(lines) and not FENCE.match(lines[j]): j += 1
+            body = [x[ind:] if x[:ind].strip() == "" else x.lstrip() for x in lines[i + 1:j]]
+            out.append("<pre><code>" + E("\n".join(body)) + "</code></pre>"); i = j + 1; continue
         m = re.match(r"^(#{1,6}) (.*)$", l)
         if m:
             para(buf); buf = []
-            lvl = min(6, len(m.group(1)) + shift); h = inline(m.group(2), base)
+            lvl = min(6, len(m.group(1)) + shift); h = il(m.group(2))
             out.append(f'<h{lvl} id="{slug(h)}">{h}</h{lvl}>'); i += 1; continue
         if l.startswith("|") and i + 1 < len(lines) and re.match(r"^\|[\s:|-]+\|?$", lines[i + 1]):
             para(buf); buf = []
             cells = lambda s: [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", s.strip()[1:-1] if s.strip().endswith("|") else s.strip()[1:])]
             head = cells(l); rows = []; j = i + 2
             while j < len(lines) and lines[j].startswith("|"): rows.append(cells(lines[j])); j += 1
-            td = lambda c: f'<td class="n">{inline(c, base)}</td>' if NUM.match(c) else f"<td>{inline(c, base)}</td>"
-            out.append('<div class="tbl"><table><thead><tr>' + "".join(f"<th>{inline(c, base)}</th>" for c in head) +
+            td = lambda c: f'<td class="n">{il(c)}</td>' if NUM.match(c) else f"<td>{il(c)}</td>"
+            out.append('<div class="tbl"><table><thead><tr>' + "".join(f"<th>{il(c)}</th>" for c in head) +
                        "</tr></thead><tbody>" + "".join("<tr>" + "".join(td(c) for c in r) + "</tr>" for r in rows) +
                        "</tbody></table></div>"); i = j; continue
         if re.match(r"^\s*(?:[-*]|\d+\.) ", l):
             para(buf); buf = []; j = i
-            items = []                                   # (indent, ordered, text)
-            while j < len(lines) and lines[j].strip():
+            items = []                                   # (indent, ordered, text, number)
+            while j < len(lines) and lines[j].strip() and not FENCE.match(lines[j]):
                 mm = re.match(r"^(\s*)([-*]|\d+\.) (.*)$", lines[j])
-                if mm: items.append([len(mm.group(1)), mm.group(2)[0].isdigit(), mm.group(3)])
+                if mm: items.append([len(mm.group(1)), mm.group(2)[0].isdigit(), mm.group(3),
+                                     int(mm.group(2)[:-1]) if mm.group(2)[0].isdigit() else None])
                 elif items: items[-1][2] += " " + lines[j].strip()
                 j += 1
-            out.append(render_list(items, base)); i = j; continue
+            out.append(render_list(items, il)); i = j; continue
         if l.startswith(">"):
             para(buf); buf = []; j = i; q = []
             while j < len(lines) and lines[j].startswith(">"): q.append(lines[j][1:].lstrip()); j += 1
-            out.append("<blockquote>" + md("\n".join(q), base) + "</blockquote>"); i = j; continue
+            out.append("<blockquote>" + md("\n".join(q), base, codelink=codelink) + "</blockquote>"); i = j; continue
         if not l.strip() or l.strip() == "---":
             para(buf); buf = []
             if l.strip() == "---": out.append("<hr>")
@@ -166,21 +187,23 @@ def md(text, base="", shift=0):
     return "\n".join(out)
 
 
-def render_list(items, base):
+def render_list(items, il):
     out, stack = [], []
-    for ind, ordered, text in items:
+    for ind, ordered, text, number in items:
         while stack and ind < stack[-1][0]:
             out.append("</li></" + stack.pop()[1] + ">")
         if not stack or ind > stack[-1][0]:
-            tag = "ol" if ordered else "ul"; stack.append((ind, tag)); out.append(f"<{tag}><li>")
+            tag = "ol" if ordered else "ul"; stack.append((ind, tag))
+            start = f' start="{number}"' if ordered and number not in (None, 1) else ""
+            out.append(f"<{tag}{start}><li>")
         else:
             out.append("</li><li>")
-        out.append(inline(text, base))
+        out.append(il(text))
     while stack: out.append("</li></" + stack.pop()[1] + ">")
     return "".join(out)
 
 
-# ------------------------------------------------------------------ sources
+# ------------------------------------------------------------------ sources and page frame
 
 def sections(text, level=2):
     """{heading: body} of a markdown text at one heading level."""
@@ -192,10 +215,6 @@ def sections(text, level=2):
     return out
 
 
-def readme():
-    return (ROOT / "README.md").read_text()
-
-
 def read(rel):
     p = ROOT / rel
     return p.read_text() if p.exists() else ""
@@ -205,83 +224,67 @@ def strip_title(text):
     return re.sub(r"\A# [^\n]*\n", "", text.lstrip())
 
 
-def summary():
-    return B.summary_sections(f"{RD}/")
+def gh(path, label=None):
+    """A link to a repository file or folder on GitHub."""
+    kind = "tree" if (ROOT / path).is_dir() else "blob"
+    return f'<a href="{REPO_URL}/{kind}/main/{path}">{label or f"<code>{E(path)}</code>"}</a>'
 
 
-
-
-def summary_block(key):
-    _, secs = summary()
-    h, body = secs.get(key, (f"### {key}", ""))
-    return md(body, "")
-
-
-def page(name, title, lede, body, lede_cls="lede"):
+def page(name, title, lede, body, answer=True):
+    """lede: HTML (the page's short answer). Refuses a page with duplicate ids."""
     nav = "".join(f'<a href="{p}" class="{"on" if p == name else ""}">{t}</a>' for p, t in PAGES)
     foot = "".join(f'<a href="{REPO_URL}/blob/main/{f}">{t}</a>' for f, t in
-                   [("README.md", "README"), (f"{RD}/SUMMARY.md", "Summary"), ("protocol/README.md", "Protocol"),
-                    ("NOTICE.md", "Notice"), ("LICENSE", "Licence (code)"), ("LICENSE-DATA.md", "Licence (results)"),
-                    ("CITATION.cff", "Citation")])
+                   [("README.md", "README"), ("protocol/README.md", "Protocol"), ("NOTICE.md", "Notice"),
+                    ("LICENSE", "Licence (code)"), ("LICENSE-DATA.md", "Licence (results)"), ("CITATION.cff", "Citation")])
+    lead = f'<div class="{"answer" if answer else "lede"}">{lede}</div>'
     doc = (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,'
-           f'initial-scale=1"><meta name="color-scheme" content="light dark"><title>{html.escape(title)} - cuteafd-eval</title>'
-           f'<style>\n{CSS}\n</style></head><body><nav><span class="brand">cuteafd-eval</span>{nav}</nav><main>'
-           f'<h1>{html.escape(title)}</h1><p class="{lede_cls}">{lede}</p>\n{body}\n</main><footer><nav aria-label="Repository documents">'
+           f'initial-scale=1"><meta name="color-scheme" content="light dark"><title>{E(title)} - cuteafd-eval</title>'
+           f'<style>\n{CSS}\n</style></head><body><nav aria-label="Pages"><span class="brand">cuteafd-eval</span>{nav}</nav><main>'
+           f'<h1>{E(title)}</h1>{lead}\n{body}\n</main><footer><nav aria-label="Repository documents">'
            f'{foot}</nav>Generated from the repository data by <code>tools/build_site.py</code>. Maintained by Michael M '
            f'(UrbanAstroLA on GitHub, @UrbanAstroFella on X). Results CC BY 4.0, code Apache-2.0.</footer></body></html>\n')
+    ids = re.findall(r'\bid="([^"]+)"', doc)
+    dup = sorted({x for x in ids if ids.count(x) > 1})
+    if dup: raise SystemExit(f"docs/{name}: duplicate ids {dup}")
     (DOCS / name).write_text(doc)
 
 
-def details(summary_text, inner):
-    return f'<details class="more"><summary>{summary_text}</summary>{inner}</details>'
+def moved_page(name, target, label):
+    doc = (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,'
+           f'initial-scale=1"><meta http-equiv="refresh" content="0; url={target}"><title>Moved - cuteafd-eval</title></head>'
+           f'<body><p>This page moved: <a href="{target}">{E(label)}</a>.</p></body></html>\n')
+    (DOCS / name).write_text(doc)
 
 
-# ------------------------------------------------------------------ numbers used in the plain text (from the published JSON)
+def details(summary_text, inner, did=None):
+    return f'<details class="more"{f" id={chr(34)}{did}{chr(34)}" if did else ""}><summary>{summary_text}</summary>{inner}</details>'
+
+
+def htable(head, rows, cls=""):
+    return (f'<div class="tbl"><table class="{cls}"><thead><tr>' + "".join(f"<th>{h}</th>" for h in head) + "</tr></thead><tbody>" +
+            "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows) + "</tbody></table></div>")
+
+
+def h2(hid, text): return f'<h2 id="{hid}">{E(text)}</h2>'
+
+
+# ------------------------------------------------------------------ numbers (from the published JSON)
 
 def facts():
-    import statistics as st
-    q = D / "q/pb"
-    gen = lambda a: B.load(q / f"pb-{a}.json")["summary"]["gen"]
-    v_runs = [gen(a) for a in ("V1", "V1r", "V2") if (q / f"pb-{a}.json").exists()]
+    q = D / "q"
+    gen = lambda a: B.load(q / "pb" / f"pb-{a}.json")["summary"]["gen"]
+    v_runs = [gen(a) for a in ("V1", "V1r", "V2")]
     bk = ("0-2K", "2-8K", "8-16K")
     F = {"n_vruns": len(v_runs)}
     F["kl_v"] = {b: st.mean(r["by_bucket"][b]["kl"]["value"] for r in v_runs) for b in bk}
     F["kl_v"]["all"] = st.mean(r["overall"]["kl"]["value"] for r in v_runs)
     c = gen("C1"); F["kl_c"] = {**{b: c["by_bucket"][b]["kl"]["value"] for b in bk}, "all": c["overall"]["kl"]["value"]}
     f1 = B.load(D / "f1/F1-RESULTS.json")
-    F["kl_f1c"] = {b: f1["precision"]["f1c"][b]["kl"] for b in ("all",) + bk}
-    m = B.load(q / "pb-vs-vllm-mean3.json")
+    m = B.load(q / "pb/pb-vs-vllm-mean3.json")
     F["d"] = {(b, met, arm): m[f"{b}|{met}|{arm}"] for b in ("all",) + bk for met in ("kl", "top1") for arm in ("C1", "F1c", "F1d")}
     F["pa"] = B.load(D / "q/pa/pa-pair-V1-vs-C1.json")["overall"]["kl"]
-    sp = f1["speed"]
-    F["f1c_ttft"] = st.median(v["ttft_median_s"] for v in sp["f1c"].values())
-    F["f1c_dec"] = st.median(v["decode_tok_s_per_stream_median"] for v in sp["f1c"].values())
-    F["f1d_dec"] = st.median(v["decode_tok_s_per_stream_median"] for v in sp["f1d"].values())
-    rec = B.t_receipts(); cv, cc = B.t_cells(rec["V1"]), B.t_cells(rec["C1"])
-    g = lambda cells, k, key: B.t_med(cells, key, k)
-    F["dec1k"] = {k[1]: (g(cv, k, "decode_tok_s_per_stream_median"), g(cc, k, "decode_tok_s_per_stream_median"))
-                  for k in sorted(cv) if k[0] == 1024 and k[2] == 1 and k in cc}
-    rows = {}
-    for L in (1024, 8192, 32768, 131072):
-        ks = [k for k in cv if k[0] == L and k in cc]
-        dec = [g(cc, k, "decode_tok_s_per_stream_median") / g(cv, k, "decode_tok_s_per_stream_median") for k in ks if k[2] == 1]
-        agg = [g(cc, k, "aggregate_tok_s") / g(cv, k, "aggregate_tok_s") for k in ks]
-        tt = [(g(cv, k, "ttft_median_s"), g(cc, k, "ttft_median_s")) for k in ks if k[2] == 1]
-        hi = max(k[2] for k in ks)
-        tth = [(g(cv, k, "ttft_median_s"), g(cc, k, "ttft_median_s")) for k in ks if k[2] == hi]
-        rows[L] = {"dec": (min(dec), max(dec)), "n1": len(dec), "dec_all": dec, "agg_all": agg, "agg": (st.median(agg), min(agg), max(agg)), "tt1": tt, "tth": tth, "hi": hi,
-                   "agg8": [g(cc, k, "aggregate_tok_s") / g(cv, k, "aggregate_tok_s") for k in ks if k[2] == 8]}
-    F["len"] = rows
-    alld = [x for r in rows.values() for x in r["dec"]]
-    F["dec_range"] = (min(alld), max(alld))
-    F["agg_long"] = (min(rows[32768]["agg"][1], rows[131072]["agg"][1]), max(rows[32768]["agg"][2], rows[131072]["agg"][2]))
-    F["L"] = B.l_summaries()
     F["f1"] = f1
-    F["f1_dec"] = {**{a: st.median(v["decode_tok_s_per_stream_median"] for v in sp[a].values()) for a in ("f1a", "f1b", "f1c", "f1d")}, "C1": 1.0}
-    def cached(d):
-        b = [x for x in d["batches"] if x["kind"] == "cached"]
-        return b[0]["summary"]["ttft_median_s"] if b else None
-    F["cached"] = (cached(rec["V1"]), cached(rec["C1"]))
+    F["L"] = B.l_summaries()
     F["T"] = tails()
     return F
 
@@ -291,124 +294,32 @@ def startup():
     return B.load(p) if p.exists() else None
 
 
-def pct(r): return f"{100 * (r - 1):+.0f}%"
-def pp(r): return f"{abs(100 * (r - 1)):.0f}%"
-def span(a, b): return f"{abs(100 * (a - 1)):.0f}-{abs(100 * (b - 1)):.0f}%"
-def kl(x): return f"{x:.4f}"
-def dkl(x): return f"{x:+.4f}"
-def civ(v, nd=4, s=1.0): return f'<span class="ci">[{v[1] * s:+.{nd}f}, {v[2] * s:+.{nd}f}]</span>'
-
-
-# ------------------------------------------------------------------ per-position tails (results/<run>/q/tails, from tools/kl_tails.py)
-
 def tails():
-    out = {}
-    for k in ("pa", "pb", "q2"):
-        p = D / "q" / "tails" / f"{k}-tails.json"
-        if p.exists(): out[k] = B.load(p)
-    return out
+    return {k: B.load(D / "q" / "tails" / f"{k}-tails.json") for k in ("pa", "pb", "q2") if (D / "q" / "tails" / f"{k}-tails.json").exists()}
 
 
+def kl(x): return f"{x:.4f}"
 def num(x): return f"{x:,.0f}" if float(x).is_integer() else f"{x:,.1f}"
 def hist(c): return f"{num(c['min'])} / {num(c['median'])} / {num(c['max'])}"
 def hist_short(c): return f"{num(c['min'])}-{num(c['max'])} tokens of history, median {num(c['median'])}"
+def pb_band(T, b): return next(x for x in T["pb"]["by_position"] if x["band"] == b)
+def vmean(arms, key, names=("V1", "V1r", "V2")): return st.mean(arms[a][key] for a in names if a in arms)
+def pctc(r): return f"{100 * (r - 1):+.0f}%".replace("-", C.MINUS)
+def pct1(r): return f"{100 * (r - 1):+.1f}%".replace("-", C.MINUS)
 
 
-def pb_band(T, b):
-    return next(x for x in T["pb"]["by_position"] if x["band"] == b)
+sg, cit, rx = C.sg, C.ci_txt, C.rx
+f1_speed, k4_settings, k4_setting_speed, k325_cells, k4_cells = B.f1_speed, B.k4_settings, B.k4_setting_speed, B.k325_cells, B.k4_cells
 
 
-def vmean(arms, key, names=("V1", "V1r", "V2")):
-    import statistics as st
-    return st.mean(arms[a][key] for a in names if a in arms)
-
-
-ARM = {"V1": "vLLM fork V1", "V1r": "vLLM fork V1r", "V2": "vLLM fork V2", "C1": "CuteAFD C1", "C0": "CuteAFD C0 (control)"}
-
-
-def tails_table(T, key):
-    P = T[key]; rows = []
-    for a, s in P["arms"].items():
-        rows.append([ARM[a], f"{s['kl_mean']:.4f}", f"{s['kl_p50']:.4f}", f"{s['kl_p90']:.3f}", f"{s['kl_p99']:.3f}",
-                     f"{s['kl_p99.9']:.2f}", f"{s['kl_max']:.2f}", f"{100 * s['top1']:.2f}%",
-                     f"{100 * s['confident_top1']:.2f}%" if "confident_top1" in s else "n/a"])
-    return htable(["Arm", "Mean", "p50", "p90", "p99", "p99.9", "Max", "Top-1", "Confident top-1"], rows)
-
-
-def band_table(T, key):
-    P = T[key]; rows = []
-    for b in P["by_position"]:
-        for a, s in b["arms"].items():
-            rows.append([E(b["band"]) if a == next(iter(b["arms"])) else "", hist(b["context"]) if a == next(iter(b["arms"])) else "",
-                         ARM[a], f"{s['kl_mean']:.4f}", f"{s['kl_p99']:.3f}", f"{s['kl_p99.9']:.2f}", f"{100 * s['top1']:.2f}%"])
-    return htable(["Positions", "History, tokens (min / median / max)", "Arm", "Mean KL", "p99", "p99.9", "Top-1"], rows)
-
-
-def what_scored(T):
-    pa = T["pa"]["scored"]["context"]
-    return ('<h2 id="what-was-scored">What was scored</h2>' + scored_table(T) +
-            f'<p class="plain">P-A scores every position of each 2,048-token window, so the history behind a scored token runs '
-            f'from {num(pa["min"])} to {num(pa["max"])} tokens (median {num(pa["median"])}), as the teacher dataset defines its '
-            '2,047 prediction positions per window. P-B and Q2 score the end of each window, so every primary scored position '
-            f'there (P-B\'s generated positions, all of Q2\'s) has at least {num(T["pb"]["scored"]["context"]["min"])} tokens '
-            'of history.</p>'
-            '<p class="sign">KL values are not comparable across panels (different metric, text and reference), and NLL is '
-            'per tokenizer and per text. Teacher dataset identity, the 25 windows and their hashes: '
-            f'<a href="{REPO_URL}/blob/main/{RD}/q/pa/PROVENANCE.json"><code>q/pa/PROVENANCE.json</code></a>; rebuilding the '
-            'P-A numbers: <a href="reproduce.html#5a-panel-p-a-from-the-teacher-dataset">Reproduce, step 5a</a>. Per-position '
-            f'scores: <a href="{REPO_URL}/blob/main/{RD}/q/rows/README.md"><code>q/rows/</code></a>; tails: '
-            '<a href="precision.html#tails">Precision</a>.</p>')
-
-
-def scored_table(T):
-    """'What was scored': one row per panel, numbers from the tails files."""
-    pa, pb, q2 = T["pa"]["scored"], T["pb"]["scored"], T["q2"]["scored"]
-    rows = [
-        ["<b>P-A</b> BF16 teacher panel (brandonmusic)", f"{pa['windows']}", hist(pa["tokens_per_window"]),
-         f"all {num(pa['scored_positions_per_window']['median'])} (rows 0-2046)", f"{pa['selected_positions_total']:,}",
-         hist(pa["context"]),
-         "the dataset's 25 qualification windows <code>final-0000</code> to <code>final-0024</code>; domains "
-         "<code>axis1_general</code>, <code>axis2_legal</code>, <code>axis3_code_agentic</code>, "
-         "<code>axis4_reasoning_termination</code>",
-         "BF16 teacher: <code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>a6c167b6</code>, full-vocabulary FP32 logits",
-         "full-vocabulary KL(teacher ‖ engine), float64; NLL; top-1"],
-        ["<b>P-B</b> tpurtell's fidelity panel (<code>cuteafd-fidelity</code>, glm5_flash v2)", f"{pb['windows']}",
-         hist(pb["tokens_per_window"]),
-         f"last 512; generated positions (primary) per window: {hist(pb['selected_positions_per_window'])} "
-         f"(min / median / max), in {pb['windows_with_selected_positions']} windows",
-         f"{pb['selected_positions_total']:,} generated ({pb['windows'] * 512:,} recorded)", hist(pb["context"]),
-         "replies written by the official FP8 model after conditioning and repository-source context; blocks A-E "
-         "(B: long code reading); buckets 0-2K, 2-8K, 8-16K",
-         "BF16 reference run: <code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>a5b45eb4</code>, stored as its top 1,024 ids "
-         "plus a tail bin",
-         "coarse KL (top-1,024 + tail; a lower bound on full-vocabulary KL); NLL; top-1"],
-        ["<b>Q2</b> long human-written text", f"{q2['windows']}", hist(q2["tokens_per_window"]),
-         f"last {num(q2['scored_positions_per_window']['median'])}", f"{q2['selected_positions_total']:,}", hist(q2["context"]),
-         "3 PG-19 books and 3 Apache-2.0 vLLM source files, each at 32K, 64K and 128K tokens", "none",
-         "NLL only; KL between the two engines as disagreement"]]
-    return htable(["Panel", "Windows", "Tokens per window (min / median / max)", "Scored positions per window",
-                   "Total scored", "History behind each scored token, tokens (min / median / max)", "Text",
-                   "Reference", "Metric"], rows)
-
-
-# ------------------------------------------------------------------ charts (tools/site_charts.py: one grammar, static SVG)
+# ------------------------------------------------------------------ chart helpers (tools/site_charts.py: one grammar, static SVG)
 # Engine colour and shape follow the engine: vLLM fork = blue circle, CuteAFD = orange triangle; a hollow triangle is a
 # CuteAFD setting that does not fit a serving launch on 2x RTX PRO 6000 with that checkpoint. Every number below is read
 # from the published files; where a figure needs a value the files do not publish (an interval), it is drawn without
 # one and the table view says so.
 
-E = html.escape
-sg, cit, rx = C.sg, C.ci_txt, C.rx
-
 LG_ENGINE = [("v", "vLLM fork"), ("c", "CuteAFD"), ("ci", "95% interval excludes the reference (resolved)"),
-             ("ciu", "95% interval includes it (not resolved)"), ("band", "the reference's own run-to-run spread")]
-LG_SET = [("c", "CuteAFD setting that serves on 2x RTX"), ("ch", "does not fit a serving launch on 2x RTX (scoring launch only)"),
-          ("ci", "95% interval excludes 0 (resolved)"), ("ciu", "includes 0 (not resolved)")]
-
-
-def htable(head, rows, cls=""):
-    return (f'<div class="tbl"><table class="{cls}"><thead><tr>' + "".join(f"<th>{h}</th>" for h in head) + "</tr></thead><tbody>" +
-            "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows) + "</tbody></table></div>")
+             ("ciu", "95% interval includes it (not resolved)"), ("band", "the vLLM fork's own run-to-run spread")]
 
 
 def vband(vals):
@@ -418,8 +329,7 @@ def vband(vals):
 
 
 def spec_strip(scored, panel, ref, metric, sel=None):
-    s = scored
-    tpw = s["tokens_per_window"]
+    s = scored; tpw = s["tokens_per_window"]
     win = f'{s["windows"]} windows' + (f' ({s["windows_with_selected_positions"]} with scored positions)'
                                          if s["windows_with_selected_positions"] != s["windows"] else "")
     size = f'{num(tpw["min"])}' if tpw["min"] == tpw["max"] else f'{num(tpw["min"])}-{num(tpw["max"])}'
@@ -437,7 +347,7 @@ REF = {"k325": {"pa": ("BF16 teacher, full vocabulary", "KL, nats"), "pb": ("BF1
                 "q2": ("none (engine against engine)", "NLL, nats per token")},
        "k4": {"pa": ("BF16 teacher, top 20", "KL20, nats"), "pb": ("BF16 run, top 20", "KL_pb20, nats"),
               "q2": ("none (engine against engine)", "NLL, nats per token")}}
-PANEL = {"pa": "P-A, BF16 teacher panel", "pb": "P-B, fidelity panel, generated positions", "q2": "Q2, long human-written text"}
+PANEL = {"pa": "P-A, BF16 teacher panel", "pb": "P-B, fidelity set, generated positions", "q2": "Q2, long human-written text"}
 SEL = {"pa": "every position", "pb": "generated positions", "q2": "last 4,096 positions per window"}
 
 
@@ -451,7 +361,11 @@ def frow(label, est, lo, hi, band, title, sub=None, who="c", hollow=False, extra
             "value": f"{sg(est)} {cit(lo, hi)}{extra}", "title": title}
 
 
-# ---- precision: engine difference (K3.25)
+def clusters_816(run, K=None):
+    """Windows behind the P-B 8-16K bucket (the paired comparison's clusters)."""
+    if run == "k4": return K["pb"]["paired"]["C-r1-Vmean"]["gen 8-16K"]["clusters"]
+    return B.load(D / "q/pb/pb-pair-V1-C1.json")["gen"]["by_bucket"]["8-16K"]["clusters"]
+
 
 def k325_runs():
     q = D / "q"
@@ -464,472 +378,403 @@ def k325_runs():
     return pa, pb, q2
 
 
-PB_LAB = {"all": "All generated rows", "0-2K": "0-2K", "2-8K": "2-8K", "8-16K": "8-16K, long code"}
+# ------------------------------------------------------------------ home: does the precision difference matter (scale chart)
+
+def fig_scale(P):
+    """Horizontal bars, one panel per measure: KL from BF16 (lower is closer), on the panel's own axis from 0."""
+    panels = [(t, rows) for t, rows in P["bars"]]
+    svg = C.bars(panels, aria="Distance from the BF16 model by checkpoint, engine and setting, one panel per measure")
+    return C.figure("does-it-matter-chart", "Distance from the BF16 model (lower is closer to BF16)",
+                    "Each panel is one measure on one set of texts, with its own axis; compare bars within a panel.",
+                    [(svg, None, None)],
+                    "Grey is tpurtell's official FP8 model: the 3.25-bit quantization adds most of the distance; the blue-orange gap "
+                    "is the engine difference.",
+                    md(P["bars_table"]) + '<p class="sign">The official FP8 baseline is tpurtell\'s published value for his set, '
+                    f'quoted in {gh(f"{RD}/q/RESULTS-Q.md", "<code>q/RESULTS-Q.md</code>")}. Top-20 KL (KL20) reads about 0.8 of '
+                    'full-vocabulary KL on the same rows.</p>',
+                    [("bv", "vLLM fork"), ("bc", "CuteAFD"), ("bcs", "CuteAFD with a setting"), ("br", "official FP8 model")])
 
 
-def k325_engine_rows(F):
-    T, d = F["T"], F["d"]; pa_runs, pb_runs, q2 = k325_runs()
-    p = F["pa"]
-    rows_pa = [frow("All 2,047 positions", p["B_minus_A"], *p["ci95"], vband(list(pa_runs.values())),
-                    f"P-A, CuteAFD − vLLM fork V1: {sg(p['B_minus_A'])} {cit(*p['ci95'])} KL; history {hist(T['pa']['scored']['context'])}",
-                    sub="25 windows, vs vLLM V1")]
-    rows_pb = []
+def dl_glossary(items):
+    return '<dl class="gl">' + "".join(f"<div><dt>{E(k)}</dt><dd>{E(v)}</dd></div>" for k, v in items) + "</dl>"
+
+
+PAGE_LINKS = [("precision.html", "Precision", "closeness to BF16"), ("settings.html", "Settings", "every CuteAFD setting"),
+              ("speed.html", "Speed", "every speed cell"), ("long-tasks.html", "Long tasks", "long replies, long prompts"),
+              ("running.html", "Running it", "operator notes"), ("method.html", "Method", "protocols and timeline"),
+              ("audit.html", "Audit", "the K3.25 review"), ("research.html", "Research", "deep dives"),
+              ("reproduce.html", "Reproduce", "every step")]
+
+
+def page_home():
+    P = B.home_parts(site=True)
+    body = (h2("findings", "Findings") + md(P["findings"]) +
+            h2("does-it-matter", "Does the precision difference matter?") + fig_scale(P) + md(P["matters"]) +
+            h2("pick-by-workload", "Pick by workload") +
+            '<p class="sign">What the results show on this machine and these checkpoints; not a general ranking.</p>' + md(P["pick"]) +
+            h2("settings-measured", "Settings measured") + md(P["settings"]) +
+            h2("speed-in-numbers", "Speed in numbers") + md(P["speed"]) + f'<p class="sign">{inline(P["speed_note"], "")}</p>' +
+            h2("how-sure", "How sure are we") + md(P["sure"]) +
+            h2("terms", "Terms") + dl_glossary(P["glossary"]) +
+            h2("pages", "Pages") + '<p class="pages">' +
+            " · ".join(f'<a href="{p}">{t}</a> ({E(s)})' for p, t, s in PAGE_LINKS) + "</p>")
+    page("index.html", "CuteAFD and tpurtell's vLLM fork on two RTX PRO 6000s", md(P["intro"]), body, answer=False)
+
+
+# ------------------------------------------------------------------ precision
+
+def long_code_rows(F, K):
+    """The P-B 8-16K difference from the vLLM fork, by setting, per checkpoint (canonical references)."""
+    d, T = F["d"], F["T"]; _, pb_runs, _ = k325_runs()
+    band3 = vband([pb_runs[a]["8-16K"] for a in pb_runs])
+    r3 = [{"section": "K3.25 · coarse KL · against the mean of 3 vLLM runs"}]
+    for arm, lab, env in (("C1", "As shipped", None), ("F1c", "W8A16 prefill", "F1c"),
+                          ("F1d", "W8A16 + BF16 KDA and head", "F1d: all three FP8 switches off")):
+        v = d[("8-16K", "kl", arm)]
+        r3.append(frow(lab, v[0], v[1], v[2], band3, f"K3.25 {lab}: CuteAFD − vLLM {sg(v[0])} {cit(v[1], v[2])} coarse KL at 8-16K"
+                       + (f" ({env})" if env else ""), sub=env))
+    S = k4_settings(K)
+    runs = [K["pb"]["per_arm"][a]["gen 8-16K"]["kl_pb20"]["value"] for a in ("V-r1", "V-r1b", "V-r2")]
+    band4 = vband(runs)
+    r4 = [{"section": "K4 · KL_pb20 (top-20) · against the mean of 2 vLLM launches"}]
+    for a, lab, env, hol in (("shipped", "As shipped", None, False), ("f1c", "W8A16 prefill", "F1-K4", False),
+                             ("amax", "amax scale rule", "F1-K4b", False), ("best", "best scale rule", "F1-K4b", False),
+                             ("w16amax", "W8A16 + amax scale rule", "K4c", False), ("w16best", "W8A16 + best scale rule", "K4d", False),
+                             ("head16", "BF16 output head", "F1-K4b; does not fit 2x RTX", True), ("kda16", "BF16 KDA projections", "F1-K4b; does not fit 2x RTX", True),
+                             ("all16", "Every switch", "F1-K4b; does not fit 2x RTX", True)):
+        v = S[a]["pb8_v"]
+        r4.append(frow(lab, v[0], v[1], v[2], band4, f"K4 {lab}: CuteAFD − vLLM {sg(v[0])} {cit(v[1], v[2])} KL_pb20 at 8-16K"
+                       + (f" ({env})" if env else ""), sub=env, hollow=hol))
+    return r3, r4, band3, band4
+
+
+def fig_long_code(F, K):
+    r3, r4, b3, b4 = long_code_rows(F, K); T, T4 = F["T"], K["T"]
+    kw = dict(ref="vLLM fork", ref_who="v", left="closer to BF16", right="further from BF16")
+    s3 = C.forest(r3, aria="Long-code difference from the vLLM fork by CuteAFD setting, K3.25, coarse KL", **kw)
+    s4 = C.forest(r4, aria="Long-code difference from the vLLM fork by CuteAFD setting, K4, KL_pb20", **kw)
+    rows = [[E(sec), E(r["label"]) + (f'<br><span class="ci">{E(r["sub"])}</span>' if r.get("sub") else ""), sg(r["est"]), cit(r["lo"], r["hi"]),
+             f'±{r["band"][1]:.4f}', "no" if r.get("hollow") else "yes"]
+            for sec, rs in (("K3.25, coarse KL", r3), ("K4, KL_pb20", r4)) for r in rs if "section" not in r]
+    table = htable(["Checkpoint and measure", "CuteAFD setting", "CuteAFD − vLLM fork", "95% interval", "vLLM run-to-run band",
+                    "Serves on 2x RTX"], rows)
+    sp = lambda TT, run, K_=None: spec_band("P-B 8-16K, long code reading", pb_band(TT, "8-16K")["positions"], clusters_816(run, K_),
+                                            pb_band(TT, "8-16K")["context"], REF[run]["pb"][0], REF[run]["pb"][1])
+    return C.figure("long-code", "Long code reading (8-16K prompts): CuteAFD's distance from BF16 minus the vLLM fork's (left is closer to BF16)",
+                    "One row per CuteAFD setting, paired on the same scored positions; the two checkpoints use different measures, so each "
+                    "has its own panel.",
+                    [(s3, sp(T, "k325"), "K3.25"), (s4, sp(T4, "k4", K), "K4")],
+                    "The blue line is the vLLM fork; a row whose interval is solid is resolved from it. Hollow triangles need more GPU "
+                    "memory than two RTX PRO 6000s have with K4.",
+                    table, LG_ENGINE + [("ch", "setting that does not fit a serving launch on 2x RTX")])
+
+
+def pa_table(F, K):
+    R = K["ref"]["pa"]; pa = K["pa"]; p = F["pa"]
+    rows = [["K3.25", "full-vocabulary KL", kl(p["A"]), kl(p["B"]), f"{sg(p['B_minus_A'])} {cit(*p['ci95'])}", "differs"],
+            ["K3.25", "KL20 (top-20)", kl(R["per_arm"]["V1"]["kl_e20"]), kl(R["per_arm"]["C1"]["kl_e20"]),
+             f"{sg(R['C1_minus_V1']['kl_e20']['diff'])} {cit(*R['C1_minus_V1']['kl_e20']['ci95'])}", "differs"],
+            ["K4", "KL20 (top-20)", kl(pa["per_arm"]["Vmean"]["kl_e20"]["value"]), kl(pa["per_arm"]["C-r1"]["kl_e20"]["value"]),
+             f"{sg(pa['paired']['C-r1-Vmean']['kl_e20']['B_minus_A'])} {cit(*pa['paired']['C-r1-Vmean']['kl_e20']['ci95'])}",
+             B.k4_reading(pa['paired']['C-r1-Vmean']['kl_e20']['B_minus_A'], pa['paired']['C-r1-Vmean']['kl_e20']['ci95'],
+                          pa["floors"]["V-r2-V-r1"]["kl_e20"]["B_minus_A"])],
+            ["K3.25", "top-1 agreement", f"{100 * R['per_arm']['V1']['top1']:.2f}%", f"{100 * R['per_arm']['C1']['top1']:.2f}%",
+             f"{C.sg(100 * R['C1_minus_V1']['top1']['diff'], 2)} pts", ""],
+            ["K4", "top-1 agreement", f"{100 * pa['per_arm']['Vmean']['top1']['value']:.2f}%", f"{100 * pa['per_arm']['C-r1']['top1']['value']:.2f}%",
+             f"{C.sg(100 * pa['paired']['C-r1-Vmean']['top1']['B_minus_A'], 2)} pts {cit(*[100 * x for x in pa['paired']['C-r1-Vmean']['top1']['ci95']], nd=2)}",
+             B.k4_reading(pa['paired']['C-r1-Vmean']['top1']['B_minus_A'], pa['paired']['C-r1-Vmean']['top1']['ci95'],
+                          pa["floors"]["V-r2-V-r1"]["top1"]["B_minus_A"])]]
+    return htable(["Checkpoint", "Measure", "vLLM fork (K3.25: run V1, which its other two runs match to 1e-6; K4: mean of 2 launches)",
+                   "CuteAFD", "CuteAFD − vLLM fork [95%]", "Reading"], rows)
+
+
+def pb_table(F, K):
+    d, T = F["d"], F["T"]; _, pb_runs, _ = k325_runs()
+    lab = {"all": "all generated positions", "0-2K": "0-2K", "2-8K": "2-8K", "8-16K": "8-16K (long code)"}
+    rows = []
     for b in ("all", "0-2K", "2-8K", "8-16K"):
         v = d[(b, "kl", "C1")]; ctx = T["pb"]["scored"]["context"] if b == "all" else pb_band(T, b)["context"]
         band = vband([pb_runs[a][b] for a in pb_runs])
-        rows_pb.append(frow(PB_LAB[b], v[0], v[1], v[2], band,
-                            f"P-B {PB_LAB[b]}, CuteAFD − mean of 3 vLLM runs: {sg(v[0])} {cit(v[1], v[2])} KL; vLLM runs differ by up "
-                            f"to {band[1]:.4f}; history {hist(ctx)}", sub=f"history {hist(ctx)}"))
-    n = q2["nll_paired"]; fl = q2["noise_floor_B"]["dnll_repeat"]["B_minus_A"]
-    est, lo, hi = -n["B_minus_A"], -n["ci95"][1], -n["ci95"][0]          # file is V1 − C1; shown as CuteAFD − vLLM
-    rows_q2 = [frow("6 documents, 32K-128K", est, lo, hi, (-abs(fl), abs(fl)),
-                    f"Q2 NLL, CuteAFD − vLLM V1: {sg(est)} {cit(lo, hi)} nats per token; vLLM's repeat on 2 documents "
-                    f"differs by {sg(fl)}", sub="18 windows, vs vLLM V1")]
-    return rows_pa, rows_pb, rows_q2
+        rows.append(["K3.25 · coarse KL", lab[b], hist(ctx), kl(F["kl_v"][b]), kl(F["kl_c"][b]), f"{sg(v[0])} {cit(v[1], v[2])}",
+                     f"±{band[1]:.4f}", "differs" if v[1] > 0 or v[2] < 0 else "not resolved"])
+    T4 = K["T"]; band4 = {x["band"]: x for x in T4["pb"]["by_position"]}
+    for g, l4, ctx in (("gen", "all generated positions", T4["pb"]["scored"]["context"]), ("gen 0-2K", "0-2K", band4["0-2K"]["context"]),
+                       ("gen 2-8K", "2-8K", band4["2-8K"]["context"]), ("gen 8-16K", "8-16K (long code)", band4["8-16K"]["context"]),
+                       ("gen block B", "block B (long code, the 8-16K windows)", K["histB"])):
+        p = K["pb"]["paired"]["C-r1-Vmean"][g]["kl_pb20"]; fl = K["pb"]["floors"]["V-r2-V-r1"][g]["kl_pb20"]["B_minus_A"]
+        runs = [K["pb"]["per_arm"][a][g]["kl_pb20"]["value"] for a in ("V-r1", "V-r1b", "V-r2")]
+        rows.append(["K4 · KL_pb20 (top-20)", l4, hist(ctx), kl(p["A"]), kl(p["B"]), f"{sg(p['B_minus_A'])} {cit(*p['ci95'])}",
+                     f"±{vband(runs)[1]:.4f}", B.k4_reading(p["B_minus_A"], p["ci95"], fl)])
+    gen = lambda a: B.load(D / "q" / "pb" / f"pb-{a}.json")["summary"]["gen"]
+    vr = [gen(a) for a in ("V1", "V1r", "V2")]; c1 = gen("C1")
+    for b_, l3 in (("all", "all generated positions"), ("8-16K", "8-16K (long code)")):
+        pick = (lambda g: g["overall"]["top1"]["value"]) if b_ == "all" else (lambda g: g["by_bucket"][b_]["top1"]["value"])
+        v = d[(b_, "top1", "C1")]; ctx = T["pb"]["scored"]["context"] if b_ == "all" else pb_band(T, b_)["context"]
+        rows.append(["K3.25 · top-1 agreement", l3, hist(ctx), f"{100 * st.mean(pick(g) for g in vr):.2f}%", f"{100 * pick(c1):.2f}%",
+                     f"{C.sg(100 * v[0], 2)} pts {cit(100 * v[1], 100 * v[2], nd=2)}", "", "differs" if v[1] > 0 or v[2] < 0 else "not resolved"])
+    for g, l4 in (("gen", "all generated positions"), ("gen 8-16K", "8-16K (long code)")):
+        p = K["pb"]["paired"]["C-r1-Vmean"][g]["top1"]; fl = K["pb"]["floors"]["V-r2-V-r1"][g]["top1"]["B_minus_A"]
+        ctx = T4["pb"]["scored"]["context"] if g == "gen" else band4["8-16K"]["context"]
+        rows.append(["K4 · top-1 agreement", l4, hist(ctx), f"{100 * p['A']:.2f}%", f"{100 * p['B']:.2f}%",
+                     f"{C.sg(100 * p['B_minus_A'], 2)} pts {cit(100 * p['ci95'][0], 100 * p['ci95'][1], nd=2)}", "",
+                     B.k4_reading(p["B_minus_A"], p["ci95"], fl)])
+    return htable(["Checkpoint and measure", "Positions", "History, tokens (min / median / max)", "vLLM fork (K3.25: mean of 3 runs; K4: of 2 launches)",
+                   "CuteAFD", "CuteAFD − vLLM fork [95%]", "vLLM run-to-run band", "Reading"], rows)
 
 
-def engine_table(rows_by_panel):
-    out = []
-    for panel, rows, bandnote in rows_by_panel:
-        for r in rows:
-            out.append([E(panel), E(r["label"]) + (f'<br><span class="ci">{E(r["sub"])}</span>' if r.get("sub") else ""),
-                        f'{sg(r["est"])}', f'{cit(r["lo"], r["hi"])}', f'±{r["band"][1]:.4f}' if r.get("band") else "n/a",
-                        "resolved" if (r["lo"] > 0 or r["hi"] < 0) else "not resolved", E(bandnote)])
-    return htable(["Panel", "Rows", "CuteAFD − vLLM fork", "95% interval", "vLLM run-to-run band", "Interval", "Band from"], out)
+def q2_table(K):
+    q = B.load(D / "q/q2/q2-C1-vs-V1.json")["groups"]["overall"]; n = q["nll_paired"]; fl = q["noise_floor_B"]
+    q4 = K["q2"]; v = q4["vs_vllm_mean"]["C-r1"]["dnll_x_minus_v_documents_t"]
+    vm = st.mean(q4["per_arm"][a]["nll_mean_of_documents"] for a in ("V-r1", "V-r2"))
+    f4l = q4["pairs"]["V-r1|V-r2"]["dnll_yx_documents_t"]["mean"]
+    rows = [["K3.25 (against vLLM run V1, the run scored on all six documents)", f"{n['B']:.4f}", f"{n['A']:.4f}", f"{sg(-n['B_minus_A'])} {cit(-n['ci95'][1], -n['ci95'][0])} (bootstrap over documents)",
+             f"{sg(fl['dnll_repeat']['B_minus_A'])} (vLLM repeat, {fl['clusters']} of 6 documents)", "not resolved"],
+            ["K4 (against the mean of 2 vLLM launches)", f"{vm:.4f}", f"{q4['per_arm']['C-r1']['nll_mean_of_documents']:.4f}", f"{sg(v['mean'])} {cit(*v['ci95'])} (t-interval over documents)",
+             f"{sg(f4l)} (launch 2 − launch 1, all 6 documents)", B.k4_reading(v["mean"], v["ci95"])]]
+    return htable(["Checkpoint", "NLL, vLLM fork", "NLL, CuteAFD", "CuteAFD − vLLM fork [95%]", "vLLM run-to-run floor", "Reading"], rows)
 
 
-def fig_engine_k325(F, fid="engine-k325"):
-    pa, pb, q2 = k325_engine_rows(F); T = F["T"]
-    kw = dict(ref="vLLM fork", ref_who="v", left="closer to BF16", right="further from BF16")
-    s1 = C.forest([{"section": "P-A, full-vocabulary KL from the BF16 teacher"}] + pa, aria="Engine difference, P-A, K3.25", **kw)
-    s2 = C.forest([{"section": "P-B, coarse KL (top 1,024 + tail), by context bucket"}] + pb, aria="Engine difference by context bucket, P-B, K3.25", **kw)
-    s3 = C.forest([{"section": "Q2, NLL of human-written text (no BF16 reference here)"}] + q2, ref="vLLM fork", ref_who="v",
-                  left="CuteAFD lower NLL", right="CuteAFD higher NLL", aria="NLL difference on long human-written text, Q2, K3.25")
-    table = engine_table([("P-A KL", pa, "vLLM runs V1, V1r, V2"), ("P-B coarse KL", pb, "vLLM runs V1, V1r, V2"),
-                          ("Q2 NLL", q2, "vLLM V1 against its repeat, 2 documents")])
-    return C.figure(fid, "K3.25: CuteAFD against the vLLM fork, by panel and context (reference: vLLM fork)",
-                    "Each row is CuteAFD's distance from the BF16 model minus the vLLM fork's, on the same scored positions; "
-                    "right of the blue line means CuteAFD is further from BF16.",
-                    [(s1, strip(T, "k325", "pa"), None), (s2, strip(T, "k325", "pb"), None), (s3, strip(T, "k325", "q2"), None)],
-                    "If your prompts look like the 8-16K row (long code reading), that is where the engines differ; below 8K the "
-                    "intervals include zero. The grey band is how far the vLLM fork's own runs differ on the same rows. Compare rows with the blue "
-                    "line, not panels with each other: each panel has its own metric and text.",
-                    table, LG_ENGINE)
+def page_precision(F, K):
+    N = B.canon(); pb8, k8 = N["pb8"], N["k4_pb8"]
+    alt_v1 = B.load(D / "q/pb/pb-pair-V1-C1.json")["gen"]["by_bucket"]["8-16K"]["kl"]["B_minus_A"]
+    alt_2 = F["f1"]["precision"]["C1"]["8-16K"]["vs_vllm_mean"]["kl"][0]
+    alt_20 = K["ref"]["pb"]["C1_minus_Vmean3"]["gen 8-16K"]["kl_pb20"]["diff"]
+    c0 = B.load(D / "q/pb/pb-pair-C0-C1.json")["gen"]["overall"]["kl"]
+    lede = ("<p>Both engines stay close to the BF16 model, and the vLLM fork is slightly closer. The difference is largest when "
+            f"reading long code (8-16K-token prompts): CuteAFD is {sg(pb8['d'])} further on K3.25 (coarse KL) and {sg(k8['d'])} on "
+            "K4 (a top-20 measure). Below 8K on K3.25, and on long human-written text at 32K-128K on both checkpoints, no difference "
+            "is resolved. K4 sits about half as far from BF16 as K3.25 on both engines.</p>")
+    body = (fig_long_code(F, K) +
+            '<p class="sign">"Reading" follows each run\'s declared rule: K3.25, the 95% interval excludes 0; K4, it also has to exceed the '
+            'vLLM fork\'s launch-to-launch difference on the same rows. Band: the largest difference between any two vLLM runs\' means '
+            'on the same rows. CuteAFD repeats are byte-identical, so CuteAFD needs no band.</p>' +
+            h2("checkpoints", "Teacher panel (P-A): every position of 25 texts of 2,048 tokens") +
+            '<p class="plain">brandonmusic\'s BF16 teacher logits, the full vocabulary. The K3.25 KL20 row is K3.25\'s own captures '
+            'scored with K4\'s top-20 measure, so the two checkpoints can be compared on the same quantity.</p>' + pa_table(F, K) +
+            h2("fidelity-set", "Fidelity set (P-B): the model's own replies, prompts up to 14.4K tokens") +
+            '<p class="plain">tpurtell\'s cuteafd-fidelity set, generated positions only (his rule). K3.25 is scored with his coarse KL '
+            '(top 1,024 tokens plus the rest), K4 with its top-20 truncation, which keeps 98-99% of the coarse value on these rows.</p>'
+            + pb_table(F, K) +
+            f'<p class="sign">The K3.25 8-16K figure ({sg(pb8["d"])}) is against the mean of all three vLLM runs. Against other '
+            f'references it reads {sg(alt_v1)} (the first vLLM run alone), {sg(alt_2)} (the first two runs, the reference follow-up F1 '
+            f'used) and {sg(alt_20)} (K4\'s top-20 measure); the audit also reports +0.0057 against the second run alone.</p>' +
+            h2("long-text", "Long human-written text (Q2, 32K-128K tokens): no BF16 reference") +
+            '<p class="plain">Six documents (three books, three source files) at 32K, 64K and 128K tokens; the last 4,096 positions '
+            'of each. With no BF16 reference this compares how surprised each engine is by the text (NLL), not closeness to BF16. '
+            'K3.25 had a vLLM repeat on 2 of the 6 documents; K4 ran two full vLLM launches on all six, so its noise floor covers '
+            'every document.</p>' + q2_table(K) +
+            f'<p class="sign">One code window, <code>q2-code-c2-064k</code>, dominates the code result on both checkpoints; on K4 the '
+            f'vLLM fork differs from its own second launch there on 192 rows by more than 1 nat (<a href="research.html#c2">Research</a>). '
+            f'Without that window K4 reads +0.0012 and −0.0008 against the two vLLM launches.</p>' +
+            h2("notes", "Notes") + md(f"""- **Why the vLLM fork is averaged over runs.** Its prefill is not bit-reproducible beyond the first 2,045-token
+  chunk, so one vLLM run is one draw; CuteAFD's repeats are byte-identical. CuteAFD is paired against the mean of three
+  vLLM runs from two launches (K3.25) or two launches (K4).
+- **Length or content.** The 8-16K bucket is block B of the set, long code reading; within block A, the only block at
+  every length, the K3.25 KL difference is flat. Which of the two drives the difference is not separated.
+- **Projection source inside CuteAFD (K3.25).** CuteAFD on Core-FP8 with the official FP8 projections (C1) against
+  CuteAFD on K3.25-v1 with FP8 projections made at load (C0): C1 − C0 {sg(c0['B_minus_A'])} {cit(*c0['ci95'])}, not resolved.
+- **Where the panel text came from.** P-B's replies were written greedily by an earlier CuteAFD release serving the
+  official FP8 model; any bias from that favours CuteAFD, against the observed difference.
+- **Top-20 measures.** KL20 reads about 0.8 of full-vocabulary KL on P-A; KL_pb20 keeps 98-99% of coarse KL on P-B
+  generated positions; every K3.25 difference kept its sign and significance under the truncation.
+- **Only the prefill path was scored.** Tokens generated during decode use another path; its precision was not measured.""")
+            + '<p class="sign">Deeper: tails, position and the c2 document on <a href="research.html">Research</a>; the full write-ups: '
+            + gh(f"{RD}/q/RESULTS-Q.md", "<code>RESULTS-Q.md</code>") + " (K3.25), " + gh(f"{R4}/README.md", "the K4 run README") +
+            ", " + gh(f"{RD}/f1/RESULTS-F1.md", "<code>RESULTS-F1.md</code>") + ".</p>")
+    page("precision.html", "Precision: how close to the BF16 model?", lede, body)
 
 
-# ---- precision: engine difference (K4, top-20 measures)
+# ------------------------------------------------------------------ settings
 
-def k4_engine_rows(K):
-    pa, pb, q2, T = K["pa"], K["pb"], K["q2"], K["T"]
-    p = pa["paired"]["C-r1-Vmean"]["kl_e20"]; runs = [pa["per_arm"][a]["kl_e20"]["value"] for a in ("V-r1", "V-r2")]
-    rows_pa = [frow("All 2,047 positions", p["B_minus_A"], *p["ci95"], vband(runs),
-                    f"P-A KL20, CuteAFD − mean of 2 vLLM launches: {sg(p['B_minus_A'])} {cit(*p['ci95'])}; "
-                    f"launch 2 − launch 1 {sg(runs[1] - runs[0])}", sub="25 windows")]
-    band = {b["band"]: b for b in T["pb"]["by_position"]}
-    rows_pb = []
-    for g, lab, ctx in (("gen", "All generated rows", T["pb"]["scored"]["context"]), ("gen 0-2K", "0-2K", band["0-2K"]["context"]),
-                        ("gen 2-8K", "2-8K", band["2-8K"]["context"]), ("gen 8-16K", "8-16K", band["8-16K"]["context"]),
-                        ("gen block B", "Block B, long code", K["histB"])):
-        p = pb["paired"]["C-r1-Vmean"][g]["kl_pb20"]
-        runs = [pb["per_arm"][a][g]["kl_pb20"]["value"] for a in ("V-r1", "V-r1b", "V-r2")]
-        fl = pb["floors"]["V-r2-V-r1"][g]["kl_pb20"]["B_minus_A"]
-        reading = B.k4_reading(p["B_minus_A"], p["ci95"], fl)
-        rows_pb.append(frow(lab, p["B_minus_A"], *p["ci95"], vband(runs),
-                            f"P-B {lab} KL_pb20, CuteAFD − mean of 2 vLLM launches: {sg(p['B_minus_A'])} {cit(*p['ci95'])}; "
-                            f"launch 2 − launch 1 {sg(fl)}; reading: {reading}; history {hist(ctx)}", sub=f"history {hist(ctx)}"))
-        rows_pb[-1]["reading"] = reading
-    rows_pa[0]["reading"] = B.k4_reading(rows_pa[0]["est"], [rows_pa[0]["lo"], rows_pa[0]["hi"]], pa["floors"]["V-r2-V-r1"]["kl_e20"]["B_minus_A"])
-    v = q2["vs_vllm_mean"]["C-r1"]["dnll_x_minus_v_documents_t"]; fl = q2["pairs"]["V-r1|V-r2"]["dnll_yx_documents_t"]["mean"]
-    rows_q2 = [frow("6 documents, 32K-128K", v["mean"], *v["ci95"], (-abs(fl), abs(fl)),
-                    f"Q2 NLL, CuteAFD − mean of 2 vLLM launches: {sg(v['mean'])} {cit(*v['ci95'])} (t-interval over 6 documents); "
-                    f"launch 2 − launch 1 {sg(fl)}", sub="18 windows, t-interval")]
-    rows_q2[0]["reading"] = B.k4_reading(v["mean"], v["ci95"])
-    return rows_pa, rows_pb, rows_q2
+F1_NAME = {"f1a": "BF16 KDA projections", "f1b": "BF16 output head", "f1c": "W8A16 prefill",
+           "f1d": "W8A16 prefill + BF16 KDA projections + BF16 output head"}
+F1_ENV = {"f1a": "GLM5_FLASH_KDA_FP8=off", "f1b": "GLM5_FLASH_FP8_HEAD=off", "f1c": "GLM5_FLASH_FP8_PREFILL=off",
+          "f1d": "GLM5_FLASH_KDA_FP8=off GLM5_FLASH_FP8_HEAD=off GLM5_FLASH_FP8_PREFILL=off"}
+K4ARMS = [  # (key, label, config lines, follow-up, fits)
+    ("f1c", "W8A16 prefill", "GLM5_FLASH_FP8_PREFILL=off", "F1-K4", True),
+    ("amax", "amax scale rule", "FP8_SCALES=amax", "F1-K4b", True),
+    ("best", "best scale rule", "FP8_SCALES=best", "F1-K4b", True),
+    ("w16amax", "W8A16 prefill + amax scale rule", "GLM5_FLASH_FP8_PREFILL=off FP8_SCALES=amax", "K4c", True),
+    ("w16best", "W8A16 prefill + best scale rule", "GLM5_FLASH_FP8_PREFILL=off FP8_SCALES=best", "K4d", True),
+    ("head16", "BF16 output head", "GLM5_FLASH_FP8_HEAD=off", "F1-K4b", False),
+    ("kda16", "BF16 KDA projections", "GLM5_FLASH_KDA_FP8=off", "F1-K4b", False),
+    ("all16", "Every switch (best scale rule, BF16 KDA and head, W8A16 prefill)", "FP8_SCALES=best GLM5_FLASH_KDA_FP8=off GLM5_FLASH_FP8_HEAD=off GLM5_FLASH_FP8_PREFILL=off", "F1-K4b", False)]
 
 
-def fig_engine_k4(K, fid="engine-k4"):
-    pa, pb, q2 = k4_engine_rows(K); T = K["T"]
-    kw = dict(ref="vLLM fork", ref_who="v", left="closer to BF16", right="further from BF16")
-    s1 = C.forest([{"section": "P-A, KL20 from the BF16 teacher (top-20 measure)"}] + pa, aria="Engine difference, P-A, K4, top-20", **kw)
-    s2 = C.forest([{"section": "P-B, KL_pb20 (top-20 measure), by context bucket"}] + pb, aria="Engine difference by context bucket, P-B, K4, top-20", **kw)
-    s3 = C.forest([{"section": "Q2, NLL of human-written text (no BF16 reference here)"}] + q2, ref="vLLM fork", ref_who="v",
-                  left="CuteAFD lower NLL", right="CuteAFD higher NLL", aria="NLL difference on long human-written text, Q2, K4")
-    rows = []
-    for panel, rs in (("P-A KL20", pa), ("P-B KL_pb20", pb), ("Q2 NLL", q2)):
-        for r in rs:
-            rows.append([panel, E(r["label"]) + (f'<br><span class="ci">{E(r["sub"])}</span>' if r.get("sub") else ""), sg(r["est"]),
-                         cit(r["lo"], r["hi"]), f'±{r["band"][1]:.4f}', r["reading"]])
-    table = htable(["Panel", "Rows", "CuteAFD − vLLM fork", "95% interval", "vLLM run-to-run band", "Published reading"], rows)
-    return C.figure(fid, "K4: CuteAFD against the vLLM fork, by panel and context (reference: vLLM fork; top-20 measures)",
-                    "The same layout as K3.25 on K4, scored with top-20 measures (KL20, KL_pb20); not comparable in level with "
-                    "K3.25's full-vocabulary KL, so read each row only against the blue line.",
-                    [(s1, strip(T, "k4", "pa"), None), (s2, strip(T, "k4", "pb"), None), (s3, strip(T, "k4", "q2"), None)],
-                    "If your prompts look like 8-16K long code, the vLLM fork stays closer to BF16 on K4; under the same top-20 "
-                    "definition it reads larger than on K3.25, with overlapping intervals. On the teacher panel the difference is smaller, and on long human-written text no "
-                    "NLL difference is resolved. The published reading also requires a difference larger than the band.",
-                    table, LG_ENGINE)
+def cfg(lines): return "<br>".join(f"<code>{E(x)}</code>" for x in lines.split())
 
 
-# ---- precision: CuteAFD settings (reference: CuteAFD as shipped) and the settings map
-
-F1_NAME = {"f1a": "KDA projections BF16", "f1b": "Output head BF16", "f1c": "W8A16 prefill", "f1d": "All three"}
-F1_ENV = {"f1a": "GLM5_FLASH_KDA_FP8=off", "f1b": "GLM5_FLASH_FP8_HEAD=off", "f1c": "GLM5_FLASH_FP8_PREFILL=off", "f1d": "all three switches"}
-
-
-def f1_speed(F):
-    import statistics as st
-    sp = F["f1"]["speed"]
-    return {a: (st.median(v["ttft_median_s"] for v in sp[a].values()), min(v["ttft_median_s"] for v in sp[a].values()),
-                max(v["ttft_median_s"] for v in sp[a].values()), st.median(v["decode_tok_s_per_stream_median"] for v in sp[a].values()))
-            for a in sp}
-
-
-def fig_settings_k325(F, fid="settings-k325"):
-    P = F["f1"]["precision"]; T = F["T"]; spd = f1_speed(F)
-    rows = []
-    for b, sec in (("all", "P-B, all generated rows"), ("8-16K", "P-B 8-16K, long code reading (the most sensitive slice)")):
-        rows.append({"section": sec})
-        for a in ("f1a", "f1b", "f1c", "f1d"):
-            v = P[a][b]["vs_C1"]["kl"]
-            rows.append(frow(F1_NAME[a], v[0], v[1], v[2], None, f"{F1_NAME[a]} ({F1_ENV[a]}), {sec}: {sg(v[0])} {cit(v[1], v[2])} KL "
-                             "against CuteAFD as shipped", sub=F1_ENV[a]))
-    s = C.forest(rows, ref="CuteAFD as shipped", ref_who="c", left="closer to BF16", right="further from BF16",
-                 aria="CuteAFD FP8 switches against CuteAFD as shipped, K3.25")
-    tab = []
+def settings_table(F, K):
+    P = F["f1"]["precision"]; d = F["d"]; spd = f1_speed(); S = k4_settings(K); sp4 = k4_setting_speed()
+    t = lambda v: f"{sg(v[0])} {cit(v[1], v[2])}"
+    m3 = {"f1c": "F1c", "f1d": "F1d"}
+    src = lambda x: f'<span class="ci">{x}</span>'
+    rows = [["<b>K3.25</b>: as shipped", "", "yes", t(d[("8-16K", "kl", "C1")]), "", "not scored", "", "", src("Block Q")]]
     for a in ("f1a", "f1b", "f1c", "f1d"):
-        r = [F1_NAME[a] + f'<br><span class="ci">{F1_ENV[a]}</span>']
-        for b in ("all", "8-16K"):
-            v = P[a][b]["vs_C1"]["kl"]; r.append(f"{sg(v[0])} {cit(v[1], v[2])}")
-        t = spd[a]; r += [f"{100 * (t[0] - 1):+.1f}% ({100 * (t[1] - 1):+.1f} to {100 * (t[2] - 1):+.1f}%)".replace("-", C.MINUS), rx(t[3])]
-        tab.append(r)
-    table = htable(["Setting", "P-B all rows − as shipped", "P-B 8-16K − as shipped", "Time to first token vs as shipped, median of 8 "
-                    "cells (range)", "Decode vs as shipped, median of 8 cells"], tab) + \
-        '<p class="sign">Band: none. CuteAFD repeats are byte-identical, so its own run-to-run spread is 0. Source: <code>f1/F1-RESULTS.json</code>.</p>'
-    return C.figure(fid, "K3.25: CuteAFD's FP8 switches against CuteAFD as shipped (reference: CuteAFD as shipped)",
-                    "How far each switch moves CuteAFD towards (left) or away from (right) the BF16 model, paired on the same "
-                    "positions; the orange line is CuteAFD as shipped, which is bit-deterministic, so there is no noise band.",
-                    [(s, spec_band("P-B, fidelity panel, generated positions", T["pb"]["scored"]["selected_positions_total"],
-                                   T["pb"]["scored"]["windows_with_selected_positions"], T["pb"]["scored"]["context"],
-                                   REF["k325"]["pb"][0], REF["k325"]["pb"][1]), None)],
-                    "If you run CuteAFD on K3.25 and want it closer to BF16, look for long rows to the left with solid intervals: at "
-                    f"8-16K W8A16 prefill ({sg(P['f1c']['8-16K']['vs_C1']['kl'][0])}) and all three ({sg(P['f1d']['8-16K']['vs_C1']['kl'][0])}) "
-                    f"move it most; the head switch is resolved but small ({sg(P['f1b']['8-16K']['vs_C1']['kl'][0])}). Read their cost in the "
-                    "settings map below.",
-                    table, [("c", "CuteAFD setting (all serve on 2x RTX with K3.25)"), ("refc", "CuteAFD as shipped"),
-                            ("ci", "95% interval excludes 0 (resolved)"), ("ciu", "includes 0 (not resolved)")])
+        if a in m3: after = t(d[("8-16K", "kl", m3[a])])
+        else: after = (t(P[a]["8-16K"]["vs_vllm_mean"]["kl"]) + '<br><span class="ci">against the mean of the first two vLLM runs only '
+                       f'(as shipped reads {sg(P["C1"]["8-16K"]["vs_vllm_mean"]["kl"][0])} there)</span>')
+        s = spd[a]
+        rows.append([F1_NAME[a], cfg(F1_ENV[a]), "yes", after, t(P[a]["8-16K"]["vs_C1"]["kl"]), "not scored",
+                     f"{pct1(s[0])} ({pct1(s[1])} to {pct1(s[2])})", f"{rx(s[3])} median" + (f", worst cell {rx(s[4])}" if a == "f1d" else ""), src("F1")])
+    sh = S["shipped"]
+    rows.append(["<b>K4</b>: as shipped", cfg("MAX_CONTEXT_TOKENS=262144"), "yes", t(sh["pb8_v"]), "", t(sh["pa_v"]), "", "", src("Block Q")])
+    for a, lab, env, fu, fits in K4ARMS:
+        s = S[a]; sp = sp4.get(a)
+        tt = (f"{pct1(sp[0])} ({pct1(sp[1])} to {pct1(sp[2])})" if sp else ("not measured (stored scale values only)" if fits else "not measured (does not fit)"))
+        dec = (f"level ({sp[3]:.2f}-{sp[4]:.2f}x per cell)" if sp else "")
+        rows.append([lab, cfg(env), "yes" if fits else "<b>no</b>", t(s["pb8_v"]), t(s["pb8_c"]) if s.get("pb8_c") else "",
+                     t(s["pa_v"]) if s.get("pa_v") else "", tt, dec, src(fu)])
+    v = S["nospec"]
+    rows.append(["Control: drafter off (validation, not a setting)", cfg("SPECULATOR=off"), "scoring only", t(v["pb8_v"]), "0 (rows byte-identical)",
+                 t(v["pa_v"]), "", "", src("F1-K4b")])
+    return htable(["Setting", "Config lines (added to the serving config)", "Serves on 2x RTX?", "Long code (8-16K): CuteAFD − vLLM fork",
+                   "Change against as shipped (paired)", "Teacher panel (P-A): CuteAFD − vLLM fork", "First token against as shipped",
+                   "Decode against as shipped", "Source"], rows, cls="cfg")
 
 
-def fig_map_k325(F, fid="map-k325"):
-    P = F["f1"]["precision"]; spd = f1_speed(F)
-    lab = {"C1": "as shipped", "f1a": "KDA BF16", "f1b": "head BF16", "f1c": "W8A16 prefill", "f1d": "all three"}
+def fig_map_k325(F):
+    P = F["f1"]["precision"]; spd = f1_speed()
+    lab = {"C1": "as shipped", "f1a": "BF16 KDA", "f1b": "BF16 head", "f1c": "W8A16 prefill", "f1d": "all three"}
     pts, tab = [], []
     for a in ("C1", "f1a", "f1b", "f1c", "f1d"):
         v = P[a]["8-16K"]["vs_vllm_mean"]["kl"]
-        t = spd.get(a, (1.0, 1.0, 1.0, 1.0))
+        t = spd.get(a, (1.0, 1.0, 1.0, 1.0, 1.0))
         dec = f" · decode {rx(t[3])}" if a != "C1" else ""
-        pts.append({"label": lab[a] + dec, "x": 100 * (t[0] - 1), "y": v[0], "lo": v[1], "hi": v[2],
-                    "title": f"{lab[a]}: first token {100 * (t[0] - 1):+.1f}% vs as shipped, decode {rx(t[3])}; still {sg(v[0])} "
+        pts.append({"label": lab[a] + dec, "x": 100 * (t[0] - 1), "y": v[0], "lo": v[1], "hi": v[2], "shipped": a == "C1",
+                    "title": f"{lab[a]}: first token {100 * (t[0] - 1):+.1f}% against as shipped, decode {rx(t[3])}; still {sg(v[0])} "
                              f"{cit(v[1], v[2])} KL from the vLLM fork at 8-16K"})
-        tab.append([lab[a], f"{100 * (t[0] - 1):+.1f}%".replace("-", C.MINUS) if a != "C1" else "0 (reference)",
-                    rx(t[3]) if a != "C1" else "1.00x (reference)", f"{sg(v[0])} {cit(v[1], v[2])}"])
-    c1 = P["C1"]["8-16K"]["vs_vllm_mean"]["kl"][0]; c = P["f1c"]["8-16K"]["vs_vllm_mean"]["kl"][0]; dd = P["f1d"]["8-16K"]["vs_vllm_mean"]["kl"]
+        tab.append([lab[a], pct1(t[0]) if a != "C1" else "0 (reference)", rx(t[3]) if a != "C1" else "1.00x (reference)", f"{sg(v[0])} {cit(v[1], v[2])}"])
+    c1 = P["C1"]["8-16K"]["vs_vllm_mean"]["kl"][0]
     s = C.settings_map(pts, aria="Settings map K3.25: first-token cost against the remaining difference from the vLLM fork",
-                       shipped_y=c1, xlabel="time to first token, % change vs CuteAFD as shipped (median of 8 cells)",
-                       ylabel="KL difference from the vLLM fork, P-B 8-16K (long code)")
-    m3 = lambda a: F["d"][("8-16K", "kl", a)][0]
-    cap = (f"W8A16 prefill: about {100 * (c1 - c) / c1:.0f}% of the long-code difference closed ({sg(c1)} → {sg(c)}; against "
-           f"all three vLLM runs {sg(m3('C1'))} → {sg(m3('F1c'))}, about {100 * (m3('C1') - m3('F1c')) / m3('C1'):.0f}%) for about "
-           f"{100 * (spd['f1c'][0] - 1):.0f}% longer time to first token, decode level ({rx(spd['f1c'][3])}). All three switches leave no "
-           f"resolved difference ({sg(dd[0])} {cit(dd[1], dd[2])}) but cost decode speed ({rx(spd['f1d'][3])} median, worst cell "
-           f"{rx(min(v['decode_tok_s_per_stream_median'] for v in F['f1']['speed']['f1d'].values()))}); the KDA and head switches cost "
-           f"decode speed ({rx(spd['f1a'][3])}, {rx(spd['f1b'][3])}) for less. All five serve on 2x RTX with K3.25.")
-    table = htable(["Setting", "Time to first token vs as shipped", "Decode vs as shipped", "Remaining KL difference from the vLLM fork, 8-16K"], tab) + \
-        ('<p class="sign">Difference from the vLLM fork: against the mean of its first two runs, as follow-up F1 publishes it '
-         '(<code>f1/F1-RESULTS.json</code>; the three-run mean gives as shipped +0.0054, W8A16 +0.0022, all three +0.0016). '
-         'Speed: each arm ÷ the F1 base launch, Block T driver subset (1K/8K input, 1 and 8 streams, code and prose). No interval '
-         'is published for the speed ratios.</p>')
-    return C.figure(fid, "K3.25 settings map: what each CuteAFD setting costs and what it closes",
-                    "Each triangle is one CuteAFD setting: across, its time-to-first-token cost against as shipped; up and down, how "
-                    "far it still is from the vLLM fork on long code reading (8-16K), with its 95% interval.",
+                       shipped_y=c1, xlabel="time to first token, % change against CuteAFD as shipped (median of 8 cells)",
+                       ylabel="coarse KL difference from the vLLM fork (mean of its first two runs), P-B 8-16K")
+    table = htable(["Setting", "First token against as shipped", "Decode against as shipped", "Remaining difference from the vLLM fork, 8-16K"], tab) + \
+        ('<p class="sign">Here the vLLM reference is the mean of its first two runs, as follow-up F1 publishes it '
+         f'({gh(f"{RD}/f1/F1-RESULTS.json", "<code>f1/F1-RESULTS.json</code>")}); the settings table above gives the three-run figures. '
+         'Speed: each arm ÷ the F1 base launch over the 8 cells of the speed subset; no interval is published for the speed ratios.</p>')
+    return C.figure("map-k325", "K3.25 settings map: first-token cost against the remaining long-code difference (lower is closer to the vLLM fork)",
+                    "Each triangle is one CuteAFD setting: across, its first-token cost against as shipped; up and down, how far it still "
+                    "is from the vLLM fork on long code reading, here against the mean of its first two runs (follow-up F1's reference).",
                     [(s, spec_band("P-B 8-16K, long code reading", pb_band(F["T"], "8-16K")["positions"], clusters_816("k325"),
                                    pb_band(F["T"], "8-16K")["context"], REF["k325"]["pb"][0], REF["k325"]["pb"][1]), None)],
-                    "Points near the bottom-left close the most for the least: pick the lowest point whose cost you accept. "
-                    "Decode cost is in each label because on K3.25 it is not level for every switch.",
+                    "Points low and to the left close the most for the least first-token time; decode cost is in each label, because on "
+                    "K3.25 it is not level for every switch.",
                     table, [("c", "CuteAFD setting (serves on 2x RTX)"), ("refdv", "vLLM fork (0)"), ("refdc", "CuteAFD as shipped"),
-                            ("ci", "interval excludes 0: still differs from the vLLM fork"), ("ciu", "includes 0: not resolved from it")],
-                    caption=cap)
+                            ("ci", "interval excludes 0"), ("ciu", "includes 0")])
 
 
-K4ARMS = [  # (key, label, env, source, hollow)
-    ("f1c", "W8A16 prefill", "GLM5_FLASH_FP8_PREFILL=off", "F1-K4", False),
-    ("amax", "Scale rule amax", "FP8_SCALES=amax", "F1-K4b", False),
-    ("best", "Scale rule best", "FP8_SCALES=best", "F1-K4b", False),
-    ("w16amax", "W8A16 + amax", "PREFILL=off + SCALES=amax", "K4c", False),
-    ("w16best", "W8A16 + best", "PREFILL=off + SCALES=best", "K4d", False),
-    ("head16", "Output head BF16", "GLM5_FLASH_FP8_HEAD=off", "F1-K4b", True),
-    ("kda16", "KDA projections BF16", "GLM5_FLASH_KDA_FP8=off", "F1-K4b", True),
-    ("all16", "Every switch", "best + KDA + head BF16 + W8A16", "F1-K4b", True)]
-
-
-def k4_settings(K):
-    """{arm: {'pa_c', 'pb8_c', 'pb8_v', 'pa_v', 'pb_v': (diff, lo, hi) or None}} from the published follow-up summaries."""
-    f = R4D / "f1k4"
-    b = B.load(f / "score-b" / "f1b-summary.json"); c = B.load(f / "score-c" / "f1c2-summary.json"); d = B.load(f / "score-d" / "f1d2-summary.json")
-    t = lambda x: (x["diff"], x["ci95"][0], x["ci95"][1]) if x else None
-    p = lambda x: (x["B_minus_A"], x["ci95"][0], x["ci95"][1])
-    F1 = K["f1"]; dd = F1["f1c-minus-c1"]
-    out = {"shipped": {"pa_v": p(K["pa"]["paired"]["C-r1-Vmean"]["kl_e20"]), "pb_v": p(K["pb"]["paired"]["C-r1-Vmean"]["gen"]["kl_pb20"]),
-                       "pb8_v": p(K["pb"]["paired"]["C-r1-Vmean"]["gen 8-16K"]["kl_pb20"])},
-           "f1c": {"pa_c": t(dd["P-A kl_e20"]), "pb8_c": t(dd["P-B gen 8-16K kl_pb20"]), "pa_v": p(F1["pa20"]["paired"]["C-f1c-Vmean"]["kl_e20"]),
-                   "pb_v": p(F1["pb20"]["paired"]["C-f1c-Vmean"]["gen"]["kl_pb20"]), "pb8_v": p(F1["pb20"]["paired"]["C-f1c-Vmean"]["gen 8-16K"]["kl_pb20"])}}
-    for a in ("amax", "best", "head16", "kda16", "all16", "nospec"):
-        s = b[f"C-{a}"]; out[a] = {k: t(s.get(k)) for k in ("pa_c", "pb8_c", "pa_v", "pb_v", "pb8_v")}
-    s = c["C-w16amax"]; out["w16amax"] = {k: t(s.get(k)) for k in ("pa_c", "pb8_c", "pa_v", "pb_v", "pb8_v")}
-    s = d["C-w16best"]; out["w16best"] = {k: t(s.get(k)) for k in ("pa_c", "pb8_c", "pa_v", "pb_v", "pb8_v")}
-    return out
-
-
-def clusters_816(run, K=None):
-    """Windows behind the P-B 8-16K bucket (the paired comparison's clusters)."""
-    if run == "k4": return K["pb"]["paired"]["C-r1-Vmean"]["gen 8-16K"]["clusters"]
-    return B.load(D / "q/pb/pb-pair-V1-C1.json")["gen"]["by_bucket"]["8-16K"]["clusters"]
-
-
-def k4_setting_speed():
-    """Per content cell: median per request; arm ÷ the mean of its two bracketing as-shipped launches (the method of the
-    F1-K4 speed table in results/<k4>/README.md). Returns {arm: (ttft median, min, max, decode min, decode max, cells)}."""
-    import statistics as st
-    def cells(n):
-        out = {}
-        for bt in B.load(R4D / "f1k4" / "t" / f"{n}.json")["batches"]:
-            if bt["kind"] != "measured": continue
-            for g in bt["groups"]:
-                for r in g:
-                    c = out.setdefault((bt["length"], bt["level"], bt["content"]), {"d": [], "t": []})
-                    c["d"].append(r["decode_tok_s"]); c["t"].append(r["ttft_s"])
-        return {k: (st.median(v["d"]), st.median(v["t"])) for k, v in out.items()}
-    res = {}
-    for arm, f, b1, b2 in (("f1c", "C-f1c", "C-base1", "C-base2"), ("w16amax", "C-c-w16amax", "C-c-base1", "C-c-base2"),
-                           ("w16best", "C-d-w16best", "C-d-base1", "C-d-base2")):
-        A, X1, X2 = cells(f), cells(b1), cells(b2)
-        tt = [A[k][1] / ((X1[k][1] + X2[k][1]) / 2) for k in sorted(A)]
-        de = [A[k][0] / ((X1[k][0] + X2[k][0]) / 2) for k in sorted(A)]
-        res[arm] = (st.median(tt), min(tt), max(tt), min(de), max(de), len(tt))
-    return res
-
-
-def fig_settings_k4(K, fid="settings-k4"):
-    S = k4_settings(K); T = K["T"]
-    panels = []
-    for key, sec in (("pa_c", "P-A, KL20 from the BF16 teacher"), ("pb8_c", "P-B 8-16K, KL_pb20 (long code reading, the most sensitive slice)")):
-        rows = []; panels.append((sec, rows))
-        for a, lab, env, src, hol in K4ARMS:
-            v = S[a].get(key)
-            if v is None:
-                rows.append({"label": lab, "sub": env, "est": None, "value": "not published", "hollow": hol,
-                             "title": f"{lab}: no {sec} difference against as shipped is published ({src})"}); continue
-            rows.append(frow(lab, *v, None, f"{lab} ({env}), {sec}: {sg(v[0])} {cit(v[1], v[2])} against CuteAFD as shipped ({src})"
-                             + ("; does not fit a serving launch on 2x RTX with K4" if hol else ""), sub=env, hollow=hol))
-        v = S["nospec"][key]
-        rows.append({"label": "Control: drafter removed", "sub": "validation row, identical rows", "est": v[0], "lo": v[1], "hi": v[2],
-                     "who": "c", "hollow": False, "muted": True, "resolved": False, "value": f"{sg(v[0])} (validation)",
-                     "title": "Control arm nospec (validation, not a setting): the as-shipped scoring launch without the drafter; raw-logit "
-                              "row hashes identical to as shipped on every scored row, so drafter-off launches measure only their switch"})
-    svgs = [C.forest(rows, ref="CuteAFD as shipped", ref_who="c", left="closer to BF16", right="further from BF16",
-                     aria=f"CuteAFD settings against CuteAFD as shipped, K4: {sec}") for sec, rows in panels]
-    tab = []
-    for a, lab, env, src, hol in K4ARMS + [("nospec", "Control: drafter removed (validation)", "SPECULATOR=off", "F1-K4b", True)]:
-        f = lambda k: f"{sg(S[a][k][0])} {cit(*S[a][k][1:])}" if S[a].get(k) else "not published"
-        tab.append([f"{lab}<br><span class=\"ci\">{E(env)}</span>", f("pa_c"), f("pb8_c"), "no" if hol and a != "nospec" else ("scoring control" if a == "nospec" else "yes"), src])
-    table = htable(["Setting", "P-A KL20 − as shipped", "P-B 8-16K − as shipped", "Serves on 2x RTX with K4", "Follow-up"], tab) + \
-        ('<p class="sign">Sources: <code>f1k4/score/f1c-minus-c1.json</code> (W8A16), <code>f1k4/score-b/f1b-summary.json</code> '
-         '(amax, best, head, KDA, every switch, control), <code>f1k4/score-c/f1c2-summary.json</code> (W8A16 + amax), '
-         '<code>f1k4/score-d/f1d2-summary.json</code> (W8A16 + best; it publishes no P-A difference against as shipped). '
-         'Band: none, CuteAFD repeats are byte-identical. Intervals: window-cluster bootstrap; each summary file draws its own.</p>')
-    return C.figure(fid, "K4: CuteAFD settings against CuteAFD as shipped (reference: CuteAFD as shipped; top-20 measures)",
-                    "How far each CuteAFD setting moves it towards (left) or away from (right) BF16 on K4, paired on the same "
-                    "positions, one panel per measure; hollow triangles do not fit a serving launch on 2x RTX with K4 and were measured on scoring launches.",
-                    [(svgs[0], strip(T, "k4", "pa"), panels[0][0]),
-                     (svgs[1], spec_band("P-B 8-16K, long code reading", pb_band(T, "8-16K")["positions"], clusters_816("k4", K),
-                                         pb_band(T, "8-16K")["context"], REF["k4"]["pb"][0], REF["k4"]["pb"][1]), panels[1][0])],
-                    "If you serve K4 on 2x RTX, compare only the filled triangles: W8A16 + amax moves the long-code row the most "
-                    "among them. The hollow ones show what more memory (larger GPUs) would buy.",
-                    table, LG_SET + [("refc", "CuteAFD as shipped")])
-
-
-def fig_map_k4(K, fid="map-k4"):
+def fig_map_k4(K):
     S = k4_settings(K); spd = k4_setting_speed()
-    lab = {"shipped": "as shipped", "f1c": "W8A16", "amax": "amax", "best": "best", "w16amax": "W8A16 + amax", "w16best": "W8A16 + best",
-           "head16": "head BF16", "kda16": "KDA BF16", "all16": "every switch"}
-    hol = {a: h for a, _, _, _, h in K4ARMS}
+    lab = {"shipped": "as shipped", "f1c": "W8A16", "amax": "amax rule", "best": "best rule", "w16amax": "W8A16 + amax rule",
+           "w16best": "W8A16 + best rule", "head16": "BF16 head", "kda16": "BF16 KDA", "all16": "every switch"}
+    fits = {a: f for a, _, _, _, f in K4ARMS}
     pts, tab = [], []
     for a in ("shipped", "f1c", "w16amax", "w16best", "amax", "best", "head16", "kda16", "all16"):
         v = S[a]["pb8_v"]; x = 0.0 if a == "shipped" else (100 * (spd[a][0] - 1) if a in spd else None)
-        pts.append({"label": lab[a], "x": x, "y": v[0], "lo": v[1], "hi": v[2], "hollow": hol.get(a, False),
-                    "title": f"{lab[a]}: " + (f"first token {x:+.1f}% vs as shipped; " if x is not None else "speed not measured; ")
-                             + f"still {sg(v[0])} {cit(v[1], v[2])} KL_pb20 from the vLLM fork at 8-16K"
-                             + ("; does not fit a serving launch on 2x RTX" if hol.get(a) else "")})
+        hol = not fits.get(a, True)
+        pts.append({"label": lab[a], "x": x, "y": v[0], "lo": v[1], "hi": v[2], "hollow": hol, "shipped": a == "shipped",
+                    "title": f"{lab[a]}: " + (f"first token {x:+.1f}% against as shipped; " if x is not None else "speed not measured; ")
+                             + f"still {sg(v[0])} {cit(v[1], v[2])} KL_pb20 from the vLLM fork at 8-16K" + ("; does not fit 2x RTX" if hol else "")})
         sp = spd.get(a)
-        tab.append([lab[a], ("0 (reference)" if a == "shipped" else (f"{100 * (sp[0] - 1):+.1f}% ({100 * (sp[1] - 1):+.1f} to {100 * (sp[2] - 1):+.1f}%)"
-                    if sp else "not measured")).replace("-", C.MINUS),
+        tab.append([lab[a], "0 (reference)" if a == "shipped" else (f"{pct1(sp[0])} ({pct1(sp[1])} to {pct1(sp[2])})" if sp else "not measured"),
                     "1.00x (reference)" if a == "shipped" else (f"{sp[3]:.2f}-{sp[4]:.2f}x per cell" if sp else "not measured"),
-                    f"{sg(v[0])} {cit(v[1], v[2])}", "no" if hol.get(a) else "yes"])
-    sh = S["shipped"]["pb8_v"][0]; w = S["w16amax"]["pb8_v"][0]
-    s = C.settings_map(pts, aria="Settings map K4: first-token cost against the remaining difference from the vLLM fork", shipped_y=sh,
-                       xlabel="time to first token, % change vs CuteAFD as shipped (median of 8 cells)",
+                    f"{sg(v[0])} {cit(v[1], v[2])}", "no" if hol else "yes"])
+    s = C.settings_map(pts, aria="Settings map K4: first-token cost against the remaining difference from the vLLM fork",
+                       shipped_y=S["shipped"]["pb8_v"][0], xlabel="time to first token, % change against CuteAFD as shipped (median of 8 cells)",
                        ylabel="KL_pb20 difference from the vLLM fork, P-B 8-16K (long code)", gutter="speed not measured")
-    cap = (f"W8A16 + amax: about two thirds ({100 * (sh - w) / sh:.0f}%) of the long-code difference closed ({sg(sh)} → {sg(w)}) "
-           f"for about {100 * (spd['w16amax'][0] - 1):.0f}% longer time to first token, with decode level; it still differs from the "
-           f"vLLM fork. W8A16 + best closes less ({sg(S['w16best']['pb8_v'][0])}). The BF16 options close less than W8A16 + amax "
-           f"on their own and do not fit a serving launch on 2x RTX; every switch together ({sg(S['all16']['pb8_v'][0])}) does not "
-           "fit either. The scale rules alone change stored values only; their speed was not measured.")
-    table = htable(["Setting", "Time to first token vs as shipped, median of cells (range)", "Decode vs as shipped", "Remaining KL_pb20 difference from the vLLM fork, 8-16K", "Serves on 2x RTX"], tab) + \
-        ('<p class="sign">Speed: per content cell (1K and 32K input, 1 and 4 streams, code and prose; 8 requests each), the median '
-         'per request, divided by the mean of the two as-shipped launches run before and after the setting: the method of the '
-         'F1-K4 speed table. <code>f1k4/RESULTS-F1K4b.md</code> reports +4.1-4.3% (W8A16 + amax) and +4% (W8A16 + best) by its own '
-         'aggregation. Decode stayed inside the base-to-base band for all three measured settings. No interval is published for '
-         'the speed ratios.</p>')
-    return C.figure(fid, "K4 settings map: what each CuteAFD setting costs and what it closes",
-                    "Each triangle is one CuteAFD setting on K4: across, its time-to-first-token cost against as shipped; up and down, "
-                    "how far it still is from the vLLM fork on long code reading (8-16K), with its 95% interval. Decode speed is level "
-                    "for every setting whose speed was measured.",
+    table = htable(["Setting", "First token against as shipped (range over cells)", "Decode against as shipped", "Remaining difference from the vLLM fork, 8-16K",
+                    "Serves on 2x RTX"], tab) + \
+        ('<p class="sign">Speed: per content cell (1K and 32K prompts, 1 and 4 streams, code and prose; 8 requests each), the median per '
+         'request divided by the mean of the as-shipped launches run before and after the setting. Decode stayed inside the '
+         'base-to-base band for every measured setting. No interval is published for the speed ratios.</p>')
+    return C.figure("map-k4", "K4 settings map: first-token cost against the remaining long-code difference (lower is closer to the vLLM fork)",
+                    "The same map for K4: filled triangles serve on two RTX PRO 6000s, hollow ones need more GPU memory; scale rules and "
+                    "settings that do not fit have no measured speed and sit in the right-hand column.",
                     [(s, spec_band("P-B 8-16K, long code reading", pb_band(K["T"], "8-16K")["positions"], clusters_816("k4", K),
                                    pb_band(K["T"], "8-16K")["context"], REF["k4"]["pb"][0], REF["k4"]["pb"][1]), None)],
-                    "On 2x RTX, read the filled triangles: the lowest one is the closest-to-vLLM setting that serves, and its "
-                    "position across is what it costs at the first token. Hollow ones need more GPU memory.",
-                    table, [("c", "serves on 2x RTX"), ("ch", "does not fit a serving launch on 2x RTX"), ("gut", "speed not measured"),
-                            ("refdv", "vLLM fork (0)"), ("refdc", "CuteAFD as shipped"), ("ci", "interval excludes 0"), ("ciu", "includes 0")],
-                    caption=cap)
+                    "On two RTX GPUs, read the filled triangles: the lowest is the closest-to-vLLM setting that serves, and its position "
+                    "across is its first-token cost.",
+                    table, [("c", "serves on 2x RTX"), ("ch", "does not fit 2x RTX"), ("gut", "speed not measured"), ("refdv", "vLLM fork (0)"),
+                            ("refdc", "CuteAFD as shipped"), ("ci", "interval excludes 0"), ("ciu", "includes 0")])
 
 
-# ---- precision: tails and position
-
-def rows_csv(path, select, cols):
-    import csv
-    with open(path, newline="") as f:
-        out = {c: [] for c in cols}
-        for r in csv.DictReader(f):
-            if not select(r): continue
-            for c in cols:
-                if r[c] != "": out[c].append(float(r[c]))
-    return {c: sorted(v) for c, v in out.items()}
-
-
-QM = (("kl_p50", 0.5), ("kl_p90", 0.1), ("kl_p99", 0.01), ("kl_p99.9", 0.001))
-
-
-def qmarks(s, name):
-    return [(s[k], share, f"{name}: {100 * share:g}% of positions above KL {s[k]:.4g} ({k[3:]}, published)") for k, share in QM]
-
-
-TAILS = {  # run -> panel -> (csv columns per arm, arm keys in the tails file, select)
-    "k325": {"pa": ({"V1": "kl_V1", "V1r": "kl_V1r", "V2": "kl_V2", "C1": "kl_C1"}, lambda r: True),
-             "pb": ({"V1": "kl_V1", "V1r": "kl_V1r", "V2": "kl_V2", "C1": "kl_C1"}, lambda r: r["role"] == "gen")},
-    "k4": {"pa": ({"Vr1": "kl20_Vr1", "Vr2": "kl20_Vr2", "Cr1": "kl20_Cr1"}, lambda r: True),
-           "pb": ({"Vr1": "klpb20_Vr1", "Vr1b": "klpb20_Vr1b", "Vr2": "klpb20_Vr2", "Cr1": "klpb20_Cr1"}, lambda r: r["role"] == "gen")}}
-NAMES = {"V1": "vLLM V1", "V1r": "vLLM V1r", "V2": "vLLM V2", "C1": "CuteAFD", "Vr1": "vLLM launch 1", "Vr1b": "vLLM launch 1 repeat",
-         "Vr2": "vLLM launch 2", "Cr1": "CuteAFD"}
-
-
-def fig_tails(run, key, T, rows_dir, fid, metric, tables):
-    cols, sel = TAILS[run][key]
-    vals = rows_csv(rows_dir / ("pa-rows.csv" if key == "pa" else "pb-rows.csv"), sel, list(cols.values()))
-    P = T[key]; arms = P["arms"]
-    vs = [a for a in cols if a.startswith("V")]; ca = [a for a in cols if a.startswith("C")][0]
-    series = [{"name": NAMES[a], "who": "v", "values": vals[cols[a]], "thin": i > 0, "label": f"vLLM fork ({len(vs)} runs)" if i == 0 else None,
-               "marks": qmarks(arms[a], NAMES[a]) if i == 0 else []} for i, a in enumerate(vs)]
-    series.append({"name": "CuteAFD", "who": "c", "values": vals[cols[ca]], "label": "CuteAFD", "marks": qmarks(arms[ca], "CuteAFD")})
-    ex = C.exceedance(series, aria=f"Exceedance of per-position {metric}, panel {key.upper()}, {run}", xlabel=f"per-position {metric} (log scale)")
-    bands = P["by_position"]
-    cats = [(b["band"].replace("rows ", "rows "), f"history {num(b['context']['min'])}-{num(b['context']['max'])}") for b in bands]
-    vmean_ = lambda b: sum(b["arms"][a]["kl_mean"] for a in vs) / len(vs)
-    prof = C.profile(cats, [{"name": "vLLM", "who": "v", "values": [vmean_(b) for b in bands],
-                             "titles": [f"vLLM fork (mean of {len(vs)} runs), {b['band']}, history {hist(b['context'])}: mean {metric} {vmean_(b):.4f}" for b in bands]},
-                            {"name": "CuteAFD", "who": "c", "values": [b["arms"][ca]["kl_mean"] for b in bands],
-                             "titles": [f"CuteAFD, {b['band']}, history {hist(b['context'])}: mean {metric} {b['arms'][ca]['kl_mean']:.4f}" for b in bands]}],
-                     aria=f"Mean {metric} by history, panel {key.upper()}, {run}", ylabel=f"mean {metric} per position band")
-    v0 = vs[0]
-    conc = C.concentration([(f"Top {p}% of positions", [("v", arms[v0][f"kl_share_top{p}pct"], f"{NAMES[v0]}: the top {p}% of positions carry "
-                                                         f"{100 * arms[v0][f'kl_share_top{p}pct']:.1f}% of its total {metric}"),
-                                                        ("c", arms[ca][f"kl_share_top{p}pct"], f"CuteAFD: the top {p}% of positions carry "
-                                                         f"{100 * arms[ca][f'kl_share_top{p}pct']:.1f}% of its total {metric}")]) for p in (1, 5, 10)],
-                           aria=f"Concentration of {metric} in the highest positions, panel {key.upper()}, {run}")
-    sp = strip(T, run, key)
-    title = {"pa": "P-A", "pb": "P-B"}[key]
-    return C.figure(fid, f"{title} tails and position ({'K3.25' if run == 'k325' else 'K4, top-20'}): {metric}",
-                    f"Three views of the same {P['scored']['selected_positions_total']:,} per-position scores: how often a position's "
-                    f"{metric} exceeds a value (curves; marks at the published p50, p90, p99 and p99.9), how the mean changes with the "
-                    f"history behind a position, and how much of the total the highest positions carry.",
-                    [(ex, sp, "Share of positions above a KL"), (prof, None, "Mean KL by history"), (conc, None, "Concentration: share of the total KL in the top positions")],
-                    "If the curves run together, the engines differ in the bulk of positions, not in a few outliers; if CuteAFD's "
-                    "curve sits right of the vLLM fork's in the tail, rare large disagreements drive its mean. A panel's mean depends "
-                    "on which positions it scores, so compare engines within a panel.",
-                    tables, [("lnv", "vLLM fork (each run; marks on the first)"), ("lnc", "CuteAFD"), ("v", "published quantile, vLLM"),
-                             ("c", "published quantile, CuteAFD")])
+def k4e_section(K):
+    E4 = B.k4e_data()
+    if not E4:
+        return ('<p class="slot" id="k4e"><b>K4e</b> (W8A16 prefill + amax scale rule on K4 under the full speed grid and long '
+                'output): running on 2026-10-28; results will be added.</p>')
+    T = E4["T"]
+    cw = B.t_request_cells(R4D / "f1k4" / "t" / "C-w16amax-r1.json")
+    cc = B.t_request_cells(R4D / "t" / "C-r1.json"); cv = B.t_request_cells(R4D / "t" / "V-r1.json")
+    b1 = B.t_request_cells(R4D / "f1k4" / "t" / "C-e-base1.json"); b2 = B.t_request_cells(R4D / "f1k4" / "t" / "C-e-base2.json")
+    d1 = B.t_request_cells(R4D / "t" / "C-d1.json")
+    band = max([0.08] + [abs(b2[k][0] / b1[k][0] - 1) for k in b1 if k in b2])     # FOLLOWUPS-K4e.md: max(8%, base-to-base)
+    state = [b[k][0] / d1[k][0] for b in (b1, b2) for k in b if k in d1]
+    changed = any(abs(r - 1) > band for r in state)
+    rows = []
+    for k in sorted(cw):
+        rows.append([f"{k[0] // 1024}K × {k[1]}, {k[2]}", f"{cv[k][0]:.1f}" if k in cv else "", f"{cc[k][0]:.1f}" if k in cc else "", f"{cw[k][0]:.1f}",
+                     f"{cv[k][1]:.2f}" if k in cv else "", f"{cc[k][1]:.2f}" if k in cc else "", f"{cw[k][1]:.2f}"])
+    tt = htable(["Cell (prompt × streams, content)", "Decode tok/s: vLLM fork", "CuteAFD as shipped", "W8A16 + amax",
+                 "First token s: vLLM fork", "CuteAFD as shipped", "W8A16 + amax"], rows)
+    lrows = []
+    A = E4["analysis"]; L4 = B.k4_l_summaries()
+    for s_ in ("L1", "L2", "L3", "L3s"):
+        reqs = [r for stg in E4["L"][s_]["stages"] for r in stg["requests"]]
+        for c in ("prose", "code", "reasoning", "json"):
+            rr = [r for r in reqs if r["content"] == c]
+            if not rr: continue
+            stop = sum(r["finish_reason"] == "stop" for r in rr); cap = sum(bool(r.get("hit_cap")) for r in rr)
+            chk = B.l_check(A[("C-w16amax-r1", s_, c)]) if A and ("C-w16amax-r1", s_, c) in A else "analysis pending"
+            v, u = L4.get(("V", s_, c)), L4.get(("C", s_, c))
+            ref = lambda x: f"{x['stop']} / {x['cap']}, {x['completion_tokens_median']:,.0f}, {B.l_check(x)}" if x else ""
+            lrows.append([s_, c, str(len(rr)), ref(v), ref(u), f"{stop} / {cap}, {st.median(r['completion_tokens'] for r in rr):,.0f}, {chk}",
+                          f"{st.median(r['decode_tok_s'] for r in rr):.1f}"])
+    lt = htable(["Stage", "Content", "Requests", "vLLM fork: finished / at cap, median tokens, check", "CuteAFD as shipped: the same",
+                 "W8A16 + amax: the same", "W8A16 + amax: median decode tok/s"], lrows)
+    note = (f"<b>Machine state changed</b> between this session and the main run (an as-shipped drift cell moved by more than the "
+            f"±{100 * band:.0f}% band), so read only the within-session comparison." if changed else
+            f"The as-shipped drift subsets before and after stayed within the ±{100 * band:.0f}% band of the main run's drift cells, so "
+            "the columns compare directly.")
+    return (h2("k4e", "W8A16 prefill + amax scale rule as a deployment (follow-up K4e)") +
+            f'<p class="plain">CuteAFD with W8A16 prefill and the amax scale rule on K4, through the full speed grid and the four long-output '
+            f'stages (declared before any request: {gh(f"{R4}/f1k4/FOLLOWUPS-K4e.md", "<code>FOLLOWUPS-K4e.md</code>")}). {note} Per cell: the '
+            'median over every measured request. Descriptive: one run; read speed against the K4 noise band.</p>' + tt + lt)
 
 
-def fig_q2_tails(run, T, rows_dir, fid, metric):
-    P = T["q2"]
-    if run == "k325":
-        cols = {"between": ("kl_C1_V1", "KL(C1 || V1)"), "within": ("kl_V1_V1r", "KL(V1 || V1r)")}
-        bt = [("KL(C1 || V1)", "kl_C1_V1", "CuteAFD vs vLLM")]; wt = ("KL(V1 || V1r)", "kl_V1_V1r", "vLLM vs its repeat")
-    else:
-        bt = [("KL20n(V-r1 || C-r1)", "kl20n_Vr1_Cr1", "CuteAFD vs vLLM launch 1"), ("KL20n(V-r2 || C-r1)", "kl20n_Vr2_Cr1", "CuteAFD vs vLLM launch 2")]
-        wt = ("KL20n(V-r1 || V-r2)", "kl20n_Vr1_Vr2", "vLLM launch 1 vs 2")
-    vals = rows_csv(rows_dir / "q2-rows.csv", lambda r: True, [c for _, c, _ in bt] + [wt[1]])
-    series = [{"name": wt[2], "who": "v", "values": vals[wt[1]], "label": wt[2], "marks": qmarks(P["within_engine"][wt[0]], wt[2])}]
-    for i, (k, c, nm) in enumerate(bt):
-        series.append({"name": nm, "who": "c", "values": vals[c], "label": nm, "thin": i > 0, "marks": qmarks(P["between_engines"][k], nm) if i == 0 else []})
-    ex = C.exceedance(series, aria=f"Exceedance of engine disagreement on Q2, {run}", xlabel=f"per-position {metric} between two runs (log scale)")
-    b0, w0 = P["between_engines"][bt[0][0]], P["within_engine"][wt[0]]
-    conc = C.concentration([(f"Top {p}% of positions", [("v", w0[f"kl_share_top{p}pct"], f"{wt[2]}: top {p}% carry {100 * w0[f'kl_share_top{p}pct']:.1f}%"),
-                                                        ("c", b0[f"kl_share_top{p}pct"], f"{bt[0][2]}: top {p}% carry {100 * b0[f'kl_share_top{p}pct']:.1f}%")]) for p in (1, 5, 10)],
-                           aria=f"Concentration of disagreement on Q2, {run}", names={"v": "vLLM vs itself", "c": "CuteAFD vs vLLM"})
-    rows = [[nm, f"{s['n']:,}", f"{s['kl_mean']:.4f}", f"{s['kl_p50']:.4f}", f"{s['kl_p90']:.3f}", f"{s['kl_p99']:.3f}", f"{s['kl_p99.9']:.2f}",
-             f"{s['kl_max']:.2f}", f"{100 * s['top1_agree']:.2f}%"] for nm, s in [(n, P["between_engines"][k]) for k, _, n in bt] + [(wt[2], w0)]]
-    table = htable(["Pair", "Positions", "Mean", "p50", "p90", "p99", "p99.9", "Max", "Top-1 agreement"], rows)
-    return C.figure(fid, f"Q2 disagreement ({'K3.25' if run == 'k325' else 'K4, top-20'}): CuteAFD against the vLLM fork, and the vLLM fork against itself",
-                    "There is no BF16 reference beyond 14K tokens, so Q2 compares the engines with each other: the orange curve is "
-                    "how far CuteAFD's next-token distribution is from the vLLM fork's, the blue curve how far the vLLM fork is from "
-                    f"its own repeat (the noise to compare against; it covers {w0['n']:,} of the {b0['n']:,} positions).",
-                    [(ex, spec_strip(T["q2"]["scored"], PANEL["q2"], "none (engine against engine)", f"{metric} between two runs (disagreement), nats",
-                                   SEL["q2"]), "Share of positions above a disagreement"), (conc, None, "Concentration of the disagreement")],
-                    "The gap between the two curves is the engine difference that is not run-to-run noise; it says nothing about "
-                    "which engine is closer to BF16 at these lengths.",
-                    table, [("lnv", "vLLM fork against its own repeat"), ("lnc", "CuteAFD against the vLLM fork"), ("v", "published quantile"), ("c", "published quantile")])
+def page_settings(F, K):
+    N = B.canon(); pb8, k8 = N["pb8"], N["k4_pb8"]; sp3 = N["sp_f1"]; sp4 = N["sp4"]
+    lede = (f"<p>CuteAFD has switches that trade a little speed, or GPU memory, for precision. On K3.25, W8A16 prefill closes about "
+            f"{100 * pb8['share_w16']:.0f}% of the long-code difference from the vLLM fork for about {100 * (sp3['f1c'][0] - 1):.0f}% longer "
+            f"time to first token; with all three switches no difference is resolved, at about {100 * (1 - sp3['f1d'][3]):.0f}% slower decode. "
+            f"On K4 on two RTX PRO 6000s, W8A16 prefill with the amax scale rule closes about two thirds for about "
+            f"{100 * (sp4['w16amax'][0] - 1):.0f}% longer first token, with decode level; the BF16 options do not fit there. Every setting "
+            "here was measured in a follow-up outside the frozen protocols.</p>")
+    body = (h2("all-settings", "Every setting tested") +
+            '<p class="sign">Long code: P-B 8-16K, CuteAFD − vLLM fork (K3.25 coarse KL; K4 KL_pb20, top-20), 95% interval. Change against as '
+            'shipped: the same positions, CuteAFD against itself (bit-deterministic, so no band). First token and decode: against an '
+            'as-shipped launch measured beside it. Settings marked "no" do not fit a serving launch on two RTX PRO 6000s with K4; their '
+            'precision comes from scoring launches.</p>' + settings_table(F, K) +
+            '<p class="sign">The share of the difference a setting closes is (as shipped − setting) ÷ as shipped against the vLLM fork: '
+            f'K3.25 W8A16 {100 * pb8["share_w16"]:.0f}%; K4 W8A16 {100 * k8["share_w16"]:.0f}%, W8A16 + amax {100 * k8["share_w16amax"]:.0f}% '
+            f'(about two thirds), W8A16 + best {100 * k8["share_w16best"]:.0f}%. Sources: {gh(f"{RD}/f1/RESULTS-F1.md", "<code>RESULTS-F1.md</code>")}, '
+            f'{gh(f"{R4}/f1k4/RESULTS-F1K4.md", "<code>RESULTS-F1K4.md</code>")}, {gh(f"{R4}/f1k4/RESULTS-F1K4b.md", "<code>RESULTS-F1K4b.md</code>")} '
+            '(K4b, K4c, K4d) and their summary JSON.</p>' +
+            h2("settings-map", "Settings map") + fig_map_k325(F) + fig_map_k4(K) + k4e_section(K))
+    page("settings.html", "Settings: what each CuteAFD setting buys", lede, body)
 
 
-# ---- throughput: speed-ratio forests (CuteAFD ÷ vLLM fork, log scale)
-
-def k325_cells():
-    rec = B.t_receipts(); cv, cc = B.t_cells(rec["V1"]), B.t_cells(rec["C1"])
-    out = {}
-    for k in cv:
-        if k not in cc: continue
-        g = lambda c, key: B.t_med(c, key, k)
-        out[k] = {"dec": (g(cv, "decode_tok_s_per_stream_median"), g(cc, "decode_tok_s_per_stream_median")),
-                  "agg": (g(cv, "aggregate_tok_s"), g(cc, "aggregate_tok_s")), "ttft": (g(cv, "ttft_median_s"), g(cc, "ttft_median_s"))}
-    return out
-
-
-def k4_cells(K):
-    import ast
-    out = {}
-    for k, c in K["tc"]["cells"].items():
-        L, content, lv = ast.literal_eval(k)
-        out[(L, content, lv)] = {"dec": (c["V"]["decode_med"], c["C"]["decode_med"]), "agg": (c["V"]["aggregate"], c["C"]["aggregate"]),
-                                 "ttft": (c["V"]["ttft_med"], c["C"]["ttft_med"]), "read": {"dec": c["C"]["decode_med_reading"], "agg": c["C"]["aggregate_reading"]},
-                                 "ratio": {"dec": c["C"]["decode_med_ratio_vs_V"], "agg": c["C"]["aggregate_ratio_vs_V"]}}
-    return out
-
+# ------------------------------------------------------------------ speed
 
 UNIT = {"dec": "tok/s per stream", "agg": "tok/s", "ttft": "s"}
 CN = {"json": "JSON"}
+SPEED = {"dec": ("Decode speed per stream", "slower", "faster"), "agg": ("Aggregate throughput", "fewer tokens/s", "more tokens/s"),
+         "ttft": ("Time to first token", "sooner", "later")}
 
 
 def speed_row(label, cells, m, band, run, sub=None):
     """One forest row: a small mark per content cell, a larger mark at the median over them."""
-    import statistics as st
     dots, rs = [], []
     for (L, content, lv), c in cells:
         v, cu = c[m]; r = c["ratio"][m] if run == "k4" and m in ("dec", "agg") else cu / v
@@ -952,172 +797,96 @@ def speed_groups(cells):
     return {g: sorted(v, key=lambda kc: order.get(kc[0][1], 9)) for g, v in sorted(G.items())}
 
 
-SPEED = {"dec": ("Decode speed per stream", "slower", "faster", "decode"), "agg": ("Aggregate throughput", "fewer tokens per second", "more", "aggregate"),
-         "ttft": ("Time to first token", "sooner", "later", "first token")}
-
-
-def fig_speed(run, m, cells, fid, band, bandnote, extra_table=""):
+def fig_speed(run, m, cells, fid, band):
     G = speed_groups(cells); rows, tab = [], []
     for L in sorted({g[0] for g in G}):
-        rows.append({"section": f"{L // 1024}K input"})
+        rows.append({"section": f"{L // 1024}K prompt"})
         for (LL, lv), cs in G.items():
             if LL != L: continue
-            r, rs = speed_row(f"{lv} stream{'s' if lv > 1 else ''}", cs, m, band, run)
+            r, _ = speed_row(f"{lv} stream{'s' if lv > 1 else ''}", cs, m, band, run)
             rows.append(r)
             for (L_, content, lv_), c in cs:
                 v, cu = c[m]; rr = c["ratio"][m] if run == "k4" and m in ("dec", "agg") else cu / v
                 tab.append([f"{L_ // 1024}K", CN.get(content, content), str(lv_), f"{v:.2f}", f"{cu:.2f}", f"{rr:.2f}x",
-                            (c["read"][m] if run == "k4" and m in ("dec", "agg") else ("level" if band[0] <= rr <= band[1] else ("outside the band")))])
-    name, left, right, short = SPEED[m]
-    s = C.forest(rows, ref="vLLM fork", ref_who="v", scale="log", left=left if m != "agg" else "fewer tokens/s", right=right if m != "agg" else "more tokens/s",
+                            (c["read"][m] if run == "k4" and m in ("dec", "agg") else
+                             ("for scale only" if m == "ttft" else ("level" if band[0] <= rr <= band[1] else "outside the band")))])
+    name, left, right = SPEED[m]
+    s = C.forest(rows, ref="vLLM fork", ref_who="v", scale="log", left=left, right=right,
                  aria=f"{name}, CuteAFD ÷ vLLM fork, per cell, {run}", label_w=120, value_w=150)
     ck = "K3.25" if run == "k325" else "K4"
-    what = {"dec": f"Per-stream generation speed of CuteAFD divided by the vLLM fork's, per input length and number of streams ({ck}); "
-                   "small triangles are the content types, the large one their median, log scale.",
-            "agg": f"All completion tokens of a batch per second of wall time, CuteAFD ÷ vLLM fork ({ck}); small triangles are the content "
+    good = {"dec": "right is faster on CuteAFD", "agg": "right is more tokens per second on CuteAFD", "ttft": "left is sooner on CuteAFD"}[m]
+    what = {"dec": "Per-stream generation speed, CuteAFD ÷ vLLM fork, per prompt length and number of streams; small triangles are content "
                    "types, the large one their median.",
-            "ttft": f"Time from sending a request to its first token, CuteAFD ÷ vLLM fork ({ck}); left of the blue line CuteAFD answers sooner."}[m]
-    how = {"dec": "Find the row that matches how many requests you run at once and how long the prompts are: to the right of the band, "
-                  "CuteAFD generates faster there. At long inputs with several streams the ratio mostly reflects scheduling (Caveats).",
-           "agg": "If you care about total tokens per second for a batch, this is the row to read; at long inputs CuteAFD's faster "
-                  "prefill is what moves it.",
-           "ttft": "If first-token latency matters (interactive use), read the row for your prompt length and concurrency: short "
-                   "prompts favour the vLLM fork, long single prompts CuteAFD; many long prompts at once favour the vLLM fork."}[m]
-    head = ["Input", "Content", "Streams", f"vLLM fork, {UNIT[m]}", f"CuteAFD, {UNIT[m]}", "CuteAFD ÷ vLLM", "Reading"]
-    table = htable(head, tab) + f'<p class="sign">{bandnote}</p>' + extra_table
-    lg = [("dotc", "content type, outside the band"), ("dotcu", "content type, inside the band (not a difference)"), ("c", "median of the content types"),
-          ("refv", "vLLM fork (1.0)"), ("band", bandnote.split(":")[0])] if m != "ttft" else \
-         [("dotc", "content type"), ("c", "median of the content types"), ("refv", "vLLM fork (1.0)"), ("band", "throughput noise band, for scale")]
-    return C.figure(fid, f"{ck}: {name.lower()}, CuteAFD ÷ vLLM fork (reference: vLLM fork)", what, [(s, None, None)], how, table, lg)
+            "agg": "All generated tokens of a batch per second of wall time, CuteAFD ÷ vLLM fork; small triangles are content types.",
+            "ttft": "Time from sending a request to its first token, CuteAFD ÷ vLLM fork; small triangles are content types."}[m]
+    table = htable(["Prompt", "Content", "Streams", f"vLLM fork, {UNIT[m]}", f"CuteAFD, {UNIT[m]}", "CuteAFD ÷ vLLM fork", "Reading"], tab)
+    lg = ([("dotc", "content type, outside the band"), ("dotcu", "content type, inside the band"), ("c", "median of the content types"),
+           ("refv", "vLLM fork (1.0)"), ("band", "noise band")] if m != "ttft" else
+          [("dotc", "content type"), ("c", "median of the content types"), ("refv", "vLLM fork (1.0)"), ("band", "noise band, for scale")])
+    return C.figure(fid, f"{ck}: {name.lower()}, CuteAFD ÷ vLLM fork ({good})", what, [(s, None, None)],
+                    "Find the row for your prompt length and number of requests at once; the grey band is the noise band stated above.",
+                    table, lg)
 
 
-# ---- index headline: one figure per checkpoint, precision and speed rows
-
-def headline_speed_rows(cells, run, band, spec_rows):
+def abs_table(cells, run):
     rows = []
-    for m, label, sub, sel in spec_rows:
-        cs = [(k, c) for k, c in sorted(cells.items()) if sel(k)]
-        r, _ = speed_row(label, cs, m, band, run, sub=(f"{sub}, " if sub else "") + f"{len(cs)} cells")
-        rows.append(r)
-    return rows
+    for (L, lv), cs in speed_groups(cells).items():
+        dv = [c["dec"][0] for _, c in cs]; dc = [c["dec"][1] for _, c in cs]
+        av = [c["agg"][0] for _, c in cs]; ac = [c["agg"][1] for _, c in cs]
+        tv = st.median(c["ttft"][0] for _, c in cs); tc = st.median(c["ttft"][1] for _, c in cs)
+        r = lambda xs: f"{min(xs):.0f}-{max(xs):.0f}" if f"{min(xs):.0f}" != f"{max(xs):.0f}" else f"{min(xs):.0f}"
+        rows.append([f"{L // 1024}K × {lv}", r(dv), r(dc), r(av), r(ac), B.secs(tv), B.secs(tc)])
+    return htable(["Prompt × streams", "Decode per stream, tok/s: vLLM fork", "CuteAFD", "Aggregate, tok/s: vLLM fork", "CuteAFD",
+                   "First token: vLLM fork", "CuteAFD"], rows)
 
 
-MEASURE = {"k325": {"pa": "P-A: full-vocabulary KL from the BF16 teacher", "pb": "P-B: coarse KL (top 1,024 + tail)",
-                    "q2": "Q2: NLL of human-written text, 32K-128K (no BF16 reference)"},
-           "k4": {"pa": "P-A: KL20 from the BF16 teacher (top-20 measure)", "pb": "P-B: KL_pb20 (top-20 measure)",
-                  "q2": "Q2: NLL of human-written text, 32K-128K (no BF16 reference)"}}
+def page_speed(F, K):
+    N = B.canon(); a3, a4 = N["k325"], N["k4"]; c3, c4 = N["c3"], N["c4"]
+    t8 = N["k325"]["ttft_1k8"]
+    lede = (f"<p>One request at a time, CuteAFD generates faster: {B.tok_rng(a3['dec1'][0])} tokens/s on the vLLM fork and "
+            f"{B.tok_rng(a3['dec1'][1])} on CuteAFD (K3.25; K4 {B.tok_rng(a4['dec1'][0])} and {B.tok_rng(a4['dec1'][1])}). A single long "
+            f"prompt gets its first token sooner on CuteAFD ({B.secs(a3['ttft'][131072][0])} and {B.secs(a3['ttft'][131072][1])} at 128K), "
+            f"a single short one sooner on the vLLM fork ({B.secs(a3['ttft'][1024][0])} and {B.secs(a3['ttft'][1024][1])} at 1K). With "
+            "several requests at once the vLLM fork's advantage is time to first token (1K × 8: "
+            f"{B.secs(t8[0])} and {B.secs(t8[1])}); per-stream decode and aggregate throughput there are level or ahead on CuteAFD, "
+            "except aggregate throughput at 1K × 8. The vLLM fork interleaves chunked prefill with decode, so every request starts "
+            "early; CuteAFD's prefill is faster per request, but concurrent requests queue for it.</p>")
+    t3 = B.t_counts(); t4 = B.k4_t_counts(K)
+    body = (h2("how-to-read", "How to read this page") +
+            '<p class="plain">A <b>cell</b> is one prompt length (1K to 128K tokens), one content type (prose, code, reasoning, JSON) and one '
+            'number of <b>streams</b> (requests in flight at once), measured 3 times; each request generates 1,024 tokens with thinking on, '
+            'every prompt is unique and every request has its own seed. <b>Decode</b> is the per-stream generation speed, '
+            '<b>aggregate</b> all generated tokens of a batch per second of wall time, <b>first token</b> the time from sending to the '
+            'first generated token. With thinking on, the code and JSON cells measure reasoning text about a code or JSON prompt.</p>'
+            f'<p class="note">{E(B.NOISE_K325)}<br>{E(B.NOISE_K4)}</p>' +
+            h2("k325", "K3.25 (2026-10-26/27)") + abs_table(c3, "k325") +
+            f'<p class="sign">{inline(t3, RD)} Ranges run over the content types; first token is the median over them. Full grid: '
+            f'{gh(f"{RD}/t/T-SUMMARY.md", "<code>t/T-SUMMARY.md</code>")}.</p>' +
+            fig_speed("k325", "dec", c3, "dec-k325", (0.9, 1.1)) + fig_speed("k325", "ttft", c3, "ttft-k325", (0.9, 1.1)) +
+            fig_speed("k325", "agg", c3, "agg-k325", (0.9, 1.1)) +
+            h2("k4", "K4 (2026-10-27)") +
+            '<p class="plain">The K4 grid is smaller: 1 and 4 streams at 1K-32K and 1 stream at 128K, set once for every arm of its frozen '
+            '<a href="method.html#k4-protocol">protocol</a>. Readings per cell use the declared band.</p>' + abs_table(c4, "k4") +
+            f'<p class="sign">{inline(t4, R4)}</p>' +
+            fig_speed("k4", "dec", c4, "dec-k4", (0.92, 1.08)) + fig_speed("k4", "ttft", c4, "ttft-k4", (0.92, 1.08)) +
+            fig_speed("k4", "agg", c4, "agg-k4", (0.92, 1.08)) +
+            h2("caveats", "Caveats") + md("""- **Long prompts with several streams mostly measure scheduling.** The vLLM fork interleaves chunked prefill
+  with decode, so its streams' decode overlaps other requests' prefill (a median 40-81% of each decode window) and their
+  first tokens come early; CuteAFD finishes each prefill faster but queues the requests behind it. Streams that decode
+  without another stream's prefill running decode at the same speed on both engines. At 32K and
+  128K, 71-92% of a batch's wall time passes before its last first token, so the aggregate there mostly reflects
+  CuteAFD's faster long prefill (about 4,400-4,500 against 3,700-3,900 tokens/s).
+- **Draft policies differ.** The vLLM fork drafts 3 tokens per step with a BF16 drafter; CuteAFD drafts adaptively with
+  an FP8 drafter. The vLLM fork accepted 1.53 of 3 drafted tokens per step; CuteAFD exposes no counter.
+- **Inputs differ in two details.** Each request's first line is a nonce, different between the engines on K3.25 (prompt
+  bodies identical); the 128K code prompts hold literal `<think>` text that the vLLM stack parses as control tokens.""")
+            + f'<p class="sign">More: {gh(f"{RD}/t/CAVEATS.md", "<code>t/CAVEATS.md</code>")}, the drift check '
+            f'{gh(f"{RD}/drift/RESULTS-DRIFT.md", "<code>drift/RESULTS-DRIFT.md</code>")}, the K4 per-cell readings '
+            f'{gh(f"{R4}/t/t-compare.json", "<code>t/t-compare.json</code>")}.</p>')
+    page("speed.html", "Speed: tokens per second and first-token time", lede, body)
 
 
-def measure_panels(run, groups, aria):
-    """Small multiples, one panel per measure in the fixed order P-A, P-B, Q2; each with its own axis and reference line.
-    groups: {panel key: rows}."""
-    out = []
-    for key in ("pa", "pb", "q2"):
-        rows = groups.get(key)
-        if not rows: continue
-        kw = (dict(left="CuteAFD lower NLL", right="CuteAFD higher NLL") if key == "q2" else dict(left="closer to BF16", right="further from BF16"))
-        svg = C.forest(rows, ref="vLLM fork", ref_who="v", aria=f"{aria}: {MEASURE[run][key]}", **kw)
-        out.append((svg, None, MEASURE[run][key]))
-    return out
-
-
-def headline_table(groups, run):
-    out = []
-    for key in ("pa", "pb", "q2"):
-        sec = ""
-        for r in groups.get(key, []):
-            if "section" in r: sec = r["section"]; continue
-            out.append([E(MEASURE[run][key]), E(sec), E(r["label"]) + (f'<br><span class="ci">{E(r["sub"])}</span>' if r.get("sub") else ""),
-                        sg(r["est"]), cit(r["lo"], r["hi"]), f'±{r["band"][1]:.4f}' if r.get("band") else "n/a"])
-    return htable(["Measure", "CuteAFD", "Rows", "CuteAFD − vLLM fork", "95% interval", "vLLM run-to-run band"], out)
-
-
-def fig_headline_k325(F, fid="headline-k325"):
-    pa, pb, q2 = k325_engine_rows(F); d = F["d"]; T = F["T"]
-    wrows = []
-    for i, (b, lab) in enumerate((("all", "All generated rows"), ("8-16K", "8-16K, long code"))):
-        v = d[(b, "kl", "F1c")]
-        wrows.append(frow(lab, v[0], v[1], v[2], (pb[0] if b == "all" else pb[3])["band"],
-                          f"CuteAFD with W8A16 prefill, P-B {lab}: {sg(v[0])} {cit(v[1], v[2])} coarse KL against the mean of 3 vLLM runs"))
-    groups = {"pa": [{"section": "CuteAFD as shipped"}, dict(pa[0], label="All positions", sub="25 windows, vs vLLM V1")],
-              "pb": [{"section": "CuteAFD as shipped"}, dict(pb[0], sub=None), dict(pb[3], sub=None),
-                     {"section": "CuteAFD with W8A16 prefill"}] + wrows,
-              "q2": [{"section": "CuteAFD as shipped"}, dict(q2[0])]}
-    prec = measure_panels("k325", groups, "Headline precision, K3.25")
-    cells = k325_cells(); band = (0.9, 1.1)
-    sp = C.forest(headline_speed_rows(cells, "k325", band, [
-        ("dec", "Decode, 1 stream", "1K-128K", lambda k: k[2] == 1),
-        ("agg", "Throughput, 32K-128K", "1-16 streams", lambda k: k[0] >= 32768),
-        ("agg", "Throughput, 1K × 8 streams", "", lambda k: k[0] == 1024 and k[2] == 8)]),
-        ref="vLLM fork", ref_who="v", scale="log", left="CuteAFD slower", right="faster", aria="Headline speed, K3.25")
-    tt = C.forest(headline_speed_rows(cells, "k325", band, [
-        ("ttft", "1K prompt, 1 stream", "", lambda k: k[0] == 1024 and k[2] == 1),
-        ("ttft", "8K-128K, 1 stream", "", lambda k: k[0] >= 8192 and k[2] == 1),
-        ("ttft", "32K-128K, 4-16 streams", "", lambda k: k[0] >= 32768 and k[2] > 1)]),
-        ref="vLLM fork", ref_who="v", scale="log", left="CuteAFD sooner", right="later", aria="Headline time to first token, K3.25")
-    table = headline_table(groups, "k325") + \
-        '<p class="sign">W8A16 prefill (follow-up F1) was scored on P-B only. Q2 band: vLLM\'s repeat on 2 documents.</p>' + \
-        htable(["Speed row", "CuteAFD ÷ vLLM fork, median (range of cells)"], [[E(r["label"] + ", " + r["sub"]), r["value"]] for r in
-               headline_speed_rows(cells, "k325", band, [("dec", "Decode, 1 stream", "1K-128K", lambda k: k[2] == 1),
-                                                         ("agg", "Throughput", "32K-128K", lambda k: k[0] >= 32768),
-                                                         ("agg", "Throughput", "1K × 8 streams", lambda k: k[0] == 1024 and k[2] == 8),
-                                                         ("ttft", "First token", "1K, 1 stream", lambda k: k[0] == 1024 and k[2] == 1),
-                                                         ("ttft", "First token", "8K-128K, 1 stream", lambda k: k[0] >= 8192 and k[2] == 1),
-                                                         ("ttft", "First token", "32K-128K, 4-16 streams", lambda k: k[0] >= 32768 and k[2] > 1)])]) + \
-        '<p class="sign">Speed band: ±10%, the drift check\'s reading ("ratios within about ±10% are not differences").</p>'
-    charts = [(prec[0][0], strip(T, "k325", "pa"), "Precision, CuteAFD − vLLM fork \u00b7 " + prec[0][2])] + \
-             [(sv, strip(T, "k325", k), h) for (sv, _, h), k in zip(prec[1:], ("pb", "q2"))] + \
-             [(sp, None, "Speed, CuteAFD ÷ vLLM fork"), (tt, None, "Time to first token, CuteAFD ÷ vLLM fork")]
-    return C.figure(fid, "K3.25 in one view: precision (one panel per measure) and speed",
-                    "Precision panels, one per measure, each on its own axis: CuteAFD's distance from BF16 minus the vLLM fork's "
-                    "(right = CuteAFD further; Q2 compares NLL, as it has no BF16 reference). Then CuteAFD's speed and first-token "
-                    "time divided by the vLLM fork's, log scale. Every row is read against the blue line of its own panel.",
-                    charts,
-                    "Rows to the right in the precision panels favour the vLLM fork; rows to the right in the speed panel favour "
-                    "CuteAFD; in the first-token panel left favours CuteAFD. Compare rows within a panel, not across panels. "
-                    "Choose by the rows that match your workload (below).",
-                    table, LG_ENGINE + [("dotc", "one throughput cell")])
-
-
-def fig_headline_k4(K, fid="headline-k4"):
-    pa, pb, q2 = k4_engine_rows(K); S = k4_settings(K); T = K["T"]
-    w = lambda key, lab, band, sub=None: frow(lab, *S["w16amax"][key], band, f"CuteAFD with W8A16 + amax, {lab}: {sg(S['w16amax'][key][0])} "
-                                               f"{cit(*S['w16amax'][key][1:])} against the mean of 2 vLLM launches (K4c)", sub=sub)
-    groups = {"pa": [{"section": "CuteAFD as shipped"}, dict(pa[0], label="All positions"),
-                     {"section": "CuteAFD with W8A16 + amax (serves on 2x RTX)"}, w("pa_v", "All positions", pa[0]["band"], "25 windows")],
-              "pb": [{"section": "CuteAFD as shipped"}, dict(pb[0], sub=None), dict(pb[3], label="8-16K, long code", sub=None),
-                     {"section": "CuteAFD with W8A16 + amax (serves on 2x RTX)"}, w("pb_v", "All generated rows", pb[0]["band"]),
-                     w("pb8_v", "8-16K, long code", pb[3]["band"])],
-              "q2": [{"section": "CuteAFD as shipped"}, dict(q2[0])]}
-    prec = measure_panels("k4", groups, "Headline precision, K4")
-    cells = k4_cells(K); band = (0.92, 1.08)
-    spec = [("dec", "Decode, 1 stream", "1K-128K", lambda k: k[2] == 1), ("dec", "Decode, 4 streams", "1K-32K", lambda k: k[2] == 4),
-            ("agg", "Throughput, all cells", "1 and 4 streams", lambda k: True)]
-    sp = C.forest(headline_speed_rows(cells, "k4", band, spec), ref="vLLM fork", ref_who="v", scale="log", left="CuteAFD slower", right="faster",
-                  aria="Headline speed, K4")
-    spec_t = [("ttft", "1K prompt, 1 stream", "", lambda k: k[0] == 1024 and k[2] == 1), ("ttft", "8K-128K, 1 stream", "", lambda k: k[0] >= 8192 and k[2] == 1),
-              ("ttft", "32K, 4 streams", "", lambda k: k[0] == 32768 and k[2] == 4)]
-    tt = C.forest(headline_speed_rows(cells, "k4", band, spec_t), ref="vLLM fork", ref_who="v", scale="log", left="CuteAFD sooner", right="later",
-                  aria="Headline time to first token, K4")
-    table = headline_table(groups, "k4") + \
-        '<p class="sign">The K4c summary publishes no Q2 difference for W8A16 + amax as JSON (its markdown reports +0.0002 [−0.0009, +0.0012]), so Q2 shows as shipped only.</p>' + \
-        htable(["Speed row", "CuteAFD ÷ vLLM fork, median (range of cells)"], [[E(r["label"] + ", " + r["sub"]), r["value"]]
-                                                                               for r in headline_speed_rows(cells, "k4", band, spec + spec_t)]) + \
-        '<p class="sign">Speed band: ±8%, declared before the K4 run; readings per cell in <code>t/t-compare.json</code>. W8A16 + amax: follow-up K4c, outside the frozen protocol.</p>'
-    charts = [(sv, strip(T, "k4", k), ("Precision, CuteAFD − vLLM fork \u00b7 " + h) if i == 0 else h)
-              for i, ((sv, _, h), k) in enumerate(zip(prec, ("pa", "pb", "q2")))] + \
-             [(sp, None, "Speed, CuteAFD ÷ vLLM fork"), (tt, None, "Time to first token, CuteAFD ÷ vLLM fork")]
-    return C.figure(fid, "K4 in one view: precision (top-20 measures, one panel per measure) and speed",
-                    "The same panels for K4. Precision here is top-20 KL (KL20, KL_pb20), so its numbers are not on the same "
-                    "scale as K3.25's; each measure has its own panel and axis, read each row only against its panel's blue line.",
-                    charts,
-                    "The pattern matches K3.25: the vLLM fork closer to BF16 on long code, CuteAFD faster in decode. With W8A16 + "
-                    f"amax, CuteAFD's long-code row drops from {sg(pb[3]['est'])} to {sg(S['w16amax']['pb8_v'][0])} (still resolved) and its P-A "
-                    "row is no longer resolved, for about 4% longer time to first token (settings map on the Precision page).",
-                    table, LG_ENGINE + [("dotc", "one throughput cell")])
-
-
-# ---- long output: passes out of n, and reply length
+# ------------------------------------------------------------------ long tasks
 
 GOOD = {"code": "all tests pass", "reasoning": "correct", "prose": "finished", "json": "valid"}
 
@@ -1143,7 +912,7 @@ def fig_long(L, run, va, ca, fid):
             capped = v["cap"] == v["n"] and u["cap"] == u["n"]
             r = mc / mv
             lrows.append({"label": name, "est": r, "who": "c", "resolved": not capped, "muted": capped,
-                          "value": f"{rx(r)}" + (" (both at cap)" if capped else f" ({mc / 1000:.1f}K vs {mv / 1000:.1f}K)"),
+                          "value": f"{rx(r)}" + (" (both at cap)" if capped else f" ({mc:,.0f} vs {mv:,.0f})"),
                           "title": f"{st_} {name}: median reply CuteAFD {mc:,.0f} vs vLLM fork {mv:,.0f} tokens = {r:.2f}x"
                                    + ("; every reply on both engines reached the cap" if capped else "")})
             tab.append([st_, name, f"{v['n']}", f"{pv}/{v['n']}", f"{pc}/{u['n']}", f"{v['stop']} / {v['cap']}", f"{u['stop']} / {u['cap']}",
@@ -1152,29 +921,74 @@ def fig_long(L, run, va, ca, fid):
     s2 = C.forest(lrows, ref="vLLM fork", ref_who="v", scale="log", left="CuteAFD shorter", right="longer",
                   aria=f"Median reply length, CuteAFD ÷ vLLM fork, {run}", label_w=120, value_w=170)
     ck = "K3.25" if run == "k325" else "K4"
+    n_in = "8 requests in flight" if run == "k325" else "2 requests in flight"
     table = htable(["Stage", "Content", "n per engine", "vLLM: passed", "CuteAFD: passed", "vLLM: finished / at cap", "CuteAFD: finished / at cap",
                     "vLLM median tokens", "CuteAFD median tokens", "Length ratio"], tab) + \
-        ('<p class="sign">Passed: code, every hidden test passes; reasoning, correct MATH-500 answer; prose, the reply finished on '
-         'its own; JSON, schema, count and ids valid. Descriptive: 2 seeds per prompt, 4 prompts per content type (n = 8; 1 at '
-         'L3s). No interval is published for these counts or for the length ratio.</p>' + f'<p class="sign">{E(B.L_NOTE)}</p>')
-    return C.figure(fid, f"{ck}: long-output checks and reply length, both engines (descriptive, small n)",
-                    f"Top: for each stage and content type, how many of the n replies passed their check on each engine ({ck}; "
-                    "n = 8 per engine, 1 at L3s). Bottom: CuteAFD's median reply length divided by the vLLM fork's.",
+        ('<p class="sign">Passed: code, every hidden test passes; reasoning, the correct MATH-500 answer; prose, the reply finished on its '
+         'own; JSON, schema, count and ids valid. Descriptive: 4 prompts per content type, 2 seeds each (n = 8; 1 at L3s). No interval is '
+         'published for these counts or for the length ratio. The code, JSON and prose tasks were sized for thinking off: at the '
+         'first two caps, and for the 1,030-record JSON task at the last, the reasoning leaves too little room for the answer, so '
+         'those cells measure finishing against the cap rather than task completion.</p>')
+    return C.figure(fid, f"{ck}: long-output checks and reply length, both engines (more passing is better; descriptive, small n)",
+                    f"Top: how many of the n replies passed their check, per stage and content type ({n_in}). Bottom: CuteAFD's "
+                    "median reply length divided by the vLLM fork's.",
                     [(s1, None, "Passed, out of n"), (s2, None, "Median reply length, CuteAFD ÷ vLLM fork")],
-                    "If your replies are long, read the 128K rows: where the two marks sit together the engines did the same on "
-                    "this small sample. With n = 8, a difference of one or two replies is not evidence of a difference.",
+                    "Read the long-cap rows (L3, L3s): where the two marks sit together the engines did the same; with n = 8, one or two "
+                    "replies apart is not evidence of a difference.",
                     table, [("v", "vLLM fork"), ("c", "CuteAFD"), ("refv", "vLLM fork (length 1.0)")])
 
 
-# ---- startup (observations): stacked phases per launch
+def needle_section():
+    nd = B.needle_data()
+    if not nd:
+        return h2("needles", "Needles in very long prompts") + '<p class="plain">Not published.</p>'
+    res = lambda s: ("found" if s["found"] else "not found") if "found" in s else f"{s['found_count']}/6" + (" in order" if s.get("in_order") else "")
+    rows = [[r["id"], f"{r['usage']['prompt_tokens']:,}", B.secs(r["ttft_s"]), B.secs(u["ttft_s"]), res(r["score"]), res(u["score"])]
+            for r, u in zip(nd["V"], nd["C"])]
+    return (h2("needles", "Needles in very long prompts (exploratory)") +
+            '<p class="plain"><b>Exploratory: one request per prompt and engine, not under a frozen protocol.</b> tpurtell\'s two needle '
+            'designs from his vLLM fork, a secret code near the start and six records spread from 5% to 99% of the prompt, at 256K, 512K '
+            'and 1M tokens, on both engines with K3.25. ' +
+            ("Every reply finished on its own and found every needle on both engines." if nd["all_ok"] else "Not every needle was found.") +
+            '</p>' + htable(["Prompt", "Prompt tokens", "First token: vLLM fork", "CuteAFD", "Result: vLLM fork", "CuteAFD"], rows) +
+            f'<p class="sign">Receipts without reply text: {gh(f"results/{B.NEEDLE_RUN}", f"<code>results/{B.NEEDLE_RUN}</code>")}. '
+            'It shows that both engines accept and answer 1M-token prompts; it does not rank them.</p>')
+
+
+def page_long(F, K):
+    N = B.canon(); L, L4 = N["L"], N["L4"]
+    vc, cc = L[("V1", "L3", "code")], L[("C1", "L3", "code")]; vm, cm = L[("V1", "L3", "reasoning")], L[("C1", "L3", "reasoning")]
+    vc4, cc4 = L4[("V", "L3", "code")], L4[("C", "L3", "code")]
+    nd = N["needle"]
+    c2v, c2c = L[("V1", "L2", "code")], L[("C1", "L2", "code")]; c2v4, c2c4 = L4[("V", "L2", "code")], L4[("C", "L2", "code")]
+    lede = (f"<p>At the longest output cap the two engines did the same on code and math: code passed every hidden test in "
+            f"{vc['all_pass']} of {vc['n']} replies on both with K3.25 and {vc4['all_pass']} of {vc4['n']} with K4, math {vm['correct']} of "
+            f"{vm['n']}. At the 32K cap CuteAFD finished more code tasks ({c2v['stop']} of 8 on the vLLM fork against {c2c['stop']} on "
+            f"CuteAFD with K3.25, {c2v4['stop']} against {c2c4['stop']} with K4), consistent with its shorter code replies "
+            f"({cc['completion_tokens_median'] / vc['completion_tokens_median']:.2f}x and {cc4['completion_tokens_median'] / vc4['completion_tokens_median']:.2f}x "
+            "the vLLM fork's median length at the last cap). Descriptive: n = 8 per content type and stage.</p>")
+    body = (needle_section() +
+            h2("long-output", "Long output: replies up to 128K tokens") +
+            '<p class="plain">Four task types with machine checks: multi-file Python projects with hidden tests, MATH-500 level-5 problems, '
+            '10,000-12,000-word essays, and product catalogues as JSON. Each stage raises the output cap; L3s repeats one prompt per type '
+            'one request at a time. K3.25 ran 8 requests in flight with caps of 8K, 32K and 128K tokens; K4 ran 2 in flight with caps of '
+            '8,192, 32,768 and 130,048, because K4\'s grid was common to its protocol\'s arms (<a href="method.html#k4-protocol">Method</a>). '
+            f'Math replies were short on both: median {vm["completion_tokens_median"]:,.0f} (vLLM fork) and '
+            f'{cm["completion_tokens_median"]:,.0f} (CuteAFD) tokens at the last cap on K3.25.</p>' +
+            fig_long(L, "k325", "V1", "C1", "long-k325") + fig_long(L4, "k4", "V", "C", "long-k4") +
+            f'<p class="sign">Per stage and content: {gh(f"{RD}/l/SUMMARY.md", "<code>l/SUMMARY.md</code>")} (K3.25), the Block L table in '
+            f'{gh(f"{R4}/README.md", "the K4 run README")}.</p>')
+    page("long-tasks.html", "Long tasks: long replies and very long prompts", lede, body)
+
+
+# ------------------------------------------------------------------ running it
 
 def chart_startup(S):
-    if not S: return None
     runs = S["runs"]; W, l, r, bh = 640, 4, 70, 16
     tmax = max(x["ready_s"] for x in runs)
     H = 20 + len(runs) * (bh + 30) + 22
     X = lambda s: l + (W - l - r) * s / tmax
-    o = [C.svg_open(W, H, "Startup to ready, by phase, per launch")]
+    o = [C.svg_open(W, H, "Startup to ready, by phase, per launch, K3.25")]
     for v in range(0, int(tmax) + 1, 120):
         o.append(f'<line class="grid" x1="{X(v):.1f}" x2="{X(v):.1f}" y1="14" y2="{H - 20}"/>'
                  + C.tx(X(v), H - 6, f"{v // 60} min", "tick", "start" if v == 0 else "middle"))
@@ -1192,589 +1006,427 @@ def chart_startup(S):
             x += w; tab.append([run["label"], ph["name"], f"{ph['s']} s"])
         o.append(C.tx(x + 4, yb + bh - 3, f"{run['ready_s']} s", "val")); y += bh + 30
     o.append("</svg>")
-    return C.figure("startup", "Startup to ready, per launch (K3.25)",
+    return C.figure("startup-chart", "Startup to ready, per launch (K3.25; shorter is better)",
                     "Seconds from container start to ready for each launch, split into phases (one shade per phase, strongest first).",
                     [("".join(o), None, None)],
-                    "If you switch models often, the total at the right is the wait per switch; on this setup persisting the vLLM "
-                    "fork's JIT caches removes the TileLang compiles and most of the graph-capture time, and CuteAFD ships its kernels "
-                    "compiled.", htable(["Launch", "Phase", "Time"], tab) + f'<p class="sign">{E(S.get("note", ""))}</p>',
+                    "The total at the right is the wait each time the model is switched.",
+                    htable(["Launch", "Phase", "Time"], tab) + f'<p class="sign">{E(S.get("note", ""))}</p>',
                     [("v", "vLLM fork"), ("c", "CuteAFD")])
 
 
-# ------------------------------------------------------------------ shared blocks
-
-def cards(F):
-    d, L = F["d"], F["L"]
-    lo, hi = F["dec_range"]; al, ah = F["agg_long"]
-    tt1 = F["len"][1024]["tt1"]
-    vc, cc = L[("V1", "L3", "code")], L[("C1", "L3", "code")]
-    vm, cm = L[("V1", "L3", "reasoning")], L[("C1", "L3", "reasoning")]
-    items = [
-        ("Precision", f"{F['kl_v']['all']:.3f} vs {F['kl_c']['all']:.3f}",
-         "Both engines stay close to the original BF16 model; the 3.25-bit quantization matters more than the engine. "
-         "The vLLM fork is slightly closer, mainly when reading long code (8-16K tokens).",
-         f"KL from BF16, vLLM fork vs CuteAFD, tpurtell's fidelity set: {F['T']['pb']['scored']['selected_positions_total']:,} "
-         f"generated positions with {hist_short(F['T']['pb']['scored']['context'])}. His official FP8 model scores 0.0216 on "
-         f"the same set. At 8-16K ({hist_short(pb_band(F['T'], '8-16K')['context'])}): {kl(F['kl_v']['8-16K'])} vs "
-         f"{kl(F['kl_c']['8-16K'])}."),
-        ("Speed", f"{pct(lo)} to {pct(hi)}",
-         f"CuteAFD generates faster for a single user and finishes long-prompt work {span(al, ah)} faster. "
-         f"The vLLM fork answers short prompts sooner ({tt1[0][0]:.2f} vs {tt1[0][1]:.2f} s to first token at 1K).",
-         f"Single-stream decode, CuteAFD vs vLLM fork, {sum(r['n1'] for r in F['len'].values())} cells from 1K to 128K input; "
-         "single cells vary by up to ±13% between runs."),
-        ("Long outputs", f"{vc['all_pass']}/{vc['n']} and {cc['all_pass']}/{cc['n']}",
-         f"Both ran 100 long-output requests with 0 errors. At the 128K cap, code passed every hidden test in "
-         f"{vc['all_pass']} of {vc['n']} replies on both engines, and math was {vm['correct']}/{vm['n']} on both.",
-         "Two seeds per prompt, four prompts per content type: small samples."),
-        ("Tunable trade-off", f"{dkl(d[('all', 'kl', 'C1')][0])} → {dkl(d[('all', 'kl', 'F1c')][0])}",
-         f"CuteAFD's W8A16 prefill halves its overall precision difference for about {pp(F['f1c_ttft'])} longer time to first "
-         f"token and no decode cost; with all three FP8 switches off no difference is resolved, at about {pp(F['f1d_dec'])} "
-         "slower median decode.",
-         f"KL difference from the vLLM fork, all generated rows. At 8-16K: {dkl(d[('8-16K', 'kl', 'C1')][0])} → "
-         f"{dkl(d[('8-16K', 'kl', 'F1c')][0])}. Prefill-shaped scoring only."),
-        ("Practical differences", "0.017 s",
-         "CuteAFD restores a repeated 8K prompt from its prefix cache in 0.017 s; the vLLM fork reuses only whole "
-         "4,352-token blocks and none below about 13K tokens. Only CuteAFD honours \"thinking off\". "
-         + startup_sentence(),
-         "Block T cached cell and follow-up F2; thinking-off check with one request; startup times from the server logs."),
-    ]
-    return '<div class="cards">' + "".join(
-        f'<div class="card"><div class="k">{k}</div><div class="big">{html.escape(big)}</div><p>{html.escape(txt)}</p>'
-        f'<div class="ev">{html.escape(ev)}</div></div>' for k, big, txt, ev in items) + "</div>"
+def page_running(F, K):
+    N = B.canon(); su = N["startup"]
+    R = sections(read("README.md"))
+    obs = R.get("Running it: observations in detail", "")
+    subs = sections(obs, 3)
+    intro = obs.split("\n### ")[0].strip()
+    ids = {"Capacity": "capacity", "Startup": "startup", "Prefix cache": "prefix-cache", "Thinking off and control tokens": "thinking-off",
+           "Launcher defaults that matter": "launcher-defaults", "Determinism and drafting": "determinism",
+           "Other engine observations": "other-observations"}
+    body = (h2("launch-configs", "Launch configurations") +
+            '<p class="plain">The configurations measured are on the home page as copyable blocks '
+            '(<a href="index.html#settings-measured">Settings measured</a>); the exact files used are in '
+            f'{gh("repro/cuteafd/configs")} (K3.25), {gh("repro/k4")} (K4) and described in <a href="reproduce.html">Reproduce</a>. '
+            'Scoring launches for precision add CuteAFD\'s bench endpoint (<code>ENABLE_BENCH=on</code>, an API key file, '
+            '<code>FULL_PREFILL_LOGITS=on</code>) or, on the vLLM fork, a prompt-logprob capture plugin; serving does not need them.</p>' +
+            f'<p class="sign">{inline(intro, "")}</p>')
+    for head, hid in ids.items():
+        text = subs.get(head, "")
+        body += h2(hid, head) + md(text, "")
+        if head == "Startup" and startup(): body += chart_startup(startup())
+    lede = (f"<p>CuteAFD is ready in {su['c']} s and the vLLM fork in {su['v_warm']} s once its JIT caches are kept between starts "
+            f"({su['v_cold']} s without). On K4 the vLLM fork's KV cache holds {N['k4_kv'][0]:,} tokens and CuteAFD's {N['k4_kv'][1]:,}, "
+            "and CuteAFD needs <code>MAX_CONTEXT_TOKENS=262144</code> to start there. CuteAFD reuses repeated prompts and honours "
+            "\"thinking off\"; its launcher defaults to a 4,096-token output limit and listens on every interface unless told otherwise.</p>")
+    page("running.html", "Running it: what an operator needs to know", lede, body)
 
 
-def startup_sentence(short=False):
-    S = startup()
-    if not S: return "Startup times: pending." if not short else "startup times are pending"
-    vl = [r for r in S["runs"] if "cuteafd" not in r["label"].lower()]
-    cu = [r for r in S["runs"] if "cuteafd" in r["label"].lower()]
-    m = lambda s: f"{s / 60:.1f} min"
-    c, warm, cold = cu[0]["ready_s"], vl[-1]["ready_s"], vl[0]["ready_s"]
-    if short:
-        return (f"CuteAFD is ready in about {m(c)} and the vLLM fork in about {m(warm)} with its JIT caches persisted on this "
-                f"setup ({m(cold)} without), which matters when switching models")
-    return (f"Switching models: CuteAFD about {m(c)}, the vLLM fork about {m(warm)} with its JIT caches persisted "
-            f"({m(cold)} without).")
+# ------------------------------------------------------------------ method
+
+def scored_table(T):
+    pa, pb, q2 = T["pa"]["scored"], T["pb"]["scored"], T["q2"]["scored"]
+    rows = [
+        ["<b>P-A</b> BF16 teacher panel (brandonmusic)", f"{pa['windows']}", hist(pa["tokens_per_window"]),
+         f"all {num(pa['scored_positions_per_window']['median'])} (rows 0-2046)", f"{pa['selected_positions_total']:,}", hist(pa["context"]),
+         "the dataset's 25 qualification windows; general, legal, agentic code and reasoning domains",
+         "<code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>a6c167b6</code>, full-vocabulary FP32 logits"],
+        ["<b>P-B</b> tpurtell's fidelity set (<code>cuteafd-fidelity</code>, glm5_flash v2)", f"{pb['windows']}", hist(pb["tokens_per_window"]),
+         f"last 512; generated positions (primary) per window {hist(pb['selected_positions_per_window'])}",
+         f"{pb['selected_positions_total']:,} generated", hist(pb["context"]),
+         "replies written by the official FP8 model after conditioning and repository-source context; blocks A-E (B: long code reading)",
+         "a BF16 run of <code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>a5b45eb4</code>, stored as its top 1,024 ids plus a tail bin"],
+        ["<b>Q2</b> long human-written text", f"{q2['windows']}", hist(q2["tokens_per_window"]),
+         f"last {num(q2['scored_positions_per_window']['median'])}", f"{q2['selected_positions_total']:,}", hist(q2["context"]),
+         "3 PG-19 books and 3 Apache-2.0 vLLM source files, each at 32K, 64K and 128K tokens", "none"]]
+    return htable(["Panel", "Windows", "Tokens per window (min / median / max)", "Scored positions per window", "Total scored",
+                   "History behind each scored token, tokens (min / median / max)", "Text", "Reference"], rows)
 
 
-def choosing_items(F, K):
-    """'Choosing a setup': (condition, what the data shows, [(link text, href)]). Every number is read from the published
-    files; the wording is conditional on the reader's workload, never a recommendation."""
-    import statistics as st
-    d, rows, L = F["d"], F["len"], F["L"]
-    lo, hi = F["dec_range"]; al, ah = F["agg_long"]
-    a8 = rows[1024]["agg8"]; t32 = rows[32768]["tth"]
-    c3 = k325_cells()
-    tt_long = [c["ttft"][1] / c["ttft"][0] for k, c in c3.items() if k[0] >= 8192 and k[2] == 1]
-    vc, cc = L[("V1", "L3", "code")], L[("C1", "L3", "code")]; vm, cm = L[("V1", "L3", "reasoning")], L[("C1", "L3", "reasoning")]
-    f1c = d[("8-16K", "kl", "F1c")][0]; c816 = d[("8-16K", "kl", "C1")][0]; f1d = d[("8-16K", "kl", "F1d")]
-    spd = f1_speed(F)
-    items = []
-    if K:
-        s4 = B.k4_facts_text(K); S4 = k4_settings(K); sp4 = k4_setting_speed(); c4 = k4_cells(K)
-        tt4 = [c["ttft"][1] / c["ttft"][0] for k, c in c4.items() if k[0] >= 8192 and k[2] == 1]
-        k816 = s4["d_816"]["B_minus_A"]; w = S4["w16amax"]["pb8_v"][0]
-        r1 = [c["read"]["dec"] for k, c in c4.items() if k[2] == 1]
-    items.append(("If closeness to the BF16 model on long code reading matters most (prompts of 8-16K tokens of source code)",
-                  f"the vLLM fork is closer on both checkpoints: CuteAFD as shipped is {dkl(c816)} KL further at 8-16K on K3.25"
-                  + (f" and {dkl(k816)} KL_pb20 further on K4 (a top-20 measure, not the same scale)" if K else "") +
-                  ". Below 8K on K3.25 no difference is resolved.",
-                  [("K3.25", "precision.html#engine-k325")] + ([("K4", "precision.html#engine-k4")] if K else [])))
-    items.append(("If you run CuteAFD on K3.25 and want that difference smaller",
-                  f"W8A16 prefill (<code>GLM5_FLASH_FP8_PREFILL=off</code>) takes the 8-16K difference from {dkl(c816)} to {dkl(f1c)} "
-                  f"for about {pp(spd['f1c'][0])} longer time to first token and level decode ({rx(spd['f1c'][3])}); all three FP8 switches leave "
-                  f"no resolved difference ({dkl(f1d[0])}) at about {pp(spd['f1d'][3])} slower median decode. Follow-up F1, outside the frozen protocol.",
-                  [("settings map", "precision.html#map-k325")]))
-    if K:
-        items.append(("If you run CuteAFD on K4 on two RTX PRO 6000s",
-                      f"W8A16 prefill with the amax scale rule (<code>GLM5_FLASH_FP8_PREFILL=off</code>, <code>FP8_SCALES=amax</code>) "
-                      f"closes about two thirds of the 8-16K difference ({dkl(k816)} → {dkl(w)} KL_pb20) for about {pp(sp4['w16amax'][0])} "
-                      "longer time to first token, with decode level. The BF16 KDA and BF16 head options close less on their own and "
-                      "do not fit a serving launch there. Follow-ups K4b-K4d, outside the frozen protocol.",
-                      [("settings map", "precision.html#map-k4")]))
-    items.append(("If you serve one request at a time (a single user, agent loops)",
-                  f"CuteAFD's per-stream decode is {lo:.2f}-{hi:.2f}x the vLLM fork's on K3.25 (cells within about ±10% are run-to-run noise)"
-                  + (f" and {s4['dec1'][0]:.2f}-{s4['dec1'][1]:.2f}x on K4 (faster in {r1.count('faster')} of {len(r1)} one-stream cells, level in "
-                     f"{r1.count('level')})" if K else "") + ".",
-                  [("K3.25", "throughput.html#dec-k325")] + ([("K4", "throughput.html#dec-k4")] if K else [])))
-    items.append(("If prompts are long (8K-128K tokens) and arrive one at a time",
-                  f"CuteAFD's first token comes sooner ({min(tt_long):.2f}-{max(tt_long):.2f}x the vLLM fork's time on K3.25"
-                  + (f", {min(tt4):.2f}-{max(tt4):.2f}x on K4" if K else "") + "): its prefill runs at about 4,400-4,500 against "
-                  f"3,700-3,900 tokens per second, and at 32K-128K it completes {span(al, ah)} more tokens per second end to end (K3.25). "
-                  f"With many long prompts at once its first tokens come later (32K input, {rows[32768]['hi']} streams: "
-                  f"{max(b for _, b in t32):.0f} vs {max(a for a, _ in t32):.0f} s), because it schedules prefills ahead of decode.",
-                  [("first token", "throughput.html#ttft-k325"), ("throughput", "throughput.html#agg-k325")]))
-    items.append(("If prompts are short (about 1K tokens) and many arrive at once",
-                  f"the vLLM fork answers sooner ({rows[1024]['tt1'][0][0]:.2f} vs {rows[1024]['tt1'][0][1]:.2f} s to first token at one stream on K3.25) "
-                  f"and at 8 streams completes {span(1 / max(a8), 1 / min(a8))} more tokens per second.",
-                  [("first token", "throughput.html#ttft-k325"), ("throughput", "throughput.html#agg-k325")]))
-    items.append(("If prompts repeat (a long shared prefix)",
-                  "CuteAFD restored a repeated 8K prompt from its prefix cache in 0.017 s; the vLLM fork reuses only whole "
-                  "4,352-token blocks and none below about 13K tokens.",
-                  [("observations", "observations.html#observations-in-detail")]))
-    lk = ""
-    if K and B.k4_l_summaries():
-        L4 = B.k4_l_summaries(); v4, u4 = L4[("V", "L3", "code")], L4[("C", "L3", "code")]; v4m, u4m = L4[("V", "L3", "reasoning")], L4[("C", "L3", "reasoning")]
-        lk = (f" On K4 at the 130,048 cap: code {v4['all_pass']}/{v4['n']} and {u4['all_pass']}/{u4['n']}, math {v4m['correct']}/{v4m['n']} "
-              f"and {u4m['correct']}/{u4m['n']}.")
-    items.append(("If replies are long (up to 128K tokens)",
-                  f"both engines did the same on code and math at the 128K cap on K3.25: code passed every hidden test in "
-                  f"{vc['all_pass']} of {vc['n']} replies (vLLM fork) and {cc['all_pass']} of {cc['n']} (CuteAFD), math {vm['correct']}/{vm['n']} "
-                  f"and {cm['correct']}/{cm['n']}.{lk} Descriptive: 8 replies per content type.",
-                  [("K3.25", "long-output.html#long-k325")] + ([("K4", "long-output.html#long-k4")] if lk else [])))
-    items.append(("If you switch models often", startup_sentence().replace("Switching models: ", "startup to ready takes "),
-                  [("startup", "observations.html#startup")]))
-    items.append(("If you need thinking off", "only CuteAFD honours it (one-request check).",
-                  [("observations", "observations.html#observations-in-detail")]))
-    if K:
-        items.append(("If GPU memory is the limit (two RTX PRO 6000s)",
-                      "both engines serve K3.25 and K4; CuteAFD needs <code>MAX_CONTEXT_TOKENS=262144</code> to serve K4 there, and its "
-                      "BF16 KDA and BF16 head options do not fit a K4 serving launch.",
-                      [("K4 observations", "observations.html#k4"), ("K4 settings", "precision.html#settings-k4")]))
-        items.append(("If you can choose between the two checkpoints",
-                      f"under the same top-20 measure K4 sits roughly half as far from the BF16 teacher as K3.25 on both engines "
-                      f"(P-A KL20: vLLM fork {s4['pa25_v']:.4f} → {s4['pa_v']:.4f}, CuteAFD {s4['pa25_c']:.4f} → {s4['pa_c']:.4f}).",
-                      [("K4 against K3.25", "precision.html#k4-vs-k325")]))
-    return items
+def page_method(F, K):
+    R = sections(read("README.md"))
+    _, secs = B.summary_sections(f"{RD}/")
+    limits = secs.get("Limits", ("", ""))[1]
+    tl = R.get("Timeline", "")
+    p = lambda path, label: gh(path, f"<code>{E(label)}</code>")
+    k325 = md("""- **Frozen.** Protocol v2 with amendments A1 and A2, frozen on 2026-10-26 at 17:32 (UTC−7), before any speed
+  (Block T) or long-output (Block L) request.
+- **Order as run.** CuteAFD's precision captures began at 16:32, before the freeze, as amendment A1 declares (the
+  instruments were fixed and no vLLM result existed yet); then the vLLM fork's precision captures (17:47-18:40); then
+  speed and long output on the vLLM fork first, CuteAFD second. The protocol had planned CuteAFD, the vLLM fork, then
+  CuteAFD again as a drift check; the drift repeat that ran instead covers both engines and was declared after the
+  audit, before any of its requests.
+- **Follow-ups.** F1 (CuteAFD's FP8 switches), F2 (the vLLM fork's prefix cache) and F3 (a second vLLM launch for
+  precision) were declared after the precision results were known; they are outside the frozen protocol and reported
+  separately.
+- **Review.** After the runs, a separate reviewer who did not run the measurements re-ran the scorers and checked the
+  claims against the receipts (read-only, CPU only, 2026-10-27): the precision and speed blocks and the vLLM fork's long
+  output. Its corrections are applied. It covers K3.25 only.""")
+    k4 = md("""- **Frozen.** A second protocol, frozen on 2026-10-27 at 17:58:09 (UTC−7) after the startup and smoke checks and
+  before any comparison request; generation 1, no amendments. Every driver refuses to send a request unless its own
+  hash and the grid's match the freeze record.
+- **Order as run.** vLLM launch 1, CuteAFD's scoring launch, vLLM launch 2 for precision (the two vLLM launches
+  bracket CuteAFD in time); speed on the vLLM fork, then CuteAFD, then a final vLLM drift subset; long output on the
+  vLLM fork, then CuteAFD.
+- **Measures.** Precision was captured as each engine's top 20 tokens per position and scored with top-20 measures,
+  identically on both arms.
+- **Follow-ups.** F1-K4, F1-K4b, K4c and K4d (CuteAFD settings) were declared after the precision results, each
+  before its own requests, outside the frozen protocol.
+- **No separate review** of any part of the K4 run.""") + \
+        '<p class="plain">The frozen K4 protocol also included a third engine, not reported here; its memory limits set the concurrency grid and the long-output cap.</p>'
+    body = (h2("what-was-measured", "What was measured, in plain words") + md("""- **Precision (Block Q).** Each engine reads fixed texts token by token (teacher-forced), and its next-token
+  probabilities are compared with the BF16 model's on the same positions: P-A, brandonmusic's BF16 teacher logits on 25
+  texts of 2,048 tokens; P-B, tpurtell's fidelity set, 64 prompts up to 14.4K tokens scored on the model's own replies;
+  Q2, six long human-written documents at 32K-128K tokens, where no BF16 reference exists and the engines are compared
+  with each other.
+- **Speed (Block T).** Prompts of 1K to 128K tokens in four content types, 1 to 16 requests at once (K4: 1 and 4),
+  1,024 tokens generated per request, thinking on, 3 replicates per cell, a distinct seed and a unique first line per
+  request.
+- **Long output (Block L).** Replies up to 128K tokens with machine checks: hidden tests for code, the reference answer
+  for math, a schema for JSON, the requested length for prose.
+- **Arms.** Each engine as its author ships it, plus a short list of local settings (listen address, request logging,
+  output limit, GPU memory utilization, a launcher guard); the same checkpoint bytes for the experts on both engines.""") +
+            h2("k325-protocol", "K3.25: frozen protocol and order") + k325 +
+            h2("k4-protocol", "K4: frozen protocol and order") + k4 +
+            h2("versions", "Which vLLM fork") +
+            '<p class="plain">"vLLM fork v0.9.2" is tpurtell\'s v0.9.2 release image (digest <code>ea0430aa…</code>) started with the v0.9.0 '
+            'repository\'s <code>start.sh</code> through its <code>IMAGE</code> override (the launcher is otherwise unchanged); the K4 launches set <code>MODEL_PROFILE=k4</code> '
+            'in the same launcher.</p>' +
+            h2("files", "The protocol files") +
+            '<ul class="pages">' +
+            f'<li>{p("protocol/PROTOCOL.md", "protocol/PROTOCOL.md")}: the K3.25 protocol as frozen (its status lines were written before '
+            'the freeze and left unchanged, so the file still matches its frozen hash)</li>'
+            f'<li>{p("protocol/FROZEN.json", "protocol/FROZEN.json")}, {p("protocol/HASHES.json", "protocol/HASHES.json")}: the freeze record and '
+            'which published copies are byte-identical to it</li>'
+            f'<li>{p("protocol/FOLLOWUPS.md", "protocol/FOLLOWUPS.md")}: follow-ups F1-F3 and the drift check, as declared</li>'
+            f'<li>{p(f"{R4}/METHOD.md", "METHOD.md")}: the K4 method, restated for the two published arms</li>'
+            f'<li>{p(f"{R4}/f1k4", "f1k4/")}: the K4 follow-up declarations (<code>FOLLOWUPS-K4*.md</code>) and results</li></ul>' +
+            h2("scored", "What was scored") + scored_table(F["T"]) +
+            '<p class="sign">The K4 run scored the same panels and positions with top-20 measures. Teacher dataset identity and hashes: '
+            + gh(f"{RD}/q/pa/PROVENANCE.json", "<code>q/pa/PROVENANCE.json</code>") + '.</p>' +
+            h2("setup", "Setup") + md(R.get("Setup", "")) +
+            h2("confounds", "Confounds") + md(R.get("Confounds", "")) +
+            h2("limits", "Limits") + md(limits) +
+            h2("timeline", "Timeline") + md(tl) +
+            h2("status", "Status") + md(B.status_lines() + "\n" + B.k4_status()) +
+            h2("other-runs", "Other runs") + md(R.get("Other runs", "")))
+    lede = ("<p>Each engine ran as its author ships it, plus a short list of local settings, on one machine. For each checkpoint the "
+            "comparison protocol was frozen before its comparison runs; settings experiments were declared as follow-ups before their own "
+            "requests and are labelled outside the protocols. The K3.25 analysis had a separate review after the runs; the K4 run did not.</p>")
+    page("method.html", "Method: what was frozen, what ran, in what order", lede, body)
 
 
-def choosing(F, K):
-    li = "".join(f'<li><b>{c}:</b> the data shows {t} <span class="ev">Evidence: '
-                 + ", ".join(f'<a href="{h}">{E(n)}</a>' for n, h in links) + "</span></li>" for c, t, links in choosing_items(F, K))
-    return ('<h2 id="choosing-a-setup">Choosing a setup</h2><p class="plain">What the published results show for common '
-            'workloads, each with a link to its evidence. They describe this machine and these checkpoints; they are not a '
-            'general ranking.</p><ul class="choose">' + li + '</ul>'
-            '<p class="note">One machine: two RTX PRO 6000 Blackwell Max-Q GPUs at their 300 W power cap, one model '
-            '(GLM-5.3-Flash, EXL3 K3.25 and K4 experts), thinking on. Other GPUs, quantizations or settings can change the picture.</p>')
+# ------------------------------------------------------------------ audit (cited files become links)
+
+CUTEAFD_SRC = "https://github.com/tpurtell/cuteafd/blob/v3.0.1/"
+VLLM_FORK_SRC = "https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx/blob/v0.9.0/"
+UPSTREAM = {"run-family.sh": CUTEAFD_SRC + "scripts/launch/run-family.sh", "docs/models/glm5_flash.md": CUTEAFD_SRC + "docs/models/glm5_flash.md",
+            "fidelity.rs": CUTEAFD_SRC + "rust/crates/cuteafd-bench/src/fidelity.rs", "reference.rs": CUTEAFD_SRC + "rust/crates/cuteafd-bench/src/reference.rs",
+            "probe.rs": CUTEAFD_SRC + "rust/crates/cuteafd-api/src/openai/probe.rs", "start.sh": VLLM_FORK_SRC + "start.sh",
+            "chat_template.jinja": "https://huggingface.co/wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1/tree/0490d2f708b12145f6516555ab066aaeb401cd21",
+            "windows.json": "https://huggingface.co/datasets/wrldsuksgo2mars/cuteafd-fidelity"}
+RENAMED = {"PROTOCOL-DRAFT.md": "protocol/PROTOCOL.md", "FOLLOWUPS.md": "protocol/FOLLOWUPS.md", "FROZEN.json": "protocol/FROZEN.json",
+           "RESULTS-Q.md": f"{RD}/q/RESULTS-Q.md", "T-SUMMARY.md": f"{RD}/t/T-SUMMARY.md"}
+AUDITOR = {"pb1.py", "pb1.out", "pb3.py", "pb4.py", "ee.py", "ee2.py", "teachH.py", "ctx4.py", "l1.py", "t1.out", "t2.py", "bar.py"}
+NOT_PUBLISHED_RAW = ("vllm-v092-dumps/", "capture-manifest.json", ".steps.jsonl", "local/logs/", "t/gpu-before-", "stage0/prompts/T/")
+INTERNAL = ("discovery-", "phase1-indexer-selection.md", "contrib/local-inference-evals/", "recipes/")
+FILEREF = re.compile(r"^(?P<path>[A-Za-z0-9_./{},*…+\-]+?\.(?:md|json|py|sh|log|txt|out|jsonl|rs|jinja))(?P<lines>:[0-9][0-9,\-]*)?$")
 
 
-def how_sure():
-    return ('<h2 id="how-sure">How sure are we</h2><div class="sure"><div><h3>Solid</h3><ul>'
-            '<li>The precision difference is paired against three vLLM runs from two launches, and survives a leave-one-window-out '
-            'check and a multiple-comparison correction (independent audit).</li>'
-            '<li>CuteAFD is bit-deterministic: every repeat was byte-identical.</li>'
-            '<li>Speed did not drift: repeats hours later were within ±2% at the median on both engines.</li>'
-            '<li>Both engines ran every request with 0 errors.</li></ul></div><div><h3>Thin</h3><ul>'
-            '<li>Long output: two seeds per prompt, four prompts per content type.</li>'
-            '<li>Long-document NLL (32K-128K): six documents.</li>'
-            '<li>The BF16 reference stops at 14.4K tokens; beyond it the engines are compared only with each other.</li>'
-            '<li>Precision was scored in prefill shape; the decode path that generates tokens was not scored.</li>'
-            '<li>Single speed cells vary by up to ±13% between runs.</li></ul></div></div>')
+def repo_files():
+    return [p.relative_to(ROOT).as_posix() for p in ROOT.rglob("*") if p.is_file() and ".git" not in p.parts
+            and "__pycache__" not in p.parts and not p.relative_to(ROOT).as_posix().startswith("docs/")]
 
 
-def glossary():
-    terms = [("KL (Kullback-Leibler divergence)", "How far an engine's next-token probabilities are from the original BF16 model. "
-              "0 means identical; lower is better. Measured in nats. tpurtell's fidelity set treats a paired change below 0.005 "
-              "as within its bar."),
-             ("Top-1", "How often the engine's most likely next token is the reference's most likely one."),
-             ("History", "The number of tokens before a scored position: what the model had read when it made that "
-              "prediction. Each headline KL states the range (minimum, median, maximum) of its scored positions."),
-             ("Tail (p99, p99.9)", "The per-position KL that 1% (0.1%) of scored positions exceed. A mean can hide a few "
-              "positions where the distributions differ a lot; the tail shows them."),
-             ("NLL", "Negative log-likelihood of the actual text: lower means the engine found the text less surprising."),
-             ("TTFT", "Time to first token: from sending a request to the first generated token; mostly prompt processing."),
-             ("Prefill", "Processing the prompt before generation starts. Decode: generating tokens one step at a time."),
-             ("Stream", "One request in flight. Aggregate: all completion tokens of a batch divided by its wall time."),
-             ("W8A8 / W8A16", "FP8 weights with FP8 or 16-bit activations in CuteAFD's prefill matrix multiplies.")]
-    return ('<h2 id="terms">Terms</h2><dl class="gl">' + "".join(f"<dt>{html.escape(k)}</dt><dd>{html.escape(v)}</dd>" for k, v in terms)
-            + "</dl>")
+_FILES = None
 
 
-def sign_note():
-    return '<p class="sign">Sign convention: a positive KL difference means CuteAFD is further from the BF16 model than the vLLM fork.</p>'
+def resolve_ref(span):
+    """A `file` citation in the audit -> (url or None, note or None)."""
+    global _FILES
+    m = FILEREF.match(span)
+    if not m: return None, None
+    path = m.group("path"); name = path.split("/")[-1]
+    if name in AUDITOR: return None, "the auditor's recomputation, not published"
+    if any(k in path for k in NOT_PUBLISHED_RAW): return None, "raw capture or local log, not published"
+    if any(path.startswith(k) or k in path for k in INTERNAL): return None, "internal working file, not published"
+    if path in RENAMED or name in RENAMED: return f"{REPO_URL}/blob/main/{RENAMED.get(path, RENAMED.get(name))}", None
+    if path in UPSTREAM or name in UPSTREAM: return UPSTREAM.get(path, UPSTREAM.get(name)), None
+    if _FILES is None: _FILES = repo_files()
+    for cand in (path, f"{RD}/{path}", f"repro/{path}", f"repro/stage0/{path}"):
+        if cand in _FILES: return f"{REPO_URL}/blob/main/{cand}", None
+    hits = [f for f in _FILES if f.endswith("/" + path) and f.startswith(("results/2026-10-26", "repro/", "protocol/"))]
+    if len(hits) == 1: return f"{REPO_URL}/blob/main/{hits[0]}", None
+    return None, "not published"
 
 
-# ------------------------------------------------------------------ K4 run (results/2026-10-27-k4-vllm-cuteafd)
-# Numbers from the run's published files via tools/build_readme.py (B.k4_*). Its precision numbers are top-20 measures;
-# every K4 table says so, and none shares a column with the K3.25 run's full-vocabulary KL.
+def audit_codelink(span):
+    if span.startswith("recipes/") and span.endswith("+v0.9.2/env.sh"):      # the K3.25 recipe; its K4 copy is published
+        return (f'<a href="{REPO_URL}/blob/main/repro/k4/vllm/env.sh"><code>repro/k4/vllm/env.sh</code></a> '
+                '<span class="ci">(cited as the K3.25 recipe, which is not published; the K4 copy carries the same settings)</span>')
+    url, note = resolve_ref(span)
+    if url:
+        tgt = url.split("/blob/main/")[-1] if "/blob/main/" in url else None
+        cited = FILEREF.match(span).group("path").split("/")[-1] if FILEREF.match(span) else span
+        if tgt and tgt.split("/")[-1] != cited:                               # a renamed file: the label names the target
+            return f'<a href="{E(url)}"><code>{E(tgt)}</code></a> <span class="ci">(cited as {E(span)})</span>'
+        return f'<a href="{E(url)}"><code>{E(span)}</code></a>'
+    if note: return f'<code>{E(span)}</code> <span class="ci">({E(note)})</span>'
+    return None
 
-R4 = f"results/{B.K4}"
+
+AUDIT_TEXT = [   # the published audit as shown on the site: wording of the review itself, and internal references resolved
+    ("This matches the earlier finding in\n  `contrib/local-inference-evals/LEDGER.md:768-800` (amendments 22ax-22az): identical solo prefills",
+     "This matches an earlier investigation (local-inference-evals,\n  [`LEDGER.md`](https://github.com/UrbanAstroLA/local-inference-evals/blob/main/LEDGER.md)): identical solo prefills"),
+    (" Selection and tie handling differ too (22az).", " Selection and tie handling differ too (same earlier investigation)."),
+    (' The local change log summary "~0 below 8K" needs "in KL".', ' A summary reading "~0 below 8K" needs "in KL".'),
+    ("`FROZEN.json` itself is `c4815666…`, as the local change log says.", "`FROZEN.json` itself is `c4815666…`."),
+]
+
+
+def page_audit():
+    au = strip_title(read(f"{RD}/AUDIT-2026-10-27.md"))
+    for old, new in AUDIT_TEXT:
+        if old not in au: raise SystemExit(f"audit text changed; update AUDIT_TEXT: {old[:60]!r}")
+        au = au.replace(old, new)
+    lede = ("<p>A separate adversarial review of the K3.25 analysis, done after the runs by a reviewer who did not run the "
+            "measurements: it re-ran the scorers and checked the claims against the receipts, read-only and on CPU only. It covered "
+            "the precision and speed blocks and the vLLM fork's long output; it was made before CuteAFD's long output, the drift "
+            "repeats and the follow-up results existed, and it does not cover K4 or the needle pilot. It found the instruments "
+            "sound and the precision difference robust, traced the vLLM fork's run-to-run variation to multi-chunk prefill (which "
+            "led to pairing CuteAFD against several vLLM runs), showed that the 8-16K bucket is long code reading, and confirmed "
+            "the scheduling explanation of the speed results.</p>")
+    body = ('<p class="sign">The review as published, with suggested follow-up work and local items omitted. Cited files link to '
+            'this repository or to the engines\' public sources at the versions tested; files that are not published are marked. '
+            'Line numbers refer to the files as reviewed; published copies with placeholders may differ by a few lines.</p>' +
+            md(au, RD, 1, codelink=audit_codelink))
+    page("audit.html", "Review of the K3.25 analysis (2026-10-27)", lede, body)
+
+
+# ------------------------------------------------------------------ research (deep dives)
+
+QM = (("kl_p50", 0.5), ("kl_p90", 0.1), ("kl_p99", 0.01), ("kl_p99.9", 0.001))
+ARM = {"V1": "vLLM fork V1", "V1r": "vLLM fork V1r", "V2": "vLLM fork V2", "C1": "CuteAFD C1", "C0": "CuteAFD C0 (control)"}
 ARM4 = {"Vr1": "vLLM launch 1", "Vr1b": "vLLM launch 1, repeat", "Vr2": "vLLM launch 2", "Cr1": "CuteAFD"}
-K4_ATTR = ('<p class="sign">K4 is GLM-5.3-Flash-tr3-4bpw by <b>Local Inference Lab, Inc.</b> '
-           '(<a href="https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw">huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw</a>; '
-           'project home <a href="https://local-inference-lab.ai/">local-inference-lab.ai</a>), evaluated at revision '
-           '<code>a5fee929</code>. Attribution does not imply endorsement, sponsorship, certification or verification of this '
-           f'evaluation or its results by the author or the licensor (<a href="{REPO_URL}/blob/main/NOTICE.md">NOTICE.md</a>).</p>')
-K4_TOP20 = ('<p class="note"><b>Top-20 measures.</b> K4 was scored from the engines\' own 20 most likely ids plus the actual '
-            'token (KL20 on P-A, KL_pb20 on P-B, KL20n between engines on Q2), identically on both arms. They are not '
-            'full-vocabulary KL: on P-A KL20 reads about 0.8 of it, on P-B generated rows KL_pb20 keeps about 98-99% of the '
-            'published coarse KL, and every K3.25 difference kept its sign and significance under the truncation. K4 numbers '
-            'are compared with K3.25 only under the same top-20 definition.</p>')
+TAILS = {"k325": {"pa": ({"V1": "kl_V1", "V1r": "kl_V1r", "V2": "kl_V2", "C1": "kl_C1"}, lambda r: True),
+                  "pb": ({"V1": "kl_V1", "V1r": "kl_V1r", "V2": "kl_V2", "C1": "kl_C1"}, lambda r: r["role"] == "gen")},
+         "k4": {"pa": ({"Vr1": "kl20_Vr1", "Vr2": "kl20_Vr2", "Cr1": "kl20_Cr1"}, lambda r: True),
+                "pb": ({"Vr1": "klpb20_Vr1", "Vr2": "klpb20_Vr2", "Cr1": "klpb20_Cr1"}, lambda r: r["role"] == "gen")}}
+NAMES = {"V1": "vLLM V1", "V1r": "vLLM V1r", "V2": "vLLM V2", "C1": "CuteAFD", "Vr1": "vLLM launch 1", "Vr1b": "vLLM launch 1 repeat",
+         "Vr2": "vLLM launch 2", "Cr1": "CuteAFD"}
 
 
-def k4_cards(K):
-    s = B.k4_facts_text(K); T = K["T"]
-    share = -s["f1_816"]["diff"] / s["d_816"]["B_minus_A"]
-    m25 = B.load(D / "q/pb/pb-vs-vllm-mean3.json")
-    share25 = (m25["8-16K|kl|C1"][0] - m25["8-16K|kl|F1c"][0]) / m25["8-16K|kl|C1"][0]
-    b816 = pb_band(T, "8-16K")["context"]
-    items = [
-        ("K4 against K3.25", f"{s['pa25_v']:.4f} → {s['pa_v']:.4f}",
-         "A quantization comparison: K4's 4-bit experts sit roughly half as far from the BF16 teacher as K3.25's, on both "
-         "engines.", f"P-A teacher KL20 (top-20, same definition on both checkpoints), vLLM; CuteAFD {s['pa25_c']:.4f} → "
-         f"{s['pa_c']:.4f}. Every position of 25 windows: {hist_short(T['pa']['scored']['context'])}."),
-        ("Precision on K4", f"{dkl(s['d_816']['B_minus_A'])}",
-         "vLLM stays closer to BF16. The difference sits in long code reading (8-16K), as on K3.25, and reads larger "
-         f"({dkl(s['d25_816']['diff'])} on K3.25; intervals overlap).",
-         f"P-B KL_pb20 at 8-16K, CuteAFD − vLLM [{s['d_816']['ci95'][0]:+.4f}, {s['d_816']['ci95'][1]:+.4f}], "
-         f"{hist_short(b816)}. All generated rows {dkl(s['d_pb']['B_minus_A'])}; P-A {dkl(s['d_pa']['B_minus_A'])}."),
-        ("Speed on K4", f"{s['dec1'][0]:.2f}-{s['dec1'][1]:.2f}x",
-         f"CuteAFD decodes faster in {s['dec_read'][0]} of {s['dec_read'][3]} cells and level in the other "
-         f"{s['dec_read'][1] + s['dec_read'][2]}. Its first token comes sooner at one stream from 8K up; vLLM's comes sooner "
-         "at 1K and at 32K with four streams.",
-         f"Single-stream decode, CuteAFD ÷ vLLM; at four streams {s['dec4'][0]:.2f}-{s['dec4'][1]:.2f}x. 1 and 4 streams "
-         "at 1K-32K, 1 stream at 128K."),
-        ("W8A16 prefill on K4", f"{100 * share:.0f}%",
-         f"Of the 8-16K difference, W8A16 prefill moves about {100 * share:.0f}% on K4 (about {100 * share25:.0f}% on "
-         "K3.25), for 3-4% longer time to first token.",
-         f"Follow-up F1-K4, outside the frozen protocol: {dkl(s['f1_816']['diff'])} [{s['f1_816']['ci95'][0]:+.4f}, "
-         f"{s['f1_816']['ci95'][1]:+.4f}]. On P-A, CuteAFD with W8A16 is not resolved from vLLM."),
-        ("Long output on K4", "pending", "Block L was still running when these pages were built.", "Filled in once both "
-         "engines' stages have finished and the frozen analysis has run.") if not B.k4_l_summaries() else
-        ("Long output on K4", "see Long output", "Both engines' Block L stages, analysed by the frozen K3.25 analyser.",
-         "Descriptive: 2 seeds per prompt, 4 prompts per content type.")]
-    return '<div class="cards">' + "".join(
-        f'<div class="card"><div class="k">{html.escape(k)}</div><div class="big">{html.escape(big)}</div><p>{html.escape(txt)}</p>'
-        f'<div class="ev">{html.escape(ev)}</div></div>' for k, big, txt, ev in items) + "</div>"
+def rows_csv(path, select, cols):
+    import csv
+    with open(path, newline="") as f:
+        out = {c: [] for c in cols}
+        for r in csv.DictReader(f):
+            if not select(r): continue
+            for c in cols:
+                if r[c] != "": out[c].append(float(r[c]))
+    return {c: sorted(v) for c, v in out.items()}
 
 
-def k4_index(K):
-    if not K: return ""
-    return ('<h2 id="k4">Second checkpoint: K4 (2026-10-27)</h2>'
-            '<p class="plain">The same two engines, machine, panels and prompts, on brandonmusic\'s GLM-5.3-Flash-tr3-4bpw '
-            '("K4", 4-bit EXL3 experts), under a second protocol frozen before its first request. <b>K4 against K3.25 is a '
-            'quantization comparison; the engine comparison on K4 repeats the K3.25 pattern:</b> vLLM closer to BF16, '
-            'CuteAFD faster.</p>' + k4_cards(K) + K4_ATTR +
-            f'<p class="sign">Detail: <a href="precision.html#k4">precision</a>, <a href="throughput.html#k4">throughput</a>, '
-            f'<a href="observations.html#k4">observations</a>, <a href="method.html#k4">method</a>; receipts in '
-            f'<a href="{REPO_URL}/tree/main/{R4}"><code>{R4}</code></a>.</p>')
+def qmarks(s, name):
+    return [(s[k], share, f"{name}: {100 * share:g}% of positions above KL {s[k]:.4g} ({k[3:]}, published)") for k, share in QM]
 
 
-def k4_tails_table(P):
+def tails_table(P, names):
     rows = []
     for a, s in P["arms"].items():
-        rows.append([ARM4[a], f"{s['kl_mean']:.4f}", f"{s['kl_p50']:.4f}", f"{s['kl_p90']:.3f}", f"{s['kl_p99']:.3f}",
+        rows.append([names[a], f"{s['kl_mean']:.4f}", f"{s['kl_p50']:.4f}", f"{s['kl_p90']:.3f}", f"{s['kl_p99']:.3f}",
                      f"{s['kl_p99.9']:.2f}", f"{s['kl_max']:.2f}", f"{100 * s['top1']:.2f}%",
                      f"{100 * s['confident_top1']:.2f}%" if "confident_top1" in s else "n/a"])
     return htable(["Run", "Mean", "p50", "p90", "p99", "p99.9", "Max", "Top-1", "Confident top-1"], rows)
 
 
-def k4_precision(K):
-    if not K: return ""
-    T = K["T"]; rows4 = R4D / "q" / "rows"
-    return ('<h2 id="k4">K4 (2026-10-27): top-20 measures</h2>' + K4_TOP20 +
-            '<p class="plain">On K4, CuteAFD is further from BF16 than the vLLM fork on both panels, most in long code '
-            'reading (8-16K); on human-written text at 32K-128K no NLL difference is resolved. Against K3.25 under the same '
-            'definition, K4 sits roughly half as far from the teacher on both engines.</p>' + fig_engine_k4(K) +
-            '<p class="sign">vLLM = per-row mean of two launches. Reading: "differs" needs the 95% interval to exclude 0 and '
-            'the difference to exceed vLLM\'s launch-to-launch difference on the same rows. History: tokens before each '
-            'scored position (min / median / max).</p>' + md(B.k4_precision_table(K)) +
-            md(B.k4_q2_note(K), R4) +
-            '<h3 id="k4-vs-k325">K4 against K3.25, same top-20 definition</h3>'
-            '<p class="sign">The K3.25 values are its full-vocabulary captures truncated to each engine\'s own top 20 '
-            '(computed before the K4 freeze); same panels and rows, so the same scored history as above. CuteAFD ran K3.25\'s '
-            'Core-FP8 checkpoint (official FP8 projections) and converts K4\'s BF16 projections at load.</p>' +
-            md(B.k4_quant_table(K)) +
-            '<h3 id="k4-settings">CuteAFD settings on K4 (follow-ups outside the frozen protocol)</h3>' + fig_settings_k4(K) + fig_map_k4(K) +
-            '<h3 id="k4-f1">Follow-up F1-K4: W8A16 prefill on K4 (outside the frozen protocol)</h3>' + md(B.k4_f1_tables(K)) +
-            '<h3 id="k4-f1b">Follow-ups F1-K4b and K4c: CuteAFD\'s FP8 switches on K4 (outside the frozen protocol)</h3>' +
-            md(strip_title(read(f"{R4}/f1k4/RESULTS-F1K4b.md")), R4) +
-            f'<h3 id="k4-tails">K4 tails (top-20 measures)</h3>' +
-            fig_tails("k4", "pa", T, rows4, "tails-k4-pa", "KL20", k4_tails_table(T["pa"])) +
-            f'<p class="sign">P-A, every position of 25 windows ({hist_short(T["pa"]["scored"]["context"])}):</p>' + k4_tails_table(T["pa"]) +
-            fig_tails("k4", "pb", T, rows4, "tails-k4-pb", "KL_pb20", k4_tails_table(T["pb"])) +
-            f'<p class="sign">P-B, {T["pb"]["scored"]["selected_positions_total"]:,} generated positions '
-            f'({hist_short(T["pb"]["scored"]["context"])}):</p>' + k4_tails_table(T["pb"]) +
-            fig_q2_tails("k4", T, rows4, "tails-k4-q2", "KL20n") +
-            f'<p class="sign">Computed by <code>tools/kl_tails.py --run k4</code> from '
-            f'<a href="{REPO_URL}/tree/main/{R4}/q/rows"><code>q/rows/</code></a>; the curves count the same per-position files.</p>')
+def band_table(T, key):
+    P = T[key]; rows = []
+    for b in P["by_position"]:
+        first = next(iter(b["arms"]))
+        for a, s in b["arms"].items():
+            rows.append([E(b["band"]) if a == first else "", hist(b["context"]) if a == first else "",
+                         ARM[a], f"{s['kl_mean']:.4f}", f"{s['kl_p99']:.3f}", f"{s['kl_p99.9']:.2f}", f"{100 * s['top1']:.2f}%"])
+    return htable(["Positions", "History, tokens (min / median / max)", "Run", "Mean KL", "p99", "p99.9", "Top-1"], rows)
 
 
-def k4_throughput(K):
-    if not K: return ""
-    s = B.k4_facts_text(K)
-    return ('<h2 id="k4">K4 (2026-10-27)</h2><p class="plain">On K4, CuteAFD decodes faster than the vLLM fork in '
-            f'{s["dec_read"][0]} of {s["dec_read"][3]} cells, at one and at four streams, and level in the other '
-            f'{s["dec_read"][1] + s["dec_read"][2]} (8K and 128K prose, one stream). Its first token comes sooner at one stream from 8K up and at 8K with four '
-            'streams; the vLLM fork\'s comes sooner at 1K and at 32K with four streams.</p>'
-            '<p class="sign">Grid common to the protocol\'s arms (<a href="method.html#k4">Method</a>): 1 and 4 streams at '
-            '1K-32K, 1 stream at 128K, 1,024 output tokens, thinking on. Ratios are CuteAFD ÷ vLLM per content cell; readings '
-            'use the declared ±8% band.</p>' + k4_speed_figs(K) + md(B.k4_t_table(K)) + f'<p class="sign">{inline(B.k4_t_counts(K), R4)}</p>' +
-            '<h3 id="k4-startup">Startup on K4 (descriptive)</h3>' +
-            md(B.table(["Launch", "To /v1/models", "To ready", "Capacity at startup"], B.k4_startup_rows(K))))
+def fig_tails(run, key, T, rows_dir, fid, metric, tables):
+    cols, sel = TAILS[run][key]
+    vals = rows_csv(rows_dir / ("pa-rows.csv" if key == "pa" else "pb-rows.csv"), sel, list(cols.values()))
+    P = T[key]; arms = P["arms"]
+    vs = [a for a in cols if a.startswith("V")]; ca = [a for a in cols if a.startswith("C")][0]
+    unit = "runs" if run == "k325" else "launches"
+    series = [{"name": NAMES[a], "who": "v", "values": vals[cols[a]], "thin": i > 0, "label": f"vLLM fork ({len(vs)} {unit})" if i == 0 else None,
+               "marks": qmarks(arms[a], NAMES[a]) if i == 0 else []} for i, a in enumerate(vs)]
+    series.append({"name": "CuteAFD", "who": "c", "values": vals[cols[ca]], "label": "CuteAFD", "marks": qmarks(arms[ca], "CuteAFD")})
+    ex = C.exceedance(series, aria=f"Exceedance of per-position {metric}, panel {key.upper()}, {run}", xlabel=f"per-position {metric} (log scale)")
+    bands = P["by_position"]
+    cats = [(b["band"], f"history {num(b['context']['min'])}-{num(b['context']['max'])}") for b in bands]
+    vmean_ = lambda b: sum(b["arms"][a]["kl_mean"] for a in vs) / len(vs)     # K3.25: three runs; K4: the two launches
+    prof = C.profile(cats, [{"name": "vLLM", "who": "v", "values": [vmean_(b) for b in bands],
+                             "titles": [f"vLLM fork (mean of {len(vs)} {unit}), {b['band']}, history {hist(b['context'])}: mean {metric} {vmean_(b):.4f}" for b in bands]},
+                            {"name": "CuteAFD", "who": "c", "values": [b["arms"][ca]["kl_mean"] for b in bands],
+                             "titles": [f"CuteAFD, {b['band']}, history {hist(b['context'])}: mean {metric} {b['arms'][ca]['kl_mean']:.4f}" for b in bands]}],
+                     aria=f"Mean {metric} by history, panel {key.upper()}, {run}", ylabel=f"mean {metric} per position band (lower is closer)")
+    v0 = vs[0]
+    conc = C.concentration([(f"Top {p}% of positions", [("v", arms[v0][f"kl_share_top{p}pct"], f"{NAMES[v0]}: the top {p}% of positions carry "
+                                                         f"{100 * arms[v0][f'kl_share_top{p}pct']:.1f}% of its total {metric}"),
+                                                        ("c", arms[ca][f"kl_share_top{p}pct"], f"CuteAFD: the top {p}% of positions carry "
+                                                         f"{100 * arms[ca][f'kl_share_top{p}pct']:.1f}% of its total {metric}")]) for p in (1, 5, 10)],
+                           aria=f"Concentration of {metric} in the highest positions, panel {key.upper()}, {run}")
+    title = {"pa": "P-A", "pb": "P-B"}[key]
+    return C.figure(fid, f"{title} tails and position ({'K3.25' if run == 'k325' else 'K4, top-20'}): {metric}, lower is closer to BF16",
+                    f"Three views of the same {P['scored']['selected_positions_total']:,} per-position scores: how often a position exceeds "
+                    "a KL value, the mean by the history behind a position, and the share of the total carried by the highest positions.",
+                    [(ex, strip(T, run, key), "Share of positions above a KL"), (prof, None, "Mean KL by history"),
+                     (conc, None, "Concentration: share of the total KL in the top positions")],
+                    "If the curves run together the engines differ in the bulk of positions, not in a few outliers.",
+                    tables, [("lnv", "vLLM fork (each run; marks on the first)"), ("lnc", "CuteAFD"), ("v", "published quantile, vLLM"),
+                             ("c", "published quantile, CuteAFD")])
 
 
-K4_BAND = "±8% band: declared before the K4 run (both engines' drift repeats stayed inside it); readings per cell from t/t-compare.json"
-K325_BAND = ("±10% band: the drift check's reading (single cells vary by up to about ±13% between runs; ratios within about ±10% "
-             "are not differences)")
+def fig_q2_tails(run, T, rows_dir, fid, metric):
+    P = T["q2"]
+    if run == "k325":
+        bt = [("KL(C1 || V1)", "kl_C1_V1", "CuteAFD vs vLLM")]; wt = ("KL(V1 || V1r)", "kl_V1_V1r", "vLLM vs its repeat")
+    else:
+        bt = [("KL20n(V-r1 || C-r1)", "kl20n_Vr1_Cr1", "CuteAFD vs vLLM launch 1"), ("KL20n(V-r2 || C-r1)", "kl20n_Vr2_Cr1", "CuteAFD vs vLLM launch 2")]
+        wt = ("KL20n(V-r1 || V-r2)", "kl20n_Vr1_Vr2", "vLLM launch 1 vs 2")
+    vals = rows_csv(rows_dir / "q2-rows.csv", lambda r: True, [c for _, c, _ in bt] + [wt[1]])
+    series = [{"name": wt[2], "who": "v", "values": vals[wt[1]], "label": wt[2], "marks": qmarks(P["within_engine"][wt[0]], wt[2])}]
+    for i, (k, c, nm) in enumerate(bt):
+        series.append({"name": nm, "who": "c", "values": vals[c], "label": nm, "thin": i > 0, "marks": qmarks(P["between_engines"][k], nm) if i == 0 else []})
+    ex = C.exceedance(series, aria=f"Exceedance of engine disagreement on Q2, {run}", xlabel=f"per-position {metric} between two runs (log scale)")
+    b0, w0 = P["between_engines"][bt[0][0]], P["within_engine"][wt[0]]
+    conc = C.concentration([(f"Top {p}% of positions", [("v", w0[f"kl_share_top{p}pct"], f"{wt[2]}: top {p}% carry {100 * w0[f'kl_share_top{p}pct']:.1f}%"),
+                                                        ("c", b0[f"kl_share_top{p}pct"], f"{bt[0][2]}: top {p}% carry {100 * b0[f'kl_share_top{p}pct']:.1f}%")]) for p in (1, 5, 10)],
+                           aria=f"Concentration of disagreement on Q2, {run}", names={"v": "vLLM vs itself", "c": "CuteAFD vs vLLM"})
+    rows = [[nm, f"{s['n']:,}", f"{s['kl_mean']:.4f}", f"{s['kl_p50']:.4f}", f"{s['kl_p90']:.3f}", f"{s['kl_p99']:.3f}", f"{s['kl_p99.9']:.2f}",
+             f"{s['kl_max']:.2f}", f"{100 * s['top1_agree']:.2f}%"] for nm, s in [(n, P["between_engines"][k]) for k, _, n in bt] + [(wt[2], w0)]]
+    table = htable(["Pair", "Positions", "Mean", "p50", "p90", "p99", "p99.9", "Max", "Top-1 agreement"], rows)
+    return C.figure(fid, f"Q2 disagreement ({'K3.25' if run == 'k325' else 'K4, top-20'}): CuteAFD against the vLLM fork, and the vLLM fork against itself",
+                    "No BF16 reference exists beyond 14K tokens, so this compares the engines with each other (orange) and the vLLM fork with "
+                    f"its own repeat (blue; it covers {w0['n']:,} of the {b0['n']:,} positions).",
+                    [(ex, spec_strip(T["q2"]["scored"], PANEL["q2"], "none (engine against engine)", f"{metric} between two runs (disagreement), nats",
+                                   SEL["q2"]), "Share of positions above a disagreement"), (conc, None, "Concentration of the disagreement")],
+                    "The gap between the curves is the engine difference beyond run-to-run noise; it says nothing about which engine is closer "
+                    "to BF16 at these lengths.",
+                    table, [("lnv", "vLLM fork against its own repeat"), ("lnc", "CuteAFD against the vLLM fork"), ("v", "published quantile"), ("c", "published quantile")])
 
 
-def k4_speed_figs(K):
-    cells = k4_cells(K)
-    return "".join(fig_speed("k4", m, cells, f"{m}-k4", (0.92, 1.08), K4_BAND) for m in ("dec", "agg", "ttft"))
-
-
-def k4_long(K):
-    if not K: return ""
-    if not B.k4_l_summaries():
-        return ('<h2 id="k4">K4 (2026-10-27): pending</h2><p class="plain">Block L on K4 (2 requests in flight; caps 8,192, '
-                '32,768 and 130,048 tokens; one-at-a-time subset at the last cap) was still running when these pages were '
-                'built. It appears here once both engines have finished and the frozen analysis has run on them.</p>')
-    return '<h2 id="k4">K4 (2026-10-27)</h2>' + fig_long(B.k4_l_summaries(), "k4", "V", "C", "long-k4") + md(B.k4_l_text(), R4)
-
-
-def k4_observations(K):
-    if not K: return ""
+def page_research(F, K):
+    T, T4 = F["T"], K["T"]; rows3, rows4 = D / "q" / "rows", R4D / "q" / "rows"
+    pa_s, pb_s = T["pa"]["arms"], T["pb"]["arms"]; pab = T["pa"]["by_position"]
+    pbv = [pb_s[a]["kl_p99"] for a in ("V1", "V1r", "V2")]
     c2 = strip_title(read(f"{R4}/c2/README.md"))
-    items = [
-        "**CuteAFD needs one local setting to serve K4 on two RTX GPUs** (its planner's dry run and startup line): at its defaults the planner "
-        "refuses K4 (pool 260,608 tokens, below its 1,048,576-token context floor); `MAX_CONTEXT_TOKENS=262144` gives a "
-        "447,488-token pool beside the desktop's context on GPU 1.",
-        "**CuteAFD converts K4's BF16 projections to FP8 at load** (declared difference, read in source before the freeze): attention, dense "
-        "and shared projections in 128×128 blocks with pow2 scales, head and KDA projections per row. On K3.25 those "
-        "projections came from the official FP8 checkpoint. The vLLM fork serves them in BF16.",
-        "**W8A16 prefill moves less of the long-code difference on K4 than on K3.25** (follow-up F1-K4): about 21% of the "
-        "8-16K difference, against about 59% on K3.25. **Follow-ups F1-K4b and K4c tested the other FP8 choices:** no single "
-        "switch accounts for most of it (BF16 KDA projections about 39%, the amax scale rule about 25% not resolved, BF16 "
-        "head about 3%); W8A16 prefill together with the amax scale rule moves about 68%, leaving +0.0030 at 8-16K and no "
-        "resolved difference on P-A or Q2, at about 4% longer time to first token. BF16 KDA projections and head do not "
-        "fit a serving launch on two RTX cards with K4.",
-        "**Literal `<think>` text in a prompt** (smoke check S2 and Block T): the vLLM stack parses it as a special token, "
-        "CuteAFD keeps it as text, so the 128K code prompts are longer on CuteAFD (as on K3.25).",
-        "**Same seed, same prompt** (smoke, 3 prompts): CuteAFD returned identical text 3 of 3 times, the vLLM fork 1 of 3; "
-        "the cause was not examined. Repeats in this run always use distinct seeds.",
-        "**CuteAFD's scoring launch turns its prefix cache off** (`PREFIX_CACHE_ENTRIES=0`): the full prefill-logits buffer "
-        "did not fit beside the desktop's context otherwise, and scoring probes never read the prefix cache, so no scored "
-        "value changes."]
-    return ('<h2 id="k4">K4 (2026-10-27)</h2>' + md("\n".join(f"- {x}" for x in items)) +
-            f'<h3 id="k4-c2">{html.escape(read(f"{R4}/c2/README.md").splitlines()[0][2:])}</h3>' + md(c2, f"{R4}/c2"))
+    lede = ("<p>Deeper views behind the headline numbers, for readers who want them: how the per-position differences are distributed, "
+            "how they depend on the history behind a position, one document where the vLLM fork differs from itself, and the "
+            "follow-up designs.</p>")
+    body = (h2("tails", "Tails and position (K3.25)") +
+            f'<p class="plain">Most positions sit far below the mean: the median position\'s KL on P-A is {pa_s["V1"]["kl_p50"]:.4f} (vLLM fork) '
+            f'and {pa_s["C1"]["kl_p50"]:.4f} (CuteAFD) against means of {pa_s["V1"]["kl_mean"]:.4f} and {pa_s["C1"]["kl_mean"]:.4f}; the '
+            f'highest-KL 5% of positions carry {100 * pa_s["V1"]["kl_share_top5pct"]:.0f}% and {100 * pa_s["C1"]["kl_share_top5pct"]:.0f}% of the '
+            f'total. p99 on P-B generated positions: vLLM fork {min(pbv):.3f}-{max(pbv):.3f} over its three runs, CuteAFD {pb_s["C1"]["kl_p99"]:.3f}. '
+            f'On P-A, positions with a short history carry more KL on both engines (history {num(pab[0]["context"]["min"])}-{num(pab[0]["context"]["max"])} '
+            f'tokens: {vmean(pab[0]["arms"], "kl_mean"):.3f} and {pab[0]["arms"]["C1"]["kl_mean"]:.3f}; '
+            f'{num(pab[-1]["context"]["min"])}-{num(pab[-1]["context"]["max"])} tokens: {vmean(pab[-1]["arms"], "kl_mean"):.3f} and '
+            f'{pab[-1]["arms"]["C1"]["kl_mean"]:.3f}), so a panel\'s mean depends on which positions it scores.</p>' +
+            fig_tails("k325", "pa", T, rows3, "tails-k325-pa", "KL", tails_table(T["pa"], ARM) + band_table(T, "pa")) +
+            fig_tails("k325", "pb", T, rows3, "tails-k325-pb", "coarse KL", tails_table(T["pb"], ARM) + band_table(T, "pb")) +
+            fig_q2_tails("k325", T, rows3, "tails-k325-q2", "KL") +
+            h2("tails-k4", "Tails and position (K4, top-20 measures)") +
+            fig_tails("k4", "pa", T4, rows4, "tails-k4-pa", "KL20", tails_table(T4["pa"], ARM4)) +
+            fig_tails("k4", "pb", T4, rows4, "tails-k4-pb", "KL_pb20", tails_table(T4["pb"], ARM4)) +
+            fig_q2_tails("k4", T4, rows4, "tails-k4-q2", "KL20n") +
+            f'<p class="sign">Computed by {gh("tools/kl_tails.py", "<code>tools/kl_tails.py</code>")} from the per-position files in '
+            f'{gh(f"{RD}/q/rows", "<code>q/rows/</code>")} (K3.25) and {gh(f"{R4}/q/rows", "<code>q/rows/</code>")} (K4); '
+            '<code>python3 tools/kl_tails.py --check</code> reproduces them.</p>' +
+            h2("buckets", "K3.25 by context bucket, with the follow-up F1 arms") + md(B.q_buckets()) +
+            h2("k4-full", "K4 precision in full, and K4 against K3.25 on the same measure") + md(B.k4_precision_table(K)) +
+            md(B.k4_q2_note(K), R4) + md(B.k4_quant_table(K)) +
+            h2("mechanism", "Where the long-code difference may come from") + md("""- **CuteAFD's distributions are flatter at 8-16K** (K3.25): predictive entropy 0.580 against the vLLM fork's 0.523,
+  higher in 18 of 18 windows (read from the full-vocabulary dumps by the audit). This is why its NLL difference is larger
+  than its KL difference on this greedily generated text.
+- **Candidates, not inferred:** the FP8 projections, head and KDA projections; the sparse-attention indexer's key format
+  (CuteAFD BF16, the vLLM fork FP8); attention placement (CuteAFD splits each attention layer across both GPUs, the vLLM
+  fork gives whole layers to one GPU); prefill geometry; the vLLM fork's BF16 logits. The settings follow-ups switch the
+  ones CuteAFD exposes; on K4 what remains with every switch off sits in parts with no BF16 option.""") +
+            h2("c2", "Q2 document c2 on K4: a window where the vLLM fork differs from itself") + md(c2, f"{R4}/c2", 1) +
+            h2("follow-up-designs", "Follow-up designs") +
+            '<ul class="pages">' + "".join(f"<li>{gh(path, f'<code>{E(lab)}</code>')}: {E(txt)}</li>" for path, lab, txt in (
+                ("protocol/FOLLOWUPS.md", "FOLLOWUPS.md", "K3.25: F1 (FP8 switches), F2 (prefix cache), F3 (second vLLM launch), drift check"),
+                (f"{R4}/f1k4/FOLLOWUPS-K4.md", "FOLLOWUPS-K4.md", "K4: W8A16 prefill"),
+                (f"{R4}/f1k4/FOLLOWUPS-K4b.md", "FOLLOWUPS-K4b.md", "K4: the other FP8 switches, K4c (W8A16 + amax), K4d (W8A16 + best)"),
+                (f"{RD}/f1/RESULTS-F1.md", "RESULTS-F1.md", "K3.25 F1 results in full"),
+                (f"{R4}/f1k4/RESULTS-F1K4b.md", "RESULTS-F1K4b.md", "K4 settings results in full"))) + "</ul>")
+    page("research.html", "Research: tails, position and other deep dives", lede, body)
 
 
-def k4_scored_table(K):
-    T = K["T"]; pa, pb, q2 = T["pa"]["scored"], T["pb"]["scored"], T["q2"]["scored"]
-    rows = [["<b>P-A</b> BF16 teacher panel (brandonmusic)", f"{pa['windows']}", hist(pa["tokens_per_window"]),
-             f"all {num(pa['scored_positions_per_window']['median'])}", f"{pa['selected_positions_total']:,}", hist(pa["context"]),
-             "KL20 (top-20 KL from the teacher); NLL; top-1"],
-            ["<b>P-B</b> tpurtell's fidelity panel", f"{pb['windows']}", hist(pb["tokens_per_window"]),
-             f"last 512; generated (primary) {hist(pb['selected_positions_per_window'])}",
-             f"{pb['selected_positions_total']:,} generated", hist(pb["context"]), "KL_pb20 (top-20 truncation of his rule); NLL; top-1"],
-            ["<b>Q2</b> long human-written text", f"{q2['windows']}", hist(q2["tokens_per_window"]),
-             f"last {num(q2['scored_positions_per_window']['median'])}", f"{q2['selected_positions_total']:,}", hist(q2["context"]),
-             "NLL; KL20n between runs as disagreement"]]
-    return htable(["Panel", "Windows", "Tokens per window (min / median / max)", "Scored positions per window", "Total scored",
-                   "History behind each scored token, tokens (min / median / max)", "Metric (top-20)"], rows)
+# ------------------------------------------------------------------ reproduce
+
+def repo_codelink(base):
+    """`path` in REPRODUCE.md -> a link when it names a file or folder in this repository."""
+    def f(span):
+        s = span.split()[0] if span.split() else span
+        if not re.match(r"^[A-Za-z0-9_.][A-Za-z0-9_./\-]*$", s) or "/" not in s and not s.endswith((".md", ".json", ".py", ".sh", ".log")): return None
+        parts = []
+        for seg in base.split("/") + s.rstrip("/").split("/"):
+            if seg in ("", "."): continue
+            if seg == "..":
+                if parts: parts.pop()
+            else: parts.append(seg)
+        p = "/".join(parts)
+        if s != span or not (ROOT / p).exists(): return None
+        return f'<a href="{REPO_URL}/{"tree" if (ROOT / p).is_dir() else "blob"}/main/{p}"><code>{E(span)}</code></a>'
+    return f
 
 
-def k4_method(K):
-    if not K: return ""
-    m = strip_title(read(f"{R4}/METHOD.md"))
-    return ('<h2 id="k4">K4 (2026-10-27)</h2><p class="plain">The K4 measurement reused the K3.25 run\'s panels, prompts and '
-            'drivers, scored Block Q with top-20 measures, ran two vLLM launches around the CuteAFD captures, and was frozen '
-            'at 2026-10-27T17:58:09-07:00 before its first comparison request.</p>'
-            '<h3 id="k4-what-was-scored">What was scored (K4)</h3>' + k4_scored_table(K) +
-            f'<details class="more" id="k4-method"><summary>The K4 method in full</summary>{k4_method_md(m)}</details>')
+def page_reproduce(K):
+    R = sections(read("README.md"))
+    lede = ("<p>From the frozen protocol to the published summaries, step by step: checkpoints and images by digest, the prompt build "
+            "(with hashes to confirm a rebuild), each engine's launch, the capture and scoring commands, and the checks.</p>")
+    body = (md(strip_title(read("repro/REPRODUCE.md")), "repro", 1, codelink=repo_codelink("repro")) +
+            h2("k4-launch", "K4 launch files") + md(strip_title(read("repro/k4/README.md")), "repro/k4", 1, codelink=repo_codelink("repro/k4")) +
+            '<pre><code># vLLM fork, K4: the K3.25 steps above with the K4 recipe\n'
+            'source &lt;this repo&gt;/repro/k4/vllm/env.sh &amp;&amp; cd &lt;vllm-stack&gt; &amp;&amp; ./start.sh\n'
+            '# CuteAFD v3.0.1, K4: copy the configs into the checkout, then launch from its root\n'
+            'cp &lt;this repo&gt;/repro/k4/cuteafd/*.config &lt;cuteafd&gt;/local/ &amp;&amp; cd &lt;cuteafd&gt;\n'
+            './run.sh --config local/glm53-flash-exl3-k4-2rtx.config --restart          # serving\n'
+            './run.sh --config local/glm53-flash-exl3-k4-2rtx-score.config --restart    # Block Q scoring\n'
+            '# K4 tails from the published per-position files, from the root of this repository\n'
+            'cd &lt;this repo&gt; &amp;&amp; python3 tools/kl_tails.py --run k4 --check</code></pre>')
+    page("reproduce.html", "Reproduce", lede, body)
 
 
-def k4_method_md(m):
-    """The K4 METHOD.md on the method page: its heading ids get a "k4-method-" prefix, so they cannot collide with the
-    K3.25 protocol's headings on the same page (both have an "Arms" section); in-document links follow."""
-    h = md(m, R4, 1)
-    ids = set(re.findall(r'<h[1-6] id="([^"]+)"', h))
-    h = re.sub(r'(<h[1-6] id=")([^"]+)"', r'\1k4-method-\2"', h)
-    return re.sub(r'href="#([^"]+)"', lambda x: f'href="#k4-method-{x.group(1)}"' if x.group(1) in ids else x.group(0), h)
-
-
-def k4_reproduce(K):
-    if not K: return ""
-    return ('<h2 id="k4">K4 launch files</h2>' + md(strip_title(read("repro/k4/README.md")), "repro/k4", 1) +
-            '<pre><code>source repro/k4/vllm/env.sh   # then the v0.9.0 repository\'s start script\n'
-            './run.sh --config glm53-flash-exl3-k4-2rtx.config          # CuteAFD v3.0.1, serving\n'
-            './run.sh --config glm53-flash-exl3-k4-2rtx-score.config    # CuteAFD v3.0.1, Block Q scoring\n'
-            'python3 tools/kl_tails.py --run k4 --check                  # K4 tails from q/rows/</code></pre>')
-
-
-# ------------------------------------------------------------------ pages
-
-LINKS = [("precision.html", "Precision", "how close each engine stays to the BF16 model, by context length, with the W8A16 option"),
-         ("throughput.html", "Throughput", "speed by input length, content and number of streams"),
-         ("long-output.html", "Long output", "replies up to 128K tokens, checked against tests and schemas"),
-         ("observations.html", "Observations", "behaviour differences between the stacks, with evidence, and the confounds"),
-         ("method.html", "Method", "setup, the frozen protocol, follow-ups and limits"),
-         ("audit.html", "Audit", "the independent review of the measurements"),
-         ("ledger.html", "Ledger", "what was run and established, and when"),
-         ("reproduce.html", "Reproduce", "how to repeat every step")]
-
+# ------------------------------------------------------------------ main
 
 def main():
     DOCS.mkdir(exist_ok=True)
     for p in DOCS.glob("*.html"): p.unlink()
-    R = sections(readme())
-    F = facts(); d = F["d"]; rows = F["len"]
-    K = B.k4_data() if B.k4_ok() else None
-    run = f'<a href="{REPO_URL}/tree/main/{RD}">receipts</a>'
-    lo, hi = F["dec_range"]
-
-    S = startup()
-    rows3 = D / "q" / "rows"
-    cells3 = k325_cells()
-    fig_su = chart_startup(S) or '<p class="note">Startup timeline: pending.</p>'
-    head = '<h2 id="at-a-glance">At a glance</h2>' + fig_headline_k325(F) + (fig_headline_k4(K) if K else "")
-
-    answer = ("On two RTX PRO 6000s, CuteAFD is the faster engine and tpurtell's vLLM fork is the slightly more precise one; "
-              f"one CuteAFD setting (W8A16 prefill) halves the precision difference for about {pp(F['f1c_ttft'])} slower "
-              "first token." + (" On a second checkpoint, K4, both engines sit roughly half as far from BF16, and the engine "
-                                "pattern holds." if K else ""))
-    page("index.html", "CuteAFD and tpurtell's vLLM fork on two RTX PRO 6000s", html.escape(answer),
-         '<p class="lede">Both engines are tpurtell\'s. Same model (GLM-5.3-Flash with his 3.25-bit EXL3 experts), same '
-         f'machine, measured under a frozen protocol with an independent audit. Every number comes from the {run} in the '
-         'repository.</p>' + head + choosing(F, K) + '<h2 id="k325">First checkpoint: K3.25 (2026-10-26)</h2>' + cards(F) +
-         k4_index(K) + how_sure() + glossary() +
-         '<h2 id="detail">In detail</h2><ul class="links">' +
-         "".join(f'<li><a href="{p}">{t}</a>: {html.escape(s)}</li>' for p, t, s in LINKS) + "</ul>", lede_cls="answer")
-
-    # precision
-    bk = [("all", "All"), ("0-2K", "0-2K"), ("2-8K", "2-8K"), ("8-16K", "8-16K, long code")]
-    T = F["T"]; ctx_of = lambda b: T["pb"]["scored"]["context"] if b == "all" else pb_band(T, b)["context"]
-    key = [[lab, hist(ctx_of(b)), kl(F["kl_v"][b]), kl(F["kl_c"][b]), f'<b>{dkl(d[(b, "kl", "C1")][0])}</b> {civ(d[(b, "kl", "C1")])}'
-            f'<br>W8A16: {dkl(d[(b, "kl", "F1c")][0])} {civ(d[(b, "kl", "F1c")])}'] for b, lab in bk]
-    pa_s, pb_s = T["pa"]["arms"], T["pb"]["arms"]; pab = T["pa"]["by_position"]
-    pbv = [pb_s[a]["kl_p99"] for a in ("V1", "V1r", "V2")]
-    tails_sec = (
-        '<h2 id="tails">Tails and position</h2>'
-        f'<p class="plain">Most positions sit far below the mean: the median position\'s KL is {pa_s["V1"]["kl_p50"]:.4f} '
-        f'(vLLM fork) and {pa_s["C1"]["kl_p50"]:.4f} (CuteAFD) on P-A, against means of {pa_s["V1"]["kl_mean"]:.4f} and {pa_s["C1"]["kl_mean"]:.4f}: '
-        f'the highest-KL 5% of positions carry {100*pa_s["V1"]["kl_share_top5pct"]:.0f}% of the vLLM fork\'s mean and {100*pa_s["C1"]["kl_share_top5pct"]:.0f}% of CuteAFD\'s '
-        f'(top 10%: {100*pa_s["V1"]["kl_share_top10pct"]:.0f}% and {100*pa_s["C1"]["kl_share_top10pct"]:.0f}%). '
-        f'p99 on P-A: vLLM fork {pa_s["V1"]["kl_p99"]:.3f}, CuteAFD {pa_s["C1"]["kl_p99"]:.3f}; on P-B generated positions: '
-        f'vLLM fork {min(pbv):.3f}-{max(pbv):.3f} over its three runs, CuteAFD {pb_s["C1"]["kl_p99"]:.3f}. On P-A, positions with '
-        f'a short history carry more KL on both engines (history {num(pab[0]["context"]["min"])}-{num(pab[0]["context"]["max"])} '
-        f'tokens: {vmean(pab[0]["arms"], "kl_mean"):.3f} and {pab[0]["arms"]["C1"]["kl_mean"]:.3f}; '
-        f'{num(pab[-1]["context"]["min"])}-{num(pab[-1]["context"]["max"])} tokens: {vmean(pab[-1]["arms"], "kl_mean"):.3f} and '
-        f'{pab[-1]["arms"]["C1"]["kl_mean"]:.3f}), so a panel\'s mean depends on which positions it scores.</p>'
-        + '<h3 id="tails-pa">P-A, all 2,047 positions of 25 windows (full-vocabulary KL)</h3>'
-        + fig_tails("k325", "pa", T, rows3, "tails-k325-pa", "KL", tails_table(T, "pa") + band_table(T, "pa")) + tails_table(T, "pa")
-        + f'<h3 id="tails-pb">P-B, {T["pb"]["scored"]["selected_positions_total"]:,} generated positions (coarse KL)</h3>'
-        + fig_tails("k325", "pb", T, rows3, "tails-k325-pb", "coarse KL", tails_table(T, "pb") + band_table(T, "pb"))
-        + tails_table(T, "pb") + details("P-B by length bucket: mean, p99, p99.9 and top-1 per arm", band_table(T, "pb"))
-        + '<h3 id="tails-q2">Q2, the last 4,096 positions of 18 long windows (disagreement between engines)</h3>'
-        + fig_q2_tails("k325", T, rows3, "tails-k325-q2", "KL")
-        + '<p class="sign">Per-position KL in nats; p99 is the value 1% of positions exceed. Confident top-1: top-1 over '
-        'positions where the reference\'s top probability is at least 0.5. P-A and P-B KL are different metrics (full '
-        'vocabulary vs top-1,024 plus tail) on different texts: compare engines within a panel, not panels with each other. '
-        f'Computed by <a href="{REPO_URL}/blob/main/tools/kl_tails.py"><code>tools/kl_tails.py</code></a> from the per-position '
-        f'files in <a href="{REPO_URL}/tree/main/{RD}/q/rows"><code>q/rows/</code></a> (P-A, P-B, Q2) into <a href="{REPO_URL}/tree/main/{RD}/q/tails"><code>q/tails/</code></a>.</p>')
-    top = [[lab, f'{100 * d[(b, "top1", "C1")][0]:+.2f} pts<br>{civ(d[(b, "top1", "C1")], 2, 100)}'] for b, lab in bk]
-    rq = strip_title(read(f"{RD}/q/RESULTS-Q.md")); f1 = strip_title(read(f"{RD}/f1/RESULTS-F1.md"))
-    page("precision.html", "Precision", "How close each engine's next-token probabilities stay to the original BF16 model.",
-         f'<p class="plain">Both engines are close to BF16; CuteAFD is slightly further, by {dkl(d[("all", "kl", "C1")][0])} KL '
-         f'overall on the fidelity panel\'s generated positions ({hist_short(ctx_of("all"))}) and '
-         f'{dkl(d[("8-16K", "kl", "C1")][0])} at 8-16K ({hist_short(ctx_of("8-16K"))}), where the panel is long code reading. '
-         'Below 8K the intervals include zero. W8A16 prefill removes about half of the overall difference. On human-written text at '
-         '32K-128K the engines\' NLL differs by no more than about ±0.005 nat (six documents, no BF16 reference there).</p>' +
-         fig_engine_k325(F) + '<h3 id="settings-k325-h">CuteAFD settings on K3.25 (follow-up F1, outside the frozen protocol)</h3>' +
-         fig_settings_k325(F) + fig_map_k325(F) + f'<p class="sign">KL from BF16 on generated rows; vLLM = mean of {F["n_vruns"]} runs. Difference = CuteAFD '
-         'minus vLLM: positive means CuteAFD is further from BF16; the second line is CuteAFD with W8A16 prefill. In grey: 95% '
-         'interval. History: tokens before each scored position (min / median / max).</p>' +
-         htable(["Context", "History, tokens", "vLLM", "CuteAFD", "Difference"], key) +
-         details("Top-1 agreement, CuteAFD minus vLLM fork", htable(["Context", "Difference"], top)) +
-         f'<p class="sign">The 2K full-vocabulary panel (P-A) gives {dkl(F["pa"]["B_minus_A"])} '
-         f'<span class="ci">[{F["pa"]["ci95"][0]:+.4f}, {F["pa"]["ci95"][1]:+.4f}]</span>, over every position of 25 '
-         f'2,048-token windows ({hist_short(T["pa"]["scored"]["context"])}). Intervals: 95%, paired bootstrap over windows.</p>' +
-         tails_sec + k4_precision(K) +
-         f'<details class="more" id="block-q"><summary>Block Q in full: panels P-A, P-B and Q2, controls, the audit\'s items</summary>{md(rq, f"{RD}/q", 1)}</details>' +
-         f'<details class="more" id="follow-up-f1"><summary>Follow-up F1 in full: every CuteAFD FP8 switch, precision and speed</summary>{md(f1, f"{RD}/f1", 1)}</details>' +
-         details("All bucket tables", md(B.q_buckets())))
-
-    # throughput
-    lrows = []
-    for L, r in rows.items():
-        tv = max(a for a, _ in r["tt1"]); tc = max(b for _, b in r["tt1"])
-        lrows.append([f"{L // 1024}K", f"{pct(r['dec'][0])} to {pct(r['dec'][1])}",
-                      f"{r['agg'][0]:.2f}x<br><span class=\"ci\">({r['agg'][1]:.2f}-{r['agg'][2]:.2f})</span>",
-                      f"{tv:.2f} s vs {tc:.2f} s"])
-    cav = strip_title(read(f"{RD}/t/CAVEATS.md")); dr = strip_title(read(f"{RD}/drift/RESULTS-DRIFT.md"))
-    f2 = strip_title(read(f"{RD}/f2/RESULTS-F2.md")); ts = strip_title(read(f"{RD}/t/T-SUMMARY.md"))
-    page("throughput.html", "Throughput", "Speed with 1K to 128K-token prompts, 1 to 16 requests at once, thinking on, 1,024 "
-         "tokens generated per request.",
-         f'<p class="plain">CuteAFD generates {span(lo, hi)} faster for one request at a time, and its faster prefill '
-         'gives it the lead on long prompts. The vLLM fork starts short prompts sooner and handles many short prompts at once '
-         'a little better. Differences within about ±10% in a single cell are run-to-run noise.</p>' +
-         fig_speed("k325", "dec", cells3, "dec-k325", (0.9, 1.1), K325_BAND) + fig_speed("k325", "agg", cells3, "agg-k325", (0.9, 1.1), K325_BAND) +
-         fig_speed("k325", "ttft", cells3, "ttft-k325", (0.9, 1.1), K325_BAND) +
-         '<p class="sign">Decode: CuteAFD vs vLLM, one request at a time. Throughput: CuteAFD ÷ vLLM, median over '
-         'content types and 1-16 streams (range). First token: one request, vLLM vs CuteAFD.</p>' +
-         htable(["Input", "Decode", "Throughput", "First token"], lrows) +
-         f'<details class="more" id="caveats"><summary>Caveats: inputs, labels, draft policies, noise</summary>{md(cav, f"{RD}/t", 1)}</details>' +
-         details("The headline cells", md(B.t_table()) + md(B.t_counts())) +
-         f'<details class="more" id="drift"><summary>Drift check: the same cells hours later</summary>{md(dr, f"{RD}/drift", 1)}</details>' +
-         f'<details class="more" id="follow-up-f2"><summary>Follow-up F2: the vLLM fork\'s prefix-cache reuse</summary>{md(f2, f"{RD}/f2", 1)}</details>' +
-         f'<details class="more" id="full-grid"><summary>Full grid: every cell, decode, aggregate, first token, prefill</summary>{md(ts, f"{RD}/t", 1)}</details>'
-         + k4_throughput(K))
-
-    # long output
-    L = F["L"]
-    def lo_card(c, task, plain):
-        v, u = L[("V1", "L3", c)], L[("C1", "L3", c)]
-        row = lambda name, s: (f'<div class="row"><span>{name}</span><span>{B.l_check(s)} '
-                               f'<span class="ci">· median {s["completion_tokens_median"] / 1000:.0f}K tokens</span></span></div>')
-        return (f'<div class="card"><h3>{c if c != "json" else "JSON"}</h3><div class="ev">{task}</div>'
-                f'{row("vLLM fork", v)}{row("CuteAFD", u)}<p>{plain}</p></div>')
-    cards_l = "".join([
-        lo_card("code", "4 multi-file Python projects with hidden tests",
-                f"Same pass rate; {L[('V1', 'L3', 'code')]['tests_passed_total']} vs {L[('C1', 'L3', 'code')]['tests_passed_total']} "
-                "of 218 tests. CuteAFD's replies are shorter."),
-        lo_card("reasoning", "MATH-500 level-5 problems", "Both solve all of them; the task does not separate the engines."),
-        lo_card("prose", "10,000-12,000-word essays", "Both finish every essay; CuteAFD writes slightly more words per required word."),
-        lo_card("json", "product catalogues of 50-1,030 records", "vLLM's two misses are the 1,030-record task at the cap; "
-                "CuteAFD's four are field-pattern slips in otherwise complete outputs. Two seeds per prompt.")])
-    page("long-output.html", "Long output", "Replies of up to 128K tokens, eight requests at a time, each checked against tests, "
-         "a schema or the reference answer.",
-         '<p class="plain">Both engines ran all 100 long-output requests with 0 errors. At the 128K cap they pass the same share '
-         'of code and math; they differ in JSON validity on a small sample, and CuteAFD\'s replies run about 15-25% shorter, '
-         'a difference not separated from sampling.</p>' +
-         fig_long(L, "k325", "V1", "C1", "long-k325") + f'<div class="outcomes">{cards_l}</div>' +
-         '<p class="sign">At the 128K cap; 8 replies per content type (4 prompts, 2 seeds).</p>' +
-         details("Every stage, 8K, 32K, 128K and one at a time", md(B.L_NOTE) + md(B.l_table(detail=True))) +
-         k4_long(K))
-
-    page("observations.html", "Observations and confounds", "Behaviour differences between the two stacks, each with how it "
-         "is known, and what else differs and how each block handles it.",
-         '<p class="plain">The differences a user notices first: CuteAFD honours "thinking off" and the vLLM fork does not; '
-         'CuteAFD reuses repeated prompts from its cache and the vLLM fork only in whole 4,352-token blocks; '
-         + E(startup_sentence(short=True)) + '; the vLLM fork\'s '
-         'long prefill is not bit-reproducible run to run, CuteAFD\'s is.</p>' +
-         '<h2 id="observations-in-detail">Observations in detail</h2>' + md(R.get("Observations in detail", "")) + fig_su +
-         f'<details class="more" id="confounds"><summary>Confounds: what else differs, and how it is handled</summary>{md(R.get("Confounds", ""))}</details>'
-         + k4_observations(K))
-
-    proto = strip_title(read("protocol/PROTOCOL.md")); fol = strip_title(read("protocol/FOLLOWUPS.md"))
-    page("method.html", "Method", "How the comparison was set up and measured.",
-         '<p class="plain">Each engine ran as its author ships it, with a short list of local changes, on one machine. Precision '
-         'was scored teacher-forced against a BF16 reference; speed and long output with one client, unique prompts and a '
-         'distinct seed per request. The protocol was frozen before the speed and long-output runs; three follow-ups and a drift '
-         'check were declared later and are labelled as such.</p>' + what_scored(F["T"]) +
-         '<h2 id="limits">Limits</h2>' + summary_block("Limits") +
-         '<h2 id="status">Status</h2>' + md(B.status_lines()) +
-         f'<details class="more" id="setup"><summary>Setup: hardware, engines, checkpoints, settings</summary>{md(R.get("Setup", ""))}</details>' +
-         f'<details class="more" id="protocol"><summary>The protocol, v2 with amendments A1-A2</summary>'
-         f'{md(strip_title(read("protocol/README.md")).split(chr(10) + "## ")[0], "protocol")}{md(proto, "protocol", 2)}</details>' +
-         f'<details class="more" id="follow-ups"><summary>Follow-ups F1-F3 and the drift check</summary>{md(fol, "protocol", 1)}</details>' +
-         f'<details class="more" id="other-runs"><summary>Other runs: checks and an exploratory test</summary>{md(R.get("Other runs", ""))}</details>'
-         + k4_method(K))
-
-    au = strip_title(read(f"{RD}/AUDIT-2026-10-27.md"))
-    page("audit.html", "Independent audit (2026-10-27)", "A read-only, CPU-only review of the precision and speed blocks and "
-         "of vLLM's long-output block, made before CuteAFD's long-output block and the later follow-ups ran.",
-         '<p class="plain">The audit found the instruments sound and the precision difference robust. It traced the vLLM '
-         'fork\'s run-to-run variation to multi-chunk prefill, which led to pairing CuteAFD against several vLLM runs; showed '
-         'that the 8-16K bucket is long code reading, so length and content are not separated; and confirmed the speed '
-         'explanation (prefill-first scheduling).</p>' + md(au, RD, 1))
-
-    page("ledger.html", "Ledger", "What was run and established, and when (times UTC−7).", md(R.get("Ledger", "")))
-
-    page("reproduce.html", "Reproduce", "From the frozen protocol to the published summaries, step by step.",
-         md(strip_title(read("repro/REPRODUCE.md")), "repro", 1) + k4_reproduce(K) + '<h2 id="verify">Verify and rebuild</h2>' + md(R.get("Reproduce", "")))
-    print(f"wrote {len(PAGES)} pages to docs/")
+    F = facts(); K = B.k4_data()
+    page_home(); page_precision(F, K); page_settings(F, K); page_speed(F, K); page_long(F, K); page_running(F, K)
+    page_method(F, K); page_audit(); page_research(F, K); page_reproduce(K)
+    for name, (target, label) in MOVED.items(): moved_page(name, target, label)
+    print(f"wrote {len(PAGES)} pages and {len(MOVED)} forwarding stubs to docs/")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Reproducing the comparison
 
-Step by step, from the frozen protocol (`../protocol/PROTOCOL.md`) to the published summaries. Each step names the files
+Step by step, from the frozen protocol ([`../protocol/PROTOCOL.md`](../protocol/PROTOCOL.md)) to the published summaries. Each step names the files
 that carry the exact commands; this page puts them in order.
 
 ## Placeholders
@@ -11,8 +11,8 @@ The published copies replace local paths with placeholders. Substitute your own:
 |---|---|
 | `<run>` | the run folder that receives receipts, captures and scores |
 | `<runs>` | the parent folder of runs |
-| `<datasets>` | where the prompt sources are downloaded (`../protocol/SOURCES.json`) |
-| `<cuteafd>` | a checkout of tpurtell/cuteafd at v3.0.1; `<cuteafd>/local/` holds the configs from `cuteafd/configs/` |
+| `<datasets>` | where the prompt sources are downloaded ([`../protocol/SOURCES.json`](../protocol/SOURCES.json)) |
+| `<cuteafd>` | a checkout of tpurtell/cuteafd at v3.0.1; `<cuteafd>/local/` holds the configs from [`cuteafd/configs/`](cuteafd/configs/) |
 | `<vllm-stack>` | a checkout of tpurtell/glm-5.3-flash-ext3-2x-rtx with its `start.sh`; `local-start.sh` / `local-env.sh` are thin local wrappers that export the settings below and call it |
 | `<hf-home>`, `<hf-hub>` | the Hugging Face cache (`HF_HOME`) and its `hub/` folder |
 | `<venv>` | a Python environment with numpy and scipy (scorers) |
@@ -22,6 +22,13 @@ The published copies replace local paths with placeholders. Substitute your own:
 | `<cache>` | a cache directory for the engines' state |
 | `<user>` | the account that runs the tools |
 | `<tmp>`, `<data>` | a scratch directory; a generic data directory (also the mount point inside the prompt-build container) |
+| `<this repo>` | your checkout of this repository |
+| `<scratch dir>`, `<out>` | an empty directory for a build or a scorer's output |
+| `<k4-run>`, `<k4-publish>`, `<k4-discovery>` | the K4 run folder (receipts, captures, scores), the folder its V/C-only re-scores were written to, and its pre-freeze checks folder |
+| `<k4-recipe>` | where the K4 vLLM recipe ([`k4/vllm/env.sh`](k4/vllm/env.sh)) is kept |
+| `<setup>`, `<stacks>`, `<contrib>` | local folders for tools, engine checkouts and public repositories |
+| `<docker-root>`, `<home>` | Docker's data root; a home directory |
+| `<private-ip>` | a LAN address, removed for publication |
 
 ## 0. What you need
 
@@ -34,22 +41,23 @@ The published copies replace local paths with placeholders. Substitute your own:
 
 ## 1. Checkpoints and images
 
-Pin everything by revision and digest (values in `../README.md`, Setup):
+Pin everything by revision and digest (values in [`../README.md`](../README.md#setup), Setup):
 
 ```bash
 huggingface-cli download wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1       --revision 0490d2f708b12145f6516555ab066aaeb401cd21
 huggingface-cli download wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 --revision d31ebc921f1f098b4a56d37aaccb3cdef4096184
 huggingface-cli download incoai/GLM-5.3-Flash-DFlash2                      --revision bf582e4eacc1810f76656d1811693ff6c6737d2a
+huggingface-cli download brandonmusic/GLM-5.3-Flash-tr3-4bpw              --revision a5fee929cf4888b1824323e33e8a19b60129e025   # K4
 docker pull ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a
 docker pull ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx@sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2
 ```
 
-Optional checks of the checkpoint relation (CPU only): `../results/2026-10-26-cuteafd-setup-checks/` (`bytecheck.py`,
+Optional checks of the checkpoint relation (CPU only): [`../results/2026-10-26-cuteafd-setup-checks/`](../results/2026-10-26-cuteafd-setup-checks/) (`bytecheck.py`,
 `fp8check.py`).
 
 ## 2. Prompt sources and the prompt set
 
-1. Download each source in `../protocol/SOURCES.json` at its revision into `<datasets>/2026-10-26-engine-compare/`, and
+1. Download each source in [`../protocol/SOURCES.json`](../protocol/SOURCES.json) at its revision into `<datasets>/2026-10-26-engine-compare/`, and
    check every file against the sha256 listed there.
 2. Build the prompt set (CPU only, about 11 minutes; runs in `--network none` containers):
    ```bash
@@ -57,16 +65,24 @@ Optional checks of the checkpoint relation (CPU only): `../results/2026-10-26-cu
    python3 stage0/prompts/checkers/selftest.py
    python3 stage0/prompts/build/make_manifest.py
    ```
-3. Compare the result with `stage0/prompts/MANIFEST.json`: every hash must match. The build is deterministic. The Block T
+3. Compare the result with [`stage0/prompts/MANIFEST.json`](stage0/prompts/MANIFEST.json): every hash must match. The build is deterministic. The Block T
    contexts and Q2 windows are not published here (they are long excerpts of the sources); the manifest hashes confirm a
-   rebuild. Rules, seeds and selections: `stage0/prompts/README.md`, `stage0/prompts/RULES.json`.
+   rebuild. Rules, seeds and selections: [`stage0/prompts/README.md`](stage0/prompts/README.md), [`stage0/prompts/RULES.json`](stage0/prompts/RULES.json).
 
 ## 3. Serve vLLM (arm V1)
 
-tpurtell/glm-5.3-flash-ext3-2x-rtx at v0.9.2, image by digest as above, served with `MODEL_PROFILE=k325` (K3.25-v1),
+tpurtell/glm-5.3-flash-ext3-2x-rtx: the v0.9.2 release image (by digest, as above) started with the v0.9.0
+repository's `start.sh` (its `IMAGE` override; the launcher is otherwise unchanged), served with `MODEL_PROFILE=k325` (K3.25-v1),
 `GPU_MEMORY_UTILIZATION=0.95`, DFlash2 with 3 draft tokens, prefix caching in `align` mode, 16 sequences, listening on
 `127.0.0.1:8001`. The settings are the release's; 0.95 instead of 0.97 is the only change, so that the server starts
 beside a desktop session.
+
+```bash
+git clone https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx <vllm-stack> && cd <vllm-stack> && git checkout v0.9.0
+export IMAGE=ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx@sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2
+export MODEL_PROFILE=k325 GPU_MEMORY_UTILIZATION=0.95 PORT=127.0.0.1:8001 HF_HOME=<hf-home>
+./start.sh                               # K4: MODEL_PROFILE=k4 (the recipe in k4/vllm/env.sh)
+```
 
 ## 4. Serve CuteAFD (arms C1 and C0)
 
@@ -91,15 +107,15 @@ HF_HOME=<hf-home> ./run.sh --config local/glm53-flash-exl3-k3.25-core-fp8-2rtx.c
 Order: C1 twice, C0 once, then V1 twice. Exact commands are in the instrument READMEs:
 
 - **CuteAFD, P-B**: tpurtell's own fidelity CLI, full tier, prefill score path, dataset revision `a7e7d1b4`; then the
-  validation of our port against it (`stage0/scorers/README.md`, section 6, "P-B validation plan"). **P-A and Q2**: the
+  validation of our port against it ([`stage0/scorers/README.md`](stage0/scorers/README.md), section 6, "P-B validation plan"). **P-A and Q2**: the
   engine's `glmf-teacher-kl.py` path through the bench endpoint, with the plans from `plans.py` (section 2).
-- **vLLM, all panels**: restart the v0.9.2 server in capture mode with `stage0/capture-vllm/start-v092-capture.sh`, run
+- **vLLM, all panels**: restart the v0.9.2 server in capture mode with [`stage0/capture-vllm/start-v092-capture.sh`](stage0/capture-vllm/start-v092-capture.sh), run
   `capture.py capture` per panel and pass, `capture.py verify`, then restore the normal server
-  (`stage0/capture-vllm/README.md`, "Commands for the GPU stage").
-- **Scoring**: `stage0/scorers/README.md`, section 9, "Commands after capture" (`score_pa.py`, `score_pb.py`,
-  `score_q2.py`). Run `stage0/scorers/selfcheck.sh` first.
+  ([`stage0/capture-vllm/README.md`](stage0/capture-vllm/README.md), "Commands for the GPU stage").
+- **Scoring**: [`stage0/scorers/README.md`](stage0/scorers/README.md), section 9, "Commands after capture" (`score_pa.py`, `score_pb.py`,
+  `score_q2.py`). Run [`stage0/scorers/selfcheck.sh`](stage0/scorers/selfcheck.sh) first.
 
-The published summaries are in `../results/2026-10-26-cuteafd-vs-vllm/q/`.
+The published summaries are in [`../results/2026-10-26-cuteafd-vs-vllm/q/`](../results/2026-10-26-cuteafd-vs-vllm/q/).
 
 ## 5a. Panel P-A from the teacher dataset
 
@@ -110,7 +126,7 @@ each, 2,047 prediction positions, vocabulary 154,880). Its public home is
 at revision `32afb8875f830528d5545c20a51846b56c537f44` (no licence stated). This comparison first scored the same
 files from `brandonmusic/GLM-5.3-Flash-BF16-Teacher-Logits` @ `95f4fdd9`, which is no longer public; every teacher
 file, token array and the mask are byte-identical. Identity, windows and hashes:
-`../results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json`.
+[`../results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json`](../results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json).
 
 1. **Download only what P-A reads** (about 31.7 GB):
    ```bash
@@ -154,8 +170,8 @@ file, token array and the mask are byte-identical. Identity, windows and hashes:
    a 1-D all-ones validity mask (every position is scored).
 3. **Plans.** `cd stage0/scorers && python3 -B plans.py --out plans --panels pa --teacher <datasets>/glm53-flash-teacher-logits`
    writes the CuteAFD plan and the vLLM registry for rows 0-2046 of every window; their sha256 must equal those in
-   `stage0/scorers/plans/pa.meta.json` (and the scorers README, section 2). The meta file's `dataset_manifest_sha256`
-   will differ: it hashes the original dataset's manifest, which step 2 replaces with a minimal one. The vLLM
+   [`stage0/scorers/plans/pa.meta.json`](stage0/scorers/plans/pa.meta.json) (and the scorers README, section 2). The meta file's `dataset_manifest_sha256`
+   will differ: it hashes the original dataset's manifest, which item 2 of this step replaces with a minimal one. The vLLM
    registry also differs from the recorded sha256 in one field only: its `schema` label was renamed for publication
    (`engine-compare.vllm-registry/1`); with `schema` removed, its content equals the original (checked 2026-10-28).
    The CuteAFD plan's sha256 matches exactly.
@@ -165,7 +181,7 @@ file, token array and the mask are byte-identical. Identity, windows and hashes:
    python3 <cuteafd>/scripts/bench/glmf-teacher-kl.py --url http://127.0.0.1:8001 --plan stage0/scorers/plans/pa.cuteafd-plan.json \
      --dump-root <the server's PROBE_DUMP_ROOT> --path prefill --out <run>/q/rows/pa-C1-rep1
    ```
-   and vLLM with `capture.py capture` for panel `pa` (`stage0/capture-vllm/README.md`).
+   and vLLM with `capture.py capture` for panel `pa` ([`stage0/capture-vllm/README.md`](stage0/capture-vllm/README.md)).
 5. **Score** (CPU, numpy and scipy):
    ```bash
    cd stage0/scorers
@@ -177,14 +193,14 @@ file, token array and the mask are byte-identical. Identity, windows and hashes:
    float64 log-softmax of the stored rows; NLL of the actual next token; top-1 with ties to the lower id; confident
    top-1 over rows whose teacher top probability is at least 0.5. Means are position-weighted; 95% intervals resample the
    25 windows (20,000 replicates, seed 20260929).
-6. **Compare** `<out>/pa-<arm>.json` with `../results/2026-10-26-cuteafd-vs-vllm/q/pa/` (and `q/pa-v2/` for V2): overall
+6. **Compare** `<out>/pa-<arm>.json` with [`../results/2026-10-26-cuteafd-vs-vllm/q/pa/`](../results/2026-10-26-cuteafd-vs-vllm/q/pa/) (and `q/pa-v2/` for V2): overall
    and per-window KL, NLL, top-1. The scorer reproduces itself exactly on the same rows (the scorers README, section 8:
    the teacher scored as its own engine gives KL 0 at every row). For the tails and positions, take the per-row `kl` of
    `<out>/pa-<arm>.rows.npz` (type-7 quantiles, numpy's default) or write the CSV layout of
-   `../results/2026-10-26-cuteafd-vs-vllm/q/rows/README.md` and run `python3 tools/kl_tails.py --pa <that file>`; compare
+   [`../results/2026-10-26-cuteafd-vs-vllm/q/rows/README.md`](../results/2026-10-26-cuteafd-vs-vllm/q/rows/README.md) and run `python3 tools/kl_tails.py --pa <that file>`; compare
    with `q/tails/pa-tails.json`, which records the sha256 of the file it was computed from.
 
-The P-A per-position file is `../results/2026-10-26-cuteafd-vs-vllm/q/rows/pa-rows.csv`; `python3 tools/kl_tails.py
+The P-A per-position file is [`../results/2026-10-26-cuteafd-vs-vllm/q/rows/pa-rows.csv`](../results/2026-10-26-cuteafd-vs-vllm/q/rows/pa-rows.csv); `python3 tools/kl_tails.py
 --check` recomputes the published tails from it.
 
 ## 6. Block T: throughput
@@ -197,7 +213,7 @@ python3 stage0/drivers/block_t.py --base-url http://127.0.0.1:8001 --label C1-r1
 python3 <this repo>/results/2026-10-26-cuteafd-vs-vllm/t/t_summary.py <run>/t/V1-r1-block-t.json <run>/t/C1-r1-block-t.json
 ```
 
-The driver refuses to start if any prompt differs from `stage0/prompts/T/index.json`, inserts a per-request nonce so no
+The driver refuses to start if any prompt differs from [`stage0/prompts/T/index.json`](stage0/prompts/T/index.json), inserts a per-request nonce so no
 prompt is served from cache, records every request's seed, and writes no text. `--dry-run` prints the plan.
 
 ## 7. Block L: long output
@@ -211,16 +227,18 @@ python3 stage0/drivers/analyze_l.py <run>/l/V1-r1-L1.json <run>/l/V1-r1-L2.json 
 ```
 
 `analyze_l.py` re-tokenizes in a CPU-only container and runs each code reply's hidden tests in a `--network none`
-sandbox (`stage0/drivers/README.md`).
+sandbox ([`stage0/drivers/README.md`](stage0/drivers/README.md)).
 
-## 8. Summaries and checks
+## 8. Summaries, checks and the site
 
-Put the summaries into `results/<run>/` (local paths replaced by placeholders), then:
+Put the summaries into `results/<run>/` (local paths replaced by placeholders), then rebuild and check, from the root
+of this repository (the tools need only the Python standard library):
 
 ```bash
-python3 tools/build_readme.py
-python3 tools/build_site.py
-python3 tools/verify.py
+python3 tools/build_readme.py          # README.md and the run summaries from results/
+python3 tools/build_site.py            # the site in docs/
+python3 tools/kl_tails.py --check      # the published tails, recomputed from the per-position files
+python3 tools/verify.py                # manifests, published-copy hashes, labels, links, content scan
 ```
 
-To add another engine version, arm or follow-up, see `../iterations/`.
+To add another engine version, arm or follow-up, see [`../iterations/`](../iterations/).

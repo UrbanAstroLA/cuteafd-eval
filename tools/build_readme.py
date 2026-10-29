@@ -652,37 +652,535 @@ slower); at four streams the per-content decode ratios fall on both sides of 1, 
 
 
 def k4_readme_section():
-    """README.md results section for the K4 run (tables built from its published files)."""
+    """README.md results section for the K4 run: its tables, built from its published files."""
     if not k4_ok(): return ""
-    K = k4_data(); s = k4_facts_text(K); r = f"results/{K4}/"
-    return f"""## Results: K4 checkpoint (2026-10-27)
+    K = k4_data(); r = f"results/{K4}/"
+    return f"""### K4: precision (top-20 measures)
 
-Measurement under a second frozen protocol, run [`{r}`]({r}) ([`METHOD.md`]({r}METHOD.md)): brandonmusic's
-GLM-5.3-Flash-tr3-4bpw ("K4", 4-bit EXL3 experts; author Local Inference Lab, Inc.; attribution in
-[`NOTICE.md`](NOTICE.md)) on the same two engines, machine, panels and prompts. Its precision numbers are **top-20
-measures** (KL20, KL_pb20): never read them against the full-vocabulary KL above as the same quantity.
-
-- **K4 against K3.25 is a quantization comparison:** under the same top-20 definition K4 sits roughly half as far from
-  the BF16 teacher on both engines (P-A KL20: vLLM {s['pa25_v']:.4f} → {s['pa_v']:.4f}, CuteAFD {s['pa25_c']:.4f} →
-  {s['pa_c']:.4f}).
-- **Engines on K4:** vLLM stays closer to BF16 (P-B 8-16K {sgn(s['d_816']['B_minus_A'])} {ci(s['d_816']['ci95'])}; it
-  reads larger than K3.25's {sgn(s['d25_816']['diff'])} under the same definition, with overlapping intervals); CuteAFD decodes
-  {s['dec1'][0]:.2f}-{s['dec1'][1]:.2f}x as fast at one stream. W8A16 prefill moves about
-  {100 * -s['f1_816']['diff'] / s['d_816']['B_minus_A']:.0f}% of the K4 8-16K difference (follow-up F1-K4). Long output:
-  {"pending" if not k4_l_summaries() else f"[`{r}README.md`]({r}README.md)"}.
+Run [`{r}`]({r}) ([`METHOD.md`]({r}METHOD.md)); brandonmusic's GLM-5.3-Flash-tr3-4bpw ("K4"; author Local Inference
+Lab, Inc.; attribution in [`NOTICE.md`](NOTICE.md)). Its precision numbers are **top-20 measures** (KL20, KL_pb20):
+never read them against the full-vocabulary or coarse KL above as the same quantity. CuteAFD against the per-row mean
+of two vLLM launches.
 
 {k4_precision_table(K)}
 
+### K4: throughput
+
 {k4_t_table(K)}
 
-Detail, the K3.25-against-K4 table, startup and F1-K4: [`{r}README.md`]({r}README.md).
+Detail, K4 against K3.25 under the same top-20 definition, startup, Block L and the follow-ups:
+[`{r}README.md`]({r}README.md).
 """
+
+
+def capacity_table():
+    """KV capacity and request limits as each engine reported them at startup (K3.25: the run's startup lines; K4: Stage 1)."""
+    if not k4_ok(): return ""
+    L = k4_data()["su"]["launches"]
+    return table(["", "vLLM fork", "CuteAFD"], [
+        ["K3.25, KV cache at startup", f"{KV_K325[0]:,} tokens", f"{KV_K325[1]:,} tokens"],
+        ["K4, KV cache at startup", f"{L['V-warm']['capacity']['pool_tokens']:,} tokens", f"{L['C-warm']['capacity']['pool_tokens']:,} tokens "
+         f"(scoring launch {L['C-score']['capacity']['pool_tokens']:,})"],
+        ["Requests at once", f"{L['V-warm']['capacity']['max_streams']} (`max-num-seqs`)", f"{L['C-warm']['capacity']['max_streams']} (`CONCURRENCY` default)"]])
+
+
+def k4_startup_table():
+    return table(["Launch", "To /v1/models", "To ready", "Capacity at startup"], k4_startup_rows(k4_data())) if k4_ok() else ""
 
 
 def k4_status():
     if not k4_ok(): return ""
     return "\n".join(f"- K4: {v['title']}: {'done' if v['status'] == 'done' else '**pending**'}"
-                     for v in load(D4 / "RUN.json")["slots"].values())
+                     for k, v in load(D4 / "RUN.json")["slots"].items() if not (k == "k4e" and v["status"] != "done"))
+
+
+# ------------------------------------------------------------------ canonical numbers and the front-page text
+# One value per quantity, read from the published files; the README and the site's home page are both written from
+# home_parts() (README: links into the repository; site: links to its pages). The choices, stated once:
+#   K3.25 long-code (P-B 8-16K) difference: against the mean of the three vLLM runs (pb-vs-vllm-mean3.json).
+#   K4 long-code difference: against the per-row mean of the two vLLM launches (pb20.json), a top-20 measure.
+#   K3.25 "overall" precision: P-A full-vocabulary KL (V1; its three runs agree to 1e-6); P-B is always named as P-B.
+#   Settings: the share of the long-code difference a setting closes is (shipped - setting) / shipped against vLLM.
+#   First token at 1K etc.: the median over the content types of the cell medians (Block T, 1 stream).
+#   Speed noise: NOISE_K325 and NOISE_K4 below, the same sentence wherever a band is used.
+
+FP8_PB = 0.0216     # tpurtell's published baseline for the official FP8 model on panel P-B (quoted in q/RESULTS-Q.md)
+KV_K325 = (4707515, 4726784)   # startup lines of the K3.25 run (vLLM fork, CuteAFD), as in the README's Setup table
+NOISE_K325 = ("K3.25 speed noise: a repeat hours later moved the median by under 2% and single cells by up to 13%; "
+              "single-cell ratios within ±10% read as level.")
+NOISE_K4 = ("K4 speed noise: a ±8% band declared before the run (both engines' drift repeats stayed inside it); single-cell "
+            "ratios within ±8% read as level.")
+K4E = "2026-10-27-k4-vllm-cuteafd"     # K4e lives in the K4 run's f1k4/ folder
+NEEDLE_RUN = "2026-10-27-long-context-pilot"
+
+
+def k325_cells():
+    """K3.25 Block T: {(input, content, streams): {'dec', 'agg', 'ttft': (vLLM, CuteAFD)}} (medians over replicates)."""
+    rec = t_receipts(); cv, cc = t_cells(rec["V1"]), t_cells(rec["C1"])
+    out = {}
+    for k in cv:
+        if k not in cc: continue
+        g = lambda c, key: t_med(c, key, k)
+        out[k] = {"dec": (g(cv, "decode_tok_s_per_stream_median"), g(cc, "decode_tok_s_per_stream_median")),
+                  "agg": (g(cv, "aggregate_tok_s"), g(cc, "aggregate_tok_s")), "ttft": (g(cv, "ttft_median_s"), g(cc, "ttft_median_s"))}
+    return out
+
+
+def k4_cells(K):
+    """K4 Block T from t-compare.json, the same layout plus the published per-cell readings and ratios."""
+    import ast
+    out = {}
+    for k, c in K["tc"]["cells"].items():
+        L, content, lv = ast.literal_eval(k)
+        out[(L, content, lv)] = {"dec": (c["V"]["decode_med"], c["C"]["decode_med"]), "agg": (c["V"]["aggregate"], c["C"]["aggregate"]),
+                                 "ttft": (c["V"]["ttft_med"], c["C"]["ttft_med"]),
+                                 "read": {"dec": c["C"]["decode_med_reading"], "agg": c["C"]["aggregate_reading"]},
+                                 "ratio": {"dec": c["C"]["decode_med_ratio_vs_V"], "agg": c["C"]["aggregate_ratio_vs_V"]}}
+    return out
+
+
+def f1_speed():
+    """K3.25 F1 arms: (TTFT ratio median, min, max, decode ratio median) over the 8 cells, each arm ÷ F1-base."""
+    sp = load(D / "f1/F1-RESULTS.json")["speed"]
+    return {a: (statistics.median(v["ttft_median_s"] for v in sp[a].values()), min(v["ttft_median_s"] for v in sp[a].values()),
+                max(v["ttft_median_s"] for v in sp[a].values()), statistics.median(v["decode_tok_s_per_stream_median"] for v in sp[a].values()),
+                min(v["decode_tok_s_per_stream_median"] for v in sp[a].values()))
+            for a in sp}
+
+
+def k4_settings(K):
+    """{arm: {'pa_c', 'pb8_c', 'pa_v', 'pb_v', 'pb8_v': (diff, lo, hi) or None}} from the published K4 follow-up summaries."""
+    f = D4 / "f1k4"
+    b = load(f / "score-b" / "f1b-summary.json"); c = load(f / "score-c" / "f1c2-summary.json"); d = load(f / "score-d" / "f1d2-summary.json")
+    t = lambda x: (x["diff"], x["ci95"][0], x["ci95"][1]) if x else None
+    p = lambda x: (x["B_minus_A"], x["ci95"][0], x["ci95"][1])
+    F1 = K["f1"]; dd = F1["f1c-minus-c1"]
+    out = {"shipped": {"pa_v": p(K["pa"]["paired"]["C-r1-Vmean"]["kl_e20"]), "pb_v": p(K["pb"]["paired"]["C-r1-Vmean"]["gen"]["kl_pb20"]),
+                       "pb8_v": p(K["pb"]["paired"]["C-r1-Vmean"]["gen 8-16K"]["kl_pb20"])},
+           "f1c": {"pa_c": t(dd["P-A kl_e20"]), "pb8_c": t(dd["P-B gen 8-16K kl_pb20"]), "pa_v": p(F1["pa20"]["paired"]["C-f1c-Vmean"]["kl_e20"]),
+                   "pb_v": p(F1["pb20"]["paired"]["C-f1c-Vmean"]["gen"]["kl_pb20"]), "pb8_v": p(F1["pb20"]["paired"]["C-f1c-Vmean"]["gen 8-16K"]["kl_pb20"])}}
+    for a in ("amax", "best", "head16", "kda16", "all16", "nospec"):
+        s = b[f"C-{a}"]; out[a] = {k: t(s.get(k)) for k in ("pa_c", "pb8_c", "pa_v", "pb_v", "pb8_v")}
+    s = c["C-w16amax"]; out["w16amax"] = {k: t(s.get(k)) for k in ("pa_c", "pb8_c", "pa_v", "pb_v", "pb8_v")}
+    s = d["C-w16best"]; out["w16best"] = {k: t(s.get(k)) for k in ("pa_c", "pb8_c", "pa_v", "pb_v", "pb8_v")}
+    return out
+
+
+def t_request_cells(path):
+    """{(input, streams, content): (median decode tok/s, median TTFT s, requests)} over every measured request of a receipt."""
+    out = {}
+    for bt in load(path)["batches"]:
+        if bt["kind"] != "measured": continue
+        for g in bt["groups"]:
+            for r in g:
+                c = out.setdefault((bt["length"], bt["level"], bt["content"]), {"d": [], "t": []})
+                c["d"].append(r["decode_tok_s"]); c["t"].append(r["ttft_s"])
+    return {k: (statistics.median(v["d"]), statistics.median(v["t"]), len(v["d"])) for k, v in out.items()}
+
+
+def k4_setting_speed():
+    """Per content cell: median per request; arm ÷ the mean of its two bracketing as-shipped launches (the method of the
+    F1-K4 speed table). {arm: (ttft median, min, max, decode min, decode max, cells, {cell: (base ttft, arm ttft)})}."""
+    res = {}
+    for arm, f, b1, b2 in (("f1c", "C-f1c", "C-base1", "C-base2"), ("w16amax", "C-c-w16amax", "C-c-base1", "C-c-base2"),
+                           ("w16best", "C-d-w16best", "C-d-base1", "C-d-base2")):
+        A, X1, X2 = (t_request_cells(D4 / "f1k4" / "t" / f"{n}.json") for n in (f, b1, b2))
+        tt = [A[k][1] / ((X1[k][1] + X2[k][1]) / 2) for k in sorted(A)]
+        de = [A[k][0] / ((X1[k][0] + X2[k][0]) / 2) for k in sorted(A)]
+        ab = {k: ((X1[k][1] + X2[k][1]) / 2, A[k][1]) for k in A}
+        res[arm] = (statistics.median(tt), min(tt), max(tt), min(de), max(de), len(tt), ab)
+    return res
+
+
+def f1_abs_ttft(length, content):
+    """K3.25 F1 speed subset, one cell (1 stream): median TTFT over replicates, F1-base and W8A16 (F1c)."""
+    def med(n):
+        xs = [b["summary"]["ttft_median_s"] for b in load(D / f"f1/speed-F1-{n}.json")["batches"]
+              if b["kind"] == "measured" and b["level"] == 1 and b["length"] == length and b["content"] == content]
+        return statistics.median(xs)
+    return med("base"), med("f1c")
+
+
+def needle_data():
+    d = ROOT / "results" / NEEDLE_RUN
+    if not (d / "V1-pilot.json").exists(): return None
+    V, C = load(d / "V1-pilot.json")["requests"], load(d / "C1-pilot.json")["requests"]
+    ok = lambda r: r["finish_reason"] == "stop" and (r["score"].get("found") or (r["score"].get("all_found") and r["score"].get("in_order")))
+    return {"V": V, "C": C, "all_ok": all(ok(r) for r in V + C), "n": len(V),
+            "t1m": ([r["ttft_s"] for r in V if r["content_tokens"] == 1000000], [r["ttft_s"] for r in C if r["content_tokens"] == 1000000])}
+
+
+def k4e_data():
+    """Follow-up K4e (W8A16 + amax under the full Block T grid and Block L), or None while it is not published."""
+    f = D4 / "f1k4"
+    need = [f / "t" / f"{n}.json" for n in ("C-e-base1", "C-w16amax-r1", "C-e-base2")] + \
+           [f / "l" / f"C-w16amax-r1-{s}.json" for s in ("L1", "L2", "L3", "L3s")]
+    if not all(p.exists() for p in need): return None
+    E = {"T": {n: load(f / "t" / f"{n}.json") for n in ("C-e-base1", "C-w16amax-r1", "C-e-base2")},
+         "L": {s: load(f / "l" / f"C-w16amax-r1-{s}.json") for s in ("L1", "L2", "L3", "L3s")}}
+    a = f / "l" / "L-analysis-K4e.json"
+    E["analysis"] = {(s["label"], s["stage"], s["content"]): s for s in load(a)["summary"]} if a.exists() else None
+    return E
+
+
+_CANON = {}
+
+
+def canon():
+    """Every number the front page uses, from the published files (computed once per process)."""
+    if _CANON: return _CANON
+    q = D / "q"; N = _CANON
+    pa = load(q / "pa/pa-pair-V1-vs-C1.json")["overall"]["kl"]
+    N["pa"] = {"v": pa["A"], "c": pa["B"], "d": pa["B_minus_A"], "ci": pa["ci95"]}
+    gen = lambda a: load(q / f"pb/pb-{a}.json")["summary"]["gen"]
+    vr = [gen(a) for a in ("V1", "V1r", "V2")]; c1 = gen("C1")
+    m3 = load(q / "pb/pb-vs-vllm-mean3.json")
+    f1 = load(D / "f1/F1-RESULTS.json")["precision"]
+    N["pb"] = {"v": statistics.mean(r["overall"]["kl"]["value"] for r in vr), "c": c1["overall"]["kl"]["value"],
+               "d": m3["all|kl|C1"][0], "ci": m3["all|kl|C1"][1:], "w16": f1["f1c"]["all"]["kl"], "d_w16": m3["all|kl|F1c"][0],
+               "t1": m3["all|top1|C1"]}
+    N["pb8"] = {"v": statistics.mean(r["by_bucket"]["8-16K"]["kl"]["value"] for r in vr), "c": c1["by_bucket"]["8-16K"]["kl"]["value"],
+                "d": m3["8-16K|kl|C1"][0], "ci": m3["8-16K|kl|C1"][1:], "w16": f1["f1c"]["8-16K"]["kl"],
+                "d_w16": m3["8-16K|kl|F1c"][0], "ci_w16": m3["8-16K|kl|F1c"][1:], "d_all3": m3["8-16K|kl|F1d"][0], "ci_all3": m3["8-16K|kl|F1d"][1:]}
+    N["pb8"]["share_w16"] = (N["pb8"]["d"] - N["pb8"]["d_w16"]) / N["pb8"]["d"]
+    if f"{FP8_PB:.4f}" not in (q / "RESULTS-Q.md").read_text(): raise SystemExit("FP8 baseline no longer quoted in q/RESULTS-Q.md")
+    N["fp8"] = FP8_PB
+    N["sp_f1"] = f1_speed(); N["f1_8k"] = f1_abs_ttft(8192, "prose")
+    c3 = k325_cells(); N["c3"] = c3
+    K = k4_data(); N["K"] = K; s = k4_facts_text(K); N["s4"] = s; c4 = k4_cells(K); N["c4"] = c4
+    S4 = k4_settings(K); N["S4"] = S4; sp4 = k4_setting_speed(); N["sp4"] = sp4
+    N["k4_pb8"] = {"v": s["d_816"]["A"], "c": s["d_816"]["B"], "d": s["d_816"]["B_minus_A"], "ci": s["d_816"]["ci95"],
+                   "d_w16": S4["f1c"]["pb8_v"][0], "d_w16amax": S4["w16amax"]["pb8_v"][0], "ci_w16amax": S4["w16amax"]["pb8_v"][1:],
+                   "d_w16best": S4["w16best"]["pb8_v"][0]}
+    k = N["k4_pb8"]
+    k["share_w16"] = -S4["f1c"]["pb8_c"][0] / k["d"]                 # F1-K4's direct pair, as RESULTS-F1K4.md reads it
+    k["share_w16amax"] = -S4["w16amax"]["pb8_c"][0] / k["d"]; k["share_w16best"] = -S4["w16best"]["pb8_c"][0] / k["d"]
+    N["k4_pb"] = {"v": s["d_pb"]["A"], "c": s["d_pb"]["B"], "d": s["d_pb"]["B_minus_A"], "ci": s["d_pb"]["ci95"],
+                  "d_w16amax": S4["w16amax"]["pb_v"][0], "ci_w16amax": S4["w16amax"]["pb_v"][1:]}
+    N["k4_pa"] = {"v": s["pa_v"], "c": s["pa_c"], "d": s["d_pa"]["B_minus_A"], "ci": s["d_pa"]["ci95"], "v25": s["pa25_v"], "c25": s["pa25_c"],
+                  "d_w16amax": S4["w16amax"]["pa_v"]}
+    N["k4_32k"] = sp4["w16amax"][6][(32768, 1, "code")]      # the 32K code cell (as shipped 7.38 s, as in the speed table)
+    def rng(cells, sel, m, i):
+        xs = [c[m][i] for kk, c in cells.items() if sel(kk)]; return (min(xs), max(xs))
+    def tt(cells, L, i): return statistics.median(c["ttft"][i] for kk, c in cells.items() if kk[0] == L and kk[2] == 1)
+    for key, cells in (("k325", c3), ("k4", c4)):
+        N[key] = {"dec1": [rng(cells, lambda kk: kk[2] == 1, "dec", i) for i in (0, 1)],
+                  "dec4": [rng(cells, lambda kk: kk[2] == 4 and kk[0] <= 8192, "dec", i) for i in (0, 1)],
+                  "ttft": {L: (tt(cells, L, 0), tt(cells, L, 1)) for L in (1024, 8192, 32768, 131072)}}
+    N["k325"]["agg8_1k"] = [rng(c3, lambda kk: kk[0] == 1024 and kk[2] == 8, "agg", i) for i in (0, 1)]
+    N["k325"]["agg16_1k"] = [rng(c3, lambda kk: kk[0] == 1024 and kk[2] == 16, "agg", i) for i in (0, 1)]
+    N["k325"]["agg16_32k"] = [rng(c3, lambda kk: kk[0] == 32768 and kk[2] == 16, "agg", i) for i in (0, 1)]
+    for lv in (8, 16):
+        N["k325"][f"ttft_1k{lv}"] = tuple(statistics.median(c["ttft"][i] for kk, c in c3.items() if kk[0] == 1024 and kk[2] == lv) for i in (0, 1))
+    N["k325"]["ttft_32k16"] = (statistics.median(c["ttft"][0] for kk, c in c3.items() if kk[0] == 32768 and kk[2] == 16),
+                               statistics.median(c["ttft"][1] for kk, c in c3.items() if kk[0] == 32768 and kk[2] == 16))
+    r1 = [c["read"]["dec"] for kk, c in c4.items() if kk[2] == 1]
+    N["k4"]["read1"] = (r1.count("faster"), r1.count("level"), len(r1))
+    su = load(ROOT / "results/2026-10-27-vllm-startup-cache/startup.json")["runs"]
+    N["startup"] = {"v_cold": su[0]["ready_s"], "v_warm": su[1]["ready_s"], "c": su[2]["ready_s"]}
+    L4s = K["su"]["launches"]
+    N["k4_startup"] = {n: L4s[n]["t_ready_s"] for n in ("V-cold", "V-warm", "C-cold", "C-warm")}
+    N["k4_kv"] = (L4s["V-warm"]["capacity"]["pool_tokens"], L4s["C-warm"]["capacity"]["pool_tokens"])
+    N["kv"] = KV_K325
+    tr = t_receipts()
+    def cached(d):
+        b = [x for x in d["batches"] if x["kind"] == "cached"]; return b[0]["summary"]["ttft_median_s"]
+    N["cached"] = (cached(tr["V1"]), cached(tr["C1"]))
+    N["L"] = l_summaries(); N["L4"] = k4_l_summaries()
+    N["needle"] = needle_data(); N["k4e"] = k4e_data()
+    return N
+
+
+def f4s(x): return f"{x:+.4f}".replace("-", "−")
+def f2s(x): return f"{x:+.2f}".replace("-", "−")
+def pct1(r): return f"{100 * (r - 1):+.1f}%".replace("-", "−")
+def secs(x): return f"{x:.2f} s" if x < 10 else f"{x:.1f} s"
+def tok_rng(r): return f"{r[0]:.0f}-{r[1]:.0f}"
+
+
+def home_parts(site):
+    """The front page, as markdown pieces. site=True: links to the site's pages; False: links into the repository."""
+    N = canon(); K = N["K"]
+    def lk(text, page, repo): return f"[{text}]({page if site else repo})"
+    R3, R4 = f"results/{RUN}/", f"results/{K4}/"
+    pa, pb, pb8, k8, kpa = N["pa"], N["pb"], N["pb8"], N["k4_pb8"], N["k4_pa"]
+    a3, a4 = N["k325"], N["k4"]
+    L, L4 = N["L"], N["L4"]
+    vc, cc = L[("V1", "L3", "code")], L[("C1", "L3", "code")]; vm, cm = L[("V1", "L3", "reasoning")], L[("C1", "L3", "reasoning")]
+    vc4, cc4 = L4[("V", "L3", "code")], L4[("C", "L3", "code")]; vm4, cm4 = L4[("V", "L3", "reasoning")], L4[("C", "L3", "reasoning")]
+    nd = N["needle"]; su = N["startup"]
+    w16_8k = N["f1_8k"]; k32 = N["k4_32k"]
+    P = {}
+    P["intro"] = f"""Two inference engines by the same author, **tpurtell** (`wrldsuksgo2mars` on Hugging Face), on the same model
+and machine:
+
+- **CuteAFD** ([tpurtell/cuteafd](https://github.com/tpurtell/cuteafd)), his own runtime, built for attention/FFN
+  disaggregation (AFD): attention and the expert (feed-forward) layers run as separate workers, so experts can sit on
+  other machines; here, on two GPUs, they stay local.
+- **His vLLM fork** ([tpurtell/glm-5.3-flash-ext3-2x-rtx](https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx)), his
+  vLLM-based engine for this model on two RTX GPUs.
+
+The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in two quantized checkpoints: **K3.25**
+(tpurtell's mixed 3.25-bit EXL3 experts) and **K4** (brandonmusic's 4-bit EXL3 experts, Local Inference Lab). The
+questions: how close each engine stays to the original BF16 model, how fast it is, and how to set it up.
+
+Results as of 2026-10-28; versions tested: CuteAFD v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA)."""
+    needle_txt = ""
+    if nd:
+        needle_txt = (f" Needles in prompts of 256K to 1M tokens (K3.25): {'all found' if nd['all_ok'] else 'not all found'} on both "
+                      f"(exploratory); at 1M the first token took {min(nd['t1m'][0]):.0f} s on the vLLM fork and {min(nd['t1m'][1]):.0f} s on CuteAFD.")
+    c2v, c2c = L[("V1", "L2", "code")], L[("C1", "L2", "code")]; c2v4, c2c4 = L4[("V", "L2", "code")], L4[("C", "L2", "code")]
+    r3 = vc["completion_tokens_median"] and cc["completion_tokens_median"] / vc["completion_tokens_median"]
+    r4 = cc4["completion_tokens_median"] / vc4["completion_tokens_median"]
+    t8, t16 = N["k325"]["ttft_1k8"], N["k325"]["ttft_1k16"]
+    P["findings"] = "\n".join([
+        f"- **Precision: the quantization matters more than the engine.** On K3.25, KL from the BF16 model (teacher panel) "
+        f"is {pa['v']:.4f} on the vLLM fork and {pa['c']:.4f} on CuteAFD. The largest engine difference is on long code "
+        f"(8-16K-token prompts): CuteAFD {f4s(pb8['d'])} further on K3.25, {f4s(k8['d'])} on K4 (top-20 measure). " +
+        lk("Precision", "precision.html", R3 + "q/RESULTS-Q.md"),
+        f"- **Speed: CuteAFD generates faster; under concurrency the vLLM fork's first tokens come sooner.** One stream: "
+        f"{tok_rng(a3['dec1'][0])} tokens/s on the vLLM fork, {tok_rng(a3['dec1'][1])} on CuteAFD (K3.25). First token, one "
+        f"request: 1K prompt {secs(a3['ttft'][1024][0])} and {secs(a3['ttft'][1024][1])}, 128K prompt {secs(a3['ttft'][131072][0])} "
+        f"and {secs(a3['ttft'][131072][1])}. With 4-16 requests at once the vLLM fork's first tokens come sooner in most cells, "
+        f"while tokens per second are level or ahead on CuteAFD except at 1K × 8. " + lk("Speed", "speed.html", R3 + "t/T-SUMMARY.md"),
+        f"- **A CuteAFD setting trades about 4% first-token time for precision.** W8A16 prefill closes about "
+        f"{100 * pb8['share_w16']:.0f}% of the long-code difference on K3.25 (8K prose prompt {w16_8k[0]:.3f} → {w16_8k[1]:.3f} s); "
+        f"W8A16 prefill with the amax scale rule closes about two thirds on K4 (32K code prompt {k32[0]:.2f} → {k32[1]:.2f} s), "
+        f"decode level. " + lk("Settings", "settings.html", R4 + "f1k4/RESULTS-F1K4b.md"),
+        f"- **Long tasks: the same at the longest cap; CuteAFD finished more code at 32K.** At the 128K cap code passed every "
+        f"test in {vc['all_pass']}/{vc['n']} (K3.25) and {vc4['all_pass']}/{vc4['n']} (K4) on both engines, math {vm['correct']}/{vm['n']}. "
+        f"At the 32K cap CuteAFD finished {c2c['stop']}/8 (K3.25) and {c2c4['stop']}/8 (K4) code tasks, the vLLM fork "
+        f"{c2v['stop']}/8 and {c2v4['stop']}/8, consistent with CuteAFD's shorter code replies ({r3:.2f}x and {r4:.2f}x the vLLM "
+        f"fork's median length at 128K); descriptive, n = 8." + needle_txt + " " + lk("Long tasks", "long-tasks.html", R3 + "l/SUMMARY.md"),
+        f"- **Practical.** Ready to serve in {su['v_warm']} s on the vLLM fork (JIT caches kept) and {su['c']} s on CuteAFD. A "
+        f"repeated 8K prompt: {N['cached'][0]:.2f} s on the vLLM fork, {N['cached'][1]:.3f} s from CuteAFD's prefix cache. Only "
+        f"CuteAFD honours \"thinking off\". K4 KV cache: {N['k4_kv'][0]:,} tokens on the vLLM fork, {N['k4_kv'][1]:,} on CuteAFD. " +
+        lk("Running it", "running.html", "#running-it-observations-in-detail")])
+    P["bars"] = [   # (panel, [(label, value, kind)]); kind: v vLLM fork, c CuteAFD, cs CuteAFD setting, r reference
+        ("K3.25 · BF16 teacher panel (P-A) · full-vocabulary KL",
+         [("vLLM fork", pa["v"], "v"), ("CuteAFD", pa["c"], "c")]),
+        ("K3.25 · tpurtell's fidelity set (P-B), all generated positions · coarse KL",
+         [("Official FP8 model (tpurtell's baseline)", N["fp8"], "r"), ("vLLM fork", pb["v"], "v"), ("CuteAFD", pb["c"], "c"),
+          ("CuteAFD, W8A16 prefill", pb["w16"], "cs")]),
+        ("K3.25 · the same set, 8-16K long code · coarse KL",
+         [("vLLM fork", pb8["v"], "v"), ("CuteAFD", pb8["c"], "c"), ("CuteAFD, W8A16 prefill", pb8["w16"], "cs")]),
+        ("K3.25 and K4 · BF16 teacher panel (P-A) · top-20 KL (KL20)",
+         [("K3.25, vLLM fork", kpa["v25"], "v"), ("K3.25, CuteAFD", kpa["c25"], "c"), ("K4, vLLM fork", kpa["v"], "v"),
+          ("K4, CuteAFD", kpa["c"], "c")])]
+    P["bars_table"] = table(["Panel and measure", "Row", "KL from BF16"],
+                            [[p if i == 0 else "", lab, f"{v:.4f}"] for p, rows in P["bars"] for i, (lab, v, _) in enumerate(rows)])
+    P["matters"] = f"""KL is how far an engine's next-token probabilities are from the BF16 model's on the same text (0 is
+identical, lower is closer; units: nats).
+
+- **The quantization's own distance dwarfs the engine difference.** On tpurtell's set his official FP8 model scores
+  {N['fp8']:.4f}, the 3.25-bit checkpoint {pb['v']:.4f} (vLLM fork) and {pb['c']:.4f} (CuteAFD): the engine difference is
+  {100 * pb['d'] / pb['v']:.0f}% of the vLLM fork's distance ({100 * pb8['d'] / pb8['v']:.0f}% on long code). K4 roughly halves the distance on both.
+- **tpurtell's bar** counts a paired change below 0.005 KL or 0.5 top-1 points as within it (defined for changes to one
+  engine; applied here by analogy). K3.25 overall is inside on KL ({f4s(pb['d'])}, interval to {f4s(pb['ci'][1])}), not on
+  top-1 ({f2s(100 * pb['t1'][0])} points, to {f2s(100 * pb['t1'][1])}); long code is not shown inside on either checkpoint
+  ({f4s(pb8['d'])}, {f4s(k8['d'])}); K4 with W8A16 prefill + amax reads {f4s(k8['d_w16amax'])} (to {f4s(k8['ci_w16amax'][1])}).
+- **On tasks**, code and math checks at the 128K cap{' and the needle checks' if nd else ''} came out the same on both engines.
+- **Not measured:** the distance from BF16 beyond 14.4K tokens (no reference exists there) and on the decode path
+  (scoring runs prompts through prefill)."""
+    sp3, sp4 = N["sp_f1"], N["sp4"]
+    a16, a32 = N["k325"]["agg16_1k"], N["k325"]["agg16_32k"]
+    P["pick"] = table(["Workload", "The data shows", "Key numbers (vLLM fork first, CuteAFD second)", "Evidence"], [
+        ["Long code (8-16K), closest to BF16", "vLLM fork closer to BF16",
+         f"KL at 8-16K: {pb8['v']:.4f} vs {pb8['c']:.4f} (K3.25); {k8['v']:.4f} vs {k8['c']:.4f} (K4, top-20)",
+         lk("Precision", "precision.html#long-code", R3 + "q/RESULTS-Q.md")],
+        ["CuteAFD on K3.25, closer to BF16", f"W8A16 prefill closes about {100 * pb8['share_w16']:.0f}% of the difference",
+         f"difference {f4s(pb8['d'])} → {f4s(pb8['d_w16'])}; first token {pct1(sp3['f1c'][1])} to {pct1(sp3['f1c'][2])} per cell",
+         lk("Settings", "settings.html", R3 + "f1/RESULTS-F1.md")],
+        ["CuteAFD on K4, two RTX GPUs", "W8A16 prefill + amax scale rule closes about two thirds; the BF16 options do not fit",
+         f"difference {f4s(k8['d'])} → {f4s(k8['d_w16amax'])}; first token {pct1(sp4['w16amax'][1])} to {pct1(sp4['w16amax'][2])} per cell",
+         lk("Settings", "settings.html", R4 + "f1k4/RESULTS-F1K4b.md")],
+        ["One request at a time", "CuteAFD generates faster", f"{tok_rng(a3['dec1'][0])} vs {tok_rng(a3['dec1'][1])} tok/s",
+         lk("Speed", "speed.html", R3 + "t/T-SUMMARY.md")],
+        ["Long prompts, one at a time", "CuteAFD's first token sooner", f"128K: {secs(a3['ttft'][131072][0])} vs {secs(a3['ttft'][131072][1])}",
+         lk("Speed", "speed.html", R3 + "t/T-SUMMARY.md")],
+        ["Short prompts, many at once", "vLLM fork's first token sooner; tokens/s higher on the vLLM fork at 1K × 8, level at 1K × 16",
+         f"1K × 8: {secs(t8[0])} vs {secs(t8[1])}, {tok_rng(N['k325']['agg8_1k'][0])} vs {tok_rng(N['k325']['agg8_1k'][1])} tok/s; "
+         f"1K × 16: {secs(t16[0])} vs {secs(t16[1])}, {tok_rng(a16[0])} vs {tok_rng(a16[1])} tok/s",
+         lk("Speed", "speed.html", R3 + "t/T-SUMMARY.md")],
+        ["Many long prompts at once", "vLLM fork's first tokens sooner; CuteAFD's tokens/s higher",
+         f"32K × 16: {N['k325']['ttft_32k16'][0]:.0f} vs {N['k325']['ttft_32k16'][1]:.0f} s, {tok_rng(a32[0])} vs {tok_rng(a32[1])} tok/s",
+         lk("Speed", "speed.html#caveats", R3 + "t/CAVEATS.md")],
+        ["Repeated long prefix", "CuteAFD reuses it", f"8K repeated: {N['cached'][0]:.2f} vs {N['cached'][1]:.3f} s",
+         lk("Running it", "running.html#prefix-cache", R3 + "f2/RESULTS-F2.md")],
+        ["Long replies (to 128K)", "same code and math at the 128K cap; CuteAFD finished more code at 32K",
+         f"128K code: {vc['all_pass']}/8 vs {cc['all_pass']}/8; 32K code finished: {c2v['stop']}/8 vs {c2c['stop']}/8 (K3.25)",
+         lk("Long tasks", "long-tasks.html", R3 + "l/SUMMARY.md")],
+        ["Switching models often", "CuteAFD starts faster", f"{su['v_warm']} vs {su['c']} s",
+         lk("Running it", "running.html#startup", "results/2026-10-27-vllm-startup-cache/")],
+        ["Many long contexts at once (K4)", "vLLM fork holds about 3x the KV cache", f"{N['k4_kv'][0]:,} vs {N['k4_kv'][1]:,} tokens",
+         lk("Running it", "running.html#capacity", R4 + "startup/startup.json")],
+        ["K4 on CuteAFD, two RTX GPUs", "context up to 262,144 tokens (MAX_CONTEXT_TOKENS); the 256K-1M needle checks ran on K3.25",
+         "262,144 tokens", lk("Running it", "running.html#capacity", R4 + "METHOD.md")]])
+    cfg = lambda rel: "\n".join(l for l in (ROOT / rel).read_text().splitlines() if l.strip() and not l.lstrip().startswith("#"))
+    P["settings"] = f"""The configurations measured here, as files you can copy; with each, what it measured. **Measured, not a
+recommendation.** The exact files are in {lk('repro/', 'reproduce.html', 'repro/')}; checkpoints download as in
+{lk('Reproduce, step 1', 'reproduce.html#1-checkpoints-and-images', 'repro/REPRODUCE.md')}.
+
+**vLLM fork v0.9.2, both checkpoints.** Startup {su['v_cold']} → {su['v_warm']} s with the JIT caches kept (K3.25).
+
+```bash
+# the launcher: tpurtell's vLLM fork repository at tag v0.9.0; its start.sh runs the v0.9.2 image pinned below
+git clone https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx && cd glm-5.3-flash-ext3-2x-rtx && git checkout v0.9.0
+export IMAGE=ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx@sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2
+export MODEL_PROFILE=k325                # k4 for the K4 checkpoint
+export GPU_MEMORY_UTILIZATION=0.95       # the default 0.97 does not start beside a desktop session
+export PORT=127.0.0.1:8001               # the default publishes port 8001 on every interface
+# keep the JIT caches inside the cache directory the container already keeps between starts
+export DEBUG_ENV="TILELANG_CACHE_DIR=/root/.cache/tilelang
+  TRITON_CACHE_DIR=/root/.cache/triton
+  TORCHINDUCTOR_CACHE_DIR=/root/.cache/torchinductor
+  CUDA_CACHE_PATH=/root/.cache/nv/ComputeCache"
+./start.sh
+```
+
+**CuteAFD v3.0.1: the launcher.** On a host without `/dev/infiniband`, apply the guard in
+{lk('repro/cuteafd/patches/', 'reproduce.html#4-serve-cuteafd-arms-c1-and-c0', 'repro/cuteafd/patches/')} first.
+
+```bash
+git clone https://github.com/tpurtell/cuteafd && cd cuteafd && git checkout v3.0.1
+mkdir -p local                           # save the config below as local/<name>.config, then:
+./run.sh --config local/<name>.config --restart
+```
+
+**CuteAFD on K3.25, as shipped** (`glm53-flash-exl3-k3.25-core-fp8-2rtx.config`; `ADDR`, `MAX_OUTPUT_TOKENS` and `USAGE`
+are the local settings: the launcher defaults are `0.0.0.0` under host networking, a 4,096-token output limit, and
+request logging on).
+
+```bash
+{cfg('repro/cuteafd/configs/glm53-flash-exl3-k3.25-core-fp8-2rtx.config')}
+```
+
+**With the measured setting, W8A16 prefill:** append the line below. Measured: long-code difference from the vLLM fork
+{f4s(pb8['d'])} → {f4s(pb8['d_w16'])}, first token {pct1(sp3['f1c'][1])} to {pct1(sp3['f1c'][2])} per cell, decode
+{sp3['f1c'][3]:.2f}x (scoring launches, follow-up F1).
+
+```bash
+GLM5_FLASH_FP8_PREFILL=off
+```
+
+**CuteAFD on K4, as shipped** (`glm53-flash-exl3-k4-2rtx.config`; `MAX_CONTEXT_TOKENS=262144` is needed on two RTX GPUs,
+where the planner refuses K4 at its default). Measured: KV pool {N['k4_kv'][1]:,} tokens, 16 requests at once.
+
+```bash
+{cfg('repro/k4/cuteafd/glm53-flash-exl3-k4-2rtx.config')}
+```
+
+**With the measured setting, W8A16 prefill + amax scale rule:** append the two lines below. Measured: long-code
+difference {f4s(k8['d'])} → {f4s(k8['d_w16amax'])}, teacher panel no longer resolved, first token {pct1(sp4['w16amax'][1])} to
+{pct1(sp4['w16amax'][2])} per cell, decode level, the same memory.
+
+```bash
+GLM5_FLASH_FP8_PREFILL=off
+FP8_SCALES=amax
+```"""
+    P["speed"] = table(["", "K3.25: vLLM fork", "K3.25: CuteAFD", "K4: vLLM fork", "K4: CuteAFD"], [
+        ["Decode, 1 stream, tok/s", tok_rng(a3["dec1"][0]), tok_rng(a3["dec1"][1]), tok_rng(a4["dec1"][0]), tok_rng(a4["dec1"][1])],
+        ["Decode per stream, 4 streams (1K-8K), tok/s", tok_rng(a3["dec4"][0]), tok_rng(a3["dec4"][1]), tok_rng(a4["dec4"][0]), tok_rng(a4["dec4"][1])]] +
+        [[f"First token, {L // 1024}K", secs(a3["ttft"][L][0]), secs(a3["ttft"][L][1]), secs(a4["ttft"][L][0]), secs(a4["ttft"][L][1])]
+         for L in (1024, 8192, 32768, 131072)] +
+        [["Startup to the ready line", f"{su['v_warm']} s ({su['v_cold']} s without JIT caches)", f"{su['c']} s",
+          f"{N['k4_startup']['V-warm']:.0f} s warm, {N['k4_startup']['V-cold']:.0f} s cold",
+          f"{N['k4_startup']['C-warm']:.0f} s warm, {N['k4_startup']['C-cold']:.0f} s cold"],
+         ["KV cache, tokens", f"{N['kv'][0]:,}", f"{N['kv'][1]:,}", f"{N['k4_kv'][0]:,}", f"{N['k4_kv'][1]:,}"]])
+    P["speed_note"] = ("Decode: range over content types and 1K-128K prompts; first token: median over content types, one "
+                       "request at a time; 1,024 tokens per request. Startup and KV cache: " +
+                       lk("Running it", "running.html#startup", "#startup") + ". Every speed cell: " + lk("Speed", "speed.html", R3 + "t/T-SUMMARY.md") + ".")
+    P["sure"] = f"""- **K3.25:** frozen protocol. After the runs, a separate reviewer who did not run the measurements re-ran the
+  scorers and checked the claims against the receipts; its corrections are applied ({lk('Review', 'audit.html', R3 + 'AUDIT-2026-10-27.md')}).
+  It covered the precision and speed blocks and the vLLM fork's long output; it did **not** cover CuteAFD's long output,
+  the follow-ups F1-F3 (it saw their designs and the F1 baseline speed run), the drift repeats, the startup measurement
+  or the needle pilot. CuteAFD is paired with three vLLM runs from two launches. Thin: 8 long replies per content type,
+  six long documents. {NOISE_K325}
+- **K4:** frozen protocol; **no separate review** of any part of it, its settings follow-ups included. CuteAFD is
+  paired with two vLLM launches. {NOISE_K4}
+- **One machine:** two RTX PRO 6000 Blackwell Max-Q cards at 300 W, with a desktop session using about 2 GB on GPU 1;
+  speed on other power limits or cards was not measured."""
+    P["glossary"] = [
+        ("AFD", "attention/FFN disaggregation: attention and the expert layers run as separate workers."),
+        ("BF16 model", "the original, unquantized model; the precision reference."),
+        ("K3.25, K4", "the two quantized checkpoints (3.25-bit and 4-bit EXL3 experts)."),
+        ("FP8", "8-bit floating point, CuteAFD's format for the other weights."),
+        ("KL", "distance between next-token distributions, in nats; 0 is identical."),
+        ("Coarse KL, KL20, KL_pb20, KL20n", "KL over the reference's top 1,024 tokens plus the rest (tpurtell's rule); over each "
+         "engine's top 20 (K4, teacher panel); the top-20 form of tpurtell's rule (K4, fidelity set); top 20 shared by two engines "
+         "(K4, long texts)."),
+        ("Top-1", "how often the most likely next token matches the reference's."),
+        ("P-A, P-B, Q2", "the text sets: BF16 teacher texts (2K tokens), tpurtell's fidelity set (to 14.4K), six long documents."),
+        ("Long code (8-16K)", "P-B's longest prompts, all code reading."),
+        ("95% interval, resolved", "a difference's likely range; resolved if it excludes zero."),
+        ("Level", "a speed ratio inside the noise band: not a difference."),
+        ("Prefill, decode", "reading the prompt; generating tokens."),
+        ("First token", "time until the first generated token."),
+        ("Stream", "one request in flight."),
+        ("W8A8, W8A16", "CuteAFD prefill with 8-bit or 16-bit activations."),
+        ("Scale rule", "how CuteAFD makes FP8 scales from BF16 weights at load: pow2 (powers of two, the default), amax (from "
+         "the largest value), best (the launcher's third rule)."),
+        ("KDA, head", "linear-attention projections; the final vocabulary layer."),
+        ("Drafter", "DFlash2, a small model that proposes tokens for the main model to check (speculative decoding)."),
+        ("Serving, scoring launch", "the engine as users run it; the same engine with the endpoints that return per-position "
+         "probabilities for precision scoring."),
+        ("Block Q, T, L", "the measurement blocks: precision, speed (throughput), long output."),
+        ("Run labels", "K3.25: V1 and V1r (vLLM fork, one launch), V2 (a second launch), C1 (CuteAFD), C0 (CuteAFD control on "
+         "K3.25-v1); K4: V-r1 and V-r2 (two vLLM launches), C-r1 (CuteAFD)."),
+        ("Prefix cache", "reuse of a repeated prompt's processed state."),
+        ("JIT caches", "kernels compiled at startup, kept between starts."),
+        ("Thinking", "the model's reasoning before its answer; always on here.")]
+    return P
+
+
+def home_readme():
+    P = home_parts(site=False)
+    gl = "\n".join(f"- **{k}**: {v}" for k, v in P["glossary"])
+    return {"{{HOME_INTRO}}": P["intro"], "{{HOME_FINDINGS}}": P["findings"], "{{HOME_BARS}}": P["bars_table"],
+            "{{HOME_MATTERS}}": P["matters"], "{{HOME_PICK}}": P["pick"], "{{HOME_SETTINGS}}": P["settings"],
+            "{{HOME_SPEED}}": P["speed"] + "\n\n" + P["speed_note"], "{{HOME_SURE}}": P["sure"], "{{HOME_GLOSSARY}}": gl}
+
+
+def needle_line():
+    nd = ROOT / "results" / NEEDLE_RUN
+    if not (nd / "V1-pilot.json").exists(): return ""
+    return (f"- **{load(nd / 'V1-pilot.json')['started'][11:16]}-{load(nd / 'C1-pilot.json')['finished'][11:16]}.** Needle pilot "
+            f"on both engines with K3.25, prompts of 256K, 512K and 1M tokens, one request each (exploratory; "
+            f"[`results/{NEEDLE_RUN}`](results/{NEEDLE_RUN}/)).\n")
+
+
+def timeline():
+    """The K4 part of the dated timeline (README "Timeline", site method page). Times UTC−7, from the receipts."""
+    def span(p):
+        d = load(p); a, b = d["started"], d["finished"]
+        return f"{a[11:16]}-{b[11:16]}"
+    t4 = lambda n: span(D4 / "t" / f"{n}.json"); f4 = lambda n: span(D4 / "f1k4" / "t" / f"{n}.json")
+    return f"""2026-10-27 (evening), K4 checkpoint ([`results/{K4}`](results/{K4}/); no separate review of this run):
+
+- **17:34-17:51.** K4 startup and smoke checks on both engines (one cold and one warm start each, and CuteAFD's scoring
+  launch).
+- **17:58.** K4 protocol frozen, before any comparison request (`FROZEN.json` sha256 `368e1700…`;
+  [`METHOD.md`](results/{K4}/METHOD.md)).
+- **18:03-19:48.** K4 Block Q: vLLM launch 1, CuteAFD's scoring launch (every panel twice, byte-identical), vLLM launch 2.
+- **{t4('V-r1')[:5]}-{t4('V-d2')[6:]}.** K4 Block T: vLLM {t4('V-r1')} and its drift subset {t4('V-d1')}; CuteAFD {t4('C-r1')} and
+  its drift subset {t4('C-d1')}; a final vLLM drift subset {t4('V-d2')}. 264 measured requests per engine, 0 errors.
+- **Before 23:31.** Follow-up F1-K4 (W8A16 prefill) declared, after the Block Q results.
+- **23:31-00:32.** F1-K4: CuteAFD scoring launch with W8A16 prefill; speed on serving launches {f4('C-base1')} (as shipped),
+  {f4('C-f1c')} (W8A16), {f4('C-base2')} (as shipped).
+
+2026-10-28:
+
+- **From 00:38.** K4 Block L on both engines, vLLM first; analysed afterwards with the frozen K3.25 analyser and the
+  review's loop rule.
+- **To 12:47.** Follow-up F1-K4b (CuteAFD's other FP8 switches) declared before any of its requests; planner dry runs
+  (BF16 KDA projections do not fit a serving launch with K4); the amax and best scale rules captured.
+- **13:05-13:10.** F1-K4b amendments B1 and B2: drafter-off scoring launches for the BF16 head and KDA arms, gated by a
+  control whose rows were byte-identical to as shipped on all 157,671 scored rows.
+- **{f4('C-c-base1')[:5]}-{f4('C-c-base2')[6:]}.** K4c (W8A16 + amax), declared before any of its requests: speed on serving
+  launches {f4('C-c-base1')} (as shipped), {f4('C-c-w16amax')}, {f4('C-c-base2')} (as shipped).
+- **{f4('C-d-base1')[:5]}-{f4('C-d-base2')[6:]}.** K4d (W8A16 + best), declared before any of its requests: speed
+  {f4('C-d-base1')}, {f4('C-d-w16best')}, {f4('C-d-base2')}.
+"""
 
 
 def substitutions(prefix):
@@ -692,7 +1190,9 @@ def substitutions(prefix):
             "{{S_OBSERVATIONS}}": sec(secs, "Observations"), "{{S_LIMITS}}": sec(secs, "Limits"),
             "{{Q_BUCKETS}}": q_buckets(prefix), "{{T_TABLE}}": t_table(), "{{T_COUNTS}}": t_counts(), "{{T_LINK}}": t_link(),
             "{{L_TABLE}}": l_table(), "{{L_DETAIL}}": l_table(detail=True), "{{L_NOTE}}": L_NOTE,
-            "{{OTHER_RUNS}}": other_runs(), "{{K4_RESULTS}}": k4_readme_section(), "{{K4_STATUS}}": k4_status()}
+            "{{OTHER_RUNS}}": other_runs(), "{{K4_RESULTS}}": k4_readme_section(), "{{K4_STATUS}}": k4_status(),
+            "{{TIMELINE_K4}}": timeline(), "{{NEEDLE_LINE}}": needle_line(), "{{CAPACITY}}": capacity_table(), "{{K4_STARTUP}}": k4_startup_table(),
+            **(home_readme() if prefix else {})}
 
 
 def render(template, out, prefix):

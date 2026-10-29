@@ -6,7 +6,7 @@ Arms: V1 = vLLM v0.9.2 (`ea0430aa`) on K3.25-v1, served settings (DFlash2 on); C
 Teacher-forced, raw token ids, prefill-shaped. Intervals: 95% bootstrap over windows (P-A, P-B) or documents (Q2).
 Measurement under the frozen protocol (CuteAFD's Block Q captures ran shortly before the freeze, as amendment A1 declares), on two panels; not a general quality ranking.
 
-## Paired against the vLLM runs, with the independent audit (2026-10-27; `AUDIT-2026-10-27.md`)
+## Paired against the vLLM runs, with the adversarial review (2026-10-27; `AUDIT-2026-10-27.md`)
 
 1. **vLLM run-to-run variation: cause.** It is not batching or speculation: every vLLM capture ran alone.
    Rows inside the first 2,045-token prefill chunk are bit-identical between the two vLLM runs; rows beyond it almost

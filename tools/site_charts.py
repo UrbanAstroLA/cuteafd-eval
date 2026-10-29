@@ -184,6 +184,38 @@ def forest(rows, *, ref, ref_who, scale="lin", left, right, aria, W=640, label_w
     return "".join(o)
 
 
+# ------------------------------------------------------------------ bars (scale: distance from the reference, one panel per measure)
+
+def bars(panels, *, aria, W=640, label_w=250, value_w=58):
+    """panels: [(title, [(label, value, kind)])], kind 'v' vLLM fork, 'c' CuteAFD, 'cs' CuteAFD with a setting, 'r' a
+    reference model. Each panel has its own axis from 0, with every tick covering the plotted values; values in a text
+    column on the right, so nothing is colour-only."""
+    PL, PR = label_w + 8, W - value_w - 4
+    y = 6; o = []
+    for title, rows in panels:
+        vmax = max(v for _, v, _ in rows)
+        stp = nice_step(vmax * 1.08, 4); top = math.ceil(vmax * 1.08 / stp - 1e-9) * stp
+        X = lambda v, top=top: PL + (PR - PL) * v / top
+        o.append(f'<rect class="secbg" x="0" y="{y:.1f}" width="{tw(title, 7.0) + 8:.1f}" height="18"/>' + tx(2, y + 13, title, "sec"))
+        y0 = y + 24; yy = y0 + 20 * len(rows)
+        t = 0.0
+        while t <= top + stp * 1e-6:                    # grid and ticks first, so the bars draw over them
+            o.append(f'<line class="{"axis" if t == 0 else "grid"}" x1="{X(t):.1f}" x2="{X(t):.1f}" y1="{y0 - 2:.1f}" y2="{yy + 2:.1f}"/>'
+                     + tx(X(t), yy + 15, "0" if t == 0 else f"{t:.{max(0, -int(math.floor(math.log10(stp))))}f}", "tick", "middle"))
+            t = round(t + stp, 10)
+        yr = y0
+        for lab, v, kind in rows:
+            cls = {"v": "bar-v", "c": "bar-c", "cs": "bar-cs", "r": "bar-r"}[kind]
+            g = (tx(label_w, yr + 12, lab, "lab", "end") + f'<rect class="hit" x="0" y="{yr:.1f}" width="{W}" height="18"/>'
+                 + f'<rect class="{cls}" x="{PL:.1f}" y="{yr + 2:.1f}" width="{max(X(v) - PL, 1):.1f}" height="13" rx="2"/>'
+                 + tx(PR + 8, yr + 12, f"{v:.4f}", "val"))
+            o.append(tip(f"{title}: {lab} {v:.4f}", g)); yr += 20
+        y = yy + 30
+    H = y + 8
+    o.append(tx(PL, H - 6, "← closer to BF16", "dir") + tx(PR, H - 6, "further from BF16 →", "dir", "end"))
+    return svg_open(W, H, aria) + "".join(o) + "</svg>"
+
+
 # ------------------------------------------------------------------ settings map (decision chart)
 
 def settings_map(points, *, aria, shipped_y, xlabel, ylabel, gutter=None, W=640, H=340):
@@ -211,9 +243,10 @@ def settings_map(points, *, aria, shipped_y, xlabel, ylabel, gutter=None, W=640,
     o.append(tx(2, 13, ylabel, "sub"))
     o.append(tx(2, 30, "↑ further from the vLLM fork · ↓ closer", "dir"))
     xr = R + Rg if gut else R
-    o.append(f'<line class="refd ref-v" x1="{L}" x2="{xr}" y1="{Y(0):.1f}" y2="{Y(0):.1f}"/>' + tx(L + 4, Y(0) - 5, "vLLM fork", "lab"))
+    # the two reference lines are labelled at the right end of the plot area, clear of the as-shipped point at x = 0
+    o.append(f'<line class="refd ref-v" x1="{L}" x2="{xr}" y1="{Y(0):.1f}" y2="{Y(0):.1f}"/>' + tx(R - 4, Y(0) - 5, "vLLM fork", "lab", "end"))
     o.append(f'<line class="refd ref-c" x1="{L}" x2="{xr}" y1="{Y(shipped_y):.1f}" y2="{Y(shipped_y):.1f}"/>'
-             + tx(L + 4, Y(shipped_y) - 5, "CuteAFD as shipped", "lab"))
+             + tx(R - 4, Y(shipped_y) - 5, "CuteAFD as shipped", "lab", "end"))
     if gut:
         gx0 = R + 10
         o.append(f'<rect class="gutter" x="{gx0}" y="{T_}" width="{Rg - 12}" height="{H - T_ - B_}" rx="4"/>')
@@ -232,7 +265,7 @@ def settings_map(points, *, aria, shipped_y, xlabel, ylabel, gutter=None, W=640,
                 ys.append(ly); p["_lab"] = (labx, ly)
             if col: cx0 = labx + max(tw(p["label"], 6.0) for p in col) + 16
     for p in meas: p["_x"] = X(p["x"])
-    boxes = [(L, Y(0) - 16, L + 4 + tw("vLLM fork"), Y(0) - 2), (L, Y(shipped_y) - 16, L + 4 + tw("CuteAFD as shipped"), Y(shipped_y) - 2)]
+    boxes = [(R - 4 - tw("vLLM fork"), Y(0) - 16, R - 4, Y(0) - 2), (R - 4 - tw("CuteAFD as shipped"), Y(shipped_y) - 16, R - 4, Y(shipped_y) - 2)]
     marks = []
     for p in points:
         cx, cy = p["_x"], Y(p["y"])
@@ -247,7 +280,9 @@ def settings_map(points, *, aria, shipped_y, xlabel, ylabel, gutter=None, W=640,
         if p.get("lo") is not None: boxes.append((cx - 2, Y(p["hi"]), cx + 2, Y(p["lo"])))
     in_gut = lambda p: p.get("x") is None
     for p, cx, cy, g in sorted(marks, key=lambda m: m[2]):
-        w = tw(p["label"], 6.0); placed = None
+        if p.get("shipped"):                     # named by its dashed line; no second label beside the point
+            o.append(tip(p["title"], "".join(g))); continue
+        w = tw(p["label"], 6.8); placed = None
         if in_gut(p):
             lx, ly = p["_lab"]
             g.append(f'<line class="lead" x1="{cx + 6:.1f}" x2="{lx - 3:.1f}" y1="{cy:.1f}" y2="{ly - 4:.1f}"/>' + tx(lx, ly, p["label"], "plab"))
@@ -417,7 +452,9 @@ def swatch(kind):
          "refdv": '<line class="refd ref-v" x1="0" x2="18" y1="7" y2="7"/>', "refdc": '<line class="refd ref-c" x1="0" x2="18" y1="7" y2="7"/>',
          "dotc": marker(9, 7, "c", size=2.8, cls_extra="dot"), "dotcu": marker(9, 7, "c", size=2.8, cls_extra="dot unres"),
          "lnv": '<line class="ln-v" x1="0" x2="18" y1="7" y2="7"/>', "lnc": '<line class="ln-c" x1="0" x2="18" y1="7" y2="7"/>',
-         "gut": '<rect class="gutter" x="1" y="1" width="16" height="12" rx="2"/>'}[kind]
+         "gut": '<rect class="gutter" x="1" y="1" width="16" height="12" rx="2"/>',
+         "bv": '<rect class="bar-v" x="1" y="2" width="16" height="10" rx="2"/>', "bc": '<rect class="bar-c" x="1" y="2" width="16" height="10" rx="2"/>',
+         "bcs": '<rect class="bar-cs" x="1" y="2" width="16" height="10" rx="2"/>', "br": '<rect class="bar-r" x="1" y="2" width="16" height="10" rx="2"/>'}[kind]
     return f'<svg class="sw" viewBox="0 0 18 14" width="18" height="14" aria-hidden="true">{s}</svg>'
 
 
@@ -458,4 +495,4 @@ svg .wk{stroke-width:2.2;stroke-linecap:round}svg .wk-v{stroke:var(--s1)}svg .wk
 svg .ln-v{stroke:var(--s1);stroke-width:2;fill:none;stroke-linejoin:round}svg .ln-c{stroke:var(--s2);stroke-width:2;fill:none;stroke-linejoin:round}
 svg .thin{stroke-width:1.2;opacity:.7}svg .dsh{stroke-dasharray:5 3}
 svg g:hover>.mk-v,svg g:hover>.mk-c,svg g:hover>g>.mk-c,svg g:hover>.wk{opacity:.75}
-.choose li{margin:9px 0}.choose b{color:var(--ink)}.choose .ev{font-size:13px;white-space:nowrap}"""
+.cfg code{overflow-wrap:normal;white-space:nowrap}svg .bar-v{fill:var(--s1)}svg .bar-c{fill:var(--s2)}svg .bar-cs{fill:var(--surface);stroke:var(--s2);stroke-width:2}svg .bar-r{fill:var(--g2)}"""

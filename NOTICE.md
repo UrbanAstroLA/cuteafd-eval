@@ -64,6 +64,7 @@ Revisions and file hashes: `protocol/SOURCES.json`. Selection rules and seeds: `
 | PG-19 (DeepMind, test split @ `4d28bd77`) | Apache-2.0 (dataset); the books are in the public domain | Q2 prose windows, Block T prose and reasoning contexts | not included; rebuilt from the source by the build script |
 | HumanEval+ and MBPP+ (evalplus) | Apache-2.0 | Block T code tasks | not included; rebuilt |
 | vLLM source files from the v0.9.2 image (`SPDX-License-Identifier: Apache-2.0` files only) | Apache-2.0 | Q2 code windows, Block T code and JSON contexts | not included; rebuilt (each file keeps its own licence header) |
+| Needle prompt designs from tpurtell's vLLM fork (`scripts/test-long-context.py`, `scripts/test-multi-needle-vllm.py`) | Apache-2.0 | the exploratory needle pilot (`results/2026-10-27-long-context-pilot/`) | not included; the prompts' hashes and expected answers are in `prompts-index.json` there |
 
 Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0. MIT licence of MATH:
 https://github.com/hendrycks/math/blob/main/LICENSE.

@@ -2,7 +2,7 @@
 
 Both engines are tpurtell's. Model GLM-5.3-Flash EXL3 K3.25 (identical expert bytes; CuteAFD's Core-FP8 checkpoint
 carries the official FP8 projections, vLLM's K3.25-v1 the BF16 ones). Frozen protocol `PROTOCOL-DRAFT.md` +
-`FROZEN.json`; labelled follow-ups `FOLLOWUPS.md`; independent audit `AUDIT-2026-10-27.md`.
+`FROZEN.json`; labelled follow-ups `FOLLOWUPS.md`; separate adversarial review `AUDIT-2026-10-27.md`.
 Thinking on for every generation request (the stacks handle thinking off differently; see Observations).
 
 ## Precision (teacher-forced, prefill-shaped; `RESULTS-Q.md`, `f1/RESULTS-F1.md`)
