@@ -250,6 +250,7 @@ Decode: range over content types and 1K-128K prompts; first token: median over c
 - K4: Block T, throughput, with drift repeats: done
 - K4: Block L, long output: done
 - K4: Follow-ups F1-K4 (W8A16 prefill), F1-K4b (FP8 switches), K4c (W8A16 + amax) and K4d (W8A16 + best), CuteAFD on K4 (outside the frozen protocol): done
+- K4: Follow-up K4e: CuteAFD W8A16 + amax under the full Block T grid and Block L (outside the frozen protocol): done
 - K4: Q2 document c2: rows where vLLM differs from itself: done
 
 <!-- results:start -->
