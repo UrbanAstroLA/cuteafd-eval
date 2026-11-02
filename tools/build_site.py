@@ -25,8 +25,10 @@ R4D = B.D4
 R4 = f"results/{B.K4}"
 _cs = importlib.util.spec_from_file_location("site_charts", ROOT / "tools" / "site_charts.py")
 C = importlib.util.module_from_spec(_cs); _cs.loader.exec_module(C)
+_v4 = importlib.util.spec_from_file_location("site_v4", ROOT / "tools" / "site_v4.py")
+V4 = importlib.util.module_from_spec(_v4); _v4.loader.exec_module(V4)
 
-PAGES = [("index.html", "Home"), ("precision.html", "Precision"), ("settings.html", "Settings"), ("speed.html", "Speed"),
+PAGES = [("index.html", "Home"), ("checkpoints.html", "Checkpoints"), ("v4.html", "CuteAFD v4"), ("precision.html", "Precision"), ("settings.html", "Settings"), ("speed.html", "Speed"),
          ("long-tasks.html", "Long tasks"), ("running.html", "Running it"), ("method.html", "Method"), ("audit.html", "Audit"),
          ("research.html", "Research"), ("reproduce.html", "Reproduce")]
 SITE = {p for p, _ in PAGES}
@@ -69,7 +71,7 @@ svg path.c1,svg path.c2,svg rect.c1,svg rect.c2{stroke:none}.ci{color:var(--mute
 dl.gl dt{font-weight:600;color:var(--ink);display:inline}dl.gl dt::after{content:": "}dl.gl dd{display:inline;margin:0;color:var(--ink2)}
 .pages li{margin:6px 0}.slot{border:1px dashed var(--axis);border-radius:10px;padding:8px 14px;margin:12px 0;color:var(--ink2)}
 footer{max-width:980px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}footer nav{padding:10px 0;border:0;margin:0;max-width:none}"""
-CSS += "\n" + C.CSS
+CSS += "\n" + C.CSS + "\n" + V4.CSS
 E = html.escape
 
 
@@ -543,14 +545,17 @@ def page_precision(F, K):
     lede = ("<p>Both engines stay close to the BF16 model, and the vLLM fork is slightly closer. The difference is largest when "
             f"reading long code (8-16K-token prompts): CuteAFD is {sg(pb8['d'])} further on K3.25 (coarse KL) and {sg(k8['d'])} on "
             "K4 (a top-20 measure). Below 8K on K3.25, and on long human-written text at 32K-128K on both checkpoints, no difference "
-            "is resolved. K4 sits about half as far from BF16 as K3.25 on both engines.</p>")
+            "is resolved. K4 sits closer to BF16 than K3.25 on both engines and both panels. These are CuteAFD v3.0.1 results; v4.0.0 "
+            'is bit-identical on the teacher panel (<a href="v4.html">CuteAFD v4</a>).</p>')
     body = (fig_long_code(F, K) +
             '<p class="sign">"Reading" follows each run\'s declared rule: K3.25, the 95% interval excludes 0; K4, it also has to exceed the '
             'vLLM fork\'s launch-to-launch difference on the same rows. Band: the largest difference between any two vLLM runs\' means '
             'on the same rows. CuteAFD repeats are byte-identical, so CuteAFD needs no band.</p>' +
             h2("checkpoints", "Teacher panel (P-A): every position of 25 texts of 2,048 tokens") +
             '<p class="plain">brandonmusic\'s BF16 teacher logits, the full vocabulary. The K3.25 KL20 row is K3.25\'s own captures '
-            'scored with K4\'s top-20 measure, so the two checkpoints can be compared on the same quantity.</p>' + pa_table(F, K) +
+            'scored with K4\'s top-20 measure, so the two checkpoints can be compared on the same quantity. The panel is drawn from the '
+            'corpus whose calibration windows K4\'s producer published (document-disjoint from them), so it can favour K4 against K3.25; '
+            'read checkpoint differences beside P-B (<a href="checkpoints.html">Three checkpoints</a>).</p>' + pa_table(F, K) +
             h2("fidelity-set", "Fidelity set (P-B): the model's own replies, prompts up to 14.4K tokens") +
             '<p class="plain">tpurtell\'s cuteafd-fidelity set, generated positions only (his rule). K3.25 is scored with his coarse KL '
             '(top 1,024 tokens plus the rest), K4 with its top-20 truncation, which keeps 98-99% of the coarse value on these rows.</p>'
@@ -1042,7 +1047,8 @@ def page_running(F, K):
         body += h2(hid, head) + md(text, "")
         if head == "Startup" and startup(): body += chart_startup(startup())
     lede = (f"<p>CuteAFD is ready in {su['c']} s and the vLLM fork in {su['v_warm']} s once its JIT caches are kept between starts "
-            f"({su['v_cold']} s without). On K4 the vLLM fork's KV cache holds {N['k4_kv'][0]:,} tokens and CuteAFD's {N['k4_kv'][1]:,}, "
+            f"({su['v_cold']} s without). On K4 the vLLM fork's KV cache holds {N['k4_kv'][0]:,} tokens and CuteAFD v3.0.1's {N['k4_kv'][1]:,} "
+            f"(v4.0.0: 1,931,264), "
             "and CuteAFD needs <code>MAX_CONTEXT_TOKENS=262144</code> to start there. CuteAFD reuses repeated prompts and honours "
             "\"thinking off\"; its launcher defaults to a 4,096-token output limit and listens on every interface unless told otherwise.</p>")
     page("running.html", "Running it: what an operator needs to know", lede, body)
@@ -1055,7 +1061,8 @@ def scored_table(T):
     rows = [
         ["<b>P-A</b> BF16 teacher panel (brandonmusic)", f"{pa['windows']}", hist(pa["tokens_per_window"]),
          f"all {num(pa['scored_positions_per_window']['median'])} (rows 0-2046)", f"{pa['selected_positions_total']:,}", hist(pa["context"]),
-         "the dataset's 25 qualification windows; general, legal, agentic code and reasoning domains",
+         "the dataset's 25 qualification windows; general, legal, agentic code and reasoning domains; same corpus as the "
+         "calibration windows K4's producer published (document-disjoint), so it can favour K4",
          "<code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>a6c167b6</code>, full-vocabulary FP32 logits"],
         ["<b>P-B</b> tpurtell's fidelity set (<code>cuteafd-fidelity</code>, glm5_flash v2)", f"{pb['windows']}", hist(pb["tokens_per_window"]),
          f"last 512; generated positions (primary) per window {hist(pb['selected_positions_per_window'])}",
@@ -1432,6 +1439,7 @@ def main():
     F = facts(); K = B.k4_data()
     page_home(); page_precision(F, K); page_settings(F, K); page_speed(F, K); page_long(F, K); page_running(F, K)
     page_method(F, K); page_audit(); page_research(F, K); page_reproduce(K)
+    V4.build(ROOT, page, h2, gh, details)
     for name, (target, label) in MOVED.items(): moved_page(name, target, label)
     print(f"wrote {len(PAGES)} pages and {len(MOVED)} forwarding stubs to docs/")
 

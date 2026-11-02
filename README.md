@@ -11,22 +11,38 @@ and machine:
 - **His vLLM fork** ([tpurtell/glm-5.3-flash-ext3-2x-rtx](https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx)), his
   vLLM-based engine for this model on two RTX GPUs.
 
-The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in two quantized checkpoints: **K3.25**
-(tpurtell's mixed 3.25-bit EXL3 experts) and **K4** (brandonmusic's 4-bit EXL3 experts, Local Inference Lab). The
-questions: how close each engine stays to the original BF16 model, how fast it is, and how to set it up.
+The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in three quantized checkpoints: **K3.25**
+(tpurtell's mixed 3.25-bit EXL3 experts), **K4** (brandonmusic's 4-bit EXL3 experts, Local Inference Lab) and
+**K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The questions: how close each engine stays to
+the original BF16 model, how fast it is, and how to set it up.
 
-Results as of 2026-10-28; versions tested: CuteAFD v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA).
+Results as of 2026-10-31; versions tested: CuteAFD v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA).
 
 > This README and the results site in `docs/` are generated from the files under `results/` by `tools/build_readme.py`
 > and `tools/build_site.py`. Each section below has a page of its own on the site.
 
 ## Findings
 
+**Latest: CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
+v4.1.0, released after the run, was read in source, not run: no change to this GPU-only setup's compute path was found.
+
+- **v4.0.0 against the vLLM fork:** faster or level in every speed cell measured (1 and 4 streams), first token level or sooner in every cell, KV pool
+  1.2x (K3.25) and 1.4x (K4); slightly further from BF16
+  (full-vocabulary teacher panel +0.0017 and +0.0035, both resolved). Same precision as
+  v3.0.1 (teacher panel bit-identical). No reply looped on either engine. [CuteAFD v4](results/2026-10-30-cuteafd-v4/)
+- **Three checkpoints:** BF16's top token is missed 68 (K3.25), 53 (K4) and
+  53 (K4-Core-K6) times per 1,000 tokens; where BF16 is at least 90% sure,
+  0.61, 0.10 and 0.18 (teacher panel).
+  K4 and K4-Core-K6 differ by calibration text (legal for K4; maths and function calling for K4-Core-K6) and neither is
+  closer on both panels. [Three checkpoints](results/2026-10-30-cuteafd-v4/)
+
+**CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
+
 - **Precision: the quantization matters more than the engine.** On K3.25, KL from the BF16 model (teacher panel) is 0.0458 on the vLLM fork and 0.0476 on CuteAFD. The largest engine difference is on long code (8-16K-token prompts): CuteAFD +0.0054 further on K3.25, +0.0090 on K4 (top-20 measure). [Precision](results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md)
-- **Speed: CuteAFD generates faster; under concurrency the vLLM fork's first tokens come sooner.** One stream: 114-168 tokens/s on the vLLM fork, 120-235 on CuteAFD (K3.25). First token, one request: 1K prompt 0.25 s and 0.41 s, 128K prompt 35.1 s and 29.6 s. With 4-16 requests at once the vLLM fork's first tokens come sooner in most cells, while tokens per second are level or ahead on CuteAFD except at 1K × 8. [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md)
+- **Speed: CuteAFD generates faster; under concurrency the vLLM fork's first tokens come sooner.** One stream: 114-168 tokens/s on the vLLM fork, 120-235 on CuteAFD (K3.25). First token, one request: 1K prompt 0.25 s and 0.41 s, 128K prompt 35.1 s and 29.6 s. With 4-16 requests at once the vLLM fork's first tokens come sooner in most cells, while tokens per second are level or ahead on CuteAFD except at 1K × 8 (v4.0.0, measured at 1 and 4 streams: CuteAFD's first token is level or sooner in every cell). [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md)
 - **A CuteAFD setting trades about 4% first-token time for precision.** W8A16 prefill closes about 59% of the long-code difference on K3.25 (8K prose prompt 1.808 → 1.878 s); W8A16 prefill with the amax scale rule closes about two thirds on K4 (32K code prompt 7.38 → 7.69 s), decode level. [Settings](results/2026-10-27-k4-vllm-cuteafd/f1k4/RESULTS-F1K4b.md)
 - **Long tasks: the same at the longest cap; CuteAFD finished more code at 32K.** At the 128K cap code passed every test in 7/8 (K3.25) and 8/8 (K4) on both engines, math 8/8. At the 32K cap CuteAFD finished 4/8 (K3.25) and 5/8 (K4) code tasks, the vLLM fork 0/8 and 0/8, consistent with CuteAFD's shorter code replies (0.74x and 0.77x the vLLM fork's median length at 128K); descriptive, n = 8. Needles in prompts of 256K to 1M tokens (K3.25): all found on both (exploratory); at 1M the first token took 270 s on the vLLM fork and 254 s on CuteAFD. [Long tasks](results/2026-10-26-cuteafd-vs-vllm/l/SUMMARY.md)
-- **Practical.** Ready to serve in 382 s on the vLLM fork (JIT caches kept) and 89 s on CuteAFD. A repeated 8K prompt: 2.10 s on the vLLM fork, 0.017 s from CuteAFD's prefix cache. Only CuteAFD honours "thinking off". K4 KV cache: 1,377,179 tokens on the vLLM fork, 447,488 on CuteAFD. [Running it](#running-it-observations-in-detail)
+- **Practical.** Ready to serve in 382 s on the vLLM fork (JIT caches kept) and 89 s on CuteAFD. A repeated 8K prompt: 2.10 s on the vLLM fork, 0.017 s from CuteAFD's prefix cache. Only CuteAFD honours "thinking off". K4 KV cache: 1,377,179 tokens on the vLLM fork, 447,488 on CuteAFD v3.0.1 (1,931,264 on v4.0.0). [Running it](#running-it-observations-in-detail)
 
 ## Does the precision difference matter?
 
@@ -43,7 +59,7 @@ Distance from the BF16 model, lower is closer. Each panel is one measure on one 
 | K3.25 · the same set, 8-16K long code · coarse KL | vLLM fork | 0.0504 |
 |  | CuteAFD | 0.0557 |
 |  | CuteAFD, W8A16 prefill | 0.0525 |
-| K3.25 and K4 · BF16 teacher panel (P-A) · top-20 KL (KL20) | K3.25, vLLM fork | 0.0365 |
+| K3.25 and K4 · BF16 teacher panel (P-A; can favour K4) · top-20 KL (KL20) | K3.25, vLLM fork | 0.0365 |
 |  | K3.25, CuteAFD | 0.0380 |
 |  | K4, vLLM fork | 0.0192 |
 |  | K4, CuteAFD | 0.0219 |
@@ -53,7 +69,9 @@ identical, lower is closer; units: nats).
 
 - **The quantization's own distance dwarfs the engine difference.** On tpurtell's set his official FP8 model scores
   0.0216, the 3.25-bit checkpoint 0.0451 (vLLM fork) and 0.0484 (CuteAFD): the engine difference is
-  7% of the vLLM fork's distance (11% on long code). K4 roughly halves the distance on both.
+  7% of the vLLM fork's distance (11% on long code). K4 is closer than K3.25 on both panels: 0.53-0.58 of K3.25's
+  top-20 distance on the teacher panel, 0.69-0.75 on tpurtell's set. The teacher panel is drawn from the corpus K4's
+  producer published, so it can favour K4 ([Three checkpoints](results/2026-10-30-cuteafd-v4/)).
 - **tpurtell's bar** counts a paired change below 0.005 KL or 0.5 top-1 points as within it (defined for changes to one
   engine; applied here by analogy). K3.25 overall is inside on KL (+0.0033, interval to +0.0049), not on
   top-1 (−0.46 points, to −0.73); long code is not shown inside on either checkpoint
@@ -74,12 +92,12 @@ measurements; they are not a general ranking.
 | CuteAFD on K4, two RTX GPUs | W8A16 prefill + amax scale rule closes about two thirds; the BF16 options do not fit | difference +0.0090 → +0.0030; first token +4.0% to +4.2% per cell | [Settings](results/2026-10-27-k4-vllm-cuteafd/f1k4/RESULTS-F1K4b.md) |
 | One request at a time | CuteAFD generates faster | 114-168 vs 120-235 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
 | Long prompts, one at a time | CuteAFD's first token sooner | 128K: 35.1 s vs 29.6 s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
-| Short prompts, many at once | vLLM fork's first token sooner; tokens/s higher on the vLLM fork at 1K × 8, level at 1K × 16 | 1K × 8: 1.44 s vs 2.76 s, 345-454 vs 321-410 tok/s; 1K × 16: 2.38 s vs 4.31 s, 378-508 vs 397-516 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
+| Short prompts, many at once | v3.0.1: vLLM fork's first token sooner; tokens/s higher on the vLLM fork at 1K × 8, level at 1K × 16. v4.0.0 at 4 streams: CuteAFD's first token level or sooner, tokens/s higher (8 and 16 streams not rerun) | 1K × 8: 1.44 s vs 2.76 s, 345-454 vs 321-410 tok/s; 1K × 16: 2.38 s vs 4.31 s, 378-508 vs 397-516 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
 | Many long prompts at once | vLLM fork's first tokens sooner; CuteAFD's tokens/s higher | 32K × 16: 72 vs 106 s, 100-105 vs 107-112 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/CAVEATS.md) |
 | Repeated long prefix | CuteAFD reuses it | 8K repeated: 2.10 vs 0.017 s | [Running it](results/2026-10-26-cuteafd-vs-vllm/f2/RESULTS-F2.md) |
 | Long replies (to 128K) | same code and math at the 128K cap; CuteAFD finished more code at 32K | 128K code: 7/8 vs 7/8; 32K code finished: 0/8 vs 4/8 (K3.25) | [Long tasks](results/2026-10-26-cuteafd-vs-vllm/l/SUMMARY.md) |
 | Switching models often | CuteAFD starts faster | 382 vs 89 s | [Running it](results/2026-10-27-vllm-startup-cache/) |
-| Many long contexts at once (K4) | vLLM fork holds about 3x the KV cache | 1,377,179 vs 447,488 tokens | [Running it](results/2026-10-27-k4-vllm-cuteafd/startup/startup.json) |
+| Many long contexts at once (K4) | v3.0.1: vLLM fork holds about 3x the KV cache; v4.0.0: CuteAFD holds 1.4x | 1,377,179 vs 447,488 tokens (v3.0.1); 1,377,179 vs 1,931,264 (v4.0.0) | [Running it](results/2026-10-27-k4-vllm-cuteafd/startup/startup.json) |
 | K4 on CuteAFD, two RTX GPUs | context up to 262,144 tokens (MAX_CONTEXT_TOKENS); the 256K-1M needle checks ran on K3.25 | 262,144 tokens | [Running it](results/2026-10-27-k4-vllm-cuteafd/METHOD.md) |
 
 ## Settings measured
@@ -208,7 +226,7 @@ Decode: range over content types and 1K-128K prompts; first token: median over c
 
 - **AFD**: attention/FFN disaggregation: attention and the expert layers run as separate workers.
 - **BF16 model**: the original, unquantized model; the precision reference.
-- **K3.25, K4**: the two quantized checkpoints (3.25-bit and 4-bit EXL3 experts).
+- **K3.25, K4, K4-Core-K6**: the three quantized checkpoints: 3.25-bit, 4-bit, and 4-bit experts with a 6-bit core (EXL3).
 - **FP8**: 8-bit floating point, CuteAFD's format for the other weights.
 - **KL**: distance between next-token distributions, in nats; 0 is identical.
 - **Coarse KL, KL20, KL_pb20, KL20n**: KL over the reference's top 1,024 tokens plus the rest (tpurtell's rule); over each engine's top 20 (K4, teacher panel); the top-20 form of tpurtell's rule (K4, fidelity set); top 20 shared by two engines (K4, long texts).
@@ -260,7 +278,8 @@ Tables built from the published receipts; text and intervals per run in each run
 [`results/2026-10-26-cuteafd-vs-vllm`](results/2026-10-26-cuteafd-vs-vllm/) (K3.25, with
 [`SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/SUMMARY.md) and the separate review
 [`AUDIT-2026-10-27.md`](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)) and
-[`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4). One machine, one model family, one
+[`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4), both CuteAFD v3.0.1, and
+[`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket
@@ -376,7 +395,9 @@ K3.25 leaves room for about 4.7 million tokens of KV cache on both engines; K4 f
 vLLM fork, 447,488 on CuteAFD). K3.25's weights take about 69 GiB per GPU on the vLLM fork (its startup log); K4's
 weight size is not in the published files. The smaller K4 pools are consistent with its 4-bit experts taking more
 memory than K3.25's 3.25-bit ones, but that was not measured, and why CuteAFD's K4 pool is smaller than the vLLM fork's
-was not examined beyond the planner's lines below.
+was not examined beyond the planner's lines below. These are v3.0.1 pools. On CuteAFD v4.0.0 the serving pools are
+5,799,424 (K3.25), 1,931,264 (K4) and 2,240,512 (K4-Core-K6) tokens, against the vLLM fork's 4,762,898 and 1,377,179
+in the same run ([`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/)).
 
 CuteAFD on K4 needs one local setting on two RTX GPUs: at its defaults the planner refuses K4 (pool 260,608 tokens,
 below its 1,048,576-token context floor); `MAX_CONTEXT_TOKENS=262144` gives a 447,488-token pool beside the desktop's

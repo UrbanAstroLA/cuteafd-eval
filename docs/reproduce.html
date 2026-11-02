@@ -48,7 +48,29 @@ svg .ln-v{stroke:var(--s1);stroke-width:2;fill:none;stroke-linejoin:round}svg .l
 svg .thin{stroke-width:1.2;opacity:.7}svg .dsh{stroke-dasharray:5 3}
 svg g:hover>.mk-v,svg g:hover>.mk-c,svg g:hover>g>.mk-c,svg g:hover>.wk{opacity:.75}
 .cfg code{overflow-wrap:normal;white-space:nowrap}svg .bar-v{fill:var(--s1)}svg .bar-c{fill:var(--s2)}svg .bar-cs{fill:var(--surface);stroke:var(--s2);stroke-width:2}svg .bar-r{fill:var(--g2)}
-</style></head><body><nav aria-label="Pages"><span class="brand">cuteafd-eval</span><a href="index.html" class="">Home</a><a href="precision.html" class="">Precision</a><a href="settings.html" class="">Settings</a><a href="speed.html" class="">Speed</a><a href="long-tasks.html" class="">Long tasks</a><a href="running.html" class="">Running it</a><a href="method.html" class="">Method</a><a href="audit.html" class="">Audit</a><a href="research.html" class="">Research</a><a href="reproduce.html" class="on">Reproduce</a></nav><main><h1>Reproduce</h1><div class="answer"><p>From the frozen protocol to the published summaries, step by step: checkpoints and images by digest, the prompt build (with hashes to confirm a rebuild), each engine's launch, the capture and scoring commands, and the checks.</p></div>
+.rt{background:var(--surface);border:1px solid var(--ring);border-radius:10px;margin:16px 0 18px;overflow:hidden}.rt .sc{overflow-x:auto}
+.rt table{margin:0;font-size:14px;min-width:560px}.rt .cap{padding:12px 12px 6px}.rt .cap b{display:block;color:var(--ink)}
+.rt .cap span{display:block;color:var(--ink2);font-size:13px;margin-top:2px}
+.rt th{background:var(--page);border-bottom:1px solid var(--axis);font-size:13px;white-space:nowrap}
+.rt td,.rt th{padding:8px 12px}.rt tbody tr:last-child td{border-bottom:0}
+.rt td.k{color:var(--ink);font-weight:600;min-width:150px}.rt td.k small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.rt tr.hi td{background:var(--page)}.rt tr.hi td.k{box-shadow:inset 3px 0 0 var(--ink)}
+.rt tr.grp td{background:var(--page);color:var(--ink2);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:6px 12px}
+.cv{display:flex;align-items:center;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cv .v{color:var(--ink);min-width:3.2em}.cv .s{color:var(--muted);font-size:12px}
+.hb{display:inline-block;width:84px;height:8px;background:var(--grid);border-radius:0 4px 4px 0;flex:none}
+.hb i{display:block;height:100%;background:var(--g1);border-radius:0 4px 4px 0}.hb i.v{background:var(--s1)}.hb i.c{background:var(--s2)}
+.dv{position:relative;display:inline-block;width:132px;height:12px;flex:none}
+.dv::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px solid var(--axis)}
+.dv i{position:absolute;top:2px;height:8px;background:var(--g1)}.dv i.l{border-radius:4px 0 0 4px}.dv i.r{border-radius:0 4px 4px 0}
+.dv i.nr{background:transparent;border:1px dashed var(--g2)}
+.bd{display:inline-block;font-size:11.5px;line-height:1.5;padding:0 8px;border-radius:999px;border:1px solid var(--axis);color:var(--ink2);white-space:nowrap}
+.bd.y{border-color:var(--ink);color:var(--ink);font-weight:600}
+.rt .foot{padding:8px 12px 12px;font-size:12.5px;color:var(--ink2);border-top:1px solid var(--grid)}
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:12px 0}
+.split div{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:10px 14px}
+.split b{display:block;margin-bottom:2px}.split p{margin:4px 0;font-size:14px}
+</style></head><body><nav aria-label="Pages"><span class="brand">cuteafd-eval</span><a href="index.html" class="">Home</a><a href="checkpoints.html" class="">Checkpoints</a><a href="v4.html" class="">CuteAFD v4</a><a href="precision.html" class="">Precision</a><a href="settings.html" class="">Settings</a><a href="speed.html" class="">Speed</a><a href="long-tasks.html" class="">Long tasks</a><a href="running.html" class="">Running it</a><a href="method.html" class="">Method</a><a href="audit.html" class="">Audit</a><a href="research.html" class="">Research</a><a href="reproduce.html" class="on">Reproduce</a></nav><main><h1>Reproduce</h1><div class="answer"><p>From the frozen protocol to the published summaries, step by step: checkpoints and images by digest, the prompt build (with hashes to confirm a rebuild), each engine's launch, the capture and scoring commands, and the checks.</p></div>
 <p>Step by step, from the frozen protocol (<a href="https://github.com/UrbanAstroLA/cuteafd-eval/blob/main/protocol/PROTOCOL.md"><code>../protocol/PROTOCOL.md</code></a>) to the published summaries. Each step names the files that carry the exact commands; this page puts them in order.</p>
 <h3 id="placeholders">Placeholders</h3>
 <p>The published copies replace local paths with placeholders. Substitute your own:</p>

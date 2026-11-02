@@ -54,7 +54,8 @@ Tables built from the published receipts; text and intervals per run in each run
 [`results/2026-10-26-cuteafd-vs-vllm`](results/2026-10-26-cuteafd-vs-vllm/) (K3.25, with
 [`SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/SUMMARY.md) and the separate review
 [`AUDIT-2026-10-27.md`](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)) and
-[`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4). One machine, one model family, one
+[`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4), both CuteAFD v3.0.1, and
+[`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket
@@ -95,7 +96,9 @@ K3.25 leaves room for about 4.7 million tokens of KV cache on both engines; K4 f
 vLLM fork, 447,488 on CuteAFD). K3.25's weights take about 69 GiB per GPU on the vLLM fork (its startup log); K4's
 weight size is not in the published files. The smaller K4 pools are consistent with its 4-bit experts taking more
 memory than K3.25's 3.25-bit ones, but that was not measured, and why CuteAFD's K4 pool is smaller than the vLLM fork's
-was not examined beyond the planner's lines below.
+was not examined beyond the planner's lines below. These are v3.0.1 pools. On CuteAFD v4.0.0 the serving pools are
+5,799,424 (K3.25), 1,931,264 (K4) and 2,240,512 (K4-Core-K6) tokens, against the vLLM fork's 4,762,898 and 1,377,179
+in the same run ([`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/)).
 
 CuteAFD on K4 needs one local setting on two RTX GPUs: at its defaults the planner refuses K4 (pool 260,608 tokens,
 below its 1,048,576-token context floor); `MAX_CONTEXT_TOKENS=262144` gives a 447,488-token pool beside the desktop's

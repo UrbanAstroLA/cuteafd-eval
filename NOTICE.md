@@ -31,8 +31,13 @@ The material below keeps its own licence.
   `results/2026-10-26-cuteafd-vs-vllm/q/rows/pa-rows.csv` and `results/2026-10-27-k4-vllm-cuteafd/q/rows/pa-rows.csv`
   hold per-position scores computed against it (no logits, no token ids): our KL, NLL and top-1 columns under CC BY 4.0;
   `teacher_nll` and `teacher_confident` are derived from his teacher logits and credited to him. Provenance and hashes: `results/2026-10-26-cuteafd-vs-vllm/q/pa/PROVENANCE.json`.
-- **Checkpoints**: `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1`, `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8`
-  (tpurtell), `incoai/GLM-5.3-Flash-DFlash2`, `zai-org/GLM-5.3-Flash`. Their licences are on their model cards. The K4
+- **Calibration descriptions** (results/2026-10-30-cuteafd-v4, Three checkpoints page): the composition of
+  `wrldsuksgo2mars/agentic-quant-panel-v1` @ `875ff1d3` is quoted from its card and `statistics.json` (tpurtell; its
+  licence field: mixed upstream licences); the K4 calibration windows are counted from `calibration/windows/panel.json`
+  (sha256 `6bafe3283c54bc93…`) in `brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence`. Only shares and counts are
+  reproduced, no text from either.
+- **Checkpoints**: `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1`, `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8`,
+  `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6` (tpurtell), `incoai/GLM-5.3-Flash-DFlash2`, `zai-org/GLM-5.3-Flash`. Their licences are on their model cards. The K4
   checkpoint is listed in its own section below.
 
 ## K4 checkpoint (referenced, not redistributed)
