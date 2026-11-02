@@ -253,7 +253,7 @@ def status_lines():
 def other_runs():
     rows = []
     for d in sorted((ROOT / "results").iterdir()):
-        if d.is_dir() and (d / "RUN.json").exists() and d.name not in (RUN, K4, "2026-10-30-cuteafd-v4"):
+        if d.is_dir() and (d / "RUN.json").exists() and d.name not in (RUN, K4, "2026-10-30-cuteafd-v4", "2026-11-02-tool-calling"):
             r = load(d / "RUN.json")
             rows.append([f"[`{d.name}`](results/{d.name}/)", r["kind"], r["title"]])
     return table(["Run", "Kind", "What it is"], rows)
@@ -904,7 +904,7 @@ def V4_LATEST(lk):
     """The CuteAFD v4.0.0 block that opens the findings (numbers from results/2026-10-30-cuteafd-v4/SUMMARY.json)."""
     S = load(ROOT / "results/2026-10-30-cuteafd-v4/SUMMARY.json")
     fv = S["precision_fullvocab_pa"]["cuteafd_minus_vllm"]; kv = S["kv_pool"]; p = S["per_1000"]["pa"]
-    v4 = lk("CuteAFD v4", "v4.html", "results/2026-10-30-cuteafd-v4/"); ck = lk("Three checkpoints", "checkpoints.html", "results/2026-10-30-cuteafd-v4/")
+    v4 = lk("CuteAFD v4", "v4.html", "results/2026-10-30-cuteafd-v4/"); ck = lk("Three checkpoints", "checkpoints.html", "results/2026-10-30-cuteafd-v4/"); tc = lk("Tool calling", "tools.html", "results/2026-11-02-tool-calling/")
     return f"""**Latest: CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
 v4.1.0, released after the run, was read in source, not run: no change to this GPU-only setup's compute path was found.
 
@@ -917,6 +917,8 @@ v4.1.0, released after the run, was read in source, not run: no change to this G
   {p['K3.25 CuteAFD']['differs_bf16_sure']:.2f}, {p['K4 CuteAFD']['differs_bf16_sure']:.2f} and {p['K4-Core-K6 CuteAFD']['differs_bf16_sure']:.2f} (teacher panel).
   K4 and K4-Core-K6 differ by calibration text (legal for K4; maths and function calling for K4-Core-K6) and neither is
   closer on both panels. {ck}
+- **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
+  engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. {tc}
 
 **CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
 
@@ -1037,6 +1039,9 @@ identical, lower is closer; units: nats).
          lk("Speed", "speed.html#caveats", R3 + "t/CAVEATS.md")],
         ["Repeated long prefix", "CuteAFD reuses it", f"8K repeated: {N['cached'][0]:.2f} vs {N['cached'][1]:.3f} s",
          lk("Running it", "running.html#prefix-cache", R3 + "f2/RESULTS-F2.md")],
+        ["Multi-turn tool calling (agents)", "both pass near the test's ceiling; scores overlap; CuteAFD's turns come sooner",
+         "tool-eval-bench, 88 scenarios: 160-163 vs 163 of 176 (K3.25), 158-163 vs 158 (K4); median turn 4.8-5.3 vs 2.7-3.1 s at 8 at once",
+         lk("Tool calling", "tools.html", "results/2026-11-02-tool-calling/")],
         ["Long replies (to 128K)", "same code and math at the 128K cap; CuteAFD finished more code at 32K",
          f"128K code: {vc['all_pass']}/8 vs {cc['all_pass']}/8; 32K code finished: {c2v['stop']}/8 vs {c2c['stop']}/8 (K3.25)",
          lk("Long tasks", "long-tasks.html", R3 + "l/SUMMARY.md")],
@@ -1160,7 +1165,9 @@ FP8_SCALES=amax
          "K3.25-v1); K4: V-r1 and V-r2 (two vLLM launches), C-r1 (CuteAFD)."),
         ("Prefix cache", "reuse of a repeated prompt's processed state."),
         ("JIT caches", "kernels compiled at startup, kept between starts."),
-        ("Thinking", "the model's reasoning before its answer; always on here.")]
+        ("Thinking", "the model's reasoning before its answer; always on here."),
+        ("tool-eval-bench", "an open benchmark of 88 multi-turn tool-calling scenarios, each graded pass (2 points), partial (1) "
+         "or fail (0); 176 points in all. Its own rubric is on the Tool calling page.")]
     return P
 
 

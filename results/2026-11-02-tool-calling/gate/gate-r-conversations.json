@@ -1,0 +1,136 @@
+{
+ "tools": [
+  {
+   "type": "function",
+   "function": {
+    "name": "get_weather",
+    "description": "Current weather for a city",
+    "parameters": {
+     "type": "object",
+     "properties": {
+      "city": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "city"
+     ]
+    }
+   }
+  }
+ ],
+ "conversations": {
+  "tool-loop": [
+   {
+    "role": "system",
+    "content": "You are a helpful assistant."
+   },
+   {
+    "role": "user",
+    "content": "Weather in Paris?"
+   },
+   {
+    "role": "assistant",
+    "content": "",
+    "reasoning_content": "Need the tool.",
+    "tool_calls": [
+     {
+      "id": "call_1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Paris"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_1",
+    "content": "{\"temp_c\": 14}"
+   }
+  ],
+  "follow-up": [
+   {
+    "role": "user",
+    "content": "Weather in Paris?"
+   },
+   {
+    "role": "assistant",
+    "content": "",
+    "reasoning_content": "Need the tool.",
+    "tool_calls": [
+     {
+      "id": "call_1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Paris"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_1",
+    "content": "{\"temp_c\": 14}"
+   },
+   {
+    "role": "assistant",
+    "content": "It is 14 C in Paris.",
+    "reasoning_content": "Report it."
+   },
+   {
+    "role": "user",
+    "content": "And in Rome?"
+   }
+  ],
+  "two-calls": [
+   {
+    "role": "user",
+    "content": "Compare Oslo and Lima."
+   },
+   {
+    "role": "assistant",
+    "content": "",
+    "reasoning_content": "Two lookups.",
+    "tool_calls": [
+     {
+      "id": "call_1",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Oslo"
+       }
+      }
+     },
+     {
+      "id": "call_2",
+      "type": "function",
+      "function": {
+       "name": "get_weather",
+       "arguments": {
+        "city": "Lima"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_1",
+    "content": "{\"temp_c\": 2}"
+   },
+   {
+    "role": "tool",
+    "tool_call_id": "call_2",
+    "content": "{\"temp_c\": 19}"
+   }
+  ]
+ }
+}

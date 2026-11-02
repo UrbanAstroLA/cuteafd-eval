@@ -1,0 +1,31 @@
+{
+ "id": "2026-11-02-tool-calling",
+ "kind": "measurement",
+ "title": "Multi-turn tool calling (tool-eval-bench, 88 scenarios): CuteAFD v4.0.0 and the vLLM fork v0.9.2 on K3.25 and K4, CuteAFD on K4-Core-K6",
+ "protocol": "frozen 2026-11-02T11:49:33-08:00 (Amendment 1: --hardmode, before any result was read); FROZEN.json",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local, no DGX Spark expert nodes",
+ "harness": "tool-eval-bench 2.6.1.dev45 (commit cf54b4b), https://github.com/SeraphimSerapis/tool-eval-bench",
+ "slots": {
+  "tc": {
+   "title": "Block TC: 5 arms x 3 repeats",
+   "status": "done",
+   "files": [
+    "SUMMARY.json",
+    "rows.csv",
+    "PROTOCOL.md",
+    "CORRECTIONS.md",
+    "FROZEN.json",
+    "gate/gate-r-conversations.json",
+    "gate/render_gate.py",
+    "gate/gate_r2.py",
+    "analyze_tc.py",
+    "chain-tc.sh",
+    "gate/live-C-k325.json",
+    "gate/live-C-k4.json",
+    "gate/live-C-k6.json",
+    "gate/live-V-k325.json",
+    "gate/live-V-k4.json"
+   ]
+  }
+ }
+}

@@ -35,6 +35,8 @@ v4.1.0, released after the run, was read in source, not run: no change to this G
   0.61, 0.10 and 0.18 (teacher panel).
   K4 and K4-Core-K6 differ by calibration text (legal for K4; maths and function calling for K4-Core-K6) and neither is
   closer on both panels. [Three checkpoints](results/2026-10-30-cuteafd-v4/)
+- **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
+  engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. [Tool calling](results/2026-11-02-tool-calling/)
 
 **CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
 
@@ -95,6 +97,7 @@ measurements; they are not a general ranking.
 | Short prompts, many at once | v3.0.1: vLLM fork's first token sooner; tokens/s higher on the vLLM fork at 1K × 8, level at 1K × 16. v4.0.0 at 4 streams: CuteAFD's first token level or sooner, tokens/s higher (8 and 16 streams not rerun) | 1K × 8: 1.44 s vs 2.76 s, 345-454 vs 321-410 tok/s; 1K × 16: 2.38 s vs 4.31 s, 378-508 vs 397-516 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
 | Many long prompts at once | vLLM fork's first tokens sooner; CuteAFD's tokens/s higher | 32K × 16: 72 vs 106 s, 100-105 vs 107-112 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/CAVEATS.md) |
 | Repeated long prefix | CuteAFD reuses it | 8K repeated: 2.10 vs 0.017 s | [Running it](results/2026-10-26-cuteafd-vs-vllm/f2/RESULTS-F2.md) |
+| Multi-turn tool calling (agents) | both pass near the test's ceiling; scores overlap; CuteAFD's turns come sooner | tool-eval-bench, 88 scenarios: 160-163 vs 163 of 176 (K3.25), 158-163 vs 158 (K4); median turn 4.8-5.3 vs 2.7-3.1 s at 8 at once | [Tool calling](results/2026-11-02-tool-calling/) |
 | Long replies (to 128K) | same code and math at the 128K cap; CuteAFD finished more code at 32K | 128K code: 7/8 vs 7/8; 32K code finished: 0/8 vs 4/8 (K3.25) | [Long tasks](results/2026-10-26-cuteafd-vs-vllm/l/SUMMARY.md) |
 | Switching models often | CuteAFD starts faster | 382 vs 89 s | [Running it](results/2026-10-27-vllm-startup-cache/) |
 | Many long contexts at once (K4) | v3.0.1: vLLM fork holds about 3x the KV cache; v4.0.0: CuteAFD holds 1.4x | 1,377,179 vs 447,488 tokens (v3.0.1); 1,377,179 vs 1,931,264 (v4.0.0) | [Running it](results/2026-10-27-k4-vllm-cuteafd/startup/startup.json) |
@@ -248,6 +251,7 @@ Decode: range over content types and 1K-128K prompts; first token: median over c
 - **Prefix cache**: reuse of a repeated prompt's processed state.
 - **JIT caches**: kernels compiled at startup, kept between starts.
 - **Thinking**: the model's reasoning before its answer; always on here.
+- **tool-eval-bench**: an open benchmark of 88 multi-turn tool-calling scenarios, each graded pass (2 points), partial (1) or fail (0); 176 points in all. Its own rubric is on the Tool calling page.
 
 ## Status
 
@@ -279,7 +283,8 @@ Tables built from the published receipts; text and intervals per run in each run
 [`SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/SUMMARY.md) and the separate review
 [`AUDIT-2026-10-27.md`](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)) and
 [`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4), both CuteAFD v3.0.1, and
-[`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints). One machine, one model family, one
+[`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints) and
+[`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket
@@ -467,6 +472,12 @@ cache overlay); what differs between the two starts was not broken down. CuteAFD
 - **Control-token strings in user text** (measured in Block T and the K4 smoke checks). The 128K code prompts contain
   literal `<think>` and `</think>` strings; the vLLM stack parses them as control tokens, CuteAFD keeps them as text, so
   those prompts are 24 tokens longer on CuteAFD.
+- **Multi-turn reasoning history** (rendered offline with each template; prompt tokens measured on both engines,
+  [`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/)). Clients that send an assistant turn's
+  reasoning back in the history (tool-calling agents do) get different prompts by default: K4's chat template drops
+  reasoning from earlier user turns, the template the vLLM fork serves keeps it, and CuteAFD renders each checkpoint's
+  own template. With `chat_template_kwargs: {"clear_thinking": false}` all three templates (K4, the vLLM fork's,
+  K4-Core-K6) render byte-identical text, and both engines reported the same prompt tokens on every checkpoint.
 
 ### Launcher defaults that matter
 

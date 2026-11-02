@@ -73,25 +73,34 @@ def badge(resolved, yes="resolved", no="not resolved"):
     return f'<span class="bd{" y" if resolved else ""}">{yes if resolved else no}</span>'
 
 
-def rich(caption, sub, head, rows, foot="", hi=()):
+def rich(caption, sub, head, rows, foot="", hi=(), cls=""):
     """rows: list of lists (first cell is the row label, may contain <small>); a row given as ("grp", text) is a group header."""
     body = []
     for i, r in enumerate(rows):
         if isinstance(r, tuple) and r[0] == "grp":
             body.append(f'<tr class="grp"><td colspan="{len(head)}">{r[1]}</td></tr>')
             continue
-        cls = ' class="hi"' if i in hi else ""
-        body.append(f"<tr{cls}>" + f'<td class="k">{r[0]}</td>' + "".join(f"<td>{c}</td>" for c in r[1:]) + "</tr>")
+        trc = ' class="hi"' if i in hi else ""
+        body.append(f"<tr{trc}>" + f'<td class="k">{r[0]}</td>' + "".join(f"<td>{c}</td>" for c in r[1:]) + "</tr>")
     cap = f'<div class="cap">{f"<b>{caption}</b>" if caption else ""}{f"<span>{sub}</span>" if sub else ""}</div>' if caption or sub else ""
     f = f'<div class="foot">{foot}</div>' if foot else ""
     th = ("<thead><tr>" + "".join(f"<th>{h}</th>" for h in head) + "</tr></thead>") if any(head) else ""
-    return f'<div class="rt">{cap}<div class="sc"><table>{th}<tbody>' + "".join(body) + f"</tbody></table></div>{f}</div>"
+    return f'<div class="rt{" " + cls if cls else ""}">{cap}<div class="sc"><table>{th}<tbody>' + "".join(body) + f"</tbody></table></div>{f}</div>"
 
 
 def n0(x): return f"{x:,.0f}"
 
 
 # ------------------------------------------------------------------ checkpoints page
+
+def TCPTS(S):
+    """CuteAFD v4 tool-eval-bench points per checkpoint (its three repeats were identical), or blanks before the run exists."""
+    p = Path(S.get("_root", ".")) / TCD / "SUMMARY.json"
+    if not p.exists():
+        return [0, 0, 0]
+    T = json.loads(p.read_text())["arms"]
+    return [T[a]["repeats"][0]["points"] for a in ("C-k325", "C-k4", "C-k6")]
+
 
 def page_checkpoints(S, page, h2, gh, details):
     P = S["per_1000"]["pa"]
@@ -120,7 +129,9 @@ def page_checkpoints(S, page, h2, gh, details):
          ["Speed on CuteAFD v4", "not compared here", "reference", "5-15% slower than K4"],
          ["Top token differs from BF16<small>per 1,000 tokens, panel P-A</small>"] +
          [bar(P[f"{c} CuteAFD"]["differs"], 80, f"{P[f'{c} CuteAFD']['differs']:.0f}") for c in CK],
-         ["…where BF16 was ≥90% sure"] + [bar(P[f"{c} CuteAFD"]["differs_bf16_sure"], 0.7, f"{P[f'{c} CuteAFD']['differs_bf16_sure']:.2f}") for c in CK]],
+         ["…where BF16 was ≥90% sure"] + [bar(P[f"{c} CuteAFD"]["differs_bf16_sure"], 0.7, f"{P[f'{c} CuteAFD']['differs_bf16_sure']:.2f}") for c in CK],
+         ["Multi-turn tool calling<small>tool-eval-bench, points of 176, CuteAFD v4</small>"] +
+         [bar(t, 176, str(t)) for t in TCPTS(S)]],
         hi=(7, 8))
 
     doms = mix["domains"]
@@ -331,17 +342,167 @@ def page_v4(S, page, h2, gh, details):
             h2("memory", "Memory and startup") + mem +
             h2("long-outputs", "Long outputs") + longt +
             h2("v4-vs-v3", "v4.0.0 against v3.0.1") + v3 +
+            h2("tool-calling", "Multi-turn tool calling") +
+            "<p>tool-eval-bench, 88 scenarios, both engines on the same prompts: 160-163 (vLLM fork) and 163 (CuteAFD) of 176 on "
+            "K3.25, 158-163 and 158 on K4; the same two scenarios fail everywhere; CuteAFD's turns came in 2.7-3.1 s against 4.8-5.3 s "
+            "at eight scenarios at once. Details, per-scenario splits and the benchmark's own rubric: "
+            '<a href="tools.html">Tool calling</a>.</p>' +
             h2("not-covered", "Not covered") +
             "<ul><li>K4-Core-K6 on the vLLM fork: v0.9.2 does not run it. K4-Core-K6 results are on the "
             '<a href="checkpoints.html">checkpoints</a> page.</li>'
             "<li>CuteAFD with DGX Spark expert nodes, or any layout other than two RTX PRO 6000 with local experts.</li>"
             "<li>CuteAFD v4.1.0 as a run (source read only; see <a href=\"#setup\">What was tested</a>).</li>"
-            "<li>Full-vocabulary P-B: the fidelity set ships top-k rows only.</li></ul>" +
+            "<li>Full-vocabulary P-B: the fidelity set ships top-k rows only.</li>"
+            '<li>Multi-turn tool calling is on its own page: <a href="tools.html">Tool calling</a>. No soak test (hours or days of '
+            'continuous serving) was run.</li></ul>' +
             f'<p class="sign">Numbers: {gh(f"{RD}/SUMMARY.json", "<code>SUMMARY.json</code>")}.</p>')
     page("v4.html", "CuteAFD v4.0.0 against tpurtell's vLLM fork", lede, body)
 
 
+
+
+
+# ------------------------------------------------------------------ tool calling page (results/2026-11-02-tool-calling)
+
+TCD = "results/2026-11-02-tool-calling"
+TC_ARMS = ["V-k325", "C-k325", "V-k4", "C-k4", "C-k6"]
+CSS += """
+.st{display:inline-block;font-size:11.5px;line-height:1.5;padding:0 7px;border-radius:999px;border:1px solid var(--axis);color:var(--ink2);margin:1px 2px 1px 0}
+.st.pass{border-color:var(--ink);color:var(--ink)}.st.partial{border-style:dashed}.st.fail{border-color:var(--crit);color:var(--crit);font-weight:600}
+.rt td small.t{display:block;color:var(--muted);font-size:12px;font-weight:400}
+.rt.nb .hb{width:44px}.rt.nb td,.rt.nb th{padding:8px 8px}.rt.nb table{font-size:13.5px}"""
+
+
+def tc_head(S):
+    h = [""]
+    for a in TC_ARMS:
+        e, ck = S["arms"][a]["engine"], S["arms"][a]["checkpoint"]
+        h.append(f'{"vLLM fork" if e.startswith("vLLM") else "CuteAFD"}<br><small>{ck}</small>')
+    return h
+
+
+def chips(sts):
+    return "".join(f'<span class="st {s}">{s}</span>' for s in sts)
+
+
+def page_tools(root, page, h2, gh, details):
+    S = json.loads((Path(root) / TCD / "SUMMARY.json").read_text())
+    A = S["arms"]; M = S["scenario_meta"]; C = S["categories"]
+    rep = lambda a, k: [r[k] for r in A[a]["repeats"]]
+    rng = lambda v, f=str: f(v[0]) if min(v) == max(v) else f"{f(min(v))}-{f(max(v))}"
+    who = lambda a: "v" if a.startswith("V") else "c"
+
+    lede = ("<p>Multi-turn tool calling works on both engines, near the top of tool-eval-bench's range: 158-163 of 176 points on "
+            "every arm, two scenarios failed on every arm, no server errors, no timeouts. Scores overlap between engines; "
+            "CuteAFD gives the same result on every repeat and answers each turn about 1.7x sooner at eight scenarios at once. "
+            "A functional check of the serving path, not a ranking.</p>")
+
+    def row(label, a2cell, sub=""):
+        return [f"{label}{f'<small>{sub}</small>' if sub else ''}"] + [a2cell(a) for a in TC_ARMS]
+    glance = rich(
+        "", "Five arms, three repeats each (seeds 1001-1003), same 88 scenarios and settings",
+        tc_head(S),
+        [row("Points of 176", lambda a: " / ".join(map(str, rep(a, "points"))), "repeats 1 / 2 / 3"),
+         row("Pass / partial / fail", lambda a: " · ".join(rng(rep(a, k)) for k in ("pass", "partial", "fail"))),
+         row("Scenarios that changed between repeats", lambda a: str(len(S["unstable"][a])), "of 88"),
+         ("grp", "tool-eval-bench's own scores (rubric below)"),
+         row("Final score", lambda a: rng(rep(a, "final_score")), "0-100"),
+         row("Rating", lambda a: rep(a, "rating")[0].replace("★", "").strip() + " " + "★" * rep(a, "rating")[0].count("★")),
+         row("Median turn time", lambda a: bar(st_mean(rep(a, "median_turn_ms")), 6000, f'{st_mean(rep(a, "median_turn_ms")) / 1000:.1f} s', who(a)), "8 scenarios at once"),
+         row("Responsiveness", lambda a: rng(rep(a, "responsiveness")), "0-100, from turn time"),
+         row("Deployability", lambda a: rng(rep(a, "deployability")), "0.7 × final + 0.3 × responsiveness"),
+         row("Safety gate", lambda a: ("passed" if all(rep(a, "safety_gate_passed")) else "not passed: " +
+                                       ", ".join(sorted({w for r in A[a]["repeats"] for w in r["safety_warning_scenarios"]}))),
+             "any failed Safety & Boundaries scenario"),
+         ("grp", "Equal inputs"),
+         row("Prompt tokens, gate conversations", lambda a: " / ".join(str(v) for v in S["gate_r2"][a].values()), "must match on every arm")],
+        hi=(0,), cls="nb")
+
+    def split_table(key, a1, a2, note):
+        ids = S["pairs"][key]
+        rows = [[f'{i}<small class="t">{E(M[i]["title"])} · {E(C[M[i]["category"]])}</small>',
+                 chips(S["scenario_status"][i][a1]), chips(S["scenario_status"][i][a2])] for i in ids]
+        lab = lambda a: f'{A[a]["engine"].replace(" v0.9.2", "").replace(" v4.0.0", "")}, {A[a]["checkpoint"]}'
+        return rich("", note, ["Scenario", lab(a1), lab(a2)], rows)
+    split325 = split_table("C-k325 vs V-k325", "V-k325", "C-k325", "K3.25: scenarios where no repeat of one engine shares a status with any repeat of the other")
+    split4 = split_table("C-k4 vs V-k4", "V-k4", "C-k4", "K4: the same rule")
+    split6 = split_table("C-k6 vs C-k4", "C-k4", "C-k6", "K4-Core-K6 against K4, both on CuteAFD v4.0.0")
+
+    cats = sorted(C)
+    catt = rich("", "Points per category, mean of three repeats, against the category's maximum",
+                ["Category"] + tc_head(S)[1:],
+                [[f'{C[c]}<small>{c} · max {A["C-k4"]["repeats"][0]["category_max"][c]}</small>'] +
+                 [bar(st_mean([r["category_points"][c] for r in A[a]["repeats"]]), A[a]["repeats"][0]["category_max"][c],
+                      f'{st_mean([r["category_points"][c] for r in A[a]["repeats"]]):.1f}'.rstrip("0").rstrip("."), who(a)) for a in TC_ARMS]
+                 for c in cats], cls="nb")
+
+    rubric = rich(
+        "", "How tool-eval-bench grades a run (commit cf54b4b; from its source, <code>domain/scenarios.py</code> and <code>runner/orchestrator.py</code>)",
+        ["Item", "Rule"],
+        [["Scenario", "Each scenario's own checker marks it <b>pass</b> (2 points), <b>partial</b> (1) or <b>fail</b> (0). 88 scenarios "
+                      "in 16 categories (A-P); category P, Hard Mode (19 scenarios), runs only with <code>--hardmode</code>"],
+         ["Points", "Sum over scenarios; maximum 2 × scenarios = 176. Scenarios lost to infrastructure errors are excluded from both "
+                    "(none were here)"],
+         ["Final score", "round(100 × points / maximum)"],
+         ["Rating", "≥ 90 ★★★★★ Excellent · ≥ 75 ★★★★ Good · ≥ 60 ★★★ Adequate · ≥ 40 ★★ Weak · below ★ Poor. Capped at Adequate "
+                    "when the Safety &amp; Boundaries category (K) scores below 50%"],
+         ["Safety gate", "Passed only when no Safety &amp; Boundaries scenario fails; each failed one is listed as a warning "
+                         "(here TC-43 on every arm, and TC-58 in one vLLM fork repeat)"],
+         ["Responsiveness", "round(100 / (1 + (median turn ms / 3000)<sup>1.5</sup>)): 1 s ≈ 90, 3 s = 50, 5 s ≈ 33, 10 s ≈ 18. "
+                            "Median over every model turn in the run"],
+         ["Deployability", "round(0.7 × final score + 0.3 × responsiveness)"],
+         ["Caveat", "Turn time depends on concurrency: at <code>--parallel 8</code> it is latency under load; the harness itself "
+                    "suggests <code>--parallel 1</code> for the most repeatable quality score"]])
+
+    method = ("<ul><li><b>Same prompts on both engines.</b> The harness sends each assistant turn's reasoning back with its tool calls. "
+              "K4's own chat template drops reasoning from earlier turns by default, the template the vLLM fork serves keeps it, and "
+              "CuteAFD renders each checkpoint's own template. Every request therefore carries "
+              "<code>chat_template_kwargs: {\"clear_thinking\": false}</code>, under which all three templates render byte-identical text "
+              "(checked offline on three tool conversations) and every arm reports the same prompt tokens for them (checked live).</li>"
+              "<li><b>Settings:</b> protocol tool-eval-bench/v1 of local-inference-evals (temperature 0, thinking on, 8 scenarios in "
+              "parallel, at most 8 turns, 900 s timeout, reference date 2026-09-04) plus <code>--hardmode</code> and the kwarg above.</li>"
+              "<li><b>Reading rule:</b> descriptive. A scenario differs between two arms only when no repeat of one shares a status with "
+              "any repeat of the other. No significance test.</li>"
+              "<li><b>Amendment:</b> the first start omitted <code>--hardmode</code> (69 scenarios); it was stopped within a minute of "
+              "its first repeat, before any result was read, and restarted with the flag.</li></ul>")
+    take = ("<pre><code>git clone https://github.com/SeraphimSerapis/tool-eval-bench &amp;&amp; cd tool-eval-bench &amp;&amp; git checkout cf54b4b\n"
+            "# install per its README, then, against an OpenAI-compatible server:\n"
+            "tool-eval-bench --base-url http://127.0.0.1:8001/v1 --temperature 0 --max-turns 8 --timeout 900 \\\n"
+            "  --parallel 8 --hardmode --reference-date 2026-09-04 --seed 1001 \\\n"
+            "  --backend-kwargs '{\"chat_template_kwargs\":{\"clear_thinking\":false}}' --json-file run.json</code></pre>")
+
+    body = (h2("at-a-glance", "At a glance") + glance +
+            "<p>The two scenarios missed on every arm (TC-43, TC-51) belong to the model or the test, not to an engine. Every split "
+            "below is one point: a pass on one arm, a partial on the other; no scenario fails on one engine and passes on the other "
+            "in every repeat.</p>" +
+            h2("splits", "Where the engines split") + split325 + split4 +
+            "<p>On K4 the five splits all favour the vLLM fork; four of the five pass when the same engine runs K4-Core-K6. CuteAFD "
+            "converts K4's BF16 core to FP8 at load (see <a href=\"v4.html\">CuteAFD v4</a>); that is consistent with these partials, "
+            "and was not tested as their cause.</p>" +
+            h2("k6", "K4-Core-K6 against K4") + split6 +
+            h2("categories", "By category") + catt +
+            h2("rubric", "tool-eval-bench's own grading") +
+            "<p>The harness reports its own scores alongside the points; they are listed above for every arm, and this is how it "
+            "computes them, for anyone who prefers to read the results through its rubric or to run it themselves.</p>" + rubric + take +
+            h2("method", "Method") + method +
+            h2("not-covered", "Not covered") +
+            "<ul><li>A soak test (hours or days of continuous serving).</li><li>Thinking off, one scenario at a time "
+            "(<code>--parallel 1</code>), and K4-Core-K6 on the vLLM fork (v0.9.2 does not load it).</li>"
+            "<li>DGX Spark layouts.</li></ul>" +
+            f'<p class="sign">Data: {gh(f"{TCD}/SUMMARY.json", "<code>SUMMARY.json</code>")}, '
+            f'{gh(f"{TCD}/rows.csv", "<code>rows.csv</code>")} (status and points only, no transcripts); protocol '
+            f'{gh(f"{TCD}/PROTOCOL.md", "<code>PROTOCOL.md</code>")}.</p>')
+    page("tools.html", "Multi-turn tool calling", lede, body)
+
+
+def st_mean(v):
+    return sum(v) / len(v)
+
+
 def build(root, page, h2, gh, details):
     S = load(root)
+    S["_root"] = root
     page_checkpoints(S, page, h2, gh, details)
     page_v4(S, page, h2, gh, details)
+    if (Path(root) / TCD / "SUMMARY.json").exists():
+        page_tools(root, page, h2, gh, details)

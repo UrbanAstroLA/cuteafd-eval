@@ -55,7 +55,8 @@ Tables built from the published receipts; text and intervals per run in each run
 [`SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/SUMMARY.md) and the separate review
 [`AUDIT-2026-10-27.md`](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)) and
 [`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4), both CuteAFD v3.0.1, and
-[`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints). One machine, one model family, one
+[`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints) and
+[`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket
@@ -162,6 +163,12 @@ cache overlay); what differs between the two starts was not broken down. CuteAFD
 - **Control-token strings in user text** (measured in Block T and the K4 smoke checks). The 128K code prompts contain
   literal `<think>` and `</think>` strings; the vLLM stack parses them as control tokens, CuteAFD keeps them as text, so
   those prompts are 24 tokens longer on CuteAFD.
+- **Multi-turn reasoning history** (rendered offline with each template; prompt tokens measured on both engines,
+  [`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/)). Clients that send an assistant turn's
+  reasoning back in the history (tool-calling agents do) get different prompts by default: K4's chat template drops
+  reasoning from earlier user turns, the template the vLLM fork serves keeps it, and CuteAFD renders each checkpoint's
+  own template. With `chat_template_kwargs: {"clear_thinking": false}` all three templates (K4, the vLLM fork's,
+  K4-Core-K6) render byte-identical text, and both engines reported the same prompt tokens on every checkpoint.
 
 ### Launcher defaults that matter
 
