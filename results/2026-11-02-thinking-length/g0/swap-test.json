@@ -1,0 +1,69 @@
+{
+ "owners": {
+  "model.language_model.layers.0.self_attn.q_proj": [
+   "kda_q",
+   "swapped",
+   true
+  ],
+  "model.language_model.layers.0.self_attn.k_proj": [
+   "kda_k",
+   "rebuilt",
+   true
+  ],
+  "model.language_model.layers.0.self_attn.v_proj": [
+   "kda_v",
+   "rebuilt",
+   true
+  ],
+  "model.language_model.layers.0.self_attn.o_proj": [
+   "kda_o",
+   "swapped",
+   true
+  ],
+  "model.language_model.layers.3.self_attn.o_proj": [
+   "mla_o",
+   "rebuilt",
+   true
+  ],
+  "model.language_model.layers.3.self_attn.q_a_proj": [
+   "mla_q_a",
+   "swapped",
+   true
+  ],
+  "model.language_model.layers.3.self_attn.kv_a_proj_with_mqa": [
+   "mla_kv_a",
+   "rebuilt",
+   true
+  ],
+  "model.language_model.layers.3.self_attn.q_b_proj": [
+   "mla_q_b",
+   "swapped",
+   true
+  ],
+  "model.language_model.layers.0.mlp.gate_proj": [
+   "dense_gate_up",
+   "rebuilt",
+   true
+  ],
+  "model.language_model.layers.0.mlp.down_proj": [
+   "dense_down",
+   "swapped",
+   true
+  ],
+  "model.language_model.layers.5.mlp.shared_experts.up_proj": [
+   "shared_gate_up",
+   "swapped",
+   true
+  ],
+  "model.language_model.layers.5.mlp.shared_experts.down_proj": [
+   "shared_down",
+   "rebuilt",
+   true
+  ]
+ },
+ "error_cases": {
+  "bogus": "raised",
+  "no file": "raised"
+ },
+ "pass": true
+}

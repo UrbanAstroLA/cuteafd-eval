@@ -13,7 +13,9 @@ The material below keeps its own licence.
   settings listed in `repro/k4/README.md`.
 - **tpurtell/glm-5.3-flash-ext3-2x-rtx** (tpurtell's vLLM-based engine), https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx,
   built on vLLM (Apache-2.0). Evaluated at v0.9.2. The capture plugin in `repro/stage0/capture-vllm/` hooks a method of
-  that image's vLLM; it contains no vLLM code.
+  that image's vLLM; it contains no vLLM code. `repro/vllm-k6-loader/` is a local loader modification of that image's
+  vLLM (not a tpurtell release): its diff edits three vLLM files (Apache-2.0), and its new module ports the trellis
+  decoder of b12x's numpy reference (`tests/gemm/test_trellis_linear.py` in the image, b12x Apache-2.0). Apache-2.0.
 
 ## Reference sets and checkpoints (referenced, not redistributed)
 

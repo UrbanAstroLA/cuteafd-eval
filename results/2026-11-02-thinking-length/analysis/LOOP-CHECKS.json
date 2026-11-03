@@ -1,0 +1,155 @@
+{
+ "about": "post hoc, exploratory (LOOP-CHECKS.md); computed after G4 was read",
+ "a_cap_hits": {
+  "K3.25": {
+   "configs": [
+    "k3.25-v0.7.0-dflash5",
+    "k3.25-v0.8.0-dflash3",
+    "k3.25-v0.8.0-dflash5-noshare",
+    "k3.25-v0.7.0-kpoolfix-dflash5",
+    "k3.25-v0.8.0-kpoolfix-dflash5",
+    "k3.25-v0.9.1-dflash3"
+   ],
+   "configs_without_token_counts": [
+    "k3.25-v0.7.0-dflash5",
+    "k3.25-v0.8.0-dflash3",
+    "k3.25-v0.8.0-dflash5-noshare",
+    "k3.25-v0.7.0-kpoolfix-dflash5",
+    "k3.25-v0.8.0-kpoolfix-dflash5"
+   ],
+   "knife_requests": 35,
+   "knife_cap_hits": 4,
+   "all_requests": 990,
+   "all_cap_hits": 19,
+   "knife_with_proxy": [
+    6,
+    70
+   ],
+   "all_with_proxy": [
+    34,
+    1980
+   ]
+  },
+  "K4": {
+   "configs": [
+    "k4-v0.8.0-dflash3",
+    "k4-v0.9.0-dflash3",
+    "k4-v0.9.1-dflash3",
+    "k4-v0.9.1-dflash3-c4"
+   ],
+   "configs_without_token_counts": [
+    "k4-v0.8.0-dflash3",
+    "k4-v0.9.0-dflash3"
+   ],
+   "knife_requests": 28,
+   "knife_cap_hits": 3,
+   "all_requests": 792,
+   "all_cap_hits": 23,
+   "knife_with_proxy": [
+    4,
+    42
+   ],
+   "all_with_proxy": [
+    35,
+    1188
+   ]
+  },
+  "G1b": {
+   "knife_requests": 42,
+   "knife_cap_hits": 4,
+   "by_doc": {
+    "12": 0,
+    "13": 2,
+    "74": 0,
+    "81": 2,
+    "86": 0,
+    "120": 0,
+    "186": 0
+   }
+  },
+  "G4 6-bit core": {
+   "knife_requests": 12,
+   "knife_cap_hits": 1,
+   "by_doc": {
+    "12": 1
+   }
+  },
+  "G4 BF16 core": {
+   "knife_requests": 12,
+   "knife_cap_hits": 0,
+   "by_doc": {
+    "12": 0
+   }
+  },
+  "proxy_check": {
+   "cap_and_empty": 42,
+   "cap_not_empty": 0,
+   "empty_not_cap": 1
+  },
+  "fisher_k4_vs_k4core_k6_g1b": 1.0,
+  "question_12": {
+   "6-bit core": [
+    1,
+    18
+   ],
+   "BF16 core": [
+    0,
+    12
+   ],
+   "fisher": 1.0
+  }
+ },
+ "b_detector": {
+  "rule": "last 30000 characters every 10000 from 30000; stop after 3 consecutive zlib ratios below 0.1",
+  "finished_replies": 61,
+  "finished_stopped": 0,
+  "finished_lowest_check": 0.2214,
+  "not_finished": [
+   {
+    "source": "G1b",
+    "doc": 13,
+    "rep": 5,
+    "class": "loop",
+    "reasoning_chars": 1406326,
+    "detector_fires_at_char": 1190000,
+    "detector_lowest_check": 0.03
+   },
+   {
+    "source": "G1b",
+    "doc": 13,
+    "rep": 6,
+    "class": "loop",
+    "reasoning_chars": 1371614,
+    "detector_fires_at_char": null,
+    "detector_lowest_check": 0.1009
+   },
+   {
+    "source": "G1b",
+    "doc": 81,
+    "rep": 5,
+    "class": "exhaust",
+    "reasoning_chars": 864803,
+    "detector_fires_at_char": null,
+    "detector_lowest_check": 0.1414
+   },
+   {
+    "source": "G1b",
+    "doc": 81,
+    "rep": 6,
+    "class": "loop",
+    "reasoning_chars": 802274,
+    "detector_fires_at_char": 730000,
+    "detector_lowest_check": 0.0025
+   },
+   {
+    "source": "G4 6-bit core",
+    "doc": 12,
+    "rep": 3,
+    "class": "loop",
+    "reasoning_chars": 1485415,
+    "detector_fires_at_char": 110000,
+    "detector_lowest_check": 0.0093
+   }
+  ]
+ }
+}

@@ -56,7 +56,8 @@ Tables built from the published receipts; text and intervals per run in each run
 [`AUDIT-2026-10-27.md`](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)) and
 [`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4), both CuteAFD v3.0.1, and
 [`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints) and
-[`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling). One machine, one model family, one
+[`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling), and the investigation
+[`results/2026-11-02-thinking-length`](results/2026-11-02-thinking-length/) (thinking length and the 6-bit core). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket
@@ -358,7 +359,8 @@ need numpy and scipy.
 ```
 protocol/                     the frozen protocol, amendments, follow-ups, dataset provenance; HASHES.json ties copies to the frozen hashes
 results/<date>-<run>/         RUN.json (kind, arms, slot status), README.md, MANIFEST.json, per-block summaries
-repro/                        REPRODUCE.md; stage0/ (drivers, scorers, capture plugin, prompt build); cuteafd/ (configs, patch, plan receipts); k4/ (K4 launch files)
+repro/                        REPRODUCE.md; stage0/ (drivers, scorers, capture plugin, prompt build); cuteafd/ (configs, patch, plan receipts); k4/ (K4 launch files);
+                              vllm-k6-loader/ (local loader modification of the vLLM fork, not a tpurtell release)
 iterations/                   how a new iteration is frozen, run, exported and verified; TEMPLATE/
 tools/                        verify.py, build_readme.py, build_site.py (its charts: site_charts.py), README templates
 docs/                         the results site (GitHub Pages, served from main /docs), built by tools/build_site.py

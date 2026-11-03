@@ -499,6 +499,165 @@ def st_mean(v):
     return sum(v) / len(v)
 
 
+# ------------------------------------------------------------------ thinking length (investigation, 2026-11-02/03)
+
+TLD = "results/2026-11-02-thinking-length"
+TL_ORDER = ["all", "kda_qkv", "kda_o", "mla_a", "mla_q_b", "mla_o", "dense", "shared_gu", "shared_down", "lm_head"]
+
+
+def page_thinking(root, page, h2, gh, details):
+    S = json.loads((Path(root) / TLD / "SUMMARY.json").read_text())
+    G2 = S["g2"]; A = G2["per_arm"]; C = G2["contrasts_vs_k6"]; PH = S["post_hoc"]; G4 = S["g4"]; L = S["loop_checks"]
+    GR = S["groups"]; tr = G2["traces"]
+    noise = C["k6r2"]; n_lp = noise["lp_close"]
+    k = lambda x: f"{x / 1000:.1f}K"
+    pr = G4["primary"]; a4, k4 = G4["per_arm"]["all"], G4["per_arm"]["k6"]
+    la = L["a_cap_hits"]; lb = L["b_detector"]
+    pct = lambda h, n: f"{100 * h / n:.1f}%"
+    c_all = PH["loop_check_c"]["all_minus_k6"]; c_r2 = PH["loop_check_c"]["k6r2_minus_k6"]
+    pa_all = G2["pa"]["all"]["kl64_delta_vs_base"]; pa_r2 = G2["pa"]["k6r2"]["kl64_delta_vs_base"]
+
+    lede = ("<p>On one engine and these questions, storing the core of K4-Core-K6 in 6 bits rather than BF16 shows no measurable "
+            "effect on when the model stops thinking. On fixed reasoning traces, the probability of closing the reasoning moves "
+            f"less with the BF16 core ({sg(C['all']['lp_close']['delta'], 3)}) than between two launches of the same 6-bit model "
+            f"({sg(n_lp['delta'], 3)}). Finished replies to one long-thinking question are the same length within about 1.3x. One of 24 "
+            "free-generation replies looped to the 327,680-token cap, on the 6-bit core. Whether the core changes how often replies "
+            "loop is open. The routed experts, which hold most of the parameters, were not part of this test.</p>")
+
+    glance = rich(
+        "", "6-bit core (as rebuilt at load) against the same checkpoint with its 316 core tensors loaded from BF16; same engine, loader and kernels",
+        ["Measure", "BF16 core − 6-bit core", "Second launch of the 6-bit core − first", "Reading"],
+        [["log p(<code>&lt;/think&gt;</code>) where the trace closed its reasoning<small>77 finished traces, mean " + f"{A['k6']['lp_close_mean']:.3f}" + "</small>",
+          diverge(C["all"]["lp_close"]["delta"], 0.03, False, label=sg(C["all"]["lp_close"]["delta"], 3), sub=ci(*C["all"]["lp_close"]["ci95"], 3)),
+          diverge(n_lp["delta"], 0.03, False, label=sg(n_lp["delta"], 3), sub=ci(*n_lp["ci95"], 3)), badge(False, no="within launch variation")],
+         ["<code>&lt;/think&gt;</code> the top token at the close<small>share of 77</small>",
+          f"{A['all']['close_top1_share']:.3f} vs {A['k6']['close_top1_share']:.3f}", f"{A['k6r2']['close_top1_share']:.3f}", "same 7 traces miss on every arm"],
+         ["Top-64 KL between the two arms, every trace row<small>nats per token</small>",
+          f"{A['k6']['kl64_vs_ref_all_rows']:.4f}", f"{PH['kl64_k6_vs_k6r2']['all_rows']:.4f}", "more than half is launch variation"],
+         ["Top-64 KL to the BF16 teacher (P-A, 25 short windows)",
+          diverge(pa_all[0], 0.002, False, sub=ci(*pa_all[1])), diverge(pa_r2[0], 0.002, False, label=f"{pa_r2[0]:+.7f}".replace("-", MINUS)), badge(False, no="not resolved")],
+         ("grp", "Free generation, GPQA question 12, 12 samples per arm, same seeds"),
+         ["Completion tokens, median<small>geometric-mean ratio, BF16 / 6-bit</small>",
+          f"{k(a4['median_tokens'])} vs {k(k4['median_tokens'])}<br><span class=\"ci\">ratio {pr['ratio']:.2f} [{pr['ratio_ci95'][0]:.2f}, {pr['ratio_ci95'][1]:.2f}]</span>", "—",
+          "not yet significant at this sample size (inconclusive under the frozen rule)"],
+         ["Finished replies only (post hoc)", "ratio 0.97 [0.78, 1.21]", "—", "same length within about 1.3x"],
+         ["Replies that looped to the cap", f"{a4['classes'].get('loop', 0)} vs {k4['classes'].get('loop', 0)} of 12", "—", "one event"]],
+        hi=(0,), cls="nb")
+
+    rows = []
+    for arm in TL_ORDER:
+        c = C[arm]["lp_close"]; g = GR[arm]
+        rows.append([f"{'All 316 core tensors' if arm == 'all' else E(g['what'])}<small>{g['tensors']} tensor{'s' if g['tensors'] != 1 else ''}"
+                     f"{' · the reference gap' if arm == 'all' else ''}</small>",
+                     diverge(c["delta"], 0.03, c["ci95"][0] > 0 or c["ci95"][1] < 0, label=sg(c["delta"], 3), sub=ci(*c["ci95"], 3)),
+                     "—" if arm == "all" else f"{c['closure']:.1f}",
+                     badge(C[arm]["lp_close"].get("moves_amendment_1", False), yes="meets the rule", no="—") if arm != "all" else "—",
+                     sg(C[arm]["hazard"]["delta"] * 1e5, 2), sg(C[arm]["max_p_think"]["delta"] * 1e6, 1)])
+    rows.append([f"Second launch, no swap<small>launch-to-launch variation</small>",
+                 diverge(n_lp["delta"], 0.03, False, label=sg(n_lp["delta"], 3), sub=ci(*n_lp["ci95"], 3)), "—", "—",
+                 sg(noise["hazard"]["delta"] * 1e5, 2), sg(noise["max_p_think"]["delta"] * 1e6, 1)])
+    g2t = rich("", "Each group loaded from BF16 alone, everything else 6-bit; change against the 6-bit core, paired over traces, 95% bootstrap interval. "
+               "A bar is solid when its interval excludes 0",
+               ["Swapped to BF16", "log p(&lt;/think&gt;) at the close", "Share of the reference gap", "Frozen rule", "Hazard, ×10⁻⁵", "Max p on unfinished, ×10⁻⁶"],
+               rows, hi=(0,),
+               foot="Frozen rule (with Amendment 1): a group moves a measure when it closes at least half the gap to the all-BF16 core, its interval "
+                    "excludes 0 and its change exceeds the second launch's. Hazard: mean p(&lt;/think&gt;) over the 512 tokens before the close. "
+                    "Max p: largest p(&lt;/think&gt;) along the 16 traces that did not finish.")
+
+    ph = PH["contrasts"]
+    ctx = ("<ul><li><b>Two groups meet the frozen rule</b> on the close measure: the MLA output and MLA q_b projections "
+           f"({sg(C['mla_o']['lp_close']['delta'], 3)} and {sg(C['mla_q_b']['lp_close']['delta'], 3)}). Read with them: the reference gap they are "
+           f"measured against ({sg(C['all']['lp_close']['delta'], 3)}) is itself smaller than launch variation and its interval includes 0, so their "
+           "shares of it (3.5 and 2.9) divide by a gap indistinguishable from zero; 9 groups × 3 measures make 27 tests, of which about 1.4 "
+           "would pass at 95% with no effect; no group meets the rule on the other two measures.</li>"
+           f"<li><b>Post hoc, against other bases:</b> against the second 6-bit launch both intervals include 0 (MLA output "
+           f"{sg(ph['k6r2']['mla_o']['delta'], 3)} {ci(*ph['k6r2']['mla_o']['ci95'], 3)}, MLA q_b {sg(ph['k6r2']['mla_q_b']['delta'], 3)} "
+           f"{ci(*ph['k6r2']['mla_q_b']['ci95'], 3)}); against the mean of the two launches both exclude 0 "
+           f"({sg(ph['pooled']['mla_o']['delta'], 3)}, {sg(ph['pooled']['mla_q_b']['delta'], 3)}).</li>"
+           "<li><b>Size:</b> +0.014 in log p is about a 1.4% relative change in p(&lt;/think&gt;) at the close (mean p ≈ 0.70, median 0.94).</li>"
+           "<li><b>The two launches differ</b> because the vLLM fork's multi-chunk prefill is not run-to-run deterministic: more than half of the "
+           f"BF16-core distance on long traces ({A['k6']['kl64_vs_ref_all_rows']:.4f}) is the size of the distance between launches "
+           f"({PH['kl64_k6_vs_k6r2']['all_rows']:.4f}). On the short single-chunk teacher windows the two launches differ by "
+           f"{sg(pa_r2[0], 7)} in KL {ci(*pa_r2[1], 7)}.</li></ul>")
+
+    def toks(arm):
+        return " ".join(f"<b>{k(t)}</b>" if t >= 327680 else k(t) for t in G4["per_arm"][arm]["tokens_sorted"])
+    g4t = rich("", "GPQA diamond question 12 (a steady long thinker: 25-39K tokens in 6 earlier samples), temperature 1.0, top-p 0.95, thinking on, "
+               "cap 327,680 tokens, seeds 51201-51212 on both arms",
+               ["Arm", "Finished / looped", "Completion tokens, sorted", "Median", "sd of log tokens", "Correct"],
+               [["6-bit core", f"{k4['classes'].get('ok', 0)} / {k4['classes'].get('loop', 0)}", toks("k6"), k(k4["median_tokens"]), f"{k4['sd_log_tokens']:.2f}", f"{k4['correct']} of 12"],
+                ["BF16 core", f"{a4['classes'].get('ok', 0)} / {a4['classes'].get('loop', 0)}", toks("all"), k(a4["median_tokens"]), f"{a4['sd_log_tokens']:.2f}", f"{a4['correct']} of 12"]],
+               foot=f"Frozen reading: geometric-mean ratio BF16 / 6-bit {pr['ratio']:.2f}, 95% interval [{pr['ratio_ci95'][0]:.2f}, {pr['ratio_ci95'][1]:.2f}]: the interval "
+                    "includes 1 and is wider than [0.8, 1.25] (inconclusive). Its width comes from the one loop. Post hoc, finished replies only: "
+                    "0.97 [0.78, 1.21]; sd of log tokens 0.28 and 0.31 against 0.19 earlier, so this design resolves about a 1.3x change. "
+                    "The loop (seed 51203) repeated one sentence to the cap, 1.49M characters, no answer.", cls="nb")
+
+    K3, K4c, G1 = la["K3.25"], la["K4"], la["G1b"]
+    lct = rich("", "Replies that reached the 327,680-token cap on the seven most length-variable GPQA questions (186, 12, 81, 120, 86, 74, 13)",
+               ["Checkpoint", "Engine", "Requests", "At the cap", "Whole benchmark"],
+               [["K3.25", "vLLM fork 0.7.0-0.9.1, several configurations", str(K3["knife_requests"]), f"{K3['knife_cap_hits']} ({pct(K3['knife_cap_hits'], K3['knife_requests'])})",
+                 f"{K3['all_cap_hits']} of {K3['all_requests']:,} ({pct(K3['all_cap_hits'], K3['all_requests'])})"],
+                ["K4", "vLLM fork 0.8.0-0.9.1", str(K4c["knife_requests"]), f"{K4c['knife_cap_hits']} ({pct(K4c['knife_cap_hits'], K4c['knife_requests'])})",
+                 f"{K4c['all_cap_hits']} of {K4c['all_requests']:,} ({pct(K4c['all_cap_hits'], K4c['all_requests'])})"],
+                ["K4-Core-K6, 6-bit core", "vLLM fork 0.9.2 + local loader", str(G1["knife_requests"]), f"{G1['knife_cap_hits']} ({pct(G1['knife_cap_hits'], G1['knife_requests'])})", "—"]],
+               foot=f"K3.25 and K4: every GPQA record of <a href=\"https://github.com/UrbanAstroLA/local-inference-evals\">local-inference-evals</a> that logged "
+                    f"token counts. Counting the older records too, with an empty answer standing in for a cap hit: {K3['knife_with_proxy'][0]} of "
+                    f"{K3['knife_with_proxy'][1]} and {K4c['knife_with_proxy'][0]} of {K4c['knife_with_proxy'][1]}. K4 against K4-Core-K6: Fisher p = "
+                    f"{la['fisher_k4_vs_k4core_k6_g1b']:.1f}. Engine versions, concurrency and loader differ between rows. Questions 81 and 13 carry "
+                    f"most cap hits (K4-Core-K6: {G1['by_doc']['81'] + G1['by_doc']['13']} of 12).")
+    loops = [x for x in lb["not_finished"] if x["class"] == "loop"]
+    det = ("<ul><li><b>How late the loops start.</b> The looping investigation's early-stop detector (the last 30,000 characters checked every "
+           "10,000; three ratios below 0.10 in a row) stops no finished reply here "
+           f"({lb['finished_replies']} replies, lowest check {lb['finished_lowest_check']:.3f}). On the {len(loops)} loops it would fire at "
+           + ", ".join(f"{x['detector_fires_at_char'] / 1e3:,.0f}K of {x['reasoning_chars'] / 1e3:,.0f}K characters" if x["detector_fires_at_char"]
+                       else f"never ({x['reasoning_chars'] / 1e3:,.0f}K)" for x in loops) +
+           ": the three loops on questions 81 and 13 began late in their replies, the question-12 loop early.</li>"
+           f"<li><b>On the 16 unfinished traces</b> (cut at 32K tokens, mostly before any loop), the BF16 core makes the recorded continuation "
+           f"slightly less likely per token ({sg(c_all['delta'])} {ci(*c_all['ci95'])}), the same size as between two launches of the 6-bit core "
+           f"({sg(c_r2['delta'])} {ci(*c_r2['ci95'])}).</li></ul>")
+
+    design = ("<ul><li><b>Arms.</b> One checkpoint, <code>wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6</code> (K4 routed experts, 6-bit EXL3 core "
+              "and head). The 6-bit arm rebuilds its 316 core tensors to BF16 at load (exact arithmetic, one rounding). Each swap arm loads the "
+              "named group's original tensors from <code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>f9fed3bb</code>, the checkpoint's own source, "
+              "instead; every launch logged the expected number of swapped tensors. Same engine, image, loader and kernels on every arm.</li>"
+              "<li><b>Engine.</b> tpurtell's vLLM fork v0.9.2 release image with a <b>local loader modification</b> (not a tpurtell release; the "
+              "release does not load this checkpoint): " + gh("repro/vllm-k6-loader", "<code>repro/vllm-k6-loader</code>") + ".</li>"
+              f"<li><b>G2, fixed traces.</b> {tr['finished']} finished and {tr['not_finished']} unfinished reasoning traces, each teacher-forced "
+              f"through every arm: {tr['by_set']['tr']['finished'] + tr['by_set']['tr']['not_finished']} from earlier hard-question probes "
+              f"(questions {', '.join(map(str, tr['by_set']['tr']['docs']))}; K3.25 and K4 on earlier fork versions, so off-policy here) and "
+              f"{tr['by_set']['on']['finished'] + tr['by_set']['on']['not_finished']} generated by the 6-bit arm itself on the seven "
+              "length-variable questions. Top-64 log-probabilities at sampled rows and at the last 512 rows before each close, plus the "
+              "exact log-probability of <code>&lt;/think&gt;</code> at every stored row. Plus the P-A teacher panel (25 × 2,048 tokens).</li>"
+              "<li><b>Protocols.</b> G2's reading rule was frozen before the first capture; a second launch of the 6-bit arm was added (Amendment 1) "
+              "before any capture was read, because the fork's long-prompt prefill varies between launches. G4 was frozen after G2 was read and "
+              "before its first sample. The loop checks were chosen after G4 was read and are exploratory.</li></ul>")
+    caveat = ("<ul><li>One engine. The loader rounds the 6-bit core once from exact arithmetic; CuteAFD runs it natively and the producer's own "
+              "rebuild rounds at FP16 between stages (15.8% of elements differ, 2.4% by more than one BF16 unit). Transfer to CuteAFD is "
+              "not measured.</li>"
+              "<li>KL here is a top-64 measure with the arm's 64th value as the floor for tokens outside its top 64 (a lower bound), not "
+              "full vocabulary. GLM tokenizer throughout; not comparable with other model families.</li>"
+              "<li>G4 is one question; the knife-edge questions where replies tip between short and capped were dropped from G4 because their "
+              "spread would need hundreds of samples per arm.</li></ul>")
+    openq = ("<ul><li><b>Does the 6-bit core change how often replies loop?</b> Measured: 1 loop in 18 samples of question 12 on the 6-bit core "
+             "(6 earlier, 12 in G4), 0 in 12 on the BF16 core (Fisher p = 1.0); on the seven questions, K4-Core-K6 reached the cap about as "
+             "often as K4 and K3.25 in earlier records (table above). The per-token stop measures do not see a difference.</li>"
+             "<li><b>Do the routed experts' quantization shape thinking length?</b> Unmeasured here: only the core was swapped.</li>"
+             "<li><b>Do these results hold on CuteAFD?</b> Unmeasured: its native 6-bit arithmetic differs from the loader's rounding.</li></ul>")
+    data = (f'<p class="sign">Data: {gh(f"{TLD}/SUMMARY.json", "<code>SUMMARY.json</code>")} (every number on this page), '
+            f'{gh(f"{TLD}/analysis", "<code>analysis/</code>")} (per-trace scores, per-sample table, scripts), the results as read in '
+            f'{gh(f"{TLD}/G2-RESULT.md", "<code>G2-RESULT.md</code>")}, {gh(f"{TLD}/G4-RESULT.md", "<code>G4-RESULT.md</code>")} and '
+            f'{gh(f"{TLD}/LOOP-CHECKS.md", "<code>LOOP-CHECKS.md</code>")}; protocols in {gh(f"{TLD}/protocol", "<code>protocol/</code>")}. '
+            "Reasoning texts, question text and capture dumps are not published.</p>")
+    body = (h2("at-a-glance", "At a glance") + glance +
+            h2("stop-decision", "The stop decision on fixed traces (G2)") + g2t + ctx +
+            h2("free-generation", "Free generation (G4)") + g4t +
+            h2("loops", "Loops: what the records show") + lct + det +
+            h2("design", "What was tested") + design +
+            h2("open", "Open questions") + openq +
+            h2("caveats", "Caveats") + caveat + data)
+    page("thinking.html", "Investigation: does the 6-bit core make K4-Core-K6 think longer?", lede, body)
+
+
 def build(root, page, h2, gh, details):
     S = load(root)
     S["_root"] = root
@@ -506,3 +665,5 @@ def build(root, page, h2, gh, details):
     page_v4(S, page, h2, gh, details)
     if (Path(root) / TCD / "SUMMARY.json").exists():
         page_tools(root, page, h2, gh, details)
+    if (Path(root) / TLD / "SUMMARY.json").exists():
+        page_thinking(root, page, h2, gh, details)

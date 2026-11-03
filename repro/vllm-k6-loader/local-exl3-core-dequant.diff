@@ -1,0 +1,70 @@
+diff -u -r '--exclude=exl3_core_dequant.py' a/model_executor/layers/quantization/exl3.py b/model_executor/layers/quantization/exl3.py
+--- a/model_executor/layers/quantization/exl3.py	2026-10-24 17:25:06.000000000 -0700
++++ b/model_executor/layers/quantization/exl3.py	2026-10-29 19:49:59.718347188 -0700
+@@ -530,6 +530,8 @@
+             int, tuple[tuple[int, int, int], ...]
+         ] = {}
+         self.standard_fused_moe = False
++        # local-exl3-core-dequant: non-expert EXL3 records rebuilt to BF16 at load (local patch)
++        self.dequant_storage: dict[str, Any] = {}
+ 
+     def get_name(self) -> str:
+         return "exl3"
+@@ -635,6 +637,9 @@
+                 "base_quantization_config", self.base_quantization_config
+             )
+ 
++        # local-exl3-core-dequant: no-op unless LOCAL_EXL3_DEQUANT_NONEXPERT=bf16
++        from .exl3_core_dequant import split_nonexpert_storage
++        split_nonexpert_storage(self)
+         self._configure_standard_fused_moe(hf_config)
+         self._configure_base_quantization(hf_config)
+         self._validate_storage_metadata()
+@@ -1125,7 +1130,9 @@
+             return self._base_quant_config.get_quant_method(layer, prefix)
+         return None
+ 
+-    def _storage_entry(self, prefix: str) -> dict[str, Any] | None:
++    def _storage_entry(
++        self, prefix: str, storage: dict[str, Any] | None = None  # local-exl3-core-dequant
++    ) -> dict[str, Any] | None:
+         candidates = [prefix]
+         mtp_checkpoint_prefix = prefix.replace(".mtp_block.", ".", 1)
+         mtp_checkpoint_prefix = mtp_checkpoint_prefix.replace(
+@@ -1161,7 +1168,7 @@
+                     candidates.append(collapsed.removeprefix("model."))
+ 
+         for candidate in dict.fromkeys(candidates):
+-            entry = self.tensor_storage.get(candidate)
++            entry = (self.tensor_storage if storage is None else storage).get(candidate)
+             if entry is not None:
+                 return entry
+         return None
+diff -u -r '--exclude=exl3_core_dequant.py' a/models/glm5next/nvidia/model.py b/models/glm5next/nvidia/model.py
+--- a/models/glm5next/nvidia/model.py	2026-10-24 17:25:06.000000000 -0700
++++ b/models/glm5next/nvidia/model.py	2026-10-29 19:49:59.718646877 -0700
+@@ -1029,6 +1029,10 @@
+         return logits
+ 
+     def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:
++        from vllm.model_executor.layers.quantization import exl3_core_dequant  # local-exl3-core-dequant
++        if exl3_core_dequant.mode():  # local patch; unset = stock iterator
++            weights = exl3_core_dequant.dequant_weights(
++                weights, self.quant_config, self.config, spec=False)
+         loader = AutoWeightsLoader(
+             self,
+             skip_prefixes=(["lm_head."] if self.config.tie_word_embeddings else None),
+diff -u -r '--exclude=exl3_core_dequant.py' a/models/glm5next/nvidia/mtp.py b/models/glm5next/nvidia/mtp.py
+--- a/models/glm5next/nvidia/mtp.py	2026-10-24 17:25:00.000000000 -0700
++++ b/models/glm5next/nvidia/mtp.py	2026-10-29 19:49:59.718804461 -0700
+@@ -299,6 +299,10 @@
+         return name
+ 
+     def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:
++        from vllm.model_executor.layers.quantization import exl3_core_dequant  # local-exl3-core-dequant
++        if exl3_core_dequant.mode():  # local patch; unset = stock iterator
++            weights = exl3_core_dequant.dequant_weights(
++                weights, self.quant_config, self.config, spec=True)
+         stacked_params_mapping = [
+             ("gate_up_proj", "gate_proj", 0),
+             ("gate_up_proj", "up_proj", 1),
