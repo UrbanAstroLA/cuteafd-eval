@@ -402,7 +402,7 @@ def dl_glossary(items):
 
 
 PAGE_LINKS = [("checkpoints.html", "Checkpoints", "K3.25, K4, K4-Core-K6"), ("v4.html", "CuteAFD v4", "the v4.0.0 rerun"),
-              ("tools.html", "Tool calling", "multi-turn tool use, both engines"), ("thinking.html", "Thinking length", "investigation: the 6-bit core and when the model stops"), ("precision.html", "Precision", "closeness to BF16"), ("settings.html", "Settings", "every CuteAFD setting"),
+              ("tools.html", "Tool calling", "multi-turn tool use, both engines"), ("thinking.html", "Thinking length", "investigation: the 6-bit core, the experts and when the model stops"), ("precision.html", "Precision", "closeness to BF16"), ("settings.html", "Settings", "every CuteAFD setting"),
               ("speed.html", "Speed", "every speed cell"), ("long-tasks.html", "Long tasks", "long replies, long prompts"),
               ("running.html", "Running it", "operator notes"), ("method.html", "Method", "protocols and timeline"),
               ("audit.html", "Audit", "the K3.25 review"), ("research.html", "Research", "deep dives"),

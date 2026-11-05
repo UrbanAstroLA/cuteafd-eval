@@ -6,7 +6,7 @@ script): a bar for a level, a centred bar for a difference (solid when its 95% i
 when it does not), and a word badge, so nothing is colour-only. Engine colours follow the site grammar (vLLM fork blue,
 CuteAFD orange); checkpoints and producers are named in text, never coloured.
 """
-import html, json
+import html, importlib.util, json
 from pathlib import Path
 
 E = html.escape
@@ -220,7 +220,7 @@ def page_checkpoints(S, page, h2, gh, details):
             h2("k4-vs-k6", "K4 and K4-Core-K6") +
             "<p>Same 4-bit expert budget, different producer, calibration and core. On the panel drawn from brandonmusic's corpus they tie "
             "on average, with K4 closer on legal and reasoning-termination text. On tpurtell's set K4-Core-K6 is closer. K4-Core-K6 also "
-            "leaves 16% more room for context and runs 5-15% slower; its code replies think longer.</p>" + k6k4 +
+            "leaves 16% more room for context and runs 5-15% slower (a later rerun puts the decode slowdown in its 6-bit core). Its code replies thought longer in one run (1.43x, read after the fact); rerun with new seeds, 1.27x and inconclusive, with no measurable part from the routed experts (<a href=\"thinking.html\">Thinking length</a>).</p>" + k6k4 +
             h2("k4-vs-k325", "K4 and K3.25") + k4k325 +
             h2("measures", "Measures") + measures +
             f'<p class="sign">Numbers: {gh(f"{RD}/SUMMARY.json", "<code>SUMMARY.json</code>")}; engine results on '
@@ -502,11 +502,28 @@ def st_mean(v):
 # ------------------------------------------------------------------ thinking length (investigation, 2026-11-02/03)
 
 TLD = "results/2026-11-02-thinking-length"
+CSD = "results/2026-11-03-cuteafd-core-swap"
 TL_ORDER = ["all", "kda_qkv", "kda_o", "mla_a", "mla_q_b", "mla_o", "dense", "shared_gu", "shared_down", "lm_head"]
+# G4's post hoc finished-only ratio (BF16 / 6-bit, G4-RESULT.md): stated on this page as 6-bit / BF16
+G4_FINISHED = (0.97, 0.78, 1.21)
+_cs = importlib.util.spec_from_file_location("site_charts", Path(__file__).parent / "site_charts.py")
+SC = importlib.util.module_from_spec(_cs); _cs.loader.exec_module(SC)
+
+
+def rr(x): return f"{x:.2f}"
+
+
+def rci(lo, hi): return f"[{lo:.2f}, {hi:.2f}]"
+
+
+def hf(name, rev):
+    """A pinned Hugging Face revision; plain text so it wraps at the slash and hyphens in narrow columns."""
+    return f'<a href="https://huggingface.co/{name}/tree/{rev}">{E(name).replace("/", "/<wbr>")} @ {rev[:8]}</a>'
 
 
 def page_thinking(root, page, h2, gh, details):
     S = json.loads((Path(root) / TLD / "SUMMARY.json").read_text())
+    CS = json.loads((Path(root) / CSD / "SUMMARY.json").read_text())
     G2 = S["g2"]; A = G2["per_arm"]; C = G2["contrasts_vs_k6"]; PH = S["post_hoc"]; G4 = S["g4"]; L = S["loop_checks"]
     GR = S["groups"]; tr = G2["traces"]
     noise = C["k6r2"]; n_lp = noise["lp_close"]
@@ -516,33 +533,184 @@ def page_thinking(root, page, h2, gh, details):
     pct = lambda h, n: f"{100 * h / n:.1f}%"
     c_all = PH["loop_check_c"]["all_minus_k6"]; c_r2 = PH["loop_check_c"]["k6r2_minus_k6"]
     pa_all = G2["pa"]["all"]["kl64_delta_vs_base"]; pa_r2 = G2["pa"]["k6r2"]["kl64_delta_vs_base"]
+    # CuteAFD core swap
+    S1 = CS["step1"]; SC1 = S1["contrasts"]; S2 = CS["step2"]; SC2 = S2["contrasts"]; BL = CS["block_l_posthoc"]["by_content"]
+    MP = CS["post_hoc_max_p"]; KL = S2["kl64_all_rows"]; SP = S1["decode_tok_s_median"]; ID = S2["identity_second_launch"]
+    tot, core, exp_ = SC1["total"], SC1["core"], SC1["experts"]
+    g4r = (1 / pr["ratio"], 1 / pr["ratio_ci95"][1], 1 / pr["ratio_ci95"][0])            # 6-bit / BF16
+    g4f = (1 / G4_FINISHED[0], 1 / G4_FINISHED[2], 1 / G4_FINISHED[1])
+    v_lp = {"delta": -C["all"]["lp_close"]["delta"], "ci95": [-C["all"]["lp_close"]["ci95"][1], -C["all"]["lp_close"]["ci95"][0]]}
+    revs = {k_: v.split(" @ ") for k_, v in json.loads((Path(root) / CSD / "RUN.json").read_text())["checkpoints"].items() if k_ != "derived"}
+    src = lambda p, label=None: gh(p, label or f"<code>{E(p.split('/')[-1])}</code>")
 
-    lede = ("<p>On one engine and these questions, storing the core of K4-Core-K6 in 6 bits rather than BF16 shows no measurable "
-            "effect on when the model stops thinking. On fixed reasoning traces, the probability of closing the reasoning moves "
-            f"less with the BF16 core ({sg(C['all']['lp_close']['delta'], 3)}) than between two launches of the same 6-bit model "
-            f"({sg(n_lp['delta'], 3)}). Finished replies to one long-thinking question are the same length within about 1.3x. One of 24 "
-            "free-generation replies looped to the 327,680-token cap, on the 6-bit core. Whether the core changes how often replies "
-            "loop is open. The routed experts, which hold most of the parameters, were not part of this test.</p>")
+    lede = (f"<p>K4-Core-K6 thought longer than K4 on CuteAFD in the run that raised this question (code {rr(BL['code']['ratio'])}x, "
+            f"prose {rr(BL['prose']['ratio'])}x, read after the fact). Rerun on CuteAFD with new seeds under a frozen protocol, the gap is "
+            f"{rr(tot['ratio'])}x {rci(*tot['ratio_ci95_prompts'])}: smaller, inconclusive under the frozen rule, and mostly on code "
+            f"({rr(tot['ratio_by_content']['code'])}x). A third checkpoint that keeps K4-Core-K6's routed experts but restores its BF16 core "
+            f"separates the two parts: the experts contribute nothing measurable ({rr(exp_['ratio'])}x {rci(*exp_['ratio_ci95_prompts'])}), so "
+            f"what difference there is goes with the 6-bit core ({rr(core['ratio'])}x {rci(*core['ratio_ci95_prompts'])}). On fixed reasoning "
+            "traces neither part changes when the model decides to stop, on CuteAFD (whose two launches score bit-identically) or on the "
+            "vLLM fork. Whether the core changes how often replies loop is open.</p>")
+
+    conv = ('<p class="note">Direction, everywhere on this page except the vLLM per-group table: ratios put K4-Core-K6, or the part of it '
+            "under test, first (above 1 = it thought longer); differences are K4-Core-K6's side minus the other (below 0 = it was less "
+            "ready to stop). G4's published reading is stated the other way (BF16 / 6-bit = "
+            f"{pr['ratio']:.2f}); here it is {rr(g4r[0])}.</p>")
 
     glance = rich(
-        "", "6-bit core (as rebuilt at load) against the same checkpoint with its 316 core tensors loaded from BF16; same engine, loader and kernels",
-        ["Measure", "BF16 core − 6-bit core", "Second launch of the 6-bit core − first", "Reading"],
-        [["log p(<code>&lt;/think&gt;</code>) where the trace closed its reasoning<small>77 finished traces, mean " + f"{A['k6']['lp_close_mean']:.3f}" + "</small>",
-          diverge(C["all"]["lp_close"]["delta"], 0.03, False, label=sg(C["all"]["lp_close"]["delta"], 3), sub=ci(*C["all"]["lp_close"]["ci95"], 3)),
-          diverge(n_lp["delta"], 0.03, False, label=sg(n_lp["delta"], 3), sub=ci(*n_lp["ci95"], 3)), badge(False, no="within launch variation")],
-         ["<code>&lt;/think&gt;</code> the top token at the close<small>share of 77</small>",
-          f"{A['all']['close_top1_share']:.3f} vs {A['k6']['close_top1_share']:.3f}", f"{A['k6r2']['close_top1_share']:.3f}", "same 7 traces miss on every arm"],
-         ["Top-64 KL between the two arms, every trace row<small>nats per token</small>",
-          f"{A['k6']['kl64_vs_ref_all_rows']:.4f}", f"{PH['kl64_k6_vs_k6r2']['all_rows']:.4f}", "more than half is launch variation"],
-         ["Top-64 KL to the BF16 teacher (P-A, 25 short windows)",
-          diverge(pa_all[0], 0.002, False, sub=ci(*pa_all[1])), diverge(pa_r2[0], 0.002, False, label=f"{pa_r2[0]:+.7f}".replace("-", MINUS)), badge(False, no="not resolved")],
-         ("grp", "Free generation, GPQA question 12, 12 samples per arm, same seeds"),
-         ["Completion tokens, median<small>geometric-mean ratio, BF16 / 6-bit</small>",
-          f"{k(a4['median_tokens'])} vs {k(k4['median_tokens'])}<br><span class=\"ci\">ratio {pr['ratio']:.2f} [{pr['ratio_ci95'][0]:.2f}, {pr['ratio_ci95'][1]:.2f}]</span>", "—",
-          "not yet significant at this sample size (inconclusive under the frozen rule)"],
-         ["Finished replies only (post hoc)", "ratio 0.97 [0.78, 1.21]", "—", "same length within about 1.3x"],
-         ["Replies that looped to the cap", f"{a4['classes'].get('loop', 0)} vs {k4['classes'].get('loop', 0)} of 12", "—", "one event"]],
+        "", "Each answer with the file it comes from. CuteAFD v4.0.0 and tpurtell's vLLM fork v0.9.2 (with a local loader modification), two RTX PRO 6000",
+        ["Question", "Result", "Source"],
+        [["Did K4-Core-K6 think longer than K4 on CuteAFD?<small>reasoning tokens, seed-paired</small>",
+          f"First run (post hoc): code {rr(BL['code']['ratio'])}x {rci(*BL['code']['ratio_ci95_prompts'])}, prose {rr(BL['prose']['ratio'])}x. "
+          f"Frozen rerun, new seeds: <b>{rr(tot['ratio'])}x</b> {rci(*tot['ratio_ci95_prompts'])}; code {rr(tot['ratio_by_content']['code'])}x, "
+          f"prose {rr(tot['ratio_by_content']['prose'])}x. {badge(False, no='not detected (inconclusive)')}",
+          src(f"{CSD}/analysis/BLOCK-L-POSTHOC.json") + ", " + src(f"{CSD}/analysis/S1-RESULT.json")],
+         ["Is it the routed experts?<small>K4-Core-K6's experts / K4's, same core bytes</small>",
+          f"<b>{rr(exp_['ratio'])}x</b> {rci(*exp_['ratio_ci95_prompts'])}: no measurable contribution", src(f"{CSD}/analysis/S1-RESULT.json")],
+         ["Is it the 6-bit core?<small>6-bit core / BF16 core converted to FP8, same experts</small>",
+          f"<b>{rr(core['ratio'])}x</b> {rci(*core['ratio_ci95_prompts'])}; above 1 on all 4 code prompts "
+          f"({', '.join(rr(core['per_prompt'][f'code-p{i}']) for i in range(4))}). {badge(False, no='not detected (inconclusive)')}",
+          src(f"{CSD}/analysis/S1-RESULT.json")],
+         ["Does the core change when the model stops, on fixed text?<small>log p(&lt;/think&gt;) where 77 GPQA traces stopped</small>",
+          f"No, on either engine: vLLM fork {sg(v_lp['delta'], 3)} {ci(*v_lp['ci95'], 3)}, CuteAFD {sg(SC2['core']['lp_close']['delta'], 3)} "
+          f"{ci(*SC2['core']['lp_close']['ci95'], 3)}; experts {sg(SC2['experts']['lp_close']['delta'], 3)} {ci(*SC2['experts']['lp_close']['ci95'], 3)}",
+          src(f"{TLD}/analysis/G2-SCORES-A1.json") + ", " + src(f"{CSD}/S2-READ.md")],
+         ["Do two launches of the same model agree?",
+          f"CuteAFD: bit-identical on {ID['rows_bit_identical']:,} of {ID['rows']:,} scored rows. vLLM fork: no; the launch difference "
+          f"({sg(n_lp['delta'], 3)}) is as large as the core's", src(f"{CSD}/analysis/S2-IDENTITY.json")],
+         ["Does the core change decode speed?<small>median tok/s, code / prose, CuteAFD</small>",
+          f"6-bit core {SP['C-K6']['code']:.0f} / {SP['C-K6']['prose']:.0f}; BF16→FP8 core {SP['C-K6x']['code']:.0f} / {SP['C-K6x']['prose']:.0f}; "
+          f"K4 {SP['C-K4']['code']:.0f} / {SP['C-K4']['prose']:.0f}: the native 6-bit core is the slower part", src(f"{CSD}/analysis/samples.csv")],
+         ["Does the core change how often replies loop?",
+          f"Open: 1 loop in 18 replies (6-bit core) and 0 in 12 (BF16 core) on one GPQA question, vLLM fork; 0 capped of "
+          f"{3 * tot['pairs']} replies in the CuteAFD rerun", src(f"{TLD}/G4-RESULT.md") + ", " + src(f"{CSD}/analysis/samples.csv")]],
         hi=(0,), cls="nb")
+
+    # figure 1: every free-generation length ratio
+    def frow(label, sub, est, lo, hi, who, dots=(), resolved=None, value=None, title=None):
+        return {"label": label, "sub": sub, "est": est, "lo": lo, "hi": hi, "who": who, "resolved": resolved,
+                "dots": [(v, t, False) for v, t in dots], "value": value or f"{rr(est)}x {rci(lo, hi)}", "title": title or f"{label}: {rr(est)}x {rci(lo, hi)}"}
+    pdots = lambda pp, pre: [(v, f"{pre} {kk}: {rr(v)}x") for kk, v in sorted(pp.items())]
+    f1 = [{"section": "CuteAFD v4 Block L, K4-Core-K6 / K4, 2 runs (post hoc; the observation)"}]
+    for c_ in ("code", "prose", "json", "reasoning"):
+        b_ = BL[c_]
+        f1.append(frow(c_.capitalize() if c_ != "json" else "JSON", f"{b_['prompts']} prompts, {b_['pairs']} pairs", b_["ratio"], *b_["ratio_ci95_prompts"], "c",
+                       pdots(b_["per_prompt"], f"Block L {c_}")))
+    f1.append({"section": "CuteAFD frozen rerun, new seeds, code + prose (8 prompts, 32 pairs)"})
+    for nm, c_, sub in (("Total: K4-Core-K6 / K4", tot, "repeats the observation"), ("Core: 6-bit / BF16→FP8", core, "same experts"),
+                        ("Experts: K4-Core-K6's / K4's", exp_, "same core bytes")):
+        f1.append(frow(nm, f"code {rr(c_['ratio_by_content']['code'])}x · prose {rr(c_['ratio_by_content']['prose'])}x",
+                       c_["ratio"], *c_["ratio_ci95_prompts"], "c", pdots(c_["per_prompt"], nm.split(":")[0])))
+    f1.append({"section": "vLLM fork, GPQA question 12 (G4), 6-bit core / BF16 core, 12 replies each"})
+    f1.append(frow("All replies (frozen)", "one reply looped to the cap", *g4r, "v"))
+    f1.append(frow("Finished replies (post hoc)", "11 vs 12", *g4f, "v"))
+    svg1 = SC.forest(f1, ref="same length", ref_who="c", scale="log", left="thinks less", right="thinks longer",
+                     aria="Thinking-length ratios with 95% intervals: Block L post hoc, CuteAFD frozen rerun, vLLM G4", label_w=210, value_w=150)
+    t1 = []
+    for c_ in ("code", "prose", "json", "reasoning"):
+        b_ = BL[c_]
+        t1.append(["Block L (post hoc), K4-Core-K6 / K4", c_, f"{b_['pairs']}", f"{rr(b_['ratio'])}x", rci(*b_["ratio_ci95_prompts"]), "—",
+                   ", ".join(f"{rr(v)}" for _, v in sorted(b_["per_prompt"].items()))])
+    for nm, c_ in (("Rerun total, K4-Core-K6 / K4", tot), ("Rerun core, 6-bit / BF16→FP8", core), ("Rerun experts, K4-Core-K6's / K4's", exp_)):
+        t1.append([nm, "code + prose", str(c_["pairs"]), f"{rr(c_['ratio'])}x", rci(*c_["ratio_ci95_prompts"]), rci(*c_["ratio_ci95_pairs"]),
+                   "code " + ", ".join(rr(c_["per_prompt"][f"code-p{i}"]) for i in range(4)) + "; prose " + ", ".join(rr(c_["per_prompt"][f"prose-p{i}"]) for i in range(4))])
+    t1.append(["vLLM G4 (frozen), 6-bit / BF16", "GPQA q12", "12 seed pairs", f"{rr(g4r[0])}x", rci(g4r[1], g4r[2]), "—", "one question"])
+    t1.append(["vLLM G4 finished only (post hoc)", "GPQA q12", "11 vs 12", f"{rr(g4f[0])}x", rci(g4f[1], g4f[2]), "—", "one question"])
+    tab1 = rich("", "", ["Measurement", "Content", "Pairs", "Ratio", "95% interval, prompts", "95% interval, pairs", "Per prompt"], t1)
+    fig1 = SC.figure("length-ratios", "Thinking length in free generation, every measurement (ratio, log scale)",
+                     "Each row is a ratio of reasoning tokens with its 95% interval (over prompts; for G4, over replies). Small marks are the "
+                     "individual prompts. A solid line excludes 1; a light dashed one does not.",
+                     [(svg1, None, None)],
+                     "Read the first two blocks together: the same prompts, first in the run that raised the question, then rerun with new seeds "
+                     "and split into core and experts. The rerun's code prompts stay above 1, smaller; prose moves toward 1; the experts sit at 1.",
+                     tab1 + '<p class="sign">Sources: ' + src(f"{CSD}/analysis/BLOCK-L-POSTHOC.json") + ", " + src(f"{CSD}/analysis/S1-RESULT.json") +
+                     ", " + src(f"{TLD}/analysis/G4-RESULT.json") + " (G4 inverted here), " + src(f"{TLD}/G4-RESULT.md") +
+                     " (finished-only); per reply: " + src(f"{CSD}/analysis/samples.csv") + ".</p>",
+                     [("c", "CuteAFD"), ("v", "vLLM fork"), ("ci", "interval excludes 1"), ("ciu", "interval includes 1"), ("dotcu", "one prompt")])
+
+    # figure 2: the stop decision on fixed traces, both engines
+    band = (-abs(n_lp["delta"]), abs(n_lp["delta"]))
+    f2 = [{"section": "vLLM fork (G2), 77 finished traces"},
+          {"label": "6-bit core − BF16 core", "sub": f"band: second launch differs by {sg(n_lp['delta'], 3)}", "est": v_lp["delta"],
+           "lo": v_lp["ci95"][0], "hi": v_lp["ci95"][1], "band": band, "who": "v",
+           "value": f"{sg(v_lp['delta'], 3)} {ci(*v_lp['ci95'], 3)}", "title": "vLLM fork, 6-bit core minus BF16 core"},
+          {"section": "CuteAFD (the same 77 traces); second launch bit-identical"}]
+    for nm, key, sub in (("Core: 6-bit − BF16→FP8", "core", "same experts"), ("Experts: K4-Core-K6's − K4's", "experts", "same core bytes"),
+                         ("Total: K4-Core-K6 − K4", "total", "")):
+        c_ = SC2[key]["lp_close"]
+        f2.append({"label": nm, "sub": sub, "est": c_["delta"], "lo": c_["ci95"][0], "hi": c_["ci95"][1], "who": "c",
+                   "value": f"{sg(c_['delta'], 3)} {ci(*c_['ci95'], 3)}", "title": f"CuteAFD {nm}"})
+    svg2 = SC.forest(f2, ref="no change", ref_who="c", left="less ready to stop", right="more ready",
+                     aria="Difference in log p(</think>) where the trace stopped, both engines", label_w=200, value_w=170)
+    t2 = [["vLLM fork", "6-bit core − BF16 core", f"{sg(v_lp['delta'], 3)} {ci(*v_lp['ci95'], 3)}",
+           sg(-C["all"]["hazard"]["delta"] * 1e5, 2), f"{A['k6']['kl64_vs_ref_all_rows']:.4f}", f"{sg(n_lp['delta'], 3)} (KL {PH['kl64_k6_vs_k6r2']['all_rows']:.4f})"]]
+    for nm, key, kl in (("Core", "core", KL["core_C-K6_vs_C-K6x"]), ("Experts", "experts", KL["experts_C-K6x_vs_C-K4"]), ("Total", "total", KL["total_C-K6_vs_C-K4"])):
+        c_ = SC2[key]
+        t2.append(["CuteAFD", f"{nm}: {c_['a']} − {c_['b']}", f"{sg(c_['lp_close']['delta'], 3)} {ci(*c_['lp_close']['ci95'], 3)}",
+                   sg(c_["hazard"]["delta"] * 1e5, 2) + " " + ci(c_["hazard"]["ci95"][0] * 1e5, c_["hazard"]["ci95"][1] * 1e5, 2), f"{kl:.4f}", "0 (bit-identical)"])
+    tab2 = rich("", "", ["Engine", "Contrast", "log p(&lt;/think&gt;) at the stop", "Hazard, ×10⁻⁵", "Top-64 KL, all rows", "Second launch"], t2)
+    fig2 = SC.figure("stop-decision-both", "The stop decision on fixed traces, both engines",
+                     "The same 77 finished GPQA reasoning traces, fed token by token to each arm. Each row is the paired difference in log "
+                     "p(&lt;/think&gt;) at the token where the trace stopped thinking, with its 95% interval over traces. The shaded band is "
+                     "the vLLM fork's difference between two launches of the same model; CuteAFD's two launches are identical, so it has none.",
+                     [(svg2, None, None)],
+                     "Every interval includes 0. The traces are GPQA reasoning, the content where free generation shows no length difference; "
+                     "code text was not scored this way.",
+                     tab2 + '<p class="sign">Hazard: mean p(&lt;/think&gt;) over the 512 tokens before the stop. KL: top-64, nats per token, '
+                     f"between the two arms of the row (experts: {KL['experts_C-K4_vs_C-K6x']:.4f} with the other arm as reference). Sources: "
+                     + src(f"{TLD}/analysis/G2-SCORES-A1.json") + ", " + src(f"{CSD}/analysis/S2-SCORES-base-C-K6.json") + ", "
+                     + src(f"{CSD}/analysis/S2-SCORES-base-C-K6x.json") + ", " + src(f"{CSD}/analysis/S2-IDENTITY.json") + "; per probe: "
+                     + src(f"{CSD}/analysis/s2-probes.csv") + ".</p>",
+                     [("v", "vLLM fork"), ("c", "CuteAFD"), ("band", "vLLM launch-to-launch difference"), ("ciu", "interval includes 0")])
+
+    fit = ("<ul><li><b>The observation shrank on new seeds.</b> The first run was read because its difference stood out "
+           f"(code {rr(BL['code']['ratio'])}x, prose {rr(BL['prose']['ratio'])}x). Rerun on the same prompts with new seeds and a frozen rule: code "
+           f"{rr(tot['ratio_by_content']['code'])}x, prose {rr(tot['ratio_by_content']['prose'])}x. A smaller value on new seeds is what that "
+           "selection predicts; it does not by itself show the difference is absent. Code prompts were above 1 in both runs (4 of 4 each time).</li>"
+           f"<li><b>The routed experts are ruled out at this resolution.</b> {rr(exp_['ratio'])}x {rci(*exp_['ratio_ci95_prompts'])}, the narrowest "
+           f"interval of the three; the total is the core times the experts ({rr(core['ratio'])} × {rr(exp_['ratio'])} ≈ {rr(tot['ratio'])}). Whatever "
+           "difference K4-Core-K6 shows goes with its 6-bit core.</li>"
+           "<li><b>The stop decision itself does not move</b> on fixed GPQA reasoning traces, for the core on both engines and for the experts on "
+           "CuteAFD. Those traces are reasoning text, where no length difference shows either (Block L reasoning "
+           f"{rr(BL['reasoning']['ratio'])}x {rci(*BL['reasoning']['ratio_ci95_prompts'])}; vLLM G4, finished replies, {rr(g4f[0])}x). The two "
+           "results agree; neither says how the stop decision behaves on code text, which was not scored this way.</li>"
+           "<li><b>If the core's longer code reasoning is real</b>, these results are consistent with it building up along the reply rather than "
+           "with a lower readiness to stop at a given point on reasoning text; they do not test that directly. [inferred]</li>"
+           "<li><b>The two engines' “BF16 core” differ.</b> The vLLM loader serves the BF16 core as BF16; CuteAFD converts it to FP8 at load, "
+           "which is how it serves K4. The CuteAFD core contrast is therefore 6-bit against FP8-from-BF16.</li>"
+           f"<li><b>The core is also what makes K4-Core-K6 slower</b> on CuteAFD: with its BF16 core converted to FP8, its experts decode at K4's "
+           f"speed ({SP['C-K6x']['code']:.0f} against {SP['C-K4']['code']:.0f} tok/s on code); with the native 6-bit core, {SP['C-K6']['code']:.0f}.</li></ul>")
+
+    # CuteAFD details
+    def arow(lab, sub, ck, core_, exp__, arm):
+        P = S1["per_arm"][arm]; mr = P["median_reasoning_tokens"]
+        return [f"{lab}<small>{sub}</small>", ck, f"{core_}<br><span class=\"ci\">experts: {exp__}</span>", f"{k(mr['code'])} / {k(mr['prose'])}",
+                f"{SP[arm]['code']:.0f} / {SP[arm]['prose']:.0f}"]
+    arms_t = rich("", "Three arms on CuteAFD v4.0.0 (unmodified launcher; serving and scoring configs differ only in the checkpoint). 32 replies per arm in free generation, all finished, none capped; 93 fixed traces per arm",
+                  ["Arm", "Checkpoint", "Core at runtime", "Reasoning tokens (median), code / prose", "Decode tok/s, code / prose"],
+                  [arow("K4-Core-K6", "C-K6", hf(*revs["K4-Core-K6"]), "native 6-bit EXL3", "K4-Core-K6's", "C-K6"),
+                   arow("K4-Core-K6, BF16 core", "C-K6x · local derived checkpoint, not a producer release",
+                        "built by " + src(f"{CSD}/prep/build_derived.py") + " from the row above and the core of " + hf(*revs["BF16"]),
+                        "BF16 → FP8 at load, as K4", "K4-Core-K6's", "C-K6x"),
+                   arow("K4", "C-K4", hf(*revs["K4"]), "BF16 → FP8 at load", "K4's", "C-K4")],
+                  foot=f"The BF16 core tensors are byte-identical to K4's ({CS['derived_checkpoint']['core_bytes_identical_to_k4']}; "
+                       + src(f"{CSD}/prep/core-hash.json") + "), so core minus experts isolates each part. CuteAFD's planner gives the derived "
+                       "checkpoint the same plan as K4 (FP8 core projections, FP8 head, same KV pool). Medians are of all 16 replies per content, "
+                       "not paired; the ratios above are paired.")
+    s1_note = (f"<p>Free generation: Block L stage L3 (130,048-token cap, 2 in flight, thinking on), the same 4 code and 4 prose prompts as "
+               f"the run that raised the question, two new seed sets; each seed is shared by the three arms. All {3 * tot['pairs']} replies "
+               "finished. Reasoning tokens are counted by re-tokenizing the saved reasoning text. Frozen rule: a difference is detected when the "
+               "95% interval over the 8 prompts excludes 1; the interval over the 32 pairs is secondary. Read: " + src(f"{CSD}/S1-READ.md") + ".</p>")
+    s2_note = (f"<p>Fixed traces: the 93 traces of the vLLM investigation (token ids unchanged), scored on CuteAFD's bench probe with a cold "
+               f"cache and drafting off; {S2['traces']['rows_per_arm']:,} rows per arm; the longest trace ({S2['probe_timing']['longest_prompt_tokens']:,} "
+               f"tokens) took {S2['probe_timing']['longest_seconds']:.0f} s. The thinking-length run's scorer is used unchanged. Read: "
+               + src(f"{CSD}/S2-READ.md") + ".</p>")
+    maxp = (f"<p><b>A note on one measure.</b> “Max p(&lt;/think&gt;) on unfinished traces” (the last column of the vLLM per-group table "
+            f"below) falls on the first scored row, the opening of the reasoning span, in {MP['argmax_at_first_row'][0]} of "
+            f"{MP['argmax_at_first_row'][1]} trace-arms on CuteAFD and {MP['vllm_g2_argmax_at_first_row'][0]} of {MP['vllm_g2_argmax_at_first_row'][1]} "
+            "on the vLLM fork. That row is the same for every trace of a question, so the measure is mostly a per-question value counted once per "
+            "trace. On CuteAFD it flagged the experts (one question carries it); with the opening row removed the order of the arms changes from "
+            "question to question. On the vLLM fork no group met the rule on it. Post hoc: " + src(f"{CSD}/analysis/POST-HOC-S2.json") + ".</p>")
 
     rows = []
     for arm in TL_ORDER:
@@ -556,13 +724,14 @@ def page_thinking(root, page, h2, gh, details):
     rows.append([f"Second launch, no swap<small>launch-to-launch variation</small>",
                  diverge(n_lp["delta"], 0.03, False, label=sg(n_lp["delta"], 3), sub=ci(*n_lp["ci95"], 3)), "—", "—",
                  sg(noise["hazard"]["delta"] * 1e5, 2), sg(noise["max_p_think"]["delta"] * 1e6, 1)])
-    g2t = rich("", "Each group loaded from BF16 alone, everything else 6-bit; change against the 6-bit core, paired over traces, 95% bootstrap interval. "
-               "A bar is solid when its interval excludes 0",
+    g2t = rich("", "Direction as published: BF16 − 6-bit. Each group loaded from BF16 alone, everything else 6-bit; change against the 6-bit core, paired over traces, "
+               "95% bootstrap interval. A bar is solid when its interval excludes 0",
                ["Swapped to BF16", "log p(&lt;/think&gt;) at the close", "Share of the reference gap", "Frozen rule", "Hazard, ×10⁻⁵", "Max p on unfinished, ×10⁻⁶"],
                rows, hi=(0,),
                foot="Frozen rule (with Amendment 1): a group moves a measure when it closes at least half the gap to the all-BF16 core, its interval "
                     "excludes 0 and its change exceeds the second launch's. Hazard: mean p(&lt;/think&gt;) over the 512 tokens before the close. "
-                    "Max p: largest p(&lt;/think&gt;) along the 16 traces that did not finish.")
+                    "Max p: largest p(&lt;/think&gt;) along the 16 traces that did not finish; mostly a per-question value (note above). Source: "
+                    + src(f"{TLD}/analysis/G2-SCORES-A1.json") + ".")
 
     ph = PH["contrasts"]
     ctx = ("<ul><li><b>Two groups meet the frozen rule</b> on the close measure: the MLA output and MLA q_b projections "
@@ -578,7 +747,7 @@ def page_thinking(root, page, h2, gh, details):
            "<li><b>The two launches differ</b> because the vLLM fork's multi-chunk prefill is not run-to-run deterministic: more than half of the "
            f"BF16-core distance on long traces ({A['k6']['kl64_vs_ref_all_rows']:.4f}) is the size of the distance between launches "
            f"({PH['kl64_k6_vs_k6r2']['all_rows']:.4f}). On the short single-chunk teacher windows the two launches differ by "
-           f"{sg(pa_r2[0], 7)} in KL {ci(*pa_r2[1], 7)}.</li></ul>")
+           f"{sg(pa_r2[0], 7)} in KL {ci(*pa_r2[1], 7)}. CuteAFD's two launches agree bit for bit on the same long traces.</li></ul>")
 
     def toks(arm):
         return " ".join(f"<b>{k(t)}</b>" if t >= 327680 else k(t) for t in G4["per_arm"][arm]["tokens_sorted"])
@@ -587,10 +756,12 @@ def page_thinking(root, page, h2, gh, details):
                ["Arm", "Finished / looped", "Completion tokens, sorted", "Median", "sd of log tokens", "Correct"],
                [["6-bit core", f"{k4['classes'].get('ok', 0)} / {k4['classes'].get('loop', 0)}", toks("k6"), k(k4["median_tokens"]), f"{k4['sd_log_tokens']:.2f}", f"{k4['correct']} of 12"],
                 ["BF16 core", f"{a4['classes'].get('ok', 0)} / {a4['classes'].get('loop', 0)}", toks("all"), k(a4["median_tokens"]), f"{a4['sd_log_tokens']:.2f}", f"{a4['correct']} of 12"]],
-               foot=f"Frozen reading: geometric-mean ratio BF16 / 6-bit {pr['ratio']:.2f}, 95% interval [{pr['ratio_ci95'][0]:.2f}, {pr['ratio_ci95'][1]:.2f}]: the interval "
-                    "includes 1 and is wider than [0.8, 1.25] (inconclusive). Its width comes from the one loop. Post hoc, finished replies only: "
-                    "0.97 [0.78, 1.21]; sd of log tokens 0.28 and 0.31 against 0.19 earlier, so this design resolves about a 1.3x change. "
-                    "The loop (seed 51203) repeated one sentence to the cap, 1.49M characters, no answer.", cls="nb")
+               foot=f"Frozen reading (as published, BF16 / 6-bit): {pr['ratio']:.2f}, 95% interval [{pr['ratio_ci95'][0]:.2f}, {pr['ratio_ci95'][1]:.2f}]; "
+                    f"stated 6-bit / BF16 on this page: {rr(g4r[0])} {rci(g4r[1], g4r[2])}. The interval includes 1 and is wider than [0.8, 1.25] "
+                    f"(inconclusive); its width comes from the one loop. Post hoc, finished replies only: {G4_FINISHED[0]:.2f} {rci(*G4_FINISHED[1:])} "
+                    f"(6-bit / BF16 {rr(g4f[0])}); sd of log tokens 0.28 and 0.31 against 0.19 earlier, so this design resolves about a 1.3x change. "
+                    "The loop (seed 51203) repeated one sentence to the cap, 1.49M characters, no answer. Sources: "
+                    + src(f"{TLD}/analysis/G4-RESULT.json") + ", " + src(f"{TLD}/G4-RESULT.md") + ".", cls="nb")
 
     K3, K4c, G1 = la["K3.25"], la["K4"], la["G1b"]
     lct = rich("", "Replies that reached the 327,680-token cap on the seven most length-variable GPQA questions (186, 12, 81, 120, 86, 74, 13)",
@@ -604,7 +775,7 @@ def page_thinking(root, page, h2, gh, details):
                     f"token counts. Counting the older records too, with an empty answer standing in for a cap hit: {K3['knife_with_proxy'][0]} of "
                     f"{K3['knife_with_proxy'][1]} and {K4c['knife_with_proxy'][0]} of {K4c['knife_with_proxy'][1]}. K4 against K4-Core-K6: Fisher p = "
                     f"{la['fisher_k4_vs_k4core_k6_g1b']:.1f}. Engine versions, concurrency and loader differ between rows. Questions 81 and 13 carry "
-                    f"most cap hits (K4-Core-K6: {G1['by_doc']['81'] + G1['by_doc']['13']} of 12).")
+                    f"most cap hits (K4-Core-K6: {G1['by_doc']['81'] + G1['by_doc']['13']} of 12). Source: " + src(f"{TLD}/analysis/LOOP-CHECKS.json") + ".")
     loops = [x for x in lb["not_finished"] if x["class"] == "loop"]
     det = ("<ul><li><b>How late the loops start.</b> The looping investigation's early-stop detector (the last 30,000 characters checked every "
            "10,000; three ratios below 0.10 in a row) stops no finished reply here "
@@ -614,45 +785,87 @@ def page_thinking(root, page, h2, gh, details):
            ": the three loops on questions 81 and 13 began late in their replies, the question-12 loop early.</li>"
            f"<li><b>On the 16 unfinished traces</b> (cut at 32K tokens, mostly before any loop), the BF16 core makes the recorded continuation "
            f"slightly less likely per token ({sg(c_all['delta'])} {ci(*c_all['ci95'])}), the same size as between two launches of the 6-bit core "
-           f"({sg(c_r2['delta'])} {ci(*c_r2['ci95'])}).</li></ul>")
+           f"({sg(c_r2['delta'])} {ci(*c_r2['ci95'])}).</li>"
+           f"<li><b>CuteAFD rerun:</b> 0 of {3 * tot['pairs']} replies reached the 130,048-token cap on any arm (code and prose prompts, not the "
+           "GPQA questions above).</li></ul>")
 
-    design = ("<ul><li><b>Arms.</b> One checkpoint, <code>wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6</code> (K4 routed experts, 6-bit EXL3 core "
+    design = ("<ul><li><b>CuteAFD (the engine where the question arose).</b> tpurtell's CuteAFD v4.0.0, unmodified. Three arms (table above) "
+              "separate the core from the routed experts; the derived checkpoint is a local build, not a producer release. Step 2, the fixed "
+              "traces, ran first (four scoring launches, including a second K4-Core-K6 launch); step 1, free generation, followed. Protocol "
+              "frozen before the first request: " + src(f"{CSD}/protocol/PROTOCOL.md") + ". The Block L ratio that raised the question and the "
+              "max-p check are post hoc.</li>"
+              "<li><b>vLLM fork, arms.</b> One checkpoint, <code>wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6</code> (K4 routed experts, 6-bit EXL3 core "
               "and head). The 6-bit arm rebuilds its 316 core tensors to BF16 at load (exact arithmetic, one rounding). Each swap arm loads the "
               "named group's original tensors from <code>zai-org/GLM-5.3-Flash-BF16</code> @ <code>f9fed3bb</code>, the checkpoint's own source, "
               "instead; every launch logged the expected number of swapped tensors. Same engine, image, loader and kernels on every arm.</li>"
-              "<li><b>Engine.</b> tpurtell's vLLM fork v0.9.2 release image with a <b>local loader modification</b> (not a tpurtell release; the "
+              "<li><b>vLLM fork, engine.</b> tpurtell's vLLM fork v0.9.2 release image with a <b>local loader modification</b> (not a tpurtell release; the "
               "release does not load this checkpoint): " + gh("repro/vllm-k6-loader", "<code>repro/vllm-k6-loader</code>") + ".</li>"
               f"<li><b>G2, fixed traces.</b> {tr['finished']} finished and {tr['not_finished']} unfinished reasoning traces, each teacher-forced "
               f"through every arm: {tr['by_set']['tr']['finished'] + tr['by_set']['tr']['not_finished']} from earlier hard-question probes "
               f"(questions {', '.join(map(str, tr['by_set']['tr']['docs']))}; K3.25 and K4 on earlier fork versions, so off-policy here) and "
               f"{tr['by_set']['on']['finished'] + tr['by_set']['on']['not_finished']} generated by the 6-bit arm itself on the seven "
               "length-variable questions. Top-64 log-probabilities at sampled rows and at the last 512 rows before each close, plus the "
-              "exact log-probability of <code>&lt;/think&gt;</code> at every stored row. Plus the P-A teacher panel (25 × 2,048 tokens).</li>"
-              "<li><b>Protocols.</b> G2's reading rule was frozen before the first capture; a second launch of the 6-bit arm was added (Amendment 1) "
+              "exact log-probability of <code>&lt;/think&gt;</code> at every stored row. Plus the P-A teacher panel (25 × 2,048 tokens). "
+              "CuteAFD scored the same traces at the same rows.</li>"
+              "<li><b>vLLM protocols.</b> G2's reading rule was frozen before the first capture; a second launch of the 6-bit arm was added (Amendment 1) "
               "before any capture was read, because the fork's long-prompt prefill varies between launches. G4 was frozen after G2 was read and "
               "before its first sample. The loop checks were chosen after G4 was read and are exploratory.</li></ul>")
-    caveat = ("<ul><li>One engine. The loader rounds the 6-bit core once from exact arithmetic; CuteAFD runs it natively and the producer's own "
-              "rebuild rounds at FP16 between stages (15.8% of elements differ, 2.4% by more than one BF16 unit). Transfer to CuteAFD is "
-              "not measured.</li>"
+
+    repro = ("<ol><li><b>Inputs.</b> Checkpoints " + hf(*revs["K4-Core-K6"]) + ", " + hf(*revs["K4"]) + " and the BF16 source " + hf(*revs["BF16"])
+             + "; engines tpurtell's CuteAFD v4.0.0 (<a href=\"https://github.com/tpurtell/cuteafd\">tpurtell/cuteafd</a>) and vLLM fork v0.9.2 "
+             "(<a href=\"https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx\">tpurtell/glm-5.3-flash-ext3-2x-rtx</a>) with "
+             + gh("repro/vllm-k6-loader", "the local loader modification") + ".</li>"
+             "<li><b>Derived checkpoint.</b> " + src(f"{CSD}/prep/build_derived.py") + " (standard library; rewrites the shards that hold core "
+             "tensors, hardlinks the rest); check with " + src(f"{CSD}/prep/hash_core.py") + " against " + src(f"{CSD}/prep/core-hash.json")
+             + " and " + src(f"{CSD}/prep/derived-manifest.json") + ".</li>"
+             "<li><b>CuteAFD runs.</b> Configs in " + gh(f"{CSD}/code/configs") + "; the chain " + src(f"{CSD}/code/chain-cs.sh")
+             + "; drivers " + gh(f"{CSD}/code/drivers") + " (fixed-trace probes, identity check, Block L with new seeds) and the v4 Block L driver "
+             + gh(f"{CSD}/code/v4-drivers") + ", which imports " + src("repro/stage0/drivers/block_l.py") + ".</li>"
+             "<li><b>Scoring.</b> Reasoning tokens: " + src("repro/stage0/drivers/analyze_l.py") + "; free generation: "
+             + src(f"{CSD}/analysis/analyze_s1.py") + " and " + src(f"{CSD}/analysis/block_l_posthoc.py") + " (both read " + src(f"{CSD}/analysis/samples.csv")
+             + "'s fields); fixed traces: " + src(f"{TLD}/analysis/score_stop.py") + ", " + src(f"{CSD}/analysis/post_hoc_s2.py") + ".</li>"
+             "<li><b>Third-party analysis without the run.</b> " + src(f"{CSD}/analysis/samples.csv") + " (one row per reply: arm, seed, finish, "
+             "reasoning tokens, decode speed), " + src(f"{CSD}/analysis/s2-probes.csv") + " (one row per probe, with a digest of the per-row logits "
+             "hashes), the per-trace scores in " + gh(f"{CSD}/analysis") + " and " + gh(f"{TLD}/analysis") + "; every number on this page is in "
+             + src(f"{CSD}/SUMMARY.json") + " or " + src(f"{TLD}/SUMMARY.json") + ".</li>"
+             "<li><b>Not published.</b> Reply and reasoning texts (model output), GPQA question text and the fixed traces' token ids (dataset "
+             "terms), capture and probe dumps (top-64 log-probabilities of model output), and checkpoint weights (rebuild them from the public "
+             "sources with the script above).</li></ol>")
+
+    openq = ("<ul><li><b>Is the 6-bit core's longer code reasoning on CuteAFD a real effect?</b> Measured: core "
+             f"{rr(core['ratio_by_content']['code'])}x on code with all 4 code prompts above 1, total {rr(tot['ratio_by_content']['code'])}x, and "
+             f"{rr(BL['code']['ratio'])}x in the run that raised the question; the frozen interval over 8 prompts includes 1.</li>"
+             "<li><b>Does the core change the stop decision on code text?</b> Unmeasured: the fixed traces are GPQA reasoning.</li>"
+             "<li><b>Does the 6-bit core change how often replies loop?</b> Measured: 1 loop in 18 samples of question 12 on the 6-bit core "
+             "(6 earlier, 12 in G4), 0 in 12 on the BF16 core (Fisher p = 1.0), vLLM fork; on the seven questions, K4-Core-K6 reached the cap about as "
+             f"often as K4 and K3.25 in earlier records (table above). The per-token stop measures do not see a difference. No reply reached the cap "
+             f"in the CuteAFD rerun ({3 * tot['pairs']} replies, code and prose).</li></ul>")
+    caveat = ("<ul><li>Two engines, one machine. The vLLM loader rounds the 6-bit core once from exact arithmetic; CuteAFD runs it natively and the "
+              "producer's own rebuild rounds at FP16 between stages (15.8% of elements differ, 2.4% by more than one BF16 unit). CuteAFD's “BF16 "
+              "core” is BF16 converted to FP8 at load.</li>"
+              "<li>The routed experts are compared as two whole quantizations (K4-Core-K6's and K4's), not tensor by tensor; the derived "
+              "checkpoint is a local build, not a producer release.</li>"
+              "<li>Free generation on CuteAFD covers 8 prompts (4 code, 4 prose), 4 replies per prompt per arm; the Block L ratio that raised "
+              "the question is post hoc. G4 on the vLLM fork is one GPQA question; the knife-edge questions where replies tip between short and "
+              "capped were dropped from G4 because their spread would need hundreds of samples per arm.</li>"
+              "<li>The fixed traces are GPQA reasoning generated on the vLLM fork, teacher-forced on both engines.</li>"
               "<li>KL here is a top-64 measure with the arm's 64th value as the floor for tokens outside its top 64 (a lower bound), not "
-              "full vocabulary. GLM tokenizer throughout; not comparable with other model families.</li>"
-              "<li>G4 is one question; the knife-edge questions where replies tip between short and capped were dropped from G4 because their "
-              "spread would need hundreds of samples per arm.</li></ul>")
-    openq = ("<ul><li><b>Does the 6-bit core change how often replies loop?</b> Measured: 1 loop in 18 samples of question 12 on the 6-bit core "
-             "(6 earlier, 12 in G4), 0 in 12 on the BF16 core (Fisher p = 1.0); on the seven questions, K4-Core-K6 reached the cap about as "
-             "often as K4 and K3.25 in earlier records (table above). The per-token stop measures do not see a difference.</li>"
-             "<li><b>Do the routed experts' quantization shape thinking length?</b> Unmeasured here: only the core was swapped.</li>"
-             "<li><b>Do these results hold on CuteAFD?</b> Unmeasured: its native 6-bit arithmetic differs from the loader's rounding.</li></ul>")
-    data = (f'<p class="sign">Data: {gh(f"{TLD}/SUMMARY.json", "<code>SUMMARY.json</code>")} (every number on this page), '
-            f'{gh(f"{TLD}/analysis", "<code>analysis/</code>")} (per-trace scores, per-sample table, scripts), the results as read in '
-            f'{gh(f"{TLD}/G2-RESULT.md", "<code>G2-RESULT.md</code>")}, {gh(f"{TLD}/G4-RESULT.md", "<code>G4-RESULT.md</code>")} and '
-            f'{gh(f"{TLD}/LOOP-CHECKS.md", "<code>LOOP-CHECKS.md</code>")}; protocols in {gh(f"{TLD}/protocol", "<code>protocol/</code>")}. '
-            "Reasoning texts, question text and capture dumps are not published.</p>")
-    body = (h2("at-a-glance", "At a glance") + glance +
-            h2("stop-decision", "The stop decision on fixed traces (G2)") + g2t + ctx +
-            h2("free-generation", "Free generation (G4)") + g4t +
+              "full vocabulary. GLM tokenizer throughout; not comparable with other model families.</li></ul>")
+    data = (f'<p class="sign">Data: CuteAFD part {gh(CSD, f"<code>{CSD}</code>")} ({src(f"{CSD}/SUMMARY.json")}, '
+            f'{src(f"{CSD}/S1-READ.md")}, {src(f"{CSD}/S2-READ.md")}, {gh(f"{CSD}/protocol", "<code>protocol/</code>")}); vLLM part '
+            f'{gh(TLD, f"<code>{TLD}</code>")} ({src(f"{TLD}/SUMMARY.json")}, {src(f"{TLD}/G2-RESULT.md")}, {src(f"{TLD}/G4-RESULT.md")}, '
+            f'{src(f"{TLD}/LOOP-CHECKS.md")}, {gh(f"{TLD}/protocol", "<code>protocol/</code>")}). Reasoning texts, question text and dumps are '
+            "not published.</p>")
+    body = (conv + h2("at-a-glance", "At a glance") + glance +
+            h2("length", "Thinking length in free generation") + fig1 +
+            h2("stop-both", "The stop decision on fixed traces") + fig2 +
+            h2("fit", "How the results fit together") + fit +
+            h2("cuteafd", "CuteAFD: core or experts?") + arms_t + s1_note + s2_note + maxp +
+            h2("stop-decision", "vLLM fork: core groups on fixed traces (G2)") + g2t + ctx +
+            h2("free-generation", "vLLM fork: free generation (G4)") + g4t +
             h2("loops", "Loops: what the records show") + lct + det +
             h2("design", "What was tested") + design +
+            h2("reproduce", "Reproduce and re-analyse") + repro +
             h2("open", "Open questions") + openq +
             h2("caveats", "Caveats") + caveat + data)
     page("thinking.html", "Investigation: does the 6-bit core make K4-Core-K6 think longer?", lede, body)

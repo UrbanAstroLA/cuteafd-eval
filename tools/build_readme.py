@@ -253,7 +253,7 @@ def status_lines():
 def other_runs():
     rows = []
     for d in sorted((ROOT / "results").iterdir()):
-        if d.is_dir() and (d / "RUN.json").exists() and d.name not in (RUN, K4, "2026-10-30-cuteafd-v4", "2026-11-02-tool-calling", "2026-11-02-thinking-length"):
+        if d.is_dir() and (d / "RUN.json").exists() and d.name not in (RUN, K4, "2026-10-30-cuteafd-v4", "2026-11-02-tool-calling", "2026-11-02-thinking-length", "2026-11-03-cuteafd-core-swap"):
             r = load(d / "RUN.json")
             rows.append([f"[`{d.name}`](results/{d.name}/)", r["kind"], r["title"]])
     return table(["Run", "Kind", "What it is"], rows)
@@ -905,7 +905,7 @@ def V4_LATEST(lk):
     S = load(ROOT / "results/2026-10-30-cuteafd-v4/SUMMARY.json")
     fv = S["precision_fullvocab_pa"]["cuteafd_minus_vllm"]; kv = S["kv_pool"]; p = S["per_1000"]["pa"]
     v4 = lk("CuteAFD v4", "v4.html", "results/2026-10-30-cuteafd-v4/"); ck = lk("Three checkpoints", "checkpoints.html", "results/2026-10-30-cuteafd-v4/"); tc = lk("Tool calling", "tools.html", "results/2026-11-02-tool-calling/")
-    tl = lk("Thinking length", "thinking.html", "results/2026-11-02-thinking-length/")
+    tl = lk("Thinking length", "thinking.html", "results/2026-11-03-cuteafd-core-swap/") + " " + lk("vLLM part", "thinking.html#stop-decision", "results/2026-11-02-thinking-length/")
     return f"""**Latest: CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
 v4.1.0, released after the run, was read in source, not run: no change to this GPU-only setup's compute path was found.
 
@@ -920,11 +920,12 @@ v4.1.0, released after the run, was read in source, not run: no change to this G
   closer on both panels. {ck}
 - **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
   engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. {tc}
-- **Thinking length and the 6-bit core (investigation, 2026-11-02/03):** on the vLLM fork with a local loader
-  modification (not a tpurtell release), loading K4-Core-K6's 316 core tensors from BF16 instead of 6 bits moves the
-  stop decision on fixed traces less than a second launch of the same model does, and finished replies to one
-  long-thinking question are the same length within about 1.3x. One of 24 replies looped, on the 6-bit core; whether
-  the core changes the loop rate is open. Routed experts not tested. {tl}
+- **Thinking length and the 6-bit core (investigation, 2026-11-02/04):** K4-Core-K6 thought longer than K4 on CuteAFD
+  in one run (code 1.43x, read after the fact). Rerun with new seeds under a frozen protocol: 1.15x [0.97, 1.32], code
+  1.27x, inconclusive. A derived checkpoint with K4-Core-K6's experts and its BF16 core separates the parts: experts
+  0.99x [0.93, 1.05], core 1.16x [0.98, 1.36]. On fixed reasoning traces neither measurably changes when the model stops, on
+  CuteAFD (bit-identical across launches) or on the vLLM fork with a local loader modification (not a tpurtell
+  release). Whether the core changes the loop rate is open. {tl}
 
 **CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
 

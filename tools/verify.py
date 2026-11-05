@@ -8,7 +8,7 @@ Checks
   1. Every MANIFEST.json (the repository's and each results/<run>/ one): every listed file exists with that
      sha256, and every file under the manifest's directory is listed.
   2. docs/ (the Pages site): static HTML and CSS only, no scripts, external stylesheets, fonts or remote images; every
-     link to another page or anchor of the site resolves.
+     link to another page or anchor of the site, and every link to a repository file or folder, resolves.
   3. protocol/HASHES.json: every file marked identical to a frozen file has the frozen sha256.
   4. results/<run>/RUN.json: a kind (measurement, exploratory, withdrawn or check); runs that are not
      measurements open their README with a banner naming the kind; slots marked done have their files.
@@ -56,8 +56,10 @@ FORBIDDEN = [
 ]
 fails = []
 # The thinking-length investigation is built on that benchmark's question ids (never its question text), so its name may
-# appear in the investigation's own folder and page, and in the page's builder; everywhere else it stays excluded.
-BENCH_SCOPE = ("results/2026-11-02-thinking-length/", "docs/thinking.html", "tools/site_v4.py")
+# appear in the investigation's two folders (vLLM fork, CuteAFD core swap) and page, and in the page's builder; everywhere
+# else it stays excluded.
+BENCH_SCOPE = ("results/2026-11-02-thinking-length/", "results/2026-11-03-cuteafd-core-swap/", "docs/thinking.html", "tools/site_v4.py")
+REPO_URL = "https://github.com/UrbanAstroLA/cuteafd-eval"
 
 # Self-test of the content patterns, run on every invocation: (text, kind expected or None). Built from pieces so that
 # this file does not match itself.
@@ -122,7 +124,13 @@ def check_site():
         for what, rx in SITE_FORBIDDEN:
             if rx.search(html): fails.append(f"docs/{name}: {what} not allowed on the static site")
         for href in re.findall(r'href="([^"]+)"', html):
-            if re.match(r"(?i)[a-z][a-z0-9+.-]*:", href): continue          # absolute link (repository files)
+            m = re.match(re.escape(REPO_URL) + r"/(blob|tree)/main/([^#?]+)", href)
+            if m:                                                          # a link to a repository file or folder
+                t = ROOT / m.group(2)
+                if not (t.is_file() if m.group(1) == "blob" else t.is_dir()):
+                    fails.append(f"docs/{name}: link to a missing repository {'file' if m.group(1) == 'blob' else 'folder'} {m.group(2)}")
+                continue
+            if re.match(r"(?i)[a-z][a-z0-9+.-]*:", href): continue          # other absolute link
             page, _, frag = href.partition("#")
             target = pages.get(page or name)
             if target is None: fails.append(f"docs/{name}: link to missing page {href}"); continue

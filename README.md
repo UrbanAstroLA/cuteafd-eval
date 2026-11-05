@@ -37,11 +37,12 @@ v4.1.0, released after the run, was read in source, not run: no change to this G
   closer on both panels. [Three checkpoints](results/2026-10-30-cuteafd-v4/)
 - **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
   engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. [Tool calling](results/2026-11-02-tool-calling/)
-- **Thinking length and the 6-bit core (investigation, 2026-11-02/03):** on the vLLM fork with a local loader
-  modification (not a tpurtell release), loading K4-Core-K6's 316 core tensors from BF16 instead of 6 bits moves the
-  stop decision on fixed traces less than a second launch of the same model does, and finished replies to one
-  long-thinking question are the same length within about 1.3x. One of 24 replies looped, on the 6-bit core; whether
-  the core changes the loop rate is open. Routed experts not tested. [Thinking length](results/2026-11-02-thinking-length/)
+- **Thinking length and the 6-bit core (investigation, 2026-11-02/04):** K4-Core-K6 thought longer than K4 on CuteAFD
+  in one run (code 1.43x, read after the fact). Rerun with new seeds under a frozen protocol: 1.15x [0.97, 1.32], code
+  1.27x, inconclusive. A derived checkpoint with K4-Core-K6's experts and its BF16 core separates the parts: experts
+  0.99x [0.93, 1.05], core 1.16x [0.98, 1.36]. On fixed reasoning traces neither measurably changes when the model stops, on
+  CuteAFD (bit-identical across launches) or on the vLLM fork with a local loader modification (not a tpurtell
+  release). Whether the core changes the loop rate is open. [Thinking length](results/2026-11-03-cuteafd-core-swap/) [vLLM part](results/2026-11-02-thinking-length/)
 
 **CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
 
@@ -290,7 +291,8 @@ Tables built from the published receipts; text and intervals per run in each run
 [`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4), both CuteAFD v3.0.1, and
 [`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints) and
 [`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling), and the investigation
-[`results/2026-11-02-thinking-length`](results/2026-11-02-thinking-length/) (thinking length and the 6-bit core). One machine, one model family, one
+[`results/2026-11-02-thinking-length`](results/2026-11-02-thinking-length/) (thinking length and the 6-bit core, vLLM fork) and
+[`results/2026-11-03-cuteafd-core-swap`](results/2026-11-03-cuteafd-core-swap/) (the same question on CuteAFD: core or experts). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket

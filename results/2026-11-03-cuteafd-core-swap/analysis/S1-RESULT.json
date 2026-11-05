@@ -1,0 +1,129 @@
+{
+ "per_arm": {
+  "C-K6": {
+   "requests": 32,
+   "finished": 32,
+   "capped": 0,
+   "capped_looping": 0,
+   "finished_with_terminal_repetition": 14,
+   "median_reasoning_tokens": {
+    "code": 36858.0,
+    "prose": 17673.0
+   }
+  },
+  "C-K6x": {
+   "requests": 32,
+   "finished": 32,
+   "capped": 0,
+   "capped_looping": 0,
+   "finished_with_terminal_repetition": 12,
+   "median_reasoning_tokens": {
+    "code": 31551.0,
+    "prose": 18279.0
+   }
+  },
+  "C-K4": {
+   "requests": 32,
+   "finished": 32,
+   "capped": 0,
+   "capped_looping": 0,
+   "finished_with_terminal_repetition": 8,
+   "median_reasoning_tokens": {
+    "code": 33672.5,
+    "prose": 18666.0
+   }
+  }
+ },
+ "contrasts": {
+  "core": {
+   "a": "C-K6",
+   "b": "C-K6x",
+   "pairs": 32,
+   "prompts": 8,
+   "ratio": 1.159326393820424,
+   "ratio_ci95_prompts": [
+    0.9817961739390177,
+    1.3574043158503433
+   ],
+   "ratio_ci95_pairs": [
+    1.009575892392539,
+    1.311095009743299
+   ],
+   "detected": false,
+   "ratio_by_content": {
+    "code": 1.2500027827709763,
+    "prose": 1.0752277562368604
+   },
+   "per_prompt": {
+    "code-p0": 1.2411406470575956,
+    "code-p1": 1.3728525269201743,
+    "code-p2": 1.086331403510564,
+    "code-p3": 1.3189754095362198,
+    "prose-p0": 1.2094649415271117,
+    "prose-p1": 1.6473987509174133,
+    "prose-p2": 0.9120896707823768,
+    "prose-p3": 0.7354824490050105
+   }
+  },
+  "experts": {
+   "a": "C-K6x",
+   "b": "C-K4",
+   "pairs": 32,
+   "prompts": 8,
+   "ratio": 0.9914513231467459,
+   "ratio_ci95_prompts": [
+    0.9282911230756301,
+    1.0509195766409591
+   ],
+   "ratio_ci95_pairs": [
+    0.8742887090338731,
+    1.1238099944987965
+   ],
+   "detected": false,
+   "ratio_by_content": {
+    "code": 1.016173168115667,
+    "prose": 0.9673309205676105
+   },
+   "per_prompt": {
+    "code-p0": 1.0847993880255606,
+    "code-p1": 1.0700781675503581,
+    "code-p2": 1.0752267148818586,
+    "code-p3": 0.854291158915159,
+    "prose-p0": 0.9574548170936527,
+    "prose-p1": 0.8780796811021115,
+    "prose-p2": 1.0885228976820214,
+    "prose-p3": 0.9567764902390316
+   }
+  },
+  "total": {
+   "a": "C-K6",
+   "b": "C-K4",
+   "pairs": 32,
+   "prompts": 8,
+   "ratio": 1.1494156871122045,
+   "ratio_ci95_prompts": [
+    0.9744085923375305,
+    1.322094241656109
+   ],
+   "ratio_ci95_pairs": [
+    1.0216142661700376,
+    1.2935838319110187
+   ],
+   "detected": false,
+   "ratio_by_content": {
+    "code": 1.2702192879217826,
+    "prose": 1.0401010552604484
+   },
+   "per_prompt": {
+    "code-p0": 1.3463886143817283,
+    "code-p1": 1.469059516323619,
+    "code-p2": 1.1680525462696625,
+    "code-p3": 1.1267890311932935,
+    "prose-p0": 1.158008034371026,
+    "prose-p1": 1.4465473698535791,
+    "prose-p2": 0.9928304913858739,
+    "prose-p3": 0.7036923161914215
+   }
+  }
+ }
+}

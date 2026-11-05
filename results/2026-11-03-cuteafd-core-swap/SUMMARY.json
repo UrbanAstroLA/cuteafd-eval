@@ -1,0 +1,532 @@
+{
+ "about": "Every number on the CuteAFD part of the Thinking length page, with its source file in this folder. Ratios are first-named arm / second; stop-measure differences are K4-Core-K6's side minus the other (score_stop.py's own files report arm minus base).",
+ "engine": "tpurtell/cuteafd v4.0.0 (coordinator image index sha256:e257bc61...), unmodified; 2x RTX PRO 6000 Blackwell Max-Q, experts local",
+ "arms": {
+  "C-K6": {
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1df9c4a109bbbdafb60dc19df9fac019d",
+   "core": "native 6-bit EXL3",
+   "experts": "K4-Core-K6's"
+  },
+  "C-K6x": {
+   "checkpoint": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180c693ebbad90190dca8d5f0a7ca4d3753 (local derived checkpoint, not a producer release)",
+   "core": "BF16 originals, converted to FP8 at load (as K4)",
+   "experts": "K4-Core-K6's"
+  },
+  "C-K4": {
+   "checkpoint": "brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929cf4888b1824323e33e8a19b60129e025",
+   "core": "BF16, converted to FP8 at load",
+   "experts": "K4's"
+  },
+  "C-K6r2": {
+   "checkpoint": "as C-K6, second launch (step 2 only)"
+  }
+ },
+ "derived_checkpoint": {
+  "model_id": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core",
+  "revision": "049c0180c693ebbad90190dca8d5f0a7ca4d3753",
+  "tensors": 150250,
+  "removed_exl3_core_tensors": 1264,
+  "added_bf16_core_tensors": 316,
+  "total_size_bytes": 175403985304,
+  "bf16_source": "zai-org/GLM-5.3-Flash-BF16 @ f9fed3bbc82291073373d67452e9f25317ef7577",
+  "core_bytes_identical_to_k4": "316 of 316",
+  "files": [
+   "prep/build_derived.py",
+   "prep/derived-manifest.json",
+   "prep/hash_core.py",
+   "prep/core-hash.json"
+  ]
+ },
+ "block_l_posthoc": {
+  "source": "analysis/BLOCK-L-POSTHOC.json (analysis/block_l_posthoc.py; post hoc)",
+  "note": "post hoc; CuteAFD v4.0.0 Block L L3, K4-Core-K6 / K4, seed-paired",
+  "pairs": 60,
+  "requests_without_a_finished_pair": 4,
+  "by_content": {
+   "code": {
+    "pairs": 16,
+    "prompts": 4,
+    "ratio": 1.4280950532934014,
+    "ratio_ci95_prompts": [
+     1.2024705909683864,
+     1.585694032289204
+    ],
+    "per_prompt": {
+     "p0": 1.6112907785017423,
+     "p1": 1.102413012337344,
+     "p2": 1.5005322885263161,
+     "p3": 1.5605039125064888
+    },
+    "prompts_above_1": 4
+   },
+   "json": {
+    "pairs": 12,
+    "prompts": 3,
+    "ratio": 1.0699963094864526,
+    "ratio_ci95_prompts": [
+     0.9869343524041816,
+     1.2069835177419754
+    ],
+    "per_prompt": {
+     "p0": 0.9869343524041816,
+     "p1": 1.0283885532631694,
+     "p2": 1.2069835177419754
+    },
+    "prompts_above_1": 2
+   },
+   "prose": {
+    "pairs": 16,
+    "prompts": 4,
+    "ratio": 1.1923174312197227,
+    "ratio_ci95_prompts": [
+     1.0554819037190084,
+     1.3934164486033171
+    ],
+    "per_prompt": {
+     "p0": 1.0814310384464625,
+     "p1": 1.5162645001248802,
+     "p2": 1.1964402705728256,
+     "p3": 1.030155423205429
+    },
+    "prompts_above_1": 4
+   },
+   "reasoning": {
+    "pairs": 16,
+    "prompts": 4,
+    "ratio": 1.0510474121583093,
+    "ratio_ci95_prompts": [
+     0.8514701576588856,
+     1.3859624918310474
+    ],
+    "per_prompt": {
+     "p0": 0.9685395288959157,
+     "p1": 1.5618147479369886,
+     "p2": 0.8071749642933648,
+     "p3": 0.9994813071888757
+    },
+    "prompts_above_1": 1
+   }
+  }
+ },
+ "step1": {
+  "source": "analysis/S1-RESULT.json (analysis/analyze_s1.py, frozen); per request: analysis/samples.csv",
+  "rule": "ratio = exp(mean seed-paired log ratio of reasoning tokens); 95% bootstrap over the 8 prompts (primary) and the 32 pairs (secondary); detected when the prompt-level interval excludes 1",
+  "per_arm": {
+   "C-K6": {
+    "requests": 32,
+    "finished": 32,
+    "capped": 0,
+    "capped_looping": 0,
+    "finished_with_terminal_repetition": 14,
+    "median_reasoning_tokens": {
+     "code": 36858.0,
+     "prose": 17673.0
+    }
+   },
+   "C-K6x": {
+    "requests": 32,
+    "finished": 32,
+    "capped": 0,
+    "capped_looping": 0,
+    "finished_with_terminal_repetition": 12,
+    "median_reasoning_tokens": {
+     "code": 31551.0,
+     "prose": 18279.0
+    }
+   },
+   "C-K4": {
+    "requests": 32,
+    "finished": 32,
+    "capped": 0,
+    "capped_looping": 0,
+    "finished_with_terminal_repetition": 8,
+    "median_reasoning_tokens": {
+     "code": 33672.5,
+     "prose": 18666.0
+    }
+   }
+  },
+  "contrasts": {
+   "core": {
+    "a": "C-K6",
+    "b": "C-K6x",
+    "pairs": 32,
+    "prompts": 8,
+    "ratio": 1.159326393820424,
+    "ratio_ci95_prompts": [
+     0.9817961739390177,
+     1.3574043158503433
+    ],
+    "ratio_ci95_pairs": [
+     1.009575892392539,
+     1.311095009743299
+    ],
+    "detected": false,
+    "ratio_by_content": {
+     "code": 1.2500027827709763,
+     "prose": 1.0752277562368604
+    },
+    "per_prompt": {
+     "code-p0": 1.2411406470575956,
+     "code-p1": 1.3728525269201743,
+     "code-p2": 1.086331403510564,
+     "code-p3": 1.3189754095362198,
+     "prose-p0": 1.2094649415271117,
+     "prose-p1": 1.6473987509174133,
+     "prose-p2": 0.9120896707823768,
+     "prose-p3": 0.7354824490050105
+    }
+   },
+   "experts": {
+    "a": "C-K6x",
+    "b": "C-K4",
+    "pairs": 32,
+    "prompts": 8,
+    "ratio": 0.9914513231467459,
+    "ratio_ci95_prompts": [
+     0.9282911230756301,
+     1.0509195766409591
+    ],
+    "ratio_ci95_pairs": [
+     0.8742887090338731,
+     1.1238099944987965
+    ],
+    "detected": false,
+    "ratio_by_content": {
+     "code": 1.016173168115667,
+     "prose": 0.9673309205676105
+    },
+    "per_prompt": {
+     "code-p0": 1.0847993880255606,
+     "code-p1": 1.0700781675503581,
+     "code-p2": 1.0752267148818586,
+     "code-p3": 0.854291158915159,
+     "prose-p0": 0.9574548170936527,
+     "prose-p1": 0.8780796811021115,
+     "prose-p2": 1.0885228976820214,
+     "prose-p3": 0.9567764902390316
+    }
+   },
+   "total": {
+    "a": "C-K6",
+    "b": "C-K4",
+    "pairs": 32,
+    "prompts": 8,
+    "ratio": 1.1494156871122045,
+    "ratio_ci95_prompts": [
+     0.9744085923375305,
+     1.322094241656109
+    ],
+    "ratio_ci95_pairs": [
+     1.0216142661700376,
+     1.2935838319110187
+    ],
+    "detected": false,
+    "ratio_by_content": {
+     "code": 1.2702192879217826,
+     "prose": 1.0401010552604484
+    },
+    "per_prompt": {
+     "code-p0": 1.3463886143817283,
+     "code-p1": 1.469059516323619,
+     "code-p2": 1.1680525462696625,
+     "code-p3": 1.1267890311932935,
+     "prose-p0": 1.158008034371026,
+     "prose-p1": 1.4465473698535791,
+     "prose-p2": 0.9928304913858739,
+     "prose-p3": 0.7036923161914215
+    }
+   }
+  },
+  "decode_tok_s_median": {
+   "C-K6": {
+    "code": 120.88999999999999,
+    "prose": 78.965
+   },
+   "C-K6x": {
+    "code": 129.76,
+    "prose": 87.755
+   },
+   "C-K4": {
+    "code": 129.365,
+    "prose": 88.00999999999999
+   }
+  }
+ },
+ "step2": {
+  "source": "analysis/S2-SCORES-base-C-K6.json, analysis/S2-SCORES-base-C-K6x.json (score_stop.py of the thinking-length run, unchanged), analysis/S2-IDENTITY.json; per probe: analysis/s2-probes.csv",
+  "traces": {
+   "finished": 77,
+   "not_finished": 16,
+   "rows_per_arm": 93670
+  },
+  "identity_second_launch": {
+   "traces": 93,
+   "traces_bit_identical": 93,
+   "rows": 93670,
+   "rows_bit_identical": 93670,
+   "differing_traces": []
+  },
+  "per_arm": {
+   "C-K6": {
+    "finished": 77,
+    "not_finished": 16,
+    "lp_close_mean": -0.34403954816709253,
+    "hazard_mean": 0.0002755200730157663,
+    "close_top1_share": 0.9090909090909091,
+    "max_p_think_mean": 2.2408787225028857e-05
+   },
+   "C-K6x": {
+    "finished": 77,
+    "not_finished": 16,
+    "lp_close_mean": -0.33351590863269126,
+    "hazard_mean": 0.0002659388749469963,
+    "close_top1_share": 0.9090909090909091,
+    "max_p_think_mean": 1.5755475177481907e-05
+   },
+   "C-K4": {
+    "finished": 77,
+    "not_finished": 16,
+    "lp_close_mean": -0.3371505998163832,
+    "hazard_mean": 0.0002676126400664095,
+    "close_top1_share": 0.9090909090909091,
+    "max_p_think_mean": 5.6796146895217916e-05
+   },
+   "C-K6r2": {
+    "finished": 77,
+    "not_finished": 16,
+    "lp_close_mean": -0.34403954816709253,
+    "hazard_mean": 0.0002755200730157663,
+    "close_top1_share": 0.9090909090909091,
+    "max_p_think_mean": 2.2408787225028857e-05
+   }
+  },
+  "contrasts": {
+   "core": {
+    "a": "C-K6",
+    "b": "C-K6x",
+    "lp_close": {
+     "delta": -0.010523639534401266,
+     "ci95": [
+      -0.03898435930451727,
+      0.01700793874911437
+     ]
+    },
+    "hazard": {
+     "delta": 9.581198068770012e-06,
+     "ci95": [
+      -7.809993193442315e-06,
+      2.8433458959132818e-05
+     ]
+    },
+    "max_p_think": {
+     "delta": 6.6533120475469525e-06,
+     "ci95": [
+      -1.3353041579429777e-06,
+      1.609372531191938e-05
+     ]
+    }
+   },
+   "experts": {
+    "a": "C-K6x",
+    "b": "C-K4",
+    "lp_close": {
+     "delta": 0.0036346911836918987,
+     "ci95": [
+      -0.02461819497189676,
+      0.031183516740145627
+     ]
+    },
+    "hazard": {
+     "delta": -1.6737651194131549e-06,
+     "ci95": [
+      -2.142998368447574e-05,
+      1.620865651541305e-05
+     ]
+    },
+    "max_p_think": {
+     "delta": -4.104067171773601e-05,
+     "ci95": [
+      -7.125335702154945e-05,
+      -1.517758401982462e-05
+     ]
+    }
+   },
+   "total": {
+    "a": "C-K6",
+    "b": "C-K4",
+    "lp_close": {
+     "delta": -0.006888948350709367,
+     "ci95": [
+      -0.043546156995656116,
+      0.026399050318319826
+     ]
+    },
+    "hazard": {
+     "delta": 7.907432949356856e-06,
+     "ci95": [
+      -1.2776450913190104e-05,
+      2.8227420116209632e-05
+     ]
+    },
+    "max_p_think": {
+     "delta": -3.4387359670189066e-05,
+     "ci95": [
+      -6.942652459192714e-05,
+      -5.095015663065437e-06
+     ]
+    }
+   },
+   "second_launch": {
+    "a": "C-K6r2",
+    "b": "C-K6",
+    "lp_close": {
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "hazard": {
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "max_p_think": {
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    }
+   }
+  },
+  "per_trace_lp_close_sign": {
+   "C-K6x_above_C-K6": 35,
+   "C-K4_above_C-K6x": 38,
+   "of": 77
+  },
+  "kl64_all_rows": {
+   "core_C-K6_vs_C-K6x": 0.012663564285346875,
+   "experts_C-K4_vs_C-K6x": 0.020300830581163776,
+   "experts_C-K6x_vs_C-K4": 0.021188816336954592,
+   "total_C-K6_vs_C-K4": 0.025941483109194967
+  },
+  "probe_timing": {
+   "longest_trace": "tr029-d127-fin",
+   "longest_prompt_tokens": 95362,
+   "longest_seconds": 88.43,
+   "seconds_per_arm": {
+    "C-K6": 2962,
+    "C-K6x": 2850,
+    "C-K4": 2828,
+    "C-K6r2": 2880
+   }
+  }
+ },
+ "post_hoc_max_p": {
+  "source": "analysis/POST-HOC-S2.json (analysis/post_hoc_s2.py; post hoc)",
+  "argmax_at_first_row": [
+   46,
+   48
+  ],
+  "vllm_g2_argmax_at_first_row": [
+   180,
+   192
+  ],
+  "by_doc": {
+   "d81": {
+    "C-K6": {
+     "max_p": 6.449235113668682e-05,
+     "max_p_after_first": 6.699119342671885e-07,
+     "mean_p_after_first": 2.2986394897911665e-09
+    },
+    "C-K6x": {
+     "max_p": 1.349231423804746e-05,
+     "max_p_after_first": 6.229583293420985e-07,
+     "mean_p_after_first": 1.9570740806075324e-09
+    },
+    "C-K4": {
+     "max_p": 3.914129164801094e-05,
+     "max_p_after_first": 7.677449092322064e-07,
+     "mean_p_after_first": 2.3674267172434246e-09
+    },
+    "traces": 2
+   },
+   "d13": {
+    "C-K6": {
+     "max_p": 1.6484262191742293e-05,
+     "max_p_after_first": 2.299639870131928e-06,
+     "mean_p_after_first": 1.1212214323184213e-08
+    },
+    "C-K6x": {
+     "max_p": 2.3971425691127166e-05,
+     "max_p_after_first": 2.106580896556648e-06,
+     "mean_p_after_first": 1.0628601904155679e-08
+    },
+    "C-K4": {
+     "max_p": 0.00014895834243674327,
+     "max_p_after_first": 1.832103375277364e-06,
+     "mean_p_after_first": 1.0061868736283762e-08
+    },
+    "traces": 5
+   },
+   "d79": {
+    "C-K6": {
+     "max_p": 3.64028206492616e-05,
+     "max_p_after_first": 6.993347502170748e-07,
+     "mean_p_after_first": 3.347489102413857e-09
+    },
+    "C-K6x": {
+     "max_p": 2.739153099852714e-05,
+     "max_p_after_first": 6.259357024060689e-07,
+     "mean_p_after_first": 3.0198133135812638e-09
+    },
+    "C-K4": {
+     "max_p": 2.224411084108094e-05,
+     "max_p_after_first": 5.865382344731021e-07,
+     "mean_p_after_first": 3.1454955735148776e-09
+    },
+    "traces": 3
+   },
+   "d127": {
+    "C-K6": {
+     "max_p": 1.1145643424657273e-05,
+     "max_p_after_first": 4.540538138907009e-07,
+     "mean_p_after_first": 2.743661446447517e-09
+    },
+    "C-K6x": {
+     "max_p": 3.208968768533256e-06,
+     "max_p_after_first": 4.312513155070797e-07,
+     "mean_p_after_first": 2.9457434883481057e-09
+    },
+    "C-K4": {
+     "max_p": 8.056053683373355e-07,
+     "max_p_after_first": 5.038914250860238e-07,
+     "mean_p_after_first": 3.0583908123726624e-09
+    },
+    "traces": 3
+   },
+   "d88": {
+    "C-K6": {
+     "max_p": 1.4963967155400085e-06,
+     "max_p_after_first": 9.94758951526163e-07,
+     "mean_p_after_first": 4.7629807042717566e-09
+    },
+    "C-K6x": {
+     "max_p": 4.481448868932853e-06,
+     "max_p_after_first": 8.795831817231292e-07,
+     "mean_p_after_first": 3.997400811236725e-09
+    },
+    "C-K4": {
+     "max_p": 5.504968738497878e-06,
+     "max_p_after_first": 1.1962847160854683e-06,
+     "mean_p_after_first": 4.35639896243971e-09
+    },
+    "traces": 3
+   }
+  }
+ }
+}

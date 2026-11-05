@@ -69,3 +69,10 @@ windows each) are descriptive only.
 bit-identical on P-A (KL 0.0268353 vs 0.0268360, NLL 1.06810 vs 1.06812); their difference is +0.0000007
 [-0.0000013, +0.0000023]. Post-hoc contrasts quoted above are reproduced by `analysis/post_hoc.py`
 (`analysis/POST-HOC.json`).
+
+*Note (2026-11-04, after publication).* The max p(</think>) measure on the 16 not-finished traces falls on the first
+scored row (the opening of the reasoning span) in 180 of 192 trace-arms. That row is the same for every trace of a
+question, so the measure is mostly a per-question value counted once per trace (question 13 is 5 of the 16). The
+reading above (no group meets the rule on max p) is unchanged; the measure says little about stopping later in a
+reply. The same holds on CuteAFD (results/2026-11-03-cuteafd-core-swap, `S2-READ.md`), where the routed experts are
+also compared.
