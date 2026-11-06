@@ -1,0 +1,26 @@
+{
+ "id": "2026-11-06-new-questions",
+ "kind": "exploratory",
+ "title": "New questions: the q_b + output-projection stop-decision shift and the core, on 30 questions not used before",
+ "protocol": "frozen 2026-11-06 before the first launch (protocol/FROZEN.json; descriptive metrics added before any launch)",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W)",
+ "engine": "tpurtell vLLM fork v0.9.2-experimental image with the local loader modification (not a tpurtell release); tpurtell/cuteafd v4.0.0, unmodified",
+ "slots": {
+  "nq": {
+   "title": "90 replies, 88 traces, 5 vLLM launches, 2 CuteAFD launches",
+   "status": "done",
+   "files": [
+    "protocol/PROTOCOL.md",
+    "protocol/FROZEN.json",
+    "NQ-RESULT.md",
+    "questions.json",
+    "code/select_questions.py",
+    "code/chain-nq.sh",
+    "analysis/analyze_nq.py",
+    "analysis/NQ.json",
+    "analysis/traces-nq.json",
+    "SUMMARY.json"
+   ]
+  }
+ }
+}

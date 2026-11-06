@@ -1,0 +1,34 @@
+{
+ "id": "CT-code-p9",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 9,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `invledger`: a per-SKU inventory ledger with FIFO cost layers, optional negative stock, a valuation report and JSON persistence. Python 3.12, standard library only.\n\n## Files\n\n- `invledger/__init__.py` \u2014 re-exports `Ledger`, `Movement`, `valuation_report`, `save`, `load`, `LedgerError`, `UnknownSKU`, `InsufficientStock`.\n- `invledger/errors.py` \u2014 the exception classes.\n- `invledger/ledger.py` \u2014 `Movement` and `Ledger`.\n- `invledger/report.py` \u2014 `valuation_report`.\n- `invledger/storage.py` \u2014 `save` and `load`.\n\n## errors.py\n\n- `LedgerError(Exception)` \u2014 base class.\n- `UnknownSKU(LedgerError)` \u2014 attribute `sku`.\n- `InsufficientStock(LedgerError)` \u2014 `InsufficientStock(sku, requested, available)` with those attributes; `available` is the on-hand quantity at the time.\n\n## ledger.py\n\nQuantities are `int` (a `bool` or any non-`int` raises `TypeError`). Costs are `decimal.Decimal`; a cost argument may be an `int` (not `bool`), a `str` or a `Decimal` and is converted with `Decimal(value)` without rounding. A `float` or other type raises `TypeError`; text that is not a number, NaN, infinities and negative costs raise `ValueError`. All arithmetic is exact `Decimal` arithmetic.\n\n`Movement` is a frozen dataclass: `seq` (1, 2, 3, \u2026 across the whole ledger), `kind` (`\"receipt\"`, `\"issue\"` or `\"adjust\"`), `sku`, `qty` (signed: positive in, negative out), `unit_cost` (the cost for an inbound movement, `None` for an outbound one), `amount` (signed `Decimal`: the value added or removed), `ref` (a string or `None`).\n\n`Ledger(allow_negative=False)`; attribute `allow_negative`. Each SKU has a FIFO list of *layers* `(qty, unit_cost)` with positive quantities, a FIFO list of *backorders* `(qty, unit_cost)` with positive quantities (stock issued that the ledger did not have), its *last cost* and its *variance* (`Decimal`, starting at `0`). A SKU never has both layers and backorders. A SKU exists once it has been received; every method other than `receive` raises `UnknownSKU` for any other SKU. Operations that raise change nothing and record no movement.\n\n- `receive(sku, qty, unit_cost, ref=None) -> Movement` \u2014 `sku` must be a `str` of 1 to 32 characters from `A-Z`, `0-9` and `-`, else `ValueError`; `qty` must be at least 1 (`ValueError`). Set the last cost to `unit_cost`. Inbound stock first covers backorders, oldest first: covering `c` units of a backorder costed `b` adds `c * (unit_cost - b)` to the variance. Any remaining quantity is appended as a new layer (layers are never merged). Amount: `qty * unit_cost`.\n- `issue(sku, qty, ref=None) -> Movement` \u2014 `qty` at least 1. If `qty` exceeds the on-hand quantity and negative stock is not allowed, raise `InsufficientStock`. Consume layers oldest first (splitting one if needed); if allowed, any shortfall is appended as a new backorder at the last cost. Amount: minus the cost of the consumed layers and the new backorder.\n- `adjust(sku, delta, unit_cost=None, ref=None) -> Movement` \u2014 `delta` is a non-zero `int` (`ValueError` for 0). A positive delta is inbound exactly like `receive`, at `unit_cost` or, if that is `None`, at the current last cost. A negative delta takes `-delta` units out of the layers like `issue`, but never creates backorders: if `-delta` exceeds the on-hand quantity, raise `InsufficientStock` even when negative stock is allowed; a `unit_cost` with a negative delta raises `ValueError`. Movement kind `\"adjust\"`.\n- `skus()` \u2014 sorted list of SKUs.\n- `on_hand(sku) -> int` \u2014 layer quantities minus backorder quantities.\n- `value(sku) -> Decimal` \u2014 sum of `qty * unit_cost` over layers minus the same over backorders.\n- `layers(sku)`, `backorders(sku)` \u2014 lists of `(qty, unit_cost)` tuples, oldest first.\n- `last_cost(sku)`, `variance(sku)` \u2014 `Decimal`.\n- `movements(sku=None)` \u2014 list of movements in `seq` order, optionally only those of one SKU.\n\nFor every SKU, `value(sku) == sum(m.amount for m in movements(sku)) - variance(sku)`.\n\n## report.py\n\n`valuation_report(ledger) -> str`. Lines, each followed by `\"\\n\"`:\n\n- header: `f\"{'SKU':<12}{'QTY':>8}{'VALUE':>14}{'AVG COST':>12}\"`;\n- one line per SKU in sorted order: `f\"{sku:<12}{qty:>8}{value_text:>14}{avg_text:>12}\"`;\n- total: `f\"{'TOTAL':<12}{total_qty:>8}{total_text:>14}\"`.\n\n`value_text` is the value rounded to 2 decimal places with `ROUND_HALF_UP` and formatted with `format(x, \",.2f\")`. `avg_text` is `value / qty` rounded to 4 places with `ROUND_HALF_UP` and formatted with `\",.4f\"`, or `\"-\"` when `qty` is 0. `total_qty` is the sum of quantities; `total_text` is the exact sum of all values, rounded and formatted like `value_text`. A figure that rounds to zero is shown without a minus sign. Every SKU is listed, including those with zero quantity.\n\n## storage.py\n\n- `save(ledger, path)` \u2014 write JSON `{\"version\": 1, \"allow_negative\": bool, \"movements\": [...]}` to `path` (`str` or `pathlib.Path`). Each movement, in `seq` order, is `{\"kind\", \"sku\", \"qty\", \"unit_cost\", \"ref\"}` with `qty` signed as in `Movement` and `unit_cost` as `str(unit_cost)` of the Decimal held, or `null` for outbound movements.\n- `load(path) -> Ledger` \u2014 build a new `Ledger(allow_negative)` and replay the movements in order through `receive`, `issue` and `adjust`. A `version` other than 1, or an unknown `kind`, raises `LedgerError`. Errors raised by the replay propagate unchanged. The loaded ledger equals the saved one in movements, layers, backorders, last costs and variances.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: invledger/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1612,
+  "estimate": "message tokens + measured template overhead"
+ },
+ "checker": {
+  "kind": "code",
+  "project": "invledger",
+  "package": "invledger",
+  "tests_dir": "L/code/invledger/tests",
+  "tests_sha256": {
+   "test_invledger.py": "3bfbecf15e7b9db6757c19b89e9e0b0dd7ff818020e6946a87674bdab3282604"
+  }
+ },
+ "item": {
+  "source": "authored 2026-11-05",
+  "project": "invledger"
+ }
+}

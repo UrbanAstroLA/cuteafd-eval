@@ -1,0 +1,34 @@
+{
+ "id": "CT-code-p8",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 8,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `inilite`: a parser and writer for a typed INI dialect with dotted subsections, lists, append assignments and line-numbered errors. Python 3.12, standard library only.\n\n## Files\n\n- `inilite/__init__.py` \u2014 re-exports `loads`, `load`, `dumps`, `dump`, `IniError`, `ParseError`, `DuplicateKeyError`.\n- `inilite/errors.py` \u2014 the exception classes.\n- `inilite/values.py` \u2014 scanning and formatting of single values (internal helpers).\n- `inilite/parser.py` \u2014 `loads` and `load`.\n- `inilite/writer.py` \u2014 `dumps` and `dump`.\n\n## errors.py\n\n- `IniError(Exception)` \u2014 base class.\n- `ParseError(IniError)` \u2014 `ParseError(message, line)` with attribute `line` (1-based). `str(err)` contains `line <n>`, e.g. `\"line 3: invalid value\"`.\n- `DuplicateKeyError(ParseError)` \u2014 a name defined twice (rules below).\n\n## parser.py\n\n`loads(text) -> dict` splits `text` on `\"\\n\"`, removes one trailing `\"\\r\"` from each line, and handles lines in order; line numbers count from 1. Leading and trailing spaces and tabs of a line are ignored.\n\n- Blank lines are ignored. A line whose first character is `#` or `;` is a comment.\n- A *name* is one or more of `A-Z a-z 0-9 _ -`.\n- Header: `[`, optional whitespace, one or more names joined by `.` (no whitespace inside the path), optional whitespace, `]`, then nothing or optional whitespace and a comment (`#` or `;` to end of line). `[a.b]` makes `result[\"a\"][\"b\"]` the current section, creating missing dicts. Repeating a header reopens that section. Lines before the first header go into the top-level dict.\n- Assignment: name, optional whitespace, `=` or `+=`, optional whitespace, a value, then optional whitespace and nothing or a comment.\n- Any other line raises `ParseError`: e.g. a missing `=`, an empty value, `[a..b]`, `[]`, `[a b]`, `[a] x`, `a = 1 2`.\n\nValues (all on one line):\n\n- bool: `true` or `false` (lowercase only).\n- int: optional `+`/`-`, then `0` or a digit 1-9 followed by digits (`007` is invalid).\n- float: an int as above followed by a fraction (`.` and one or more digits), an exponent (`e` or `E`, optional sign, one or more digits), or both; converted with `float()`. `1.`, `.5`, `1e`, `inf` and `nan` are invalid.\n- string: double-quoted. Escapes: `\\\\`, `\\\"`, `\\n`, `\\t`, `\\r`, and `\\u` followed by exactly four hex digits (either case). Other characters stand for themselves. Any other escape or a missing closing quote is invalid.\n- list: `[`, items separated by `,`, `]`, with optional whitespace around items. Items are bools, ints, floats or strings; `[]` is empty. Nested lists, empty items (`[1,,2]`, `[,]`) and a trailing comma are invalid.\n- An unquoted token ends at whitespace, `,`, `]`, `#`, `;` or end of line and must then be exactly a bool, int or float; anything else (e.g. `hello`, `True`, `1_000`) is invalid. So `a = 1#c` is `1` with a comment.\n\nDefinition rules:\n\n- `key = value` when `key` already exists in the current section, as a value or as a subsection, raises `DuplicateKeyError`.\n- A header whose path runs into an existing non-dict value (`a = 1` then `[a]` or `[a.b]`) raises `DuplicateKeyError`.\n- `key += value` requires an existing list under `key` in the current section: a list value extends it, a scalar is appended. A missing key or a non-list raises `ParseError` (not `DuplicateKeyError`).\n\nEvery error is raised at the line where it is detected. The result is plain nested dicts with keys in first-definition order (a section is defined when a header first creates it, directly or as part of a longer path).\n\n`load(path)` reads `path` (`str` or `pathlib.Path`) as UTF-8 and returns `loads` of it.\n\n## writer.py\n\n`dumps(data: dict) -> str`:\n\n- Allowed values: `bool`, `int`, `float`, `str`, `list` of those scalars, and `dict` (a section). Anything else (`None`, tuples, nested lists, a dict in a list) raises `TypeError`. A key that is not a `str` matching the name rule (non-`str` keys included) raises `ValueError`, as does a NaN or infinite float.\n- A dict at path P is written as: its non-dict entries as `key = value` lines in insertion order, then for each dict entry, in insertion order, a header `[P.key]` followed recursively by that dict. The top-level dict has no header; every nested dict gets one, even when empty.\n- A blank line precedes every header except when it would be the first line of output. Every line ends with `\"\\n\"`; `dumps({})` is `\"\"`.\n- Formatting: `true`/`false`; ints with `str()`; floats with `repr()`; lists as `[` + items joined by `\", \"` + `]`; strings in double quotes with `\\` as `\\\\`, `\"` as `\\\"`, newline as `\\n`, tab as `\\t`, carriage return as `\\r`, any other character below U+0020 and U+007F as `\\u` plus four lowercase hex digits, everything else verbatim.\n- For every valid `data`, `loads(dumps(data)) == data`.\n\n`dump(data, path)` writes `dumps(data)` to `path` as UTF-8.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: inilite/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1467,
+  "estimate": "message tokens + measured template overhead"
+ },
+ "checker": {
+  "kind": "code",
+  "project": "inilite",
+  "package": "inilite",
+  "tests_dir": "L/code/inilite/tests",
+  "tests_sha256": {
+   "test_inilite.py": "35969ca0b2615843c03fcf8cb8146fff38cb185b4e16b41d25c54a578139423c"
+  }
+ },
+ "item": {
+  "source": "authored 2026-11-05",
+  "project": "inilite"
+ }
+}

@@ -253,7 +253,8 @@ def status_lines():
 def other_runs():
     rows = []
     for d in sorted((ROOT / "results").iterdir()):
-        if d.is_dir() and (d / "RUN.json").exists() and d.name not in (RUN, K4, "2026-10-30-cuteafd-v4", "2026-11-02-tool-calling", "2026-11-02-thinking-length", "2026-11-03-cuteafd-core-swap"):
+        if d.is_dir() and (d / "RUN.json").exists() and d.name not in (RUN, K4, "2026-10-30-cuteafd-v4", "2026-11-02-tool-calling", "2026-11-02-thinking-length", "2026-11-03-cuteafd-core-swap",
+                                                       "2026-11-05-code-thinking"):
             r = load(d / "RUN.json")
             rows.append([f"[`{d.name}`](results/{d.name}/)", r["kind"], r["title"]])
     return table(["Run", "Kind", "What it is"], rows)
@@ -920,12 +921,14 @@ v4.1.0, released after the run, was read in source, not run: no change to this G
   closer on both panels. {ck}
 - **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
   engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. {tc}
-- **Thinking length and the 6-bit core (investigation, 2026-11-02/04):** K4-Core-K6 thought longer than K4 on CuteAFD
-  in one run (code 1.43x, read after the fact). Rerun with new seeds under a frozen protocol: 1.15x [0.97, 1.32], code
-  1.27x, inconclusive. A derived checkpoint with K4-Core-K6's experts and its BF16 core separates the parts: experts
-  0.99x [0.93, 1.05], core 1.16x [0.98, 1.36]. On fixed reasoning traces neither measurably changes when the model stops, on
-  CuteAFD (bit-identical across launches) or on the vLLM fork with a local loader modification (not a tpurtell
-  release). Whether the core changes the loop rate is open. {tl}
+- **Thinking length and the 6-bit core (investigation, 2026-11-02/06):** On CuteAFD, K4-Core-K6's native 6-bit core
+  makes code replies think longer: 1.26x [1.24, 1.29] against the same checkpoint with its BF16 core (converted to FP8
+  at load), on 12 code prompts written for the test, every one of 16 prompts above 1, with hidden tests passing as often
+  (50 and 49 of 64). The routed experts contribute nothing measurable (0.99x [0.93, 1.05]); earlier, smaller runs pointed
+  the same way. On science-question reasoning neither thinking length nor the stop decision changes, on 41 questions and
+  both engines; a q_b + output-projection swap that moved the stop decision on 11 questions does not on 30 new ones. The
+  same code prompts and seeds on the vLLM fork (local loader modification, not a tpurtell release) are being run.
+  Whether the core changes the loop rate is open. {tl}
 
 **CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
 

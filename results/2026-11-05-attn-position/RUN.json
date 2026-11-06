@@ -1,0 +1,29 @@
+{
+ "id": "2026-11-05-attn-position",
+ "kind": "exploratory",
+ "title": "Does the core's effect grow with position? Position analysis of the fixed-trace dumps, and the vLLM fork with q_b and the output projections in BF16 together",
+ "protocol": "criteria written before computing (NOTE.md); the q_b + o_proj arm frozen before its first launch (protocol/FROZEN-QBO.json)",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W)",
+ "engine": "tpurtell vLLM fork v0.9.2-experimental image with the local loader modification (repro/vllm-k6-loader; not a tpurtell release)",
+ "slots": {
+  "ap": {
+   "title": "position analysis (CPU) and 4 vLLM launches x 93 traces",
+   "status": "done",
+   "files": [
+    "NOTE.md",
+    "QBO-RESULT.md",
+    "protocol/FROZEN-QBO.json",
+    "analysis/POSITION.json",
+    "analysis/position.py",
+    "analysis/QBO.json",
+    "analysis/POSTHOC-QBO-ALL.json",
+    "analysis/S2-IDENTITY-CHECK.json",
+    "analysis/analyze_qbo.py",
+    "analysis/posthoc_qbo_all.py",
+    "code/chain-qbo.sh",
+    "code/chain-attn.sh",
+    "SUMMARY.json"
+   ]
+  }
+ }
+}

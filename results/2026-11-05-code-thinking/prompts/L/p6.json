@@ -1,0 +1,34 @@
+{
+ "id": "CT-code-p6",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 6,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `eventsim`: a discrete-event simulation kernel with generator-based processes, a capacity-limited resource, and statistics collectors. Python 3.12, standard library only.\n\n## Files\n\n- `eventsim/__init__.py` \u2014 re-exports `Environment`, `Process`, `Timeout`, `Resource`, `Request`, `Tally`, `TimeSeries`, `SimError`.\n- `eventsim/errors.py` \u2014 `SimError(Exception)`.\n- `eventsim/core.py` \u2014 `Environment`, `Process`, `Timeout`.\n- `eventsim/resource.py` \u2014 `Resource`, `Request`.\n- `eventsim/stats.py` \u2014 `Tally`, `TimeSeries`.\n\n## core.py\n\n`Environment(initial_time=0)` has a clock `now` (read-only property) and an event queue. Every event has a time, a priority (int, lower runs first) and a sequence number from a per-environment counter that increases each time an event is scheduled. Events run in ascending `(time, priority, sequence)` order, so events with equal time and priority run in the order they were scheduled. Running an event first sets `now` to its time. Events the package schedules internally use priority 0.\n\n- `schedule(delay, callback, priority=0)` \u2014 schedule `callback()` (no arguments) at `now + delay`. A negative delay raises `ValueError`.\n- `peek()` \u2014 time of the next event, or `math.inf` if the queue is empty.\n- `process(gen, name=None) -> Process` \u2014 `gen` must be a generator object (anything else, including a generator function, raises `TypeError`). Schedules the process's first step at `now`; the generator does not run during this call. The default name is `\"process-<k>\"`, where `k` counts all processes created in this environment, starting at 1.\n- `run(until=None)` \u2014 with `until=None`, run events until the queue is empty. Otherwise run every event whose time is strictly less than `until` (including events scheduled while running), then set `now = until`; other events stay queued for a later `run`. `until < now` raises `ValueError`. An exception raised by a process or callback propagates out of `run` unchanged.\n\n`Timeout(delay, value=None)` \u2014 a negative `delay` raises `ValueError`.\n\nA *step* of a process sends a value into its generator (`None` for the first step) and acts on what is yielded:\n\n- `Timeout` \u2014 schedule the next step at `now + delay`, sending `value`.\n- `Request` \u2014 schedule the next step at the time the request is granted (at `now` if it is already granted), sending the request itself. The step is always scheduled as a new event, never run immediately.\n- `Process` \u2014 schedule the next step at the time that process finishes (at `now` if it has already finished), sending its return value. Several processes waiting on the same process are scheduled in the order they started waiting.\n- anything else \u2014 raise `SimError`.\n\nWhen the generator returns, the process finishes. `Process` attributes: `name`; `is_alive` (`True` until it finishes); `value` (the generator's return value, `None` until then).\n\n## resource.py\n\n`Resource(env, capacity=1)` \u2014 `capacity` must be an `int` >= 1, else `ValueError`. Its *start time* is `env.now` at creation. `request` and `release` may be called from anywhere, not only from processes.\n\n- `request() -> Request` \u2014 submits a request at once. If `count < capacity` and no request is waiting, it is granted immediately; otherwise it joins the end of the FIFO queue.\n- `release(req)` \u2014 `req` must be a granted, not yet released request of this resource, else `SimError`. Frees its slot, then grants waiting requests from the head of the queue while a slot is free. It does not suspend the caller.\n- `count` \u2014 the number of granted, unreleased requests. `queue` \u2014 a new list of the waiting requests, head first.\n- `waits` \u2014 a `Tally` that observes `granted_at - requested_at` at every grant (an immediate grant observes 0).\n- `busy` and `queue_length` \u2014 `TimeSeries` (initial level 0, created with the resource) that are updated to `count` and `len(queue)` whenever those change.\n- `utilisation(until=None)` \u2014 `busy.mean(until) / capacity`.\n\n`Request` attributes: `resource`, `requested_at`, `granted_at` (`None` until granted), `released_at` (`None` until released).\n\n## stats.py\n\n`Tally()` summarises observations:\n\n- `observe(x)`; attributes `count` and `total` (sum; `0` when empty), `minimum` and `maximum` (`None` when empty).\n- `mean()` \u2014 `total / count`, or `None` when empty.\n- `variance()` \u2014 sample variance (divisor `count - 1`), or `None` when `count < 2`.\n\n`TimeSeries(env, initial=0)` records a piecewise-constant level from its *start time* `env.now` (attribute `start`).\n\n- `update(value)` \u2014 the level is `value` from `env.now` on. When several updates happen at the same time, the last one wins.\n- `level` \u2014 the current level.\n- `mean(until=None)` \u2014 the time-weighted average level over `[start, until]` (`until` defaults to `env.now`): the integral of the level over that interval divided by `until - start`. If `until == start`, return the level in effect at `start` (after any updates made at that time). `until` earlier than `start` or later than `env.now` raises `ValueError`. Always returns a `float`.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: eventsim/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1382,
+  "estimate": "message tokens + measured template overhead"
+ },
+ "checker": {
+  "kind": "code",
+  "project": "eventsim",
+  "package": "eventsim",
+  "tests_dir": "L/code/eventsim/tests",
+  "tests_sha256": {
+   "test_eventsim.py": "568b868fc3b1d018bd1ee10ca36dfd3c2df865af5934b3218010404d872592b1"
+  }
+ },
+ "item": {
+  "source": "authored 2026-11-05",
+  "project": "eventsim"
+ }
+}

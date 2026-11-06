@@ -58,7 +58,9 @@ Tables built from the published receipts; text and intervals per run in each run
 [`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints) and
 [`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling), and the investigation
 [`results/2026-11-02-thinking-length`](results/2026-11-02-thinking-length/) (thinking length and the 6-bit core, vLLM fork) and
-[`results/2026-11-03-cuteafd-core-swap`](results/2026-11-03-cuteafd-core-swap/) (the same question on CuteAFD: core or experts). One machine, one model family, one
+[`results/2026-11-03-cuteafd-core-swap`](results/2026-11-03-cuteafd-core-swap/) (the same question on CuteAFD: core or experts), with its
+follow-up [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking/) (16 code prompts; two exploratory follow-ups
+are listed under other runs). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket

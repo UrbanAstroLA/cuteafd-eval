@@ -1,0 +1,34 @@
+{
+ "id": "L-code-p0",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 0,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `minicalc`: a small expression language with a lexer, a parser that produces an AST, and an evaluator. Python 3.12, standard library only.\n\n## Files\n\n- `minicalc/__init__.py` \u2014 re-exports `tokenize`, `parse`, `evaluate`, `Token`, `CalcError`, `LexError`, `ParseError`, `EvalError`, and the AST node classes.\n- `minicalc/errors.py` \u2014 the exception classes.\n- `minicalc/lexer.py` \u2014 `Token` and `tokenize`.\n- `minicalc/ast.py` \u2014 the AST node classes.\n- `minicalc/parser.py` \u2014 `parse`.\n- `minicalc/evaluator.py` \u2014 `evaluate`.\n\n## errors.py\n\n- `CalcError(Exception)` is the base class of all errors raised by the package.\n- `LexError(CalcError)` and `ParseError(CalcError)` take `(message: str, pos: int)` and store the 0-based character offset as attribute `pos`. `str(err)` must contain the message.\n- `EvalError(CalcError)` takes `(message: str)`.\n\n## lexer.py\n\n`Token` is a frozen dataclass with fields `kind: str`, `value`, `pos: int` (0-based offset of the token's first character).\n\n`tokenize(src: str) -> list[Token]` returns all tokens followed by exactly one `Token(\"EOF\", None, len(src))`. Whitespace (spaces, tabs, newlines) is skipped. Token kinds:\n\n- `\"NUM\"`: matches `[0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?`. The value is an `int` when the text has neither a fraction nor an exponent, otherwise a `float`. A number cannot start with `.`.\n- `\"NAME\"`: matches `[A-Za-z_][A-Za-z0-9_]*`. The value is the text. The words `true` and `false` are not special in the lexer; they are names.\n- `\"OP\"`: the value is the operator text. Two-character operators `==`, `!=`, `<=`, `>=`, `&&`, `||` take precedence over one-character operators. One-character operators: `+ - * / % ^ ( ) , = < > ! ;`.\n- Any other character raises `LexError` with `pos` at that character.\n\n## ast.py\n\nAll nodes are dataclasses with `eq=True` (the default), so trees compare by value:\n\n- `Num(value)` \u2014 int or float\n- `Bool(value)` \u2014 bool\n- `Var(name)`\n- `Unary(op, operand)` \u2014 op is `\"-\"`, `\"+\"` or `\"!\"`\n- `Binary(op, left, right)` \u2014 op is one of `+ - * / % ^ == != < <= > >= && ||`\n- `Call(name, args)` \u2014 args is a `list` of nodes\n- `Assign(name, value)`\n- `Program(statements)` \u2014 statements is a `list` of nodes\n\n## parser.py\n\n`parse(src: str) -> Program` tokenizes `src` and parses it. Grammar, from lowest to highest precedence:\n\n1. A program is one or more statements separated by `;`. A trailing `;` is allowed. An empty program (only whitespace, or only `;`) is a `ParseError`.\n2. Assignment: `NAME = expr`, right-associative (`a = b = 2` is `Assign(\"a\", Assign(\"b\", Num(2)))`). The left side must be a bare name; anything else before `=` is a `ParseError`.\n3. `||` (left-associative)\n4. `&&` (left-associative)\n5. Comparison: `== != < <= > >=`, non-associative: `a < b < c` is a `ParseError`.\n6. Additive: `+ -` (left-associative)\n7. Multiplicative: `* / %` (left-associative)\n8. Unary prefix: `- + !` (may repeat: `--x` is `Unary(\"-\", Unary(\"-\", Var(\"x\")))`)\n9. Power: `^`, right-associative, and it binds tighter than unary minus on its left: `-2^2` is `Unary(\"-\", Binary(\"^\", Num(2), Num(2)))`. The right operand of `^` may itself be a unary expression: `2^-1` is valid.\n10. Primary: number, name, function call `NAME(arg, ...)` with zero or more comma-separated arguments, or a parenthesized expression. The names `true` and `false` parse to `Bool(True)` and `Bool(False)`.\n\nAny unexpected token raises `ParseError` whose `pos` is that token's `pos` (for unexpected end of input, `pos == len(src)`).\n\n## evaluator.py\n\n`evaluate(src: str, env: dict | None = None)` parses and evaluates the program and returns the value of the last statement. `env` maps variable names to values; assignments store into it (so the caller sees them), and an assignment's value is the assigned value. When `env` is None a fresh dict is used.\n\nSemantics:\n\n- `+ - *` follow Python on int/float. `/` is always true division (returns float). `%` is Python's modulo. Division or modulo by zero raises `EvalError`.\n- `^` is power (Python `**`). If the result would be complex (negative base, non-integer exponent) raise `EvalError`.\n- Comparisons return `bool`. `&&` and `||` short-circuit and return `bool` of the deciding operand's truth value (`0 || 5` is `True`).\n- `!x` is `not x` (a `bool`). Unary `-` and `+` on a bool raise `EvalError`; arithmetic on bools raises `EvalError` as well (`true + 1` is an error).\n- An undefined variable raises `EvalError` whose message contains the variable's name.\n- Built-in functions: `abs(x)`, `min(x, ...)` and `max(x, ...)` with at least one argument, `sqrt(x)` (float; negative argument raises `EvalError`), `round(x)` and `round(x, n)` (Python's `round`), `if(cond, a, b)` which evaluates only the chosen branch. Wrong argument count raises `EvalError`. An unknown function raises `EvalError` whose message contains its name. Variables and functions live in separate namespaces.\n- Errors from lexing and parsing propagate unchanged (`LexError`, `ParseError`).\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: minicalc/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1546,
+  "cuteafd_thinking_off_adds": 1
+ },
+ "checker": {
+  "kind": "code",
+  "project": "minicalc",
+  "package": "minicalc",
+  "tests_dir": "L/code/minicalc/tests",
+  "tests_sha256": {
+   "test_minicalc.py": "313bf035483873373f1242c3eb09d03b2cd36208b3def028b52b056770732d00"
+  }
+ },
+ "item": {
+  "source": "authored",
+  "project": "minicalc"
+ }
+}

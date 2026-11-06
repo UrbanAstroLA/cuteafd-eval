@@ -1,0 +1,34 @@
+{
+ "id": "CT-code-p14",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 14,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `tinyvm`: a stack virtual machine with an assembler, an interpreter and a disassembler. Python 3.12, standard library only.\n\n## Files\n\n- `tinyvm/__init__.py` \u2014 re-exports `Program`, `assemble`, `run`, `Result`, `disassemble`, `VMError`, `AsmError`, `ExecError`, `StackUnderflow`, `DivisionByZero`, `VMTypeError`, `StepLimitExceeded`.\n- `tinyvm/errors.py` \u2014 the exception classes.\n- `tinyvm/bytecode.py` \u2014 `Program`, opcode table.\n- `tinyvm/assembler.py` \u2014 `assemble`.\n- `tinyvm/vm.py` \u2014 `run` and `Result`.\n- `tinyvm/disasm.py` \u2014 `disassemble`.\n\n## errors.py\n\n- `VMError(Exception)` \u2014 base class.\n- `AsmError(VMError)` \u2014 `AsmError(message, line)`; attribute `line` (1-based). `str(err)` is `f\"line {line}: {message}\"`.\n- `ExecError(VMError)` \u2014 `ExecError(message, pc)`; attribute `pc` (the failing instruction's address). Subclasses `StackUnderflow`, `DivisionByZero`, `VMTypeError`, `StepLimitExceeded` are raised only for the conditions named below; every other runtime error is a plain `ExecError`.\n\n## bytecode.py\n\n`Program` is a frozen dataclass with fields `code: tuple[int, ...]` and `strings: tuple[str, ...] = ()`. An instruction is an opcode followed by its operand (if any); an instruction's *address* is the index of its opcode in `code`.\n\n| code | mnemonic | operand | effect |\n|---|---|---|---|\n| 0 | HALT | | stop |\n| 1 | PUSH | int | push the integer |\n| 2 | PUSH | string | push `strings[operand]` |\n| 3-5 | POP DUP SWAP | | discard top / copy top / exchange top two |\n| 6-10 | ADD SUB MUL DIV MOD | | pop `b`, pop `a`, push `a op b` |\n| 11 | NEG | | negate top |\n| 12-14 | EQ LT GT | | pop `b`, pop `a`, push 1 or 0 |\n| 15 | NOT | | pop `a`, push 1 if `a == 0`, else 0 |\n| 16 | JMP | address | jump to address |\n| 17 / 18 | JZ / JNZ | address | pop `a`; jump if `a == 0` / `a != 0` |\n| 19 / 20 | CALL / RET | address / none | call / return |\n| 21 / 22 | LOAD / STORE | local | push local / pop into local |\n| 23 | PRINT | | pop `v`, append `str(v)` to `output` |\n\n## assembler.py\n\n`assemble(source: str) -> Program`. Lines are split on `\"\\n\"`. On each line, `;` outside a string literal starts a comment. A line consists of zero or more label definitions (an identifier `[A-Za-z_][A-Za-z0-9_]*` directly followed by `:`, optional whitespace around), then optionally one instruction: a mnemonic (case-insensitive) and, separated by whitespace, at most one operand. Labels are case-sensitive and denote the address of the next instruction in the source, or `len(code)` if none follows.\n\nOperands:\n- integer literal: `[+-]?[0-9]+` or `[+-]?0x[0-9a-fA-F]+`;\n- string literal: double-quoted; escapes `\\\\`, `\\\"`, `\\n`, `\\t`; strings are interned in `strings` in order of first use, without duplicates;\n- `PUSH` takes an integer (code 1) or a string (code 2); `JMP`, `JZ`, `JNZ`, `CALL` take a label name; `LOAD`, `STORE` take an integer from 0 to 255; all other mnemonics take none.\n\nRaise `AsmError` with the offending line number for an unknown mnemonic, a missing, extra or wrongly-typed operand, a malformed literal (bad escape, unterminated string), a local out of range, a duplicate label (at its second definition), or any other text not fitting the line syntax. The first error in line order is raised; undefined labels are checked only after all lines are accepted, and reported at the first referencing line.\n\n## vm.py\n\n`run(program, max_steps=100_000) -> Result`. `Result` is a dataclass with `output: list[str]`, `stack: list` (bottom first) and `steps: int` (instructions run).\n\n- Values are `int` and `str`. Execution starts at pc 0 with an empty stack and one top-level frame (256 empty locals).\n- Each cycle: if pc equals `len(code)`, stop normally; else if `steps == max_steps`, raise `StepLimitExceeded`; else execute the instruction at pc and add 1 to `steps` (`HALT` counts, then stops). A pc outside `0..len(code)`, an unknown opcode, or an operand past the end of `code` raises `ExecError`.\n- `ADD`, `LT`, `GT` accept two ints or two strings (`ADD` concatenates strings). `SUB`, `MUL`, `DIV`, `MOD`, `NEG`, `NOT`, `JZ`, `JNZ` need ints. `EQ` accepts anything: 1 iff both have the same type and are equal. Wrong types raise `VMTypeError`.\n- `DIV` truncates toward zero; `MOD` satisfies `a == b * (a DIV b) + (a MOD b)`. A zero divisor raises `DivisionByZero`.\n- Too few values on the stack for an instruction raises `StackUnderflow`.\n- `CALL` pushes a frame holding the return address (the next instruction) and 256 empty locals, then jumps. `RET` pops it and jumps to its return address (raises `ExecError` in the top-level frame). A `CALL` when 1,000 frames already exist raises `ExecError`. The operand stack is shared by all frames.\n- `LOAD k` of a local never stored in the current frame raises `ExecError`.\n\n## disasm.py\n\n`disassemble(program) -> str` returns assembly such that `assemble(disassemble(p)) == p` for every `p` produced by `assemble`.\n\n- Every jump or call target gets a line `L<address>:` (decimal) just before the instruction at that address, or at the end for `len(code)`.\n- Each instruction is one line: four spaces, the uppercase mnemonic, then a space and any operand: integers in decimal, strings quoted with `\\`, `\"`, newline and tab escaped as above, jump targets as `L<address>`.\n- Every line ends with `\"\\n\"` (`\"\"` for empty code).\n- Raise `ValueError` for an unknown opcode, a missing operand, a bad string index, or a jump target that is neither an instruction address nor `len(code)`.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: tinyvm/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1665,
+  "estimate": "message tokens + measured template overhead"
+ },
+ "checker": {
+  "kind": "code",
+  "project": "tinyvm",
+  "package": "tinyvm",
+  "tests_dir": "L/code/tinyvm/tests",
+  "tests_sha256": {
+   "test_tinyvm.py": "eec5d0ece603de849254b698893893a3d8884849c859526188614aa230482f17"
+  }
+ },
+ "item": {
+  "source": "authored 2026-11-05",
+  "project": "tinyvm"
+ }
+}

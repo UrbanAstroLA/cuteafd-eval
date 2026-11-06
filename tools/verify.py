@@ -56,9 +56,11 @@ FORBIDDEN = [
 ]
 fails = []
 # The thinking-length investigation is built on that benchmark's question ids (never its question text), so its name may
-# appear in the investigation's two folders (vLLM fork, CuteAFD core swap) and page, and in the page's builder; everywhere
+# appear in the investigation's folders (vLLM fork, CuteAFD core swap and the 2026-11-05/06 follow-ups) and page, and in
+# the page's builder; everywhere
 # else it stays excluded.
-BENCH_SCOPE = ("results/2026-11-02-thinking-length/", "results/2026-11-03-cuteafd-core-swap/", "docs/thinking.html", "tools/site_v4.py")
+BENCH_SCOPE = ("results/2026-11-02-thinking-length/", "results/2026-11-03-cuteafd-core-swap/", "results/2026-11-05-code-thinking/",
+               "results/2026-11-05-attn-position/", "results/2026-11-06-new-questions/", "docs/thinking.html", "tools/site_v4.py")
 REPO_URL = "https://github.com/UrbanAstroLA/cuteafd-eval"
 
 # Self-test of the content patterns, run on every invocation: (text, kind expected or None). Built from pieces so that

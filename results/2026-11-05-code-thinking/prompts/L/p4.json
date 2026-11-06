@@ -1,0 +1,34 @@
+{
+ "id": "CT-code-p4",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 4,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `cronsched`: a parser for five-field cron expressions, next-run computation on naive datetimes, and an in-process job scheduler with an injectable clock. Python 3.12, standard library only.\n\n## Files\n\n- `cronsched/__init__.py` \u2014 re-exports `CronExpr`, `Scheduler`, `Job`, `CronError`, `CronSyntaxError`, `SchedulerError`.\n- `cronsched/errors.py` \u2014 the exception classes.\n- `cronsched/fields.py` \u2014 parsing of a single field.\n- `cronsched/expr.py` \u2014 `CronExpr`.\n- `cronsched/scheduler.py` \u2014 `Job` and `Scheduler`.\n\n## errors.py\n\n- `CronError(Exception)` \u2014 base class.\n- `CronSyntaxError(CronError)` \u2014 `CronSyntaxError(message, field=None)`; attribute `field` is the name of the offending field (`\"minute\"`, `\"hour\"`, `\"day\"`, `\"month\"`, `\"weekday\"`), or `None` when the problem is not inside one field.\n- `SchedulerError(CronError)`.\n\n## fields.py\n\nThe fields, in order, with their allowed values: `minute` 0-59, `hour` 0-23, `day` 1-31, `month` 1-12, `weekday` 0-7 (0 and 7 both mean Sunday).\n\nA field is a comma-separated list of one or more items. An item is `BASE` or `BASE/STEP`, where `BASE` is `*`, a value `V`, or a range `V1-V2`, and `STEP` is decimal digits with value at least 1.\n\n- A value is decimal digits, or a name: `JAN`-`DEC` (1-12) in the month field only, `SUN`-`SAT` (0-6) in the weekday field only, case-insensitive. Names may be range endpoints.\n- `*` means the whole field range, except that for `weekday` it means 0-6.\n- `V1-V2` requires `V1 <= V2` (no wrap-around).\n- `V/STEP` means `V-M/STEP` where `M` is the field maximum (6 for `weekday`).\n- A step selects the first value of the range and every `STEP`-th value after it, up to the range end.\n- In `weekday`, 7 becomes 0 after expansion.\n\nAnything else \u2014 an empty item, a value out of range, a name in the wrong field, a reversed range, a step of 0 \u2014 raises `CronSyntaxError` with that field's name.\n\n## expr.py\n\n`CronExpr(text)` parses `text` after stripping surrounding whitespace.\n\n- If it starts with `@` it must be one of these macros (case-insensitive): `@yearly` and `@annually` = `0 0 1 1 *`, `@monthly` = `0 0 1 * *`, `@weekly` = `0 0 * * 0`, `@daily` and `@midnight` = `0 0 * * *`, `@hourly` = `0 * * * *`. Any other `@` word raises `CronSyntaxError` with `field=None`.\n- Otherwise it is split on runs of whitespace and must have exactly five fields, else `CronSyntaxError` with `field=None`.\n\nAttributes: `text` (the argument as given) and `minutes`, `hours`, `days`, `months`, `weekdays` \u2014 sorted tuples of the distinct allowed values (weekdays use 0 = Sunday \u2026 6 = Saturday).\n\nA datetime matches when its minute, hour and month are allowed and its day matches. Day rule: if the day field's text or the weekday field's text starts with `*` (for a macro, use its expansion), the day must satisfy both the day field and the weekday field; otherwise it must satisfy at least one of them. So `0 0 13 * FRI` runs on every 13th and every Friday, while `0 0 */2 * MON` runs only on Mondays that are odd-numbered days.\n\n- `matches(dt) -> bool` \u2014 seconds and microseconds are ignored.\n- `next_run(after) -> datetime` \u2014 the earliest datetime strictly later than `after`, with zero seconds and microseconds, that matches. `after` must be a naive `datetime.datetime`; one with `tzinfo` raises `ValueError`. If nothing matches up to and including `after + timedelta(days=3660)`, raise `CronError` (not `CronSyntaxError`). The search must skip whole days and hours that cannot match instead of checking every minute; every call, including a failing one, must finish in well under a second.\n- `next_n(after, n) -> list[datetime]` \u2014 the next `n` run times, each computed from the previous one. `n < 0` raises `ValueError`; `n == 0` gives `[]`.\n\n## scheduler.py\n\n`Job` is a dataclass with fields `name`, `expr` (a `CronExpr`), `callback`, `next_run` (datetime or `None`), `last_run` (initially `None`), `runs` (initially 0), `failures` (initially 0), `paused` (initially `False`).\n\n`Scheduler(clock=datetime.datetime.now)`. `clock` is a zero-argument callable returning a naive datetime.\n\n- `add(name, expr, callback=None) -> Job` \u2014 `expr` is a `CronExpr` or a string (parsed with `CronExpr`; errors propagate and nothing is added). A name already in use raises `SchedulerError`. The job's `next_run` is `expr.next_run(clock())`.\n- `remove(name)`, `get(name) -> Job` \u2014 an unknown name raises `SchedulerError`.\n- `pause(name)` \u2014 sets `paused` and clears `next_run` to `None`; pausing a paused job changes nothing. `resume(name)` \u2014 clears `paused` and sets `next_run` to `expr.next_run(clock())`; resuming an active job changes nothing. Both raise `SchedulerError` for an unknown name.\n- `jobs() -> list[Job]` \u2014 active jobs ordered by `(next_run, name)`, followed by paused jobs ordered by name.\n- `next_wakeup()` \u2014 the earliest `next_run` among active jobs, or `None`.\n- `run_pending() -> list[str]` \u2014 read `now = clock()` once. Every active job with `next_run <= now` is due; run the due jobs in `(next_run, name)` order. Running a job: let `scheduled = job.next_run`; call `callback(name, scheduled)` if there is a callback; if it raises any `Exception`, increment `failures` and continue (the exception is not propagated). In either case increment `runs`, set `last_run = scheduled` and `next_run = expr.next_run(now)`. A job runs at most once per call, however many scheduled times it missed. Return the names in the order run.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: cronsched/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1664,
+  "estimate": "message tokens + measured template overhead"
+ },
+ "checker": {
+  "kind": "code",
+  "project": "cronsched",
+  "package": "cronsched",
+  "tests_dir": "L/code/cronsched/tests",
+  "tests_sha256": {
+   "test_cronsched.py": "4efa7b23445b8b9eff43364b2cfb3f903225c8b6ae82e06663eb6a8a7aec651b"
+  }
+ },
+ "item": {
+  "source": "authored 2026-11-05",
+  "project": "cronsched"
+ }
+}

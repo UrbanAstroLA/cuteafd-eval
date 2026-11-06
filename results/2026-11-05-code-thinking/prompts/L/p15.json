@@ -1,0 +1,34 @@
+{
+ "id": "CT-code-p15",
+ "block": "L",
+ "content": "code",
+ "prompt_index": 15,
+ "thinking": false,
+ "messages": [
+  {
+   "role": "user",
+   "content": "You are given the specification of a small Python project. Implement it completely.\n\nBuild a Python package named `unitcalc`: physical quantities with SI units, unit parsing, dimension-checked arithmetic, conversion and formatting. Python 3.12, standard library only.\n\n## Files\n\n- `unitcalc/__init__.py` \u2014 re-exports `Unit`, `Quantity`, `parse_unit`, `parse_quantity`, `BASE`, `UnitError`, `ParseError`, `UnknownUnitError`, `DimensionError`.\n- `unitcalc/errors.py` \u2014 `UnitError(Exception)` is the base class; `ParseError(UnitError)` takes `(message, pos)` and stores the 0-based offset as `pos`; `UnknownUnitError(UnitError)` takes the unknown atom text and stores it as `symbol`; `DimensionError(UnitError)`.\n- `unitcalc/units.py` \u2014 `BASE`, the unit tables and `Unit`.\n- `unitcalc/parser.py` \u2014 `parse_unit`, `parse_quantity`.\n- `unitcalc/quantity.py` \u2014 `Quantity`.\n\n## units.py\n\n`BASE = (\"kg\", \"m\", \"s\", \"A\", \"K\", \"mol\", \"cd\")`. A dimension is a tuple of 7 integer exponents in this order.\n\nA `Unit` has `factor` (a `fractions.Fraction`: the exact SI value of one unit), `dims`, ordered *terms* `(atom, exponent)` with non-zero exponents, and a `symbol` property built from the terms. `Unit * Unit`, `Unit / Unit` and `Unit ** n` combine factors and dimensions exactly. For `*`, the result's terms are the left terms in order, then right terms not already present; exponents of equal atoms are added and terms whose exponent becomes 0 are removed at once. `a / b` is `a * b ** -1`. `** n` multiplies every exponent by `n` (zero terms are removed); `n` must be an `int` (else `TypeError`). Units are equal (and hash equal) when `factor` and `dims` are equal.\n\n`symbol`: terms with positive exponents form the numerator, joined by `*`; negative ones form the denominator, written with the absolute exponent. A term is `atom` if its exponent is 1, else `atom^e`. Result: numerator alone if there is no denominator; otherwise numerator (or `1` if empty), `/`, then the denominator \u2014 wrapped in parentheses if it has more than one term. No terms gives `\"\"`.\n\nPrefixes: `T` 10^12, `G` 10^9, `M` 10^6, `k` 10^3, `h` 10^2, `da` 10, `d` 10^-1, `c` 10^-2, `m` 10^-3, `u` 10^-6, `n` 10^-9, `p` 10^-12.\n\nNamed units (factor, dimension); all accept prefixes except `min` and `h`:\n\n- `m`, `s`, `A`, `K`, `mol`, `cd` \u2014 1, their base dimension; `g` \u2014 1/1000, kg\n- `N` = kg\u00b7m\u00b7s^-2, `J` = kg\u00b7m^2\u00b7s^-2, `W` = kg\u00b7m^2\u00b7s^-3, `Pa` = kg\u00b7m^-1\u00b7s^-2, `Hz` = s^-1, `C` = s\u00b7A, `V` = kg\u00b7m^2\u00b7s^-3\u00b7A^-1 \u2014 all factor 1\n- `L` \u2014 1/1000, m^3; `min` \u2014 60, s; `h` \u2014 3600, s\n\nAn atom (a run of ASCII letters) resolves as: the named unit with exactly that text if there is one; otherwise a prefix (longest first) followed by a non-empty remainder that is a named unit accepting prefixes; otherwise `UnknownUnitError`. The atom's term is `(text, 1)`, so `km` stays `km` in symbols.\n\n## parser.py\n\n`parse_unit(text) -> Unit`. Whitespace between tokens is ignored; text that is empty or only whitespace gives the dimensionless unit (factor 1, no terms). Grammar:\n\n```\nexpr   := term ((\"*\" | \"/\") term)*      left-associative\nterm   := factor (\"^\" integer)?         integer: optional \"-\" then digits\nfactor := atom | \"1\" | \"(\" expr \")\"\n```\n\n`1` is the dimensionless unit. Any other unexpected character or token, including leftover input, raises `ParseError` whose `pos` is the offset of that character or token (`len(text)` at the end of input).\n\n`parse_quantity(text) -> Quantity`: after optional leading whitespace, a number matching `[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)([eE][+-]?[0-9]+)?` \u2014 an `int` if its text has no `.`, `e` or `E`, else a `float` \u2014 followed by the rest of the text parsed with `parse_unit` (so no unit means dimensionless). No number raises `ParseError` at the first non-space character; a `ParseError` in the unit has `pos` relative to the whole text.\n\n## quantity.py\n\n`Quantity(value, unit=\"\")` \u2014 `value` must be an `int` or `float` (not `bool`), else `TypeError`; `unit` is a `str` (parsed with `parse_unit`) or a `Unit`, else `TypeError`. Attributes `value`, `unit`. Plain numbers used as operands below act as dimensionless quantities.\n\n- `to(unit)` \u2014 same dimension required, else `DimensionError`. The new value is `float(Fraction(value) * old.factor / new.factor)`, computed exactly.\n- `to_base()` \u2014 converts to the unit whose terms are the base symbols in `BASE` order (e.g. `kg*m/s^2`).\n- `simplify()` \u2014 converts to the first of `N`, `J`, `W`, `Pa`, `Hz`, `C`, `V` with the same dimension; otherwise `to_base()`.\n- `float(q)` \u2014 `float(Fraction(value) * factor)` for a dimensionless quantity, else `DimensionError`.\n- `+`, `-` \u2014 the right operand is converted with `to(left unit)` (so `DimensionError` on mismatch) and the result keeps the left unit.\n- `*`, `/` \u2014 values combine with Python's `*` and `/`, units with `Unit` arithmetic (no conversion, so `km/m` stays `km/m`). Division by zero raises `ZeroDivisionError`.\n- `q ** n` (`n` an `int`, else `TypeError`), unary `-`, `abs()`.\n- `==` \u2014 `False` when dimensions differ; otherwise `math.isclose` of the two SI magnitudes (`float(Fraction(value) * factor)`) with `rel_tol=1e-9`. `<`, `<=`, `>`, `>=` raise `DimensionError` when dimensions differ; `a < b` is `not a == b and` the SI magnitude of `a` is less than that of `b`; `a <= b` is `a == b or a < b` (likewise for `>`/`>=`). Quantities are unhashable.\n- `format(q, spec)` \u2014 `format(value, spec)` (an empty spec means `\"g\"`), then a space and `unit.symbol` unless the symbol is empty. `str(q)` is `format(q, \"\")`.\n\n## How to answer\n\n- Write every file listed under Files, complete, with docstrings. Do not write tests: a hidden pytest suite will import the package from the project root.\n- Output each file as a line `### FILE: <path>` (for example `### FILE: unitcalc/__init__.py`) followed immediately by one fenced ```python code block holding the whole file.\n- Output nothing after the last file."
+  }
+ ],
+ "nonce": {
+  "line_format": "Request {nonce}.",
+  "insert": "prepend nonce line + '\\n' to messages[0].content"
+ },
+ "prompt_tokens": {
+  "template_with_nonce": 1758,
+  "estimate": "message tokens + measured template overhead"
+ },
+ "checker": {
+  "kind": "code",
+  "project": "unitcalc",
+  "package": "unitcalc",
+  "tests_dir": "L/code/unitcalc/tests",
+  "tests_sha256": {
+   "test_unitcalc.py": "24ab11293c57f42a807668d8dbbfb7538dffd68771db7d60ef71d406e7ca10ff"
+  }
+ },
+ "item": {
+  "source": "authored 2026-11-05",
+  "project": "unitcalc"
+ }
+}

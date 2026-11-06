@@ -1,0 +1,168 @@
+{
+ "about": "Every number of the code-thinking run on the Thinking length page. Ratio = C-K6 / C-K6x (6-bit core / BF16 core converted to FP8 at load; same routed experts); above 1 = the 6-bit core thought longer.",
+ "engine": "tpurtell/cuteafd v4.0.0, unmodified launcher; 2x RTX PRO 6000 Blackwell Max-Q, experts local",
+ "reading": {
+  "source": "analysis/CT-RESULT.json (analysis/analyze_ct.py, frozen)",
+  "rule": "ratio = exp(mean seed-paired log ratio of reasoning tokens); 95% bootstrap over prompts (primary: the 12 new prompts p4-p15) and over pairs; detected when the prompt-level interval excludes 1",
+  "primary_p4_p15": {
+   "pairs": 48,
+   "prompts": 12,
+   "ratio": 1.2624662456554547,
+   "ratio_ci95_prompts": [
+    1.236515516161589,
+    1.2893401000597893
+   ],
+   "ratio_ci95_pairs": [
+    1.1969391855400082,
+    1.3296639588465733
+   ],
+   "detected": true,
+   "prompts_above_1": 12,
+   "sign_test_p": 0.00048828125,
+   "per_prompt": {
+    "p4": 1.3237839986084046,
+    "p5": 1.362954425426597,
+    "p6": 1.284855422064212,
+    "p7": 1.1831982873320586,
+    "p8": 1.2010214881481927,
+    "p9": 1.2625219000592192,
+    "p10": 1.2282235849654777,
+    "p11": 1.2816340576216634,
+    "p12": 1.2304718844637643,
+    "p13": 1.2698160137845749,
+    "p14": 1.2714249405179194,
+    "p15": 1.2603543280906278
+   },
+   "pairs_per_prompt": {
+    "p4": 4,
+    "p5": 4,
+    "p6": 4,
+    "p7": 4,
+    "p8": 4,
+    "p9": 4,
+    "p10": 4,
+    "p11": 4,
+    "p12": 4,
+    "p13": 4,
+    "p14": 4,
+    "p15": 4
+   }
+  },
+  "all_p0_p15": {
+   "pairs": 64,
+   "prompts": 16,
+   "ratio": 1.330962994281631,
+   "ratio_ci95_prompts": [
+    1.2713905643219405,
+    1.3986672439241152
+   ],
+   "ratio_ci95_pairs": [
+    1.2642401813395836,
+    1.4054767902110255
+   ],
+   "detected": true,
+   "prompts_above_1": 16,
+   "sign_test_p": 3.0517578125e-05,
+   "per_prompt": {
+    "p0": 1.5122453087253962,
+    "p1": 1.6538045915888344,
+    "p2": 1.5540091132725433,
+    "p3": 1.5221532741875579,
+    "p4": 1.3237839986084046,
+    "p5": 1.362954425426597,
+    "p6": 1.284855422064212,
+    "p7": 1.1831982873320586,
+    "p8": 1.2010214881481927,
+    "p9": 1.2625219000592192,
+    "p10": 1.2282235849654777,
+    "p11": 1.2816340576216634,
+    "p12": 1.2304718844637643,
+    "p13": 1.2698160137845749,
+    "p14": 1.2714249405179194,
+    "p15": 1.2603543280906278
+   },
+   "pairs_per_prompt": {
+    "p0": 4,
+    "p1": 4,
+    "p2": 4,
+    "p3": 4,
+    "p4": 4,
+    "p5": 4,
+    "p6": 4,
+    "p7": 4,
+    "p8": 4,
+    "p9": 4,
+    "p10": 4,
+    "p11": 4,
+    "p12": 4,
+    "p13": 4,
+    "p14": 4,
+    "p15": 4
+   }
+  },
+  "blockL_p0_p3": {
+   "pairs": 16,
+   "prompts": 4,
+   "ratio": 1.5595690096794497,
+   "ratio_ci95_prompts": [
+    1.5171912035241755,
+    1.6198609707753964
+   ],
+   "ratio_ci95_pairs": [
+    1.396801313173586,
+    1.7624653287766663
+   ],
+   "detected": true,
+   "prompts_above_1": 4,
+   "sign_test_p": 0.125,
+   "per_prompt": {
+    "p0": 1.5122453087253962,
+    "p1": 1.6538045915888344,
+    "p2": 1.5540091132725433,
+    "p3": 1.5221532741875579
+   },
+   "pairs_per_prompt": {
+    "p0": 4,
+    "p1": 4,
+    "p2": 4,
+    "p3": 4
+   }
+  }
+ },
+ "per_arm": {
+  "source": "analysis/samples.csv (tests from the Block L analyzer's code checks)",
+  "C-K6": {
+   "requests": 64,
+   "finished": 64,
+   "capped": 0,
+   "all_tests_pass": 50,
+   "mean_share_tests_passed": 0.9449532917619592,
+   "finished_with_terminal_repetition_onset": 51,
+   "median_reasoning_tokens": 63731.5,
+   "median_decode_tok_s": 115.125
+  },
+  "C-K6x": {
+   "requests": 64,
+   "finished": 64,
+   "capped": 0,
+   "all_tests_pass": 49,
+   "mean_share_tests_passed": 0.9358709604492521,
+   "finished_with_terminal_repetition_onset": 44,
+   "median_reasoning_tokens": 50411.5,
+   "median_decode_tok_s": 121.80000000000001
+  }
+ },
+ "pairs_6bit_longer": [
+  58,
+  64
+ ],
+ "pairs_6bit_longer_p4_p15": [
+  42,
+  48
+ ],
+ "pairs_agree_on_all_tests_pass": [
+  51,
+  64
+ ],
+ "correction": "CT-RESULT.json's per-arm all_tests_pass_of_finished reads 0: analyze_ct.py reads the per-arm inner records, where code checks are still pending; the analyzer writes the checks only into its merged output. per_arm here is computed from those checks. The frozen ratio is unaffected (reasoning tokens are identical in both)."
+}
