@@ -1,0 +1,32 @@
+{
+ "id": "2026-11-06-vllm-code-thinking",
+ "kind": "measurement",
+ "title": "Code thinking length on the vLLM fork: K4-Core-K6's 6-bit core against its BF16 core, 16 code prompts x 4 seeds",
+ "protocol": "frozen 2026-11-06 before the first request (protocol/FROZEN.json)",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W)",
+ "engine": "vLLM fork v0.9.2-experimental + route-b loader (local loader modification, not a tpurtell release), image 5fc05b7c",
+ "checkpoints": {
+  "V-K6": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1df9c4a109bbbdafb60dc19df9fac019d, 6-bit core rebuilt to BF16 at load",
+  "V-BF16": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1df9c4a109bbbdafb60dc19df9fac019d with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb (local loader swap, not a producer release)"
+ },
+ "slots": {
+  "vct": {
+   "title": "2 arms x 64 replies",
+   "status": "done",
+   "files": [
+    "protocol/PROTOCOL.md",
+    "protocol/FROZEN.json",
+    "VCT-RESULT.md",
+    "CUTEAFD-FP8-PATH.md",
+    "analysis/VCT-RESULT.json",
+    "analysis/analyze_vct.py",
+    "analysis/cross_engine.json",
+    "analysis/cross_engine.py",
+    "code/chain-vct.sh",
+    "code/drivers/code_thinking_v.py",
+    "analysis/samples.csv",
+    "SUMMARY.json"
+   ]
+  }
+ }
+}

@@ -1,0 +1,249 @@
+{
+ "about": "Every number of the vLLM code-thinking run on the Thinking length page. Ratio = V-K6 / V-BF16 (6-bit core rebuilt to BF16 at load / original BF16 core; same routed experts); above 1 = the 6-bit core thought longer.",
+ "engine": "vLLM fork v0.9.2-experimental + route-b loader (local loader modification, not a tpurtell release), image 5fc05b7c",
+ "reading": {
+  "source": "analysis/VCT-RESULT.json (analysis/analyze_vct.py, frozen)",
+  "rule": "ratio = exp(mean seed-paired log ratio of reasoning tokens); 95% bootstrap over prompts (primary p4-p15); detected when the prompt-level interval excludes 1. Engine comparison: vLLM log ratio minus CuteAFD log ratio, paired by prompt",
+  "core": {
+   "primary_p4_p15": {
+    "pairs": 47,
+    "prompts": 12,
+    "ratio": 1.0017226377706787,
+    "ratio_ci95_prompts": [
+     0.9625130236807816,
+     1.0406239068083998
+    ],
+    "ratio_ci95_pairs": [
+     0.9504924526773191,
+     1.0545069526997592
+    ],
+    "detected": false,
+    "prompts_above_1": 8,
+    "sign_test_p": 0.3876953125,
+    "pairs_above_1": 24,
+    "per_prompt": {
+     "p4": 0.8718508402671072,
+     "p5": 1.0214097272745568,
+     "p6": 0.9747286135545981,
+     "p7": 1.0342233422283251,
+     "p8": 1.0251358044639327,
+     "p9": 0.9581421336918736,
+     "p10": 1.0574228237647674,
+     "p11": 1.1352429538076274,
+     "p12": 1.0220765725339716,
+     "p13": 0.9017128413443929,
+     "p14": 1.0063904867022022,
+     "p15": 1.0450728616955396
+    }
+   },
+   "all_p0_p15": {
+    "pairs": 63,
+    "prompts": 16,
+    "ratio": 1.0026303957950797,
+    "ratio_ci95_prompts": [
+     0.9498291297313497,
+     1.056902265677614
+    ],
+    "ratio_ci95_pairs": [
+     0.951129911875871,
+     1.0549197901086287
+    ],
+    "detected": false,
+    "prompts_above_1": 10,
+    "sign_test_p": 0.454498291015625,
+    "pairs_above_1": 32,
+    "per_prompt": {
+     "p0": 0.9134253847523823,
+     "p1": 0.7908888303802744,
+     "p2": 1.287471948711482,
+     "p3": 1.0981441819701452,
+     "p4": 0.8718508402671072,
+     "p5": 1.0214097272745568,
+     "p6": 0.9747286135545981,
+     "p7": 1.0342233422283251,
+     "p8": 1.0251358044639327,
+     "p9": 0.9581421336918736,
+     "p10": 1.0574228237647674,
+     "p11": 1.1352429538076274,
+     "p12": 1.0220765725339716,
+     "p13": 0.9017128413443929,
+     "p14": 1.0063904867022022,
+     "p15": 1.0450728616955396
+    }
+   },
+   "blockL_p0_p3": {
+    "pairs": 16,
+    "prompts": 4,
+    "ratio": 1.0053016950832772,
+    "ratio_ci95_prompts": [
+     0.849951724621148,
+     1.1890457644377188
+    ],
+    "ratio_ci95_pairs": [
+     0.8779577595918913,
+     1.152589353031376
+    ],
+    "detected": false,
+    "prompts_above_1": 2,
+    "sign_test_p": 1.0,
+    "pairs_above_1": 8,
+    "per_prompt": {
+     "p0": 0.9134253847523823,
+     "p1": 0.7908888303802744,
+     "p2": 1.287471948711482,
+     "p3": 1.0981441819701452
+    }
+   }
+  },
+  "engine_comparison": {
+   "primary_p4_p15": {
+    "prompts": 12,
+    "vllm_over_cuteafd_ratio": 0.7937974729680184,
+    "ci95_prompts": [
+     0.754707998701655,
+     0.8319485922787196
+    ],
+    "per_prompt_corr": -0.31204837159613097
+   },
+   "all_p0_p15": {
+    "prompts": 16,
+    "vllm_over_cuteafd_ratio": 0.7535381394982527,
+    "ci95_prompts": [
+     0.6941621020576564,
+     0.8072085201962214
+    ],
+    "per_prompt_corr": -0.1257158054701284
+   },
+   "blockL_p0_p3": {
+    "prompts": 4,
+    "vllm_over_cuteafd_ratio": 0.6446022515476276,
+    "ci95_prompts": [
+     0.5299973294149812,
+     0.7731123242746554
+    ],
+    "per_prompt_corr": -0.5434486093492782
+   }
+  },
+  "unpaired": [
+   {
+    "prompt": 12,
+    "rep": 0,
+    "V-K6": "stop",
+    "V-BF16": "length"
+   }
+  ]
+ },
+ "per_arm": {
+  "V-K6": {
+   "requests": 64,
+   "finished": 64,
+   "capped": 0,
+   "capped_looping": 0,
+   "finished_with_terminal_repeat": 51,
+   "all_tests_pass_of_finished": 53,
+   "mean_share_tests_passed": 0.9552746219519702,
+   "median_reasoning_tokens": 62853.0,
+   "median_decode_tok_s": 103.87227194274419
+  },
+  "V-BF16": {
+   "requests": 64,
+   "finished": 63,
+   "capped": 1,
+   "capped_looping": 1,
+   "finished_with_terminal_repeat": 52,
+   "all_tests_pass_of_finished": 58,
+   "mean_share_tests_passed": 0.9567983043882219,
+   "median_reasoning_tokens": 61129,
+   "median_decode_tok_s": 103.73878092772446
+  }
+ },
+ "post_hoc_cross_engine": {
+  "source": "analysis/cross_engine.json (analysis/cross_engine.py; not in the frozen rule; per-prompt means over 4 seeds, seeds do not give the same samples across engines)",
+  "median_reasoning_tokens": {
+   "V-K6": 62853.0,
+   "V-BF16": 61129,
+   "C-K6": 63731.5,
+   "C-K6x": 50411.5
+  },
+  "all_tests_pass_of_finished": {
+   "V-K6": 53,
+   "V-BF16": 58,
+   "C-K6": 50,
+   "C-K6x": 49
+  },
+  "ratios": {
+   "C-K6/V-K6": {
+    "p4_p15": {
+     "ratio": 1.0400398351116724,
+     "prompts_above_1": 9,
+     "prompts": 12
+    },
+    "all_p0_p15": {
+     "ratio": 1.0426659900929294,
+     "prompts_above_1": 11,
+     "prompts": 16
+    }
+   },
+   "C-K6/V-BF16": {
+    "p4_p15": {
+     "ratio": 1.0398921359519644,
+     "prompts_above_1": 9,
+     "prompts": 12
+    },
+    "all_p0_p15": {
+     "ratio": 1.0439340223382958,
+     "prompts_above_1": 12,
+     "prompts": 16
+    }
+   },
+   "C-K6x/V-BF16": {
+    "p4_p15": {
+     "ratio": 0.8235197364122174,
+     "prompts_above_1": 0,
+     "prompts": 12
+    },
+    "all_p0_p15": {
+     "ratio": 0.7842168888389073,
+     "prompts_above_1": 0,
+     "prompts": 16
+    }
+   },
+   "C-K6x/V-K6": {
+    "p4_p15": {
+     "ratio": 0.8238159544390024,
+     "prompts_above_1": 0,
+     "prompts": 12
+    },
+    "all_p0_p15": {
+     "ratio": 0.7833921713621301,
+     "prompts_above_1": 0,
+     "prompts": 16
+    }
+   },
+   "C-K6/C-K6x": {
+    "p4_p15": {
+     "ratio": 1.2624662456554547,
+     "prompts_above_1": 12,
+     "prompts": 12
+    },
+    "all_p0_p15": {
+     "ratio": 1.330962994281631,
+     "prompts_above_1": 16,
+     "prompts": 16
+    }
+   },
+   "V-K6/V-BF16": {
+    "p4_p15": {
+     "ratio": 1.0021425155087216,
+     "prompts_above_1": 8,
+     "prompts": 12
+    },
+    "all_p0_p15": {
+     "ratio": 1.0029313784520035,
+     "prompts_above_1": 10,
+     "prompts": 16
+    }
+   }
+  }
+ }
+}

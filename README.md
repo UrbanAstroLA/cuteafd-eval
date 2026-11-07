@@ -37,13 +37,15 @@ v4.1.0, released after the run, was read in source, not run: no change to this G
   closer on both panels. [Three checkpoints](results/2026-10-30-cuteafd-v4/)
 - **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
   engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. [Tool calling](results/2026-11-02-tool-calling/)
-- **Thinking length and the 6-bit core (investigation, 2026-11-02/06):** On CuteAFD, K4-Core-K6's native 6-bit core
-  makes code replies think longer: 1.26x [1.24, 1.29] against the same checkpoint with its BF16 core (converted to FP8
-  at load), on 12 code prompts written for the test, every one of 16 prompts above 1, with hidden tests passing as often
-  (50 and 49 of 64). The routed experts contribute nothing measurable (0.99x [0.93, 1.05]); earlier, smaller runs pointed
-  the same way. On science-question reasoning neither thinking length nor the stop decision changes, on 41 questions and
-  both engines; a q_b + output-projection swap that moved the stop decision on 11 questions does not on 30 new ones. The
-  same code prompts and seeds on the vLLM fork (local loader modification, not a tpurtell release) are being run.
+- **Thinking length and the 6-bit core (investigation, 2026-11-02/06):** On code, K4-Core-K6's 6-bit core and the
+  original BF16 core think about as long on the vLLM fork (local loader modification, not a tpurtell release): 1.00x
+  [0.96, 1.04] on 12 code prompts written for the test. On CuteAFD the same prompts and seeds read 1.26x [1.24, 1.29]
+  against the BF16 core converted to FP8 at load, and the engines differ (0.79 [0.75, 0.83]). Set side by side (post
+  hoc), CuteAFD's native 6-bit core and both vLLM arms think about as long; CuteAFD's FP8-from-BF16 core thinks about a
+  fifth shorter, on all 16 prompts, with hidden tests passing as often. The routed experts contribute nothing measurable
+  (0.99x [0.93, 1.05]). On science-question reasoning neither thinking length nor the stop decision changes, on 41
+  questions and both engines; a q_b + output-projection swap that moved the stop decision on 11 questions does not on 30
+  new ones.
   Whether the core changes the loop rate is open. [Thinking length](results/2026-11-03-cuteafd-core-swap/) [vLLM part](results/2026-11-02-thinking-length/)
 
 **CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
@@ -295,8 +297,9 @@ Tables built from the published receipts; text and intervals per run in each run
 [`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling), and the investigation
 [`results/2026-11-02-thinking-length`](results/2026-11-02-thinking-length/) (thinking length and the 6-bit core, vLLM fork) and
 [`results/2026-11-03-cuteafd-core-swap`](results/2026-11-03-cuteafd-core-swap/) (the same question on CuteAFD: core or experts), with its
-follow-up [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking/) (16 code prompts; two exploratory follow-ups
-are listed under other runs). One machine, one model family, one
+follow-ups [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking/) (16 code prompts, CuteAFD) and
+[`results/2026-11-06-vllm-code-thinking`](results/2026-11-06-vllm-code-thinking/) (the same prompts on the vLLM fork; two
+exploratory follow-ups are listed under other runs). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket
