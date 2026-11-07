@@ -14,8 +14,8 @@ BF16 at load). Same 16 code prompts, 4 seeds, same seeds and cap (130,048) as th
 
 **Not detected.** One pair unpaired (p12 r0: V-BF16 hit the cap while looping).
 
-Engine comparison (vLLM log ratio minus CuteAFD log ratio, paired by prompt): primary **0.79 [0.75, 0.83]**; all 16
-0.75 [0.69, 0.81]. The interval excludes 1 below. Per PROTOCOL.md: **the CuteAFD code gap goes with CuteAFD's serving of
+Engine comparison, as a ratio of ratios (vLLM ratio / CuteAFD ratio = exp(vLLM log ratio - CuteAFD log ratio), paired by
+prompt): primary **0.79 [0.75, 0.83]**; all 16 0.75 [0.69, 0.81]. The interval excludes 1 below. Per PROTOCOL.md: **the CuteAFD code gap goes with CuteAFD's serving of
 the 6-bit core (native kernels, or its FP8-at-load reference), not the weight values alone.**
 
 ## Descriptive
@@ -24,15 +24,17 @@ the 6-bit core (native kernels, or its FP8-at-load reference), not the weight va
 
 ## Post hoc (not in the frozen rule): which CuteAFD arm differs
 `analysis/cross_engine.py` -> `analysis/cross_engine.json`.
-Cross-engine ratios on the same prompts and seeds (seeds do not give the same samples across engines, so this compares
-per-prompt means of 4 replies; descriptive only):
+Cross-engine ratios on the same prompts and seeds. Method: for each (prompt, rep) where both replies finished (finish_reason
+`stop`, not capped), log(reasoning tokens A / B); average within each prompt; average the prompt means; exp. Replies are
+matched by seed only to pair like with like: seeds do not reproduce samples across engines, so the unit is the prompt.
+Weighting each prompt equally makes V-K6 / V-BF16 1.0021 here against the frozen 1.0017 (which pools pairs). Descriptive only:
 | | p4-p15 | prompts above 1 | all 16 | prompts above 1 |
 |---|---|---|---|---|
 | C-K6 / V-K6 | 1.04 | 9 of 12 | 1.04 | 11 of 16 |
 | C-K6 / V-BF16 | 1.04 | 9 of 12 | 1.04 | 12 of 16 |
 | C-K6x / V-BF16 | 0.82 | 0 of 12 | 0.78 | 0 of 16 |
 | C-K6x / V-K6 | 0.82 | 0 of 12 | 0.78 | 0 of 16 |
-Medians: C-K6 63,732; V-K6 62,853; V-BF16 61,129; C-K6x 50,412. CuteAFD's native 6-bit core sits with both vLLM arms;
+Medians over finished replies: C-K6 63,732; V-K6 62,853; V-BF16 61,129; C-K6x 50,412. CuteAFD's native 6-bit core sits with both vLLM arms;
 CuteAFD's BF16 core converted to FP8 at load is the arm that thinks shorter, on every prompt. Its test pass rate is not
 lower (C-K6x 49, C-K6 50 of 64).
 

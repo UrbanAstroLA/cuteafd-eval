@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Post hoc (not in the frozen rule): each arm of this run against each arm of the CuteAFD code study, same prompts and
-seeds. Seeds do not give the same samples across engines, so this compares per-prompt means of log reasoning-token
-ratios over the 4 seeds; descriptive only. Standard library only.
+seeds. For each (prompt, rep) where both replies finished (finish_reason stop, not capped): log(reasoning tokens A / B);
+mean within each prompt; mean over prompts; exp. Matching by seed only pairs like with like (seeds do not reproduce
+samples across engines); each prompt weighs the same, so a same-engine contrast differs slightly from the frozen pooled
+estimate. Medians are over finished replies. Descriptive only. Standard library only.
     cross_engine.py --l <run>/l --cuteafd <ct-run>/l --out cross_engine.json"""
 import argparse, json, math, os, statistics as st
 

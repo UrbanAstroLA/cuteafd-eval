@@ -20,6 +20,9 @@ Results as of 2026-10-31; versions tested: CuteAFD v4.0.0 and v3.0.1, vLLM fork 
 
 > This README and the results site in `docs/` are generated from the files under `results/` by `tools/build_readme.py`
 > and `tools/build_site.py`. Each section below has a page of its own on the site.
+> For agents and scripts: [`docs/findings.json`](docs/findings.json) lists the Thinking length claims with their status,
+> value, interval and a JSON pointer into the file each comes from; [`docs/llms.txt`](docs/llms.txt) is a plain-text
+> orientation. `tools/verify.py` re-resolves every pointer and recomputes the code-study ratios from the per-reply tables.
 
 ## Findings
 
@@ -705,6 +708,7 @@ and the analysis. Adding a new engine version, arm or follow-up: [`iterations/`]
 python3 tools/verify.py          # manifests, published-copy hashes, labels, content scan
 python3 tools/build_readme.py    # rebuild this README and the run summaries from results/
 python3 tools/build_site.py      # rebuild the site in docs/
+python3 tools/build_findings.py  # docs/findings.json and docs/llms.txt
 ```
 
 The tools in `tools/` need Python 3.10+ and its standard library only; the scorers in `repro/stage0/scorers/` also
@@ -718,7 +722,7 @@ results/<date>-<run>/         RUN.json (kind, arms, slot status), README.md, MAN
 repro/                        REPRODUCE.md; stage0/ (drivers, scorers, capture plugin, prompt build); cuteafd/ (configs, patch, plan receipts); k4/ (K4 launch files);
                               vllm-k6-loader/ (local loader modification of the vLLM fork, not a tpurtell release)
 iterations/                   how a new iteration is frozen, run, exported and verified; TEMPLATE/
-tools/                        verify.py, build_readme.py, build_site.py (its charts: site_charts.py), README templates
+tools/                        verify.py, build_readme.py, build_site.py (its charts: site_charts.py), build_findings.py, README templates
 docs/                         the results site (GitHub Pages, served from main /docs), built by tools/build_site.py
 MANIFEST.json                 sha256 of every file in the repository
 ```

@@ -17,6 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 REPO_URL = "https://github.com/UrbanAstroLA/cuteafd-eval"          # the only absolute address the site assumes
+SITE_URL = "https://urbanastrola.github.io/cuteafd-eval"
 spec = importlib.util.spec_from_file_location("build_readme", ROOT / "tools" / "build_readme.py")
 B = importlib.util.module_from_spec(spec); spec.loader.exec_module(B)
 RUN, D = B.RUN, B.D
@@ -241,9 +242,13 @@ def page(name, title, lede, body, answer=True):
     lead = f'<div class="{"answer" if answer else "lede"}">{lede}</div>'
     doc = (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,'
            f'initial-scale=1"><meta name="color-scheme" content="light dark"><title>{E(title)} - cuteafd-eval</title>'
+           f'<link rel="alternate" type="application/json" title="Findings with source pointers" href="{SITE_URL}/findings.json">'
+           f'<link rel="help" type="text/plain" title="Orientation for agents" href="{SITE_URL}/llms.txt">'
            f'<style>\n{CSS}\n</style></head><body><nav aria-label="Pages"><span class="brand">cuteafd-eval</span>{nav}</nav><main>'
            f'<h1>{E(title)}</h1>{lead}\n{body}\n</main><footer><nav aria-label="Repository documents">'
-           f'{foot}</nav>Generated from the repository data by <code>tools/build_site.py</code>. Maintained by Michael M '
+           f'{foot}</nav>Machine-readable: <a href="{SITE_URL}/findings.json">findings.json</a> (claims with source pointers, checked by '
+           f'<code>tools/verify.py</code>) and <a href="{SITE_URL}/llms.txt">llms.txt</a> (orientation for agents). '
+           f'Generated from the repository data by <code>tools/build_site.py</code>. Maintained by Michael M '
            f'(UrbanAstroLA on GitHub, @UrbanAstroFella on X). Results CC BY 4.0, code Apache-2.0.</footer></body></html>\n')
     ids = re.findall(r'\bid="([^"]+)"', doc)
     dup = sorted({x for x in ids if ids.count(x) > 1})

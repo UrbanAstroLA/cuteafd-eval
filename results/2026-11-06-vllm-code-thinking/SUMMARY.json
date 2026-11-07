@@ -158,7 +158,7 @@
   }
  },
  "post_hoc_cross_engine": {
-  "source": "analysis/cross_engine.json (analysis/cross_engine.py; not in the frozen rule; per-prompt means over 4 seeds, seeds do not give the same samples across engines)",
+  "source": "analysis/cross_engine.json (analysis/cross_engine.py; not in the frozen rule). For each (prompt, rep) where both replies finished: log(reasoning tokens A / B); mean within each prompt; mean over prompts; exp. Seed matching only pairs like with like (seeds do not reproduce samples across engines). Medians over finished replies",
   "median_reasoning_tokens": {
    "V-K6": 62853.0,
    "V-BF16": 61129,

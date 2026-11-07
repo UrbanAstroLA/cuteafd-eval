@@ -564,7 +564,8 @@ def page_thinking(root, page, h2, gh, details):
             f"comparison reads {rr(cp['ratio'])}x {rci(*cp['ratio_ci95_prompts'])}, above 1 on all {cp['prompts']} prompts, and the two engines "
             f"differ ({rr(VE['primary_p4_p15']['vllm_over_cuteafd_ratio'])} {rci(*VE['primary_p4_p15']['ci95_prompts'])}). Set side by side, "
             f"three of the four configurations think about as long; the one that differs is CuteAFD's BF16-core configuration, which runs the "
-            f"core, the KDA projections, the vocabulary head and prefill activations in FP8: about {rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the others, shorter on all 16 prompts, with tests passing as often. "
+            f"core, the KDA projections, the vocabulary head and prefill activations in FP8: {rr(1 / cp['ratio'])}-{rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the other three "
+            f"on the 12 new prompts ({rr(XR['C-K6x/V-BF16']['all_p0_p15']['ratio'])}x over all 16), shorter on every prompt, with tests passing as often. "
             f"The routed experts contribute nothing measurable ({rr(exp_['ratio'])}x {rci(*exp_['ratio_ci95_prompts'])}). On GPQA reasoning "
             f"neither part changes thinking length or when the model decides to stop, now on {pool_q} questions on both engines; a swap of the "
             f"q_b and output projections that shifted the stop decision on the first 11 questions does not on {nq_q} new ones. Whether the core "
@@ -573,7 +574,8 @@ def page_thinking(root, page, h2, gh, details):
     conv = ('<p class="note">Direction, everywhere on this page except the vLLM per-group table: ratios put K4-Core-K6, or the part of it '
             "under test, first (above 1 = it thought longer); differences are K4-Core-K6's side minus the other (below 0 = it was less "
             "ready to stop). G4's published reading is stated the other way (BF16 / 6-bit = "
-            f"{pr['ratio']:.2f}); here it is {rr(g4r[0])}.</p>")
+            f"{pr['ratio']:.2f}); here it is {rr(g4r[0])}. Every claim on this page, with its status, value and a pointer into the file it "
+            'comes from, is in <a href="https://urbanastrola.github.io/cuteafd-eval/findings.json">findings.json</a>.</p>')
 
     glance = rich(
         "", "Each answer with the file it comes from. CuteAFD v4.0.0 and tpurtell's vLLM fork v0.9.2 (with a local loader modification), two RTX PRO 6000",
@@ -581,12 +583,12 @@ def page_thinking(root, page, h2, gh, details):
         [["Does the 6-bit core make code replies think longer?<small>6-bit core / BF16 core, same experts, 16 code prompts × 4 seeds, same seeds on both engines</small>",
           f"vLLM fork (both cores as BF16 matrices): <b>{rr(vcp['ratio'])}x</b> {rci(*vcp['ratio_ci95_prompts'])} on the {vcp['prompts']} new prompts. "
           f"{badge(False, no='not detected')} CuteAFD (BF16 core converted to FP8 at load): <b>{rr(cp['ratio'])}x</b> {rci(*cp['ratio_ci95_prompts'])}, "
-          f"above 1 on all {cp['prompts']}. {badge(True, yes='detected')} The engines differ: {rr(VE['primary_p4_p15']['vllm_over_cuteafd_ratio'])} "
+          f"above 1 on all {cp['prompts']}. {badge(True, yes='detected')} The engines differ: vLLM ratio / CuteAFD ratio {rr(VE['primary_p4_p15']['vllm_over_cuteafd_ratio'])} "
           f"{rci(*VE['primary_p4_p15']['ci95_prompts'])}",
           src(f"{VCD}/analysis/VCT-RESULT.json") + ", " + src(f"{CTD}/analysis/CT-RESULT.json")],
-         ["Which configuration thinks differently?<small>post hoc: each arm against the others, per-prompt means of 4 replies; median reasoning tokens</small>",
-          f"CuteAFD's FP8-from-BF16 core: {k(XM['C-K6x'])}, about {rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the vLLM BF16 core and shorter "
-          f"on all 16 prompts. The other three sit together: CuteAFD 6-bit {k(XM['C-K6'])}, vLLM 6-bit {k(XM['V-K6'])}, vLLM BF16 {k(XM['V-BF16'])}",
+         ["Which configuration thinks differently?<small>post hoc: each arm against the others (seed-matched log ratios, averaged within each prompt, then over prompts); median reasoning tokens of finished replies</small>",
+          f"CuteAFD's FP8-from-BF16 core: {k(XM['C-K6x'])}, {rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the vLLM BF16 core on the 12 new prompts "
+          f"({rr(XR['C-K6x/V-BF16']['all_p0_p15']['ratio'])}x over all 16), shorter on every prompt. The other three sit together: CuteAFD 6-bit {k(XM['C-K6'])}, vLLM 6-bit {k(XM['V-K6'])}, vLLM BF16 {k(XM['V-BF16'])}",
           src(f"{VCD}/analysis/cross_engine.json") + ", " + src(f"{VCD}/VCT-RESULT.md")],
          ["Does the length difference change the result?<small>replies passing all hidden tests</small>",
           f"No measurable change. CuteAFD: {CA['C-K6']['all_tests_pass']} (6-bit) and {CA['C-K6x']['all_tests_pass']} (FP8-from-BF16) of 64. vLLM fork: "
@@ -669,10 +671,10 @@ def page_thinking(root, page, h2, gh, details):
                    "code " + ", ".join(rr(c_["per_prompt"][f"code-p{i}"]) for i in range(4)) + "; prose " + ", ".join(rr(c_["per_prompt"][f"prose-p{i}"]) for i in range(4))])
     for nm, c_ in (("Code study, 6-bit / BF16→FP8, 12 new prompts (primary)", cp), ("Code study, all 16 prompts", call), ("Code study, 4 Block L prompts", cbl)):
         t1.append([nm, "code", str(c_["pairs"]), f"{rr(c_['ratio'])}x", rci(*c_["ratio_ci95_prompts"]), rci(*c_["ratio_ci95_pairs"]),
-                   ", ".join(rr(v) for _, v in sorted(c_["per_prompt"].items(), key=lambda kv: int(kv[0][1:])))])
+                   ", ".join(f"{p_} {rr(v)}" for p_, v in sorted(c_["per_prompt"].items(), key=lambda kv: int(kv[0][1:])))])
     for nm, c_ in (("vLLM code study, 6-bit / BF16, 12 new prompts (primary)", vcp), ("vLLM code study, all 16 prompts", vcall), ("vLLM code study, 4 Block L prompts", vcbl)):
         t1.append([nm, "code", str(c_["pairs"]), f"{rr(c_['ratio'])}x", rci(*c_["ratio_ci95_prompts"]), rci(*c_["ratio_ci95_pairs"]),
-                   ", ".join(rr(v) for _, v in sorted(c_["per_prompt"].items(), key=lambda kv: int(kv[0][1:])))])
+                   ", ".join(f"{p_} {rr(v)}" for p_, v in sorted(c_["per_prompt"].items(), key=lambda kv: int(kv[0][1:])))])
     t1.append(["vLLM G4 (frozen), 6-bit / BF16", "GPQA q12", "12 seed pairs", f"{rr(g4r[0])}x", rci(g4r[1], g4r[2]), "—", "one question"])
     t1.append(["vLLM G4 finished only (post hoc)", "GPQA q12", "11 vs 12", f"{rr(g4f[0])}x", rci(g4f[1], g4f[2]), "—", "one question"])
     tab1 = rich("", "", ["Measurement", "Content", "Pairs", "Ratio", "95% interval, prompts", "95% interval, pairs", "Per prompt"], t1)
@@ -757,7 +759,7 @@ def page_thinking(root, page, h2, gh, details):
            f"the engines differ ({rr(VE['primary_p4_p15']['vllm_over_cuteafd_ratio'])} {rci(*VE['primary_p4_p15']['ci95_prompts'])}), which by the "
            "rule stated before the run places the CuteAFD gap in how CuteAFD serves the core, not in the weight values. Post hoc, the arm that "
            f"stands apart is CuteAFD's BF16 core converted to FP8 at load ({k(XM['C-K6x'])} median reasoning tokens, about "
-           f"{rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the vLLM BF16 core, shorter on all 16 prompts); CuteAFD's native 6-bit core sits with both "
+           f"{rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the vLLM BF16 core on the 12 new prompts, shorter on all 16); CuteAFD's native 6-bit core sits with both "
            f"vLLM arms ({rr(XR['C-K6/V-BF16']['p4_p15']['ratio'])}x the vLLM BF16 core). So this page's earlier “the 6-bit core thinks longer on "
            "code” is better read as “the FP8-from-BF16 core thinks shorter”. That arm differs in more than the core's rounding: CuteAFD's "
            "source and launch logs show that with a BF16 core the launcher's automatic settings also put the 34 KDA layers' projections "
@@ -831,7 +833,7 @@ def page_thinking(root, page, h2, gh, details):
                 f"{a_['all_tests_pass']} of {a_['requests']}", f"{a_['mean_share_tests_passed']:.3f}", f"{a_['median_decode_tok_s']:.0f}",
                 str(a_["finished_with_terminal_repetition_onset"])]
     code_t = rich("", f"16 code prompts × 4 seeds per arm, the same seeds on all four arms; cap 130,048 tokens, 2 in flight, thinking on. CuteAFD v4.0.0 (the core-swap serving configs); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification)",
-                  ["Arm", "Finished", "Reasoning tokens, median", "All tests pass", "Share of tests passed", "Decode tok/s, median", "Ends by restating earlier text"],
+                  ["Arm", "Finished", "Reasoning tokens, median of finished", "All tests pass", "Share of tests passed", "Decode tok/s, median", "Ends by restating earlier text"],
                   [crow("CuteAFD, 6-bit core", "C-K6 · " + hf(*revs["K4-Core-K6"]), "C-K6"),
                    crow("CuteAFD, BF16 core → FP8 at load", "C-K6x · local derived checkpoint, not a producer release", "C-K6x"),
                    vrow("vLLM fork, 6-bit core rebuilt to BF16 at load", "V-K6 · same checkpoint", "V-K6"),
@@ -845,8 +847,10 @@ def page_thinking(root, page, h2, gh, details):
                        + src(f"{CTD}/analysis/samples.csv") + "; vLLM fork: " + src(f"{VCD}/VCT-RESULT.md") + ", " + src(f"{VCD}/analysis/samples.csv")
                        + "; prompts: " + gh(f"{CTD}/prompts", "<code>prompts/</code>") + ". All-tests-pass on the vLLM fork counts finished replies "
                        "(one BF16 reply looped to the cap).")
-    xt = rich("", "Post hoc, not part of either frozen rule: each arm against each other arm on the same prompts and seeds. Seeds do not give the same "
-              "samples across engines, so each prompt contributes the mean log ratio over its 4 replies.",
+    xt = rich("", "Post hoc, not part of either frozen rule: each arm against each other arm on the same prompts and seeds. For each prompt, the mean "
+              "of the seed-matched log ratios over its finished replies; then the mean over prompts. Seeds do not reproduce samples across engines, "
+              "so seed matching only pairs like with like and the prompt is the unit; weighting prompts equally gives V-K6 / V-BF16 a hair above the "
+              "frozen pooled value.",
               ["Ratio", "12 new prompts", "Prompts above 1", "All 16", "Prompts above 1"],
               [[f"{x_} / {y_}", f"{rr(XR[f'{x_}/{y_}']['p4_p15']['ratio'])}x", f"{XR[f'{x_}/{y_}']['p4_p15']['prompts_above_1']} of 12",
                 f"{rr(XR[f'{x_}/{y_}']['all_p0_p15']['ratio'])}x", f"{XR[f'{x_}/{y_}']['all_p0_p15']['prompts_above_1']} of 16"]
@@ -854,7 +858,7 @@ def page_thinking(root, page, h2, gh, details):
               foot="Source: " + src(f"{VCD}/analysis/cross_engine.json") + " (" + src(f"{VCD}/analysis/cross_engine.py") + ").")
     code_note = ("<p>Per prompt, CuteAFD (6-bit / BF16→FP8): " + ", ".join(f"p{i} {rr(call['per_prompt'][f'p{i}'])}" for i in range(16))
                  + ". vLLM fork (6-bit / BF16): " + ", ".join(f"p{i} {rr(vcall['per_prompt'][f'p{i}'])}" for i in range(16)) + ". Frozen "
-                 f"engine comparison (vLLM log ratio minus CuteAFD log ratio, by prompt): {rr(VE['primary_p4_p15']['vllm_over_cuteafd_ratio'])} "
+                 f"engine comparison (vLLM ratio / CuteAFD ratio, i.e. exp of the vLLM log ratio minus the CuteAFD log ratio, paired by prompt): {rr(VE['primary_p4_p15']['vllm_over_cuteafd_ratio'])} "
                  f"{rci(*VE['primary_p4_p15']['ci95_prompts'])} on the 12 new prompts, {rr(VE['all_p0_p15']['vllm_over_cuteafd_ratio'])} "
                  f"{rci(*VE['all_p0_p15']['ci95_prompts'])} on all 16. The table below sets every arm against every other.</p>") + xt
     BN = ["0-1024", "1024-4096", "4096-16384", "16384-65536", "65536-1073741824"]
@@ -1046,7 +1050,7 @@ def page_thinking(root, page, h2, gh, details):
     caveat = ("<ul><li>Two engines, one machine. The vLLM loader rounds the 6-bit core once from exact arithmetic; CuteAFD runs it natively and the "
               "producer's own rebuild rounds at FP16 between stages (15.8% of elements differ, 2.4% by more than one BF16 unit). CuteAFD's “BF16 "
               "core” is BF16 converted to FP8 at load; the vLLM fork's is BF16. The cross-engine comparison of absolute lengths is post hoc and "
-              "compares per-prompt means, since seeds do not reproduce samples across engines.</li>"
+              "averages within each prompt before averaging prompts, since seeds do not reproduce samples across engines.</li>"
               "<li>The routed experts are compared as two whole quantizations (K4-Core-K6's and K4's), not tensor by tensor; the derived "
               "checkpoint is a local build, not a producer release.</li>"
               "<li>Free generation on CuteAFD covers 8 prompts (4 code, 4 prose), 4 replies per prompt per arm; the Block L ratio that raised "

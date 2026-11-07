@@ -171,6 +171,64 @@ def check_runs():
     return kinds
 
 
+def check_findings():
+    """docs/findings.json: every pointer resolves to the recorded value, every file and page anchor exists, and the
+    entries that carry 'recompute' match a recomputation from the published per-reply tables."""
+    import csv, math, statistics
+    fp = ROOT / "docs" / "findings.json"
+    if not fp.exists(): fails.append("docs/findings.json missing"); return 0
+    doc = json.loads(fp.read_text()); cache = {}
+    def at(file, pointer):
+        if file not in cache: cache[file] = json.loads((ROOT / file).read_text())
+        v = cache[file]
+        for part in pointer.lstrip("/").split("/"):
+            part = part.replace("~1", "/").replace("~0", "~")
+            v = v[int(part)] if isinstance(v, list) else v[part]
+        return v
+    def rows(file):
+        with open(ROOT / file, newline="") as f: return list(csv.DictReader(f))
+    def ok(r): return r["finish_reason"] == "stop" and r["hit_cap"] == "False" and int(r["reasoning_tokens"] or 0) > 0
+    def logs(ra, a, rb, b, prompts):
+        A = {(int(r["prompt"]), int(r["rep"])): r for r in ra if r["arm"] == a}
+        B = {(int(r["prompt"]), int(r["rep"])): r for r in rb if r["arm"] == b}
+        by = {}
+        for k, r in A.items():
+            if k[0] in prompts and k in B and ok(r) and ok(B[k]):
+                by.setdefault(k[0], []).append(math.log(int(r["reasoning_tokens"]) / int(B[k]["reasoning_tokens"])))
+        return by
+    for f in doc["findings"]:
+        fid = f["id"]
+        for e in f.get("evidence", []):
+            if not (ROOT / e["file"]).is_file(): fails.append(f"findings {fid}: file missing {e['file']}"); continue
+            if "pointer" in e:
+                try: v = at(e["file"], e["pointer"])
+                except (KeyError, IndexError, ValueError): fails.append(f"findings {fid}: pointer does not resolve {e['file']}#{e['pointer']}"); continue
+                if v != e["value"]: fails.append(f"findings {fid}: {e['file']}#{e['pointer']} is {v!r}, findings.json says {e['value']!r}")
+        for d in f.get("data", []):
+            if not (ROOT / d).is_file(): fails.append(f"findings {fid}: data file missing {d}")
+        page, _, frag = f["page"].rpartition("/")[2].partition("#")
+        html = (ROOT / "docs" / page).read_text() if (ROOT / "docs" / page).exists() else None
+        if html is None or (frag and f'id="{frag}"' not in html): fails.append(f"findings {fid}: page anchor missing {f['page']}")
+        rc = f.get("recompute")
+        if not rc: continue
+        if rc["kind"] == "seed_paired_ratio":
+            rr = rows(rc["data"]); by = logs(rr, rc["a"], rr, rc["b"], set(rc["prompts"]))
+            got = math.exp(statistics.mean(x for v in by.values() for x in v))
+        elif rc["kind"] == "cross_engine_ratio":
+            by = logs(rows(rc["data_a"]), rc["a"], rows(rc["data_b"]), rc["b"], set(rc["prompts"]))
+            got = math.exp(statistics.mean(statistics.mean(v) for v in by.values()))
+        elif rc["kind"] == "count_all_pass":
+            allr = [r for d in rc["data"] for r in rows(d)]
+            got = {arm: sum(r["all_tests_pass"] == "True" and (arm.startswith("C-") or ok(r)) for r in allr if r["arm"] == arm)
+                   for arm in f["result"]["value"]}
+            if got != f["result"]["value"]: fails.append(f"findings {fid}: recomputed {got}, findings.json says {f['result']['value']}")
+            continue
+        else:
+            fails.append(f"findings {fid}: unknown recompute kind {rc['kind']}"); continue
+        if abs(got - f["result"]["value"]) > 1e-9: fails.append(f"findings {fid}: recomputed {got:.6f} from {rc.get('data') or rc.get('data_a')}, findings.json says {f['result']['value']:.6f}")
+    return len(doc["findings"])
+
+
 def check_readme_links(kinds):
     t = (ROOT / "README.md").read_text()
     a, b = t.find("<!-- results:start -->"), t.find("<!-- results:end -->")
@@ -212,11 +270,11 @@ def main(argv):
         if mp.exists(): n += check_manifest(mp)
         else: fails.append(f"{rel(mp)} missing")
     pages = check_site(); check_hashes()
-    kinds = check_runs(); check_readme_links(kinds); check_tails()
+    kinds = check_runs(); check_readme_links(kinds); check_tails(); nf = check_findings()
     files = len(files_under(ROOT)); hits = scan()
     if not quiet:
         print(f"self-test: {len(SELF_TEST)} cases; site pages: {pages}; manifests: {1 + len(list((ROOT / 'results').glob('*/MANIFEST.json')))} ({n} entries); files scanned: {files}; "
-              f"runs: {', '.join(f'{k} ({v})' for k, v in kinds.items())}; content hits: {hits}")
+              f"findings checked: {nf}; runs: {', '.join(f'{k} ({v})' for k, v in kinds.items())}; content hits: {hits}")
     for f in fails: print("FAIL", f)
     print("OK" if not fails else f"{len(fails)} failure(s)")
     return 1 if fails else 0
