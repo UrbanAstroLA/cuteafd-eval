@@ -220,7 +220,7 @@ def page_checkpoints(S, page, h2, gh, details):
             h2("k4-vs-k6", "K4 and K4-Core-K6") +
             "<p>Same 4-bit expert budget, different producer, calibration and core. On the panel drawn from brandonmusic's corpus they tie "
             "on average, with K4 closer on legal and reasoning-termination text. On tpurtell's set K4-Core-K6 is closer. K4-Core-K6 also "
-            "leaves 16% more room for context and runs 5-15% slower (a later rerun puts the decode slowdown in its 6-bit core). On code, its 6-bit core and the original BF16 core think about as long on the vLLM fork (1.00x on 12 code prompts) and with CuteAFD's native 6-bit kernels; CuteAFD's BF16 core converted to FP8 at load thinks about a fifth shorter, with tests passing as often, a difference that goes with its KDA launch setting (FP8 KDA projections with KDA output sharding); the routed experts add nothing measurable (<a href=\"thinking.html\">Thinking length</a>).</p>" + k6k4 +
+            "leaves 16% more room for context and runs 5-15% slower (a later rerun puts the decode slowdown in its 6-bit core). On code, its 6-bit core and the original BF16 core think about as long on the vLLM fork (1.00x on 12 code prompts) and with CuteAFD's native 6-bit kernels; CuteAFD's BF16 core converted to FP8 at load thinks about a fifth shorter, a difference that goes with its KDA launch setting (FP8 KDA projections with KDA output sharding, the launcher's default for a BF16 core), with tests passing as often as the native core; the routed experts add nothing measurable (<a href=\"thinking.html\">Thinking length</a>).</p>" + k6k4 +
             h2("k4-vs-k325", "K4 and K3.25") + k4k325 +
             h2("measures", "Measures") + measures +
             f'<p class="sign">Numbers: {gh(f"{RD}/SUMMARY.json", "<code>SUMMARY.json</code>")}; engine results on '
@@ -565,14 +565,22 @@ def page_thinking(root, page, h2, gh, details):
     fstep = lambda c_: f"{rr(c_['ratio'])}x {rci(*c_['ratio_ci95_prompts'])}"
     finv = lambda c_: f"{rr(1 / c_['ratio'])}x {rci(1 / c_['ratio_ci95_prompts'][1], 1 / c_['ratio_ci95_prompts'][0])}"
     fkda, fhead, fpre = FC["F-kda / C-K6x"], FC["F-head / F-kda"], FC["F-pre / F-head"]
+    PPC = FA["post_hoc_pass_pairs_across_arms"]["contrasts"]
+    def pp(c_):
+        d = PPC[c_]["all_pass_difference"]
+        return f"{d['mean'] * 100:+.0f} points [{d['ci95_prompts'][0] * 100:+.0f}, {d['ci95_prompts'][1] * 100:+.0f}]"
+    PPN = len(PPC); PPX = sum(v["all_pass_difference"]["excludes_0"] for v in PPC.values())
+    DESIGN = ('<a href="https://github.com/tpurtell/cuteafd/blob/v4.0.0/scripts/launch/run-family.sh#L2337-L2351">launcher comment</a>, '
+              '<a href="https://github.com/tpurtell/cuteafd/blob/v4.0.0/docs/models/glm5_flash.md#default-precision-single-residency">model notes</a>, '
+              '<a href="https://github.com/tpurtell/cuteafd/blob/v4.0.0/rust/crates/cuteafd-daemon/src/families/glm5_flash/mod.rs#L189-L197"><code>--kda-fp8</code> option text</a>')
 
     lede = (f"<p>On code, K4-Core-K6's 6-bit core and the original BF16 core give the same thinking length on the vLLM fork "
             f"({rr(vcp['ratio'])}x {rci(*vcp['ratio_ci95_prompts'])} on 12 code prompts written for the test). On CuteAFD v4.0.0 the same "
             f"comparison reads {rr(cp['ratio'])}x {rci(*cp['ratio_ci95_prompts'])}, above 1 on all {cp['prompts']} prompts, and the two engines "
             f"differ ({rr(VE['primary_p4_p15']['vllm_over_cuteafd_ratio'])} {rci(*VE['primary_p4_p15']['ci95_prompts'])}). Set side by side, "
             f"three of the four configurations think about as long; the one that differs is CuteAFD's BF16-core configuration, which runs the "
-            f"core, the KDA projections, the vocabulary head and prefill activations in FP8: {rr(1 / cp['ratio'])}-{rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the other three "
-            f"on the 12 new prompts ({rr(XR['C-K6x/V-BF16']['all_p0_p15']['ratio'])}x over all 16), shorter on every prompt, with tests passing as often. "
+            f"core, the KDA projections, the vocabulary head and prefill activations in FP8 (the launcher's defaults for a BF16 core): {rr(1 / cp['ratio'])}-{rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the other three "
+            f"on the 12 new prompts ({rr(XR['C-K6x/V-BF16']['all_p0_p15']['ratio'])}x over all 16), shorter on every prompt, with tests passing as often as the native 6-bit core. "
             f"Switching that configuration's FP8 launch settings off cumulatively places the difference in the KDA setting: with the KDA "
             f"projections in BF16 (on this two-GPU layout that also turns off KDA output sharding, which v4 runs only with FP8 KDA) it thinks {fstep(fkda)} longer and is not distinguishable from the native 6-bit core (native core / BF16-KDA arm "
             f"{finv(FC['F-kda / C-K6'])}, interval includes 1); the FP8 vocabulary head and FP8 prefill activations show no step. "
@@ -606,10 +614,11 @@ def page_thinking(root, page, h2, gh, details):
           f"the gap to the native 6-bit core closes (native / F-kda {finv(FC['F-kda / C-K6'])}, interval includes 1)",
           src(f"{FAD}/analysis/FA-RESULT.json") + ", " + src(f"{FAD}/FA-RESULT.md")],
          ["Does the length difference change the result?<small>replies passing all hidden tests</small>",
-          f"No measurable change. CuteAFD: {CA['C-K6']['all_tests_pass']} (6-bit) and {CA['C-K6x']['all_tests_pass']} (FP8-from-BF16) of 64. vLLM fork: "
+          f"Not between the two CuteAFD cores: {CA['C-K6']['all_tests_pass']} (6-bit) and {CA['C-K6x']['all_tests_pass']} (FP8-from-BF16) of 64, "
+          f"paired {pp('C-K6 vs C-K6x')}. vLLM fork: "
           f"{VA['V-K6']['all_tests_pass_of_finished']} of {VA['V-K6']['finished']} and {VA['V-BF16']['all_tests_pass_of_finished']} of "
-          f"{VA['V-BF16']['finished']} finished; share of tests passed {VA['V-K6']['mean_share_tests_passed']:.3f} and {VA['V-BF16']['mean_share_tests_passed']:.3f}",
-          src(f"{CTD}/analysis/samples.csv") + ", " + src(f"{VCD}/analysis/samples.csv")],
+          f"{VA['V-BF16']['finished']} finished, paired {pp('V-BF16 vs V-K6')}. Post hoc across arms: the arms with CuteAFD's FP8 settings off pass more often (FP8 section); passing does not follow length.",
+          src(f"{CTD}/analysis/samples.csv") + ", " + src(f"{VCD}/analysis/samples.csv") + ", " + src(f"{FAD}/analysis/PASS-PAIRS.json")],
          ["Is it the routed experts?<small>K4-Core-K6's experts / K4's, same core bytes, 8 prompts</small>",
           f"<b>{rr(exp_['ratio'])}x</b> {rci(*exp_['ratio_ci95_prompts'])}: no measurable contribution", src(f"{CSD}/analysis/S1-RESULT.json")],
          ["Did K4-Core-K6 think longer than K4 on CuteAFD?<small>reasoning tokens, seed-paired, 4 code and 4 prose prompts</small>",
@@ -776,18 +785,25 @@ def page_thinking(root, page, h2, gh, details):
            f"stands apart is CuteAFD's BF16 core converted to FP8 at load ({k(XM['C-K6x'])} median reasoning tokens, about "
            f"{rr(XR['C-K6x/V-BF16']['p4_p15']['ratio'])}x the vLLM BF16 core on the 12 new prompts, shorter on all 16); CuteAFD's native 6-bit core sits with both "
            f"vLLM arms ({rr(XR['C-K6/V-BF16']['p4_p15']['ratio'])}x the vLLM BF16 core). So this page's earlier “the 6-bit core thinks longer on "
-           "code” is better read as “the FP8-from-BF16 core thinks shorter”. That arm differs in more than the core's rounding: CuteAFD's "
-           "source and launch logs show that with a BF16 core the launcher's automatic settings also put the 34 KDA layers' projections "
+           "code” is better read as “the FP8-from-BF16 core thinks shorter”. That arm differs in more than the core's rounding: by the "
+           "launcher's defaults, with a BF16 core it also puts the 34 KDA layers' projections "
            "(including three gate projections that are BF16 in both checkpoints) and the vocabulary head in FP8, and prefill runs the MLA and "
            "MLP projections with FP8 activations; with the native 6-bit core these stay on the 6-bit kernels or in BF16 ("
-           + src(f"{VCD}/CUTEAFD-FP8-PATH.md") + "). K4 is served the FP8 way as well. Switching the three settings off cumulatively "
+           + src(f"{VCD}/CUTEAFD-FP8-PATH.md") + "). The engine's author states the reasons (decode speed and pool size; "
+           "output sharding to avoid rounding the two GPUs' partial outputs) and checks them on teacher-forced top-1 and KL (" + DESIGN + "; "
+           "the model notes and option text describe BF16 KDA as the two-GPU default, so the documents differ). This study measures free "
+           "generation of long reasoning with speculative decoding. K4 is served the FP8 way as well. Switching the three settings off cumulatively "
            f"puts the whole difference in the KDA setting, which switches the KDA projections to BF16 and, on this two-GPU layout, KDA output "
            f"sharding off ({fstep(fkda)}; head and prefill no step; section below).</li>"
-           f"<li><b>The length difference does not change the outcome.</b> On CuteAFD hidden tests pass on {CA['C-K6']['all_tests_pass']} and "
+           f"<li><b>The shorter reasoning is not shown to cost correctness.</b> On CuteAFD hidden tests pass on {CA['C-K6']['all_tests_pass']} and "
            f"{CA['C-K6x']['all_tests_pass']} of {CA['C-K6']['requests']} replies (the arms agree on all-pass in "
            f"{CT['pairs_agree_on_all_tests_pass'][0]} of {CT['pairs_agree_on_all_tests_pass'][1]} pairs); on the vLLM fork "
            f"{VA['V-K6']['all_tests_pass_of_finished']} and {VA['V-BF16']['all_tests_pass_of_finished']}. The FP8-from-BF16 core reaches the same "
-           "results with about a fifth less reasoning on these prompts.</li>"
+           "results as the native core with about a fifth less reasoning on these prompts. Post hoc, the arms with CuteAFD's FP8 "
+           f"settings switched off and the vLLM BF16 core pass all tests more often than both CuteAFD code-study arms (vLLM BF16 core against "
+           f"the FP8-from-BF16 core {pp('V-BF16 vs C-K6x')}); after allowing for {PPN} looks only the arm with all three settings off still "
+           f"differs. The native core, which has none of those settings, passes about as often as the FP8-from-BF16 core, so this is not read as "
+           "“FP8 costs passes” (<a href=\"#fp8\">FP8 section</a>).</li>"
            f"<li><b>The routed experts are ruled out at this resolution.</b> {rr(exp_['ratio'])}x {rci(*exp_['ratio_ci95_prompts'])}; the total "
            f"is the core times the experts ({rr(core['ratio'])} × {rr(exp_['ratio'])} ≈ {rr(tot['ratio'])}).</li>"
            f"<li><b>It is tied to code, not to reasoning in general.</b> On GPQA reasoning no length difference shows (Block L reasoning "
@@ -912,17 +928,42 @@ def page_thinking(root, page, h2, gh, details):
                f"<li><b>Tests and speed (descriptive).</b> All tests pass on {FP['F-kda']['all_tests_pass_of_finished']} of {FP['F-kda']['finished']}, "
                f"{FP['F-head']['all_tests_pass_of_finished']} of {FP['F-head']['finished']} and {FP['F-pre']['all_tests_pass_of_finished']} of "
                f"{FP['F-pre']['finished']} finished replies of the F arms against {FP['C-K6x']['all_tests_pass_of_finished']} of 64 (C-K6x) and "
-               f"{FP['C-K6']['all_tests_pass_of_finished']} of 64 (C-K6); post hoc, pairs where only one side passes: F-kda {PT['F-kda vs C-K6x']['only_first_passes']} "
+               f"{FP['C-K6']['all_tests_pass_of_finished']} of 64 (C-K6); post hoc, over all 64 pairs, pairs where only one side passes: F-kda {PT['F-kda vs C-K6x']['only_first_passes']} "
                f"to C-K6x {PT['F-kda vs C-K6x']['only_second_passes']}, F-pre {PT['F-pre vs C-K6']['only_first_passes']} to C-K6 {PT['F-pre vs C-K6']['only_second_passes']}. "
-               "The mean share of tests passed is close on every arm; not part of the frozen rule and not read as a correctness effect. Decode "
+               f"Pairing only finished replies across every contrast looked at ({PPN}; {src(f'{FAD}/analysis/PASS-PAIRS.json')}): every F arm and "
+               f"the vLLM BF16 core pass more often than both code-study arms; {PPX} of {PPN} intervals exclude 0, all that way (F-kda against "
+               f"C-K6x {pp('F-kda vs C-K6x')}, F-pre against C-K6 {pp('F-pre vs C-K6')}), and allowing for {PPN} looks only F-pre against both "
+               "code-study arms. The F arms ran a day after the C arms (a replayed request was identical) and the vLLM arm is another engine. "
+               f"Passing does not follow length: C-K6 and C-K6x differ by a fifth in reasoning and pass equally often ({pp('C-K6 vs C-K6x')}); "
+               "F-pre and C-K6 think about as long and differ most. The share of tests passed moves by up to about 4 points. Not part of the "
+               "frozen rule. Decode "
                f"speed drops from {FP['C-K6x']['median_decode_tok_s']:.0f} to {FP['F-kda']['median_decode_tok_s']:.0f} tok/s with the KDA "
                f"projections in BF16 and to {FP['F-pre']['median_decode_tok_s']:.0f} with all three off; the KV pool at launch shrinks from "
                f"{KP['F-ctrl'] / 1e6:.2f}M tokens to {KP['F-kda'] / 1e6:.2f}M (KDA in BF16) and {KP['F-head'] / 1e6:.2f}M (KDA and head).</li>"
                "<li><b>Earlier, on K4.</b> In follow-up F1-K4b the BF16 KDA projections were the largest single switch toward the vLLM "
                "fork's precision on long code reading (8-16K tokens), and did not fit a serving launch with K4's experts ("
                + src("results/2026-10-27-k4-vllm-cuteafd/f1k4/RESULTS-F1K4b.md") + ").</li>"
+               "<li><b>These are the launcher's defaults, with the author's stated reasons.</b> The " + DESIGN + " give them: row128 "
+               "KDA (FP8 with one scale per row and 128 input columns) and an FP8 head for decode speed and pool size, checked on 512 "
+               "teacher-forced positions (top-1, KL); on the two-GPU split, KDA output sharding, added because it avoids rounding the two GPUs' "
+               "half-width BF16 partial outputs. The model notes state that the speculation check does not establish byte-identical "
+               "speculative output; the option text, that row128 doubles the rounding difference between verify steps (several drafted "
+               "tokens checked at once) and single-token decode. The model notes and option text describe BF16 KDA as the default on the "
+               "two-GPU split; the launcher comment and every launch here use row128 (the " + "<a href=\"audit.html#narrowed-a-statement-went-beyond-the-evidence\">v3.0.1 audit, U2</a>" + " noted the same "
+               "difference). This run measures free generation of long reasoning with the drafter (the speculative-decoding draft model) on.</li>"
+               "<li><b>Where in the engine (judgement from source and measurements, not isolated by its own run).</b> Most likely on the "
+               "generation path (decode and speculative verify); prefill is not excluded. Prompts are 1,155-1,758 tokens against medians of "
+               "50-68K reasoning tokens. Speculative verify steps run on the decode programs, which read the FP8 KDA copies, and KDA output "
+               "sharding is not limited to prefill (<a href=\"https://github.com/tpurtell/cuteafd/blob/v4.0.0/rust/crates/cuteafd-daemon/src/families/glm5_flash/engine.rs#L4660\"><code>engine.rs:4660</code></a>, "
+               "<a href=\"https://github.com/tpurtell/cuteafd/blob/v4.0.0/rust/crates/cuteafd-daemon/src/families/glm5_flash/engine.rs#L3844-L3847\"><code>:3844-3847</code></a>, "
+               "<a href=\"https://github.com/tpurtell/cuteafd/blob/v4.0.0/rust/crates/cuteafd-daemon/src/families/glm5_flash/engine.rs#L4666-L4695\"><code>:4666-4695</code></a>). Not excluded: the "
+               "setting also changes the KDA projections in prefill, and the recurrent state the prompt leaves seeds every later token. The "
+               "prefill-activation switch covers the MLA and MLP activations, not the KDA projections, so it does not bear on this. The teacher-forced results on this page (stop decision, KL) run through the prefill programs on GPQA traces and do "
+               "not measure this path on code. Not separated: KDA in prefill against generation, and plain decode against speculative "
+               "verify, which take different KDA kernels with FP8 KDA.</li>"
                "<li><b>What the KDA setting covers.</b> One FP8 operand (E4M3, one scale per row and 128 input columns, power-of-two scales) packs "
-               "q, k, v and the f_a, g_a and b projections of the 34 KDA layers; the last three are BF16 in both checkpoints. The launcher's "
+               "q, k, v and the f_a, g_a and b projections of the 34 KDA layers (the last three are BF16 in both checkpoints); the KDA output "
+               "projection is its own FP8 operand in the same setting. The launcher's "
                "automatic setting selects it for a checkpoint without a native KDA format, including K4 (" + src(f"{VCD}/CUTEAFD-FP8-PATH.md") + "). "
                "On a two-GPU head split the automatic setting also adds token-row KDA output ownership (<code>--kda-output-shard "
                "--kda-prefill-expanded</code>), which v4 accepts only with FP8 KDA; with KDA in BF16 the layers reduce the two GPUs' partial "
@@ -931,10 +972,11 @@ def page_thinking(root, page, h2, gh, details):
                "runs without that sharding too (<a href=\"https://github.com/tpurtell/cuteafd/blob/v4.0.0/rust/crates/cuteafd-daemon/src/families/glm5_flash/mod.rs#L1716-L1722\"><code>mod.rs:1716-1722</code></a>). "
                "So the F-kda step "
                "changes the KDA weights' format and the KDA split path together; which of the two goes with the length is not separated. "
-               "The independent review of the v3.0.1 comparison raised the same point for its precision follow-up (<a href=\"audit.html\">audit</a>).</li>"
-               "<li><b>MLA projections, including q_b and o_proj.</b> They stay FP8 in every F arm, while the native core runs them as 6-bit, and "
+               "The independent review of the v3.0.1 comparison raised the same point for its precision follow-up (<a href=\"audit.html#narrowed-a-statement-went-beyond-the-evidence\">v3.0.1 audit, U2</a>).</li>"
+               "<li><b>MLA projections, including MLA q_b and o_proj.</b> They stay FP8 in every F arm, while the native core runs them as 6-bit, and "
                f"the gap still closes at F-kda (native / F-kda {finv(FC['F-kda / C-K6'])}): on code length, FP8 MLA projections show no measurable "
-               "shortening at this resolution. Their effect on the stop decision was tested on the vLLM fork (<a href=\"#stop-decision\">G2 and its follow-up</a>).</li></ul>")
+               "shortening at this resolution. Their effect on the stop decision was tested on the vLLM fork (<a href=\"#stop-decision\">G2 and its follow-up</a>), "
+               "where the swapped group also included the KDA output projections, which on CuteAFD belong to the KDA setting.</li></ul>")
     BN = ["0-1024", "1024-4096", "4096-16384", "16384-65536", "65536-1073741824"]
     BL_ = ["0-1K", "1K-4K", "4K-16K", "16K-64K", "64K+"]
     def prow(lab, d):
@@ -1117,7 +1159,12 @@ def page_thinking(root, page, h2, gh, details):
 
     openq = ("<ul><li><b>What inside the KDA setting?</b> Measured: the setting carries the difference (section above). Not separated: the KDA "
              "projections' FP8 format against the KDA split path that comes with it on two GPUs (output sharding), the power-of-two scale "
-             "rule, and which of the packed projections (q, k, v, or the f_a, g_a and b gate projections) matter.</li>"
+             "rule, which projections (q, k, v, the f_a, g_a and b gate projections, or the KDA output projection) matter, and where it acts: "
+             "KDA in prefill, plain decode or the speculative verify step (judged most likely the generation path).</li>"
+             f"<li><b>Does precision change how often code passes its tests?</b> Post hoc direction only: the arms with CuteAFD's FP8 settings off "
+             f"and the vLLM BF16 core pass more often than both code-study arms; {PPX} of {PPN} paired intervals exclude 0, 2 after allowing for {PPN} "
+             "looks (all three settings off, against each code-study arm). The native core passes about as often as the FP8-from-BF16 core, and "
+             "passing does not follow length.</li>"
              "<li><b>Where does the small overshoot come from?</b> Post hoc: with the head (and then prefill) also off, the BF16 core thinks about 6% "
              "longer than the native core on the 12 new prompts (not on all 16). Not located: the head step, chance, the FP8 MLA and MLP "
              "projections (no BF16 option), the core's format, or another difference.</li>"

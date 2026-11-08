@@ -36,7 +36,7 @@ Weighting each prompt equally makes V-K6 / V-BF16 1.0021 here against the frozen
 | C-K6x / V-K6 | 0.82 | 0 of 12 | 0.78 | 0 of 16 |
 Medians over finished replies: C-K6 63,732; V-K6 62,853; V-BF16 61,129; C-K6x 50,412. CuteAFD's native 6-bit core sits with both vLLM arms;
 CuteAFD's BF16 core converted to FP8 at load is the arm that thinks shorter, on every prompt. Its test pass rate is not
-lower (C-K6x 49, C-K6 50 of 64).
+lower than the native core's (C-K6x 49, C-K6 50 of 64; across arms see the FP8 ablation's PASS-PAIRS, 2026-11-08).
 
 ## What this says
 - On the vLLM fork the core's weight values (6-bit rebuilt to BF16 vs original BF16) do not change code thinking length.

@@ -3,6 +3,14 @@
 Read in the tagged v4.0.0 source and in the server logs of the core-swap run (same daemon logic as the code study).
 Paths are relative to the cuteafd repository. "Read" = seen in code or logs; "inferred" = not visible in this checkout.
 
+Design context (added 2026-11-08): these settings are the launcher's defaults, with its stated reasons in the comment above
+the GLM 5.3 Flash precision block (`scripts/launch/run-family.sh:2337-2351`): row128 KDA and an FP8 head on both layouts,
+token-row KDA output ownership on the two-GPU head split because it avoids rounding half-K BF16 partials. The model
+notes (`docs/models/glm5_flash.md:163-210`, "Default precision") give the speed trade and its teacher-forced checks (top-1,
+KL); they and the `--kda-fp8` option text (`.../glm5_flash/mod.rs:189-197`, which also records the verify-vs-decode
+rounding cost under speculation) describe BF16 KDA as the default on the two-GPU split. The documents differ; the
+launcher's choice is what runs. This note maps what each setting changes.
+
 ## Server logs (read)
 | Launch | KDA projections | Vocabulary head | Prefill FP8 activations |
 |---|---|---|---|

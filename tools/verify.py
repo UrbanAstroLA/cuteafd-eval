@@ -224,6 +224,15 @@ def check_findings():
                    for arm in f["result"]["value"]}
             if got != f["result"]["value"]: fails.append(f"findings {fid}: recomputed {got}, findings.json says {f['result']['value']}")
             continue
+        elif rc["kind"] == "pass_pairs":
+            allr = [r for d in rc["data"] for r in rows(d)]
+            arm = lambda n: {(r["prompt"], r["rep"]): r["all_tests_pass"] == "True" for r in allr if r["arm"] == n and ok(r)}
+            for c_, want in f["result"]["value"].items():
+                A, B = (arm(n) for n in c_.split(" vs "))
+                ks = [k for k in A if k in B]
+                got = statistics.mean(int(A[k]) - int(B[k]) for k in ks)
+                if abs(got - want) > 1e-9: fails.append(f"findings {fid}: {c_} recomputed {got:.6f}, findings.json says {want:.6f}")
+            continue
         else:
             fails.append(f"findings {fid}: unknown recompute kind {rc['kind']}"); continue
         if abs(got - f["result"]["value"]) > 1e-9: fails.append(f"findings {fid}: recomputed {got:.6f} from {rc.get('data') or rc.get('data_a')}, findings.json says {f['result']['value']:.6f}")

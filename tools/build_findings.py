@@ -131,7 +131,8 @@ def findings():
 
     out.append(finding(
         "TL-code-tests", "Does the length difference change the result on code?",
-        "No measurable change in replies passing all hidden tests on either engine.", "measurement: descriptive",
+        "Not between the two cores on either engine: CuteAFD 6-bit 50 and FP8-from-BF16 49 of 64; vLLM fork 6-bit 53 of 64 and BF16 58 of "
+        "63 finished; paired intervals include 0. Post hoc across all arms: TL-code-pass-pairs.", "measurement: descriptive",
         {"name": "finished replies passing all hidden tests", "value": {
             "C-K6": at(C, "/per_arm/C-K6/all_tests_pass"), "C-K6x": at(C, "/per_arm/C-K6x/all_tests_pass"),
             "V-K6": at(S, "/per_arm/V-K6/all_tests_pass_of_finished"), "V-BF16": at(S, "/per_arm/V-BF16/all_tests_pass_of_finished")},
@@ -148,7 +149,10 @@ def findings():
         "With a BF16 core, CuteAFD v4.0.0's launcher also puts the KDA projections (including three gate projections outside the core) and the "
         "vocabulary head in FP8, and prefill runs the MLA and MLP projections with FP8 activations; with the native 6-bit core these stay on the "
         "6-bit kernels or in BF16. On a two-GPU head split the FP8 KDA path also comes with KDA output sharding, which v4 accepts only "
-        "with FP8 KDA and clears for the native core.", "source reading",
+        "with FP8 KDA and clears for the native core. These are the launcher's defaults (its comment at run-family.sh:2337-2351, v4.0.0), with the author's stated reasons: decode "
+        "speed and pool size, and output sharding to avoid rounding the GPUs' partial outputs, checked on teacher-forced top-1 and KL. The "
+        "model notes (docs/models/glm5_flash.md 'Default precision') and the --kda-fp8 option text (mod.rs:189-197) describe BF16 KDA as the "
+        "two-GPU default; the documents differ, and the launcher's choice is what runs.", "source reading",
         None, [{"file": f"{VCD}/CUTEAFD-FP8-PATH.md", "what": "source and launch-log reading with file:line references"}],
         CUTEAFD, VCD, "thinking.html#fit"))
 
@@ -186,6 +190,42 @@ def findings():
         "overshoot comes from is not located. C-K6x and C-K6 are the code study's arms, paired by seed; a replayed "
         "request was identical. analyze_fa.py reads the Block L analyzer's merged output (not published); analysis/samples.csv carries the "
         "same per-reply fields. C-K6 / C-K6x here uses bootstrap seed 20261106, the code study 20261105, so its interval differs in the third decimal."))
+
+    PPF = f"{FAD}/SUMMARY.json"; pb = "/post_hoc_pass_pairs_across_arms/contrasts/"
+    pk = lambda c_, w: ev(PPF, pb + esc(c_) + "/all_pass_difference/" + w, f"{c_}: all-pass difference, {w}")
+    out.append(finding(
+        "TL-code-pass-pairs", "Across the code-thinking arms of both engines, does passing all hidden tests differ in paired replies?",
+        "Post hoc, every contrast looked at (13): the arms with CuteAFD's FP8 settings switched off (F-kda, F-head, F-pre) and the vLLM BF16 "
+        "core pass more often than both CuteAFD code-study arms; 5 of 13 intervals exclude 0, all that way, and 2 after allowing for 13 looks "
+        "(F-pre, all three settings off, against each code-study arm). The two CuteAFD cores, a fifth apart in reasoning length, pass equally "
+        "often: passing does not follow length, and the native core (none of the FP8 settings) passes about as often as the FP8-from-BF16 "
+        "core.", "measurement: post hoc",
+        {"name": "all-pass difference, first arm minus second, share of paired finished replies",
+         "value": {c_: v["all_pass_difference"]["mean"] for c_, v in at(PPF, "/post_hoc_pass_pairs_across_arms/contrasts").items()},
+         "contrasts_examined": at(PPF, "/post_hoc_pass_pairs_across_arms/contrasts_examined")},
+        [pk("C-K6 vs C-K6x", "mean"), pk("C-K6 vs C-K6x", "ci95_prompts"), pk("V-K6 vs C-K6", "ci95_prompts"),
+         pk("V-BF16 vs C-K6x", "ci95_prompts"), pk("F-kda vs C-K6x", "ci95_prompts"), pk("F-pre vs C-K6", "ci95_prompts"),
+         pk("F-pre vs C-K6", "bonferroni_ci"), pk("F-pre vs C-K6x", "bonferroni_ci")],
+        "both", FAD, "thinking.html#fp8", [f"{CTD}/analysis/samples.csv", f"{VCD}/analysis/samples.csv", f"{FAD}/analysis/samples.csv"],
+        {"kind": "pass_pairs", "data": [f"{CTD}/analysis/samples.csv", f"{VCD}/analysis/samples.csv", f"{FAD}/analysis/samples.csv"],
+         "script": f"{FAD}/analysis/pass_pairs.py", "bootstrap": {"draws": 4000, "seed": 20261108, "unit": "prompt", "rng": "Python random.Random"}},
+        "above 0 = the first arm passed more often",
+        "Pairs: same prompt and seed, both finished. 95% bootstrap over the 16 prompts (4,000, seed 20261108); Bonferroni intervals for 13 "
+        "looks from 20,000 draws, same seed. The F arms ran a day after the C arms (a replayed request was identical) and V-* is another "
+        "engine. One prompt family; the share of tests passed moves by up to about 4 points."))
+
+    out.append(finding(
+        "TL-fp8-where", "Where in CuteAFD does the code-length difference arise: prefill or generation?",
+        "Most likely on the generation path (decode and speculative verify); prefill is not excluded. Prompts are 1,155-1,758 tokens against "
+        "medians of 50-68K reasoning tokens; speculative verify steps run on the decode programs, which read the FP8 KDA copies, and KDA output "
+        "sharding is not limited to prefill. The KDA setting also changes the KDA projections in prefill, and the prompt's recurrent state seeds "
+        "every later token. Not separated: KDA in prefill against generation, plain decode against speculative verify.",
+        "judgement: source and measurements", None,
+        [{"file": f"{FAD}/FA-RESULT.md", "what": "section 'Where in the engine', with tpurtell/cuteafd v4.0.0 engine.rs line references"},
+],
+        CUTEAFD, FAD, "thinking.html#fp8",
+        note="The prefill-activation switch (F-pre) covers the MLA and MLP activations, not the KDA projections, so it does not bear on this. "
+             "The teacher-forced results (stop decision, KL) run through the prefill programs on science-question traces and do not measure this path on code."))
 
     r, e = ratio_result(CS, "/step1/contrasts/experts", "reasoning tokens, K4-Core-K6's experts / K4's, 8 prompts")
     out.append(finding(
@@ -233,6 +273,7 @@ STATUS = {"measurement: frozen rule": "protocol and decision rule frozen (hashes
           "measurement: descriptive": "counted from frozen-run data; not part of any decision rule",
           "exploratory": "run kind exploratory: useful evidence, not a frozen comparison",
           "source reading": "read in source code and logs, no measurement",
+          "judgement: source and measurements": "a conclusion drawn from source reading and published measurements together; not isolated by a run of its own",
           "in progress": "running; no result published"}
 
 
@@ -322,10 +363,14 @@ def main():
                                   "pooled log ratios; sort the 4,000 draw means; interval = exp of values at indices 100 and 3899",
                "cross_engine_ratio": "post hoc: for each (prompt, rep) where both finished: log(A / B); mean within each prompt; mean over "
                                      "prompts; exp. Each prompt weighs the same, so a same-engine contrast differs slightly from seed_paired_ratio",
+               "pass_pairs": "post hoc: for each (prompt, rep) where both arms finished: all_tests_pass A minus B (1, 0 or -1); mean over "
+                             "the pairs; interval: bootstrap over prompts as bootstrap_draws, on the pooled differences (seed 20261108)",
                "engine_comparison": "vLLM ratio / CuteAFD ratio = exp(mean over prompts of [vLLM prompt log ratio - CuteAFD prompt log ratio])",
                "median_reasoning_tokens": "median over finished replies",
                "arms": {"C-K6": "CuteAFD, native 6-bit core", "C-K6x": "CuteAFD, BF16 core converted to FP8 at load (with FP8 KDA projections, head, prefill activations)",
-                        "V-K6": "vLLM fork, 6-bit core rebuilt to BF16 at load", "V-BF16": "vLLM fork, original BF16 core"}},
+                        "V-K6": "vLLM fork, 6-bit core rebuilt to BF16 at load", "V-BF16": "vLLM fork, original BF16 core",
+                        "F-kda": "C-K6x's config with KDA projections in BF16 (and KDA output sharding off)", "F-head": "F-kda plus the vocabulary head in BF16",
+                        "F-pre": "F-head plus prefill activations unquantized"}},
            "findings": fs}
     (ROOT / "docs" / "findings.json").write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
     (ROOT / "docs" / "llms.txt").write_text(llms_txt(fs))

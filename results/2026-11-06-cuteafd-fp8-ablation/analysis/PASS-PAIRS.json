@@ -1,0 +1,457 @@
+{
+ "about": "Post hoc, not in any frozen rule: paired comparison of hidden-test outcomes between the code-thinking arms of both\nengines (code study C-*, vLLM code study V-*, FP8 ablation F-*), from the published per-reply samples.csv files.",
+ "sources": [
+  "results/2026-11-05-code-thinking/analysis/samples.csv",
+  "results/2026-11-06-vllm-code-thinking/analysis/samples.csv",
+  "results/2026-11-06-cuteafd-fp8-ablation/analysis/samples.csv"
+ ],
+ "bootstrap": {
+  "draws": 4000,
+  "seed": 20261108
+ },
+ "contrasts_examined": 13,
+ "contrasts": {
+  "V-K6 vs C-K6": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    53,
+    50
+   ],
+   "only_first_passes": 11,
+   "only_second_passes": 8,
+   "all_pass_difference": {
+    "mean": 0.046875,
+    "ci95_prompts": [
+     -0.078125,
+     0.1875
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.140625,
+      0.234375
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.010321330190010972,
+    "ci95_prompts": [
+     -0.05699880438555839,
+     0.09457859848484848
+    ],
+    "excludes_0": false
+   }
+  },
+  "V-K6 vs C-K6x": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    53,
+    49
+   ],
+   "only_first_passes": 10,
+   "only_second_passes": 6,
+   "all_pass_difference": {
+    "mean": 0.0625,
+    "ci95_prompts": [
+     -0.046875,
+     0.171875
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.09375,
+      0.234375
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.01940366150271811,
+    "ci95_prompts": [
+     -0.048652447089947086,
+     0.08722713999836641
+    ],
+    "excludes_0": false
+   }
+  },
+  "V-BF16 vs C-K6": {
+   "pairs": 63,
+   "prompts": 16,
+   "all_pass": [
+    58,
+    49
+   ],
+   "only_first_passes": 12,
+   "only_second_passes": 3,
+   "all_pass_difference": {
+    "mean": 0.14285714285714285,
+    "ci95_prompts": [
+     0.015873015873015872,
+     0.28125
+    ],
+    "excludes_0": true,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.031746031746031744,
+      0.3492063492063492
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.02790604457271124,
+    "ci95_prompts": [
+     -0.0013849431818181816,
+     0.06680871212121212
+    ],
+    "excludes_0": false
+   }
+  },
+  "V-BF16 vs C-K6x": {
+   "pairs": 63,
+   "prompts": 16,
+   "all_pass": [
+    58,
+    49
+   ],
+   "only_first_passes": 13,
+   "only_second_passes": 4,
+   "all_pass_difference": {
+    "mean": 0.14285714285714285,
+    "ci95_prompts": [
+     0.03125,
+     0.26229508196721313
+    ],
+    "excludes_0": true,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.015625,
+      0.31666666666666665
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.036250705659341416,
+    "ci95_prompts": [
+     0.002489301345376455,
+     0.07894284755441441
+    ],
+    "excludes_0": true
+   }
+  },
+  "V-BF16 vs V-K6": {
+   "pairs": 63,
+   "prompts": 16,
+   "all_pass": [
+    58,
+    53
+   ],
+   "only_first_passes": 10,
+   "only_second_passes": 5,
+   "all_pass_difference": {
+    "mean": 0.07936507936507936,
+    "ci95_prompts": [
+     -0.03125,
+     0.1935483870967742
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.078125,
+      0.26666666666666666
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.016539049529596037,
+    "ci95_prompts": [
+     -0.03835515038179834,
+     0.07350166294004737
+    ],
+    "excludes_0": false
+   }
+  },
+  "C-K6 vs C-K6x": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    50,
+    49
+   ],
+   "only_first_passes": 7,
+   "only_second_passes": 6,
+   "all_pass_difference": {
+    "mean": 0.015625,
+    "ci95_prompts": [
+     -0.078125,
+     0.109375
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.125,
+      0.171875
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.009082331312707135,
+    "ci95_prompts": [
+     -0.03649215367965367,
+     0.055716831072206895
+    ],
+    "excludes_0": false
+   }
+  },
+  "F-kda vs C-K6x": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    55,
+    49
+   ],
+   "only_first_passes": 10,
+   "only_second_passes": 4,
+   "all_pass_difference": {
+    "mean": 0.09375,
+    "ci95_prompts": [
+     0.015625,
+     0.1875
+    ],
+    "excludes_0": true,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.015625,
+      0.21875
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.027601154710657893,
+    "ci95_prompts": [
+     -0.0017800669259985247,
+     0.06685644702301542
+    ],
+    "excludes_0": false
+   }
+  },
+  "F-kda vs C-K6": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    55,
+    50
+   ],
+   "only_first_passes": 8,
+   "only_second_passes": 3,
+   "all_pass_difference": {
+    "mean": 0.078125,
+    "ci95_prompts": [
+     0,
+     0.171875
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.03125,
+      0.203125
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.01851882339795076,
+    "ci95_prompts": [
+     -0.009304728835978838,
+     0.05483217592592593
+    ],
+    "excludes_0": false
+   }
+  },
+  "F-head vs C-K6x": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    54,
+    49
+   ],
+   "only_first_passes": 13,
+   "only_second_passes": 8,
+   "all_pass_difference": {
+    "mean": 0.078125,
+    "ci95_prompts": [
+     -0.03125,
+     0.203125
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.0625,
+      0.265625
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.01452415560673861,
+    "ci95_prompts": [
+     -0.040016100593418064,
+     0.07233160184026148
+    ],
+    "excludes_0": false
+   }
+  },
+  "F-head vs C-K6": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    54,
+    50
+   ],
+   "only_first_passes": 11,
+   "only_second_passes": 7,
+   "all_pass_difference": {
+    "mean": 0.0625,
+    "ci95_prompts": [
+     -0.03125,
+     0.171875
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.078125,
+      0.203125
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.005441824294031474,
+    "ci95_prompts": [
+     -0.05606430420796967,
+     0.07478762606170825
+    ],
+    "excludes_0": false
+   }
+  },
+  "F-pre vs C-K6x": {
+   "pairs": 63,
+   "prompts": 16,
+   "all_pass": [
+    59,
+    48
+   ],
+   "only_first_passes": 15,
+   "only_second_passes": 4,
+   "all_pass_difference": {
+    "mean": 0.1746031746031746,
+    "ci95_prompts": [
+     0.078125,
+     0.2857142857142857
+    ],
+    "excludes_0": true,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      0.047619047619047616,
+      0.34375
+     ],
+     "excludes_0": true
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.030635176301673697,
+    "ci95_prompts": [
+     -0.002918866272903536,
+     0.07207796461923821
+    ],
+    "excludes_0": false
+   }
+  },
+  "F-pre vs C-K6": {
+   "pairs": 63,
+   "prompts": 16,
+   "all_pass": [
+    59,
+    49
+   ],
+   "only_first_passes": 13,
+   "only_second_passes": 3,
+   "all_pass_difference": {
+    "mean": 0.15873015873015872,
+    "ci95_prompts": [
+     0.06349206349206349,
+     0.2698412698412698
+    ],
+    "excludes_0": true,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      0.031746031746031744,
+      0.328125
+     ],
+     "excludes_0": true
+    }
+   },
+   "share_passed_difference": {
+    "mean": 0.02140868099987597,
+    "ci95_prompts": [
+     -0.007690034186201636,
+     0.058927327095074734
+    ],
+    "excludes_0": false
+   }
+  },
+  "V-K6 vs F-kda": {
+   "pairs": 64,
+   "prompts": 16,
+   "all_pass": [
+    53,
+    55
+   ],
+   "only_first_passes": 7,
+   "only_second_passes": 9,
+   "all_pass_difference": {
+    "mean": -0.03125,
+    "ci95_prompts": [
+     -0.140625,
+     0.09375
+    ],
+    "excludes_0": false,
+    "bonferroni_ci": {
+     "looks": 13,
+     "interval": [
+      -0.203125,
+      0.140625
+     ],
+     "excludes_0": false
+    }
+   },
+   "share_passed_difference": {
+    "mean": -0.008197493207939785,
+    "ci95_prompts": [
+     -0.06619166728567365,
+     0.04809159301346801
+    ],
+    "excludes_0": false
+   }
+  }
+ }
+}

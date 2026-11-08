@@ -10,7 +10,9 @@ as the code study; arms pair with C-K6x and C-K6 by seed. Site page: [Thinking l
 - `FA-RESULT.md`: the result as read. `SUMMARY.json`: every number on the page.
 - `protocol/`: the protocol as frozen and `FROZEN.json`.
 - `analysis/`: `samples.csv` (one row per reply, including the control replay F-ctrl: seed, finish, reasoning tokens,
-  decode speed, tests passed; no text), `analyze_fa.py` and `FA-RESULT.json`. Reasoning tokens and code checks come from
+  decode speed, tests passed; no text), `analyze_fa.py` and `FA-RESULT.json`; post hoc, `pass_pairs.py` and
+  `PASS-PAIRS.json` (hidden-test outcomes paired across the code-thinking arms of both engines, added 2026-11-08).
+  Reasoning tokens and code checks come from
   [`repro/stage0/drivers/analyze_l.py`](../../repro/stage0/drivers/analyze_l.py) (unchanged).
 - `code/`: the chain (launch, precision check in the server log before any request, run) and the driver (it imports
   [`results/2026-11-05-code-thinking/code/drivers/code_thinking.py`](../2026-11-05-code-thinking/code/drivers/code_thinking.py) unchanged).

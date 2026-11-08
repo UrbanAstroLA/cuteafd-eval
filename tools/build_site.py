@@ -756,7 +756,7 @@ def k4e_section(K):
 
 def page_settings(F, K):
     N = B.canon(); pb8, k8 = N["pb8"], N["k4_pb8"]; sp3 = N["sp_f1"]; sp4 = N["sp4"]
-    lede = (f"<p>CuteAFD has switches that trade a little speed, or GPU memory, for precision. On K3.25, W8A16 prefill closes about "
+    lede = (f"<p>CuteAFD has switches that trade a little speed, or GPU memory, for precision. The launcher's defaults favour speed (<a href=\"https://github.com/tpurtell/cuteafd/blob/v4.0.0/scripts/launch/run-family.sh#L2337-L2351\">launcher comment</a>); the author's <a href=\"https://github.com/tpurtell/cuteafd/blob/v4.0.0/docs/models/glm5_flash.md#default-precision-single-residency\">model notes</a> give the teacher-forced checks (top-1, KL) behind the trade and describe a BF16 default on the two-GPU split. On K3.25, W8A16 prefill closes about "
             f"{100 * pb8['share_w16']:.0f}% of the long-code difference from the vLLM fork for about {100 * (sp3['f1c'][0] - 1):.0f}% longer "
             f"time to first token; with all three switches no difference is resolved, at about {100 * (1 - sp3['f1d'][3]):.0f}% slower decode. "
             f"On K4 on two RTX PRO 6000s, W8A16 prefill with the amax scale rule closes about two thirds for about "
