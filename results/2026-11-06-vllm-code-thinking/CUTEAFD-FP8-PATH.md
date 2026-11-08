@@ -17,7 +17,7 @@ The two serving configs differ only in MODEL_ID and MODEL_REVISION.
   128x128 blocks quantized from BF16 at load; BF16 is never resident (`rust/crates/cuteafd-daemon/src/families/glm5_flash/weights.rs:3-10`).
 - KDA in/out projections and the LM head take FP8 (E4M3, per row x 128-K scales) when selected
   (`weights.rs:3-10`). The launcher's `auto` selects both: `GLM5_FLASH_KDA_FP8` auto -> row128
-  (`scripts/launch/run-family.sh:2361-2369`), `GLM5_FLASH_FP8_HEAD` auto -> on (`run-family.sh:2415-2423`).
+  (`scripts/launch/run-family.sh:2355-2363`), `GLM5_FLASH_FP8_HEAD` auto -> on (`run-family.sh:2409-2417`).
 - With a native 6-bit core the daemon turns KDA FP8 off and, with a native `lm_head`, the FP8 head off
   (`rust/crates/cuteafd-daemon/src/families/glm5_flash/mod.rs:1716-1723`). So the BF16-core checkpoint gets FP8 KDA and an
   FP8 head; the 6-bit checkpoint does not.
@@ -27,8 +27,13 @@ The two serving configs differ only in MODEL_ID and MODEL_REVISION.
 - The option's own documentation: row128 "costs 3.4 points top-1 (89.1% -> 85.7%) and doubles verify-vs-decode rounding
   ... enough to flip greedy output under speculation; opt-in", CLI default off (`mod.rs:189-198`).
 - Scale rule for FP8 copies made at load: default pow2 (smallest power of two >= amax/448) (`mod.rs:284-294`).
-- Prefill: MLA and FFN run W8A8 (dynamic FP8 activations) by default (`GLM5_FLASH_FP8_PREFILL`, `run-family.sh:2452-2471`);
+- Prefill: MLA and FFN run W8A8 (dynamic FP8 activations) by default (`GLM5_FLASH_FP8_PREFILL`, `run-family.sh:2446-2465`);
   on the 6-bit path these operands are 6-bit trellis kernels (FP16 weights, FP32 accumulate) with no activation quantization.
+
+- Added 2026-11-07: on a two-GPU head split the launcher's `auto` also adds token-row KDA output ownership
+  (`--kda-output-shard --kda-prefill-expanded`) unless KDA FP8 is off (`run-family.sh:2366`); the daemon accepts these
+  only with `--kda-fp8 row128` or `channel` (`mod.rs:1296-1299`) and clears them for a native 6-bit core (`mod.rs:1716-1722`).
+  So `GLM5_FLASH_KDA_FP8=off` on two GPUs also returns KDA to the partials split path.
 
 ## Unchanged between the two (read)
 KV records (FP8 MLA latents), KDA state (F32), index cache, drafter weights and draft mode, prefill rows, sampling code.

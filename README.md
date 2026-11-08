@@ -40,12 +40,15 @@ v4.1.0, released after the run, was read in source, not run: no change to this G
   closer on both panels. [Three checkpoints](results/2026-10-30-cuteafd-v4/)
 - **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
   engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. [Tool calling](results/2026-11-02-tool-calling/)
-- **Thinking length and the 6-bit core (investigation, 2026-11-02/06):** On code, K4-Core-K6's 6-bit core and the
+- **Thinking length and the 6-bit core (investigation, 2026-11-02/07):** On code, K4-Core-K6's 6-bit core and the
   original BF16 core think about as long on the vLLM fork (local loader modification, not a tpurtell release): 1.00x
   [0.96, 1.04] on 12 code prompts written for the test. On CuteAFD the same prompts and seeds read 1.26x [1.24, 1.29]
   against the BF16 core converted to FP8 at load, and the engines differ (0.79 [0.75, 0.83]). Set side by side (post
   hoc), CuteAFD's native 6-bit core and both vLLM arms think about as long; CuteAFD's FP8-from-BF16 core thinks about a
-  fifth shorter, on all 16 prompts, with hidden tests passing as often. The routed experts contribute nothing measurable
+  fifth shorter, on all 16 prompts, with hidden tests passing as often. Switching CuteAFD's FP8 launch settings off
+  cumulatively places that difference in the KDA setting (KDA projections to BF16, which on two GPUs also turns off
+  KDA output sharding): 1.31x [1.24, 1.38], and not distinguishable from the native core (0.96x [0.92, 1.01]); the FP8
+  head and FP8 prefill activations show no step. The routed experts contribute nothing measurable
   (0.99x [0.93, 1.05]). On science-question reasoning neither thinking length nor the stop decision changes, on 41
   questions and both engines; a q_b + output-projection swap that moved the stop decision on 11 questions does not on 30
   new ones.

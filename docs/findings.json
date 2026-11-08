@@ -111,7 +111,7 @@
   {
    "id": "TL-code-cuteafd-core",
    "question": "On CuteAFD v4.0.0, does the native 6-bit core change how long code replies think, against the BF16 core converted to FP8 at load?",
-   "answer": "Yes: 1.26x [1.24, 1.29], detected, every prompt above 1. See TL-code-engines and TL-code-fp8-arm for which arm differs.",
+   "answer": "Yes: 1.26x [1.24, 1.29], detected, every prompt above 1. See TL-code-engines and TL-code-fp8-arm for which arm differs and TL-fp8-ablation for which FP8 setting carries it.",
    "status": "measurement: frozen rule",
    "result": {
     "name": "reasoning tokens, C-K6 / C-K6x, 12 new code prompts",
@@ -366,7 +366,7 @@
   {
    "id": "TL-fp8-path",
    "question": "What differs between CuteAFD's two core formats besides the core's weights?",
-   "answer": "With a BF16 core, CuteAFD v4.0.0's launcher also puts the KDA projections (including three gate projections outside the core) and the vocabulary head in FP8, and prefill runs the MLA and MLP projections with FP8 activations; with the native 6-bit core these stay on the 6-bit kernels or in BF16.",
+   "answer": "With a BF16 core, CuteAFD v4.0.0's launcher also puts the KDA projections (including three gate projections outside the core) and the vocabulary head in FP8, and prefill runs the MLA and MLP projections with FP8 activations; with the native 6-bit core these stay on the 6-bit kernels or in BF16. On a two-GPU head split the FP8 KDA path also comes with KDA output sharding, which v4 accepts only with FP8 KDA and clears for the native core.",
    "status": "source reading",
    "engine": "tpurtell/cuteafd v4.0.0, unmodified launcher",
    "run": "results/2026-11-06-vllm-code-thinking",
@@ -381,13 +381,151 @@
   },
   {
    "id": "TL-fp8-ablation",
-   "question": "Which part of CuteAFD's FP8 path goes with the shorter code reasoning?",
-   "answer": "Being measured: the BF16-core checkpoint on CuteAFD with the KDA projections, then the head, then prefill activations switched back off FP8, on the same prompts and seeds. Not published yet.",
-   "status": "in progress",
+   "question": "Which part of CuteAFD's FP8 path goes with the shorter code reasoning of the BF16-core checkpoint (local derived checkpoint, not a producer release)?",
+   "answer": "The KDA launch setting: switching the KDA projections from FP8 to BF16 (on this two-GPU layout that also turns off KDA output sharding, which v4 runs only with FP8 KDA) gives 1.31x [1.24, 1.38], detected, every prompt above 1; then the vocabulary head 1.02x [0.97, 1.07] and prefill activations 0.99x [0.97, 1.02], not detected. With the KDA setting off the gap to the native 6-bit core closes (C-K6 / F-kda 0.96x [0.92, 1.01]); KDA's share of the gap 1.16 [0.95, 1.37] (above 1 = the point estimate passes the native core; the interval includes 1, consistent with the whole gap). Settings were switched off cumulatively.",
+   "status": "measurement: frozen rule",
+   "result": {
+    "name": "reasoning tokens, F-kda / C-K6x (KDA setting off: projections FP8 -> BF16, KDA output sharding off), 12 new code prompts",
+    "value": 1.3094869328074288,
+    "ci95": [
+     1.2439019261184592,
+     1.3755986477392443
+    ],
+    "ci_over": "prompts",
+    "detected": true,
+    "pairs": 48,
+    "prompts": 12,
+    "prompts_above_1": 12
+   },
+   "direction": "ratio above 1 = the arm with the setting off thought longer",
    "engine": "tpurtell/cuteafd v4.0.0, unmodified launcher",
-   "page": "https://urbanastrola.github.io/cuteafd-eval/thinking.html#open",
-   "evidence": [],
-   "data": []
+   "run": "results/2026-11-06-cuteafd-fp8-ablation",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/thinking.html#fp8",
+   "evidence": [
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6x/ratio",
+     "what": "reasoning tokens, F-kda / C-K6x (KDA setting off: projections FP8 -> BF16, KDA output sharding off), 12 new code prompts",
+     "value": 1.3094869328074288
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6x/ratio_ci95_prompts",
+     "what": "95% interval over prompts",
+     "value": [
+      1.2439019261184592,
+      1.3755986477392443
+     ]
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6x/detected",
+     "what": "rule: interval excludes 1",
+     "value": true
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-head ~1 F-kda/ratio",
+     "what": "step: head FP8 -> BF16",
+     "value": 1.020481110889175
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-head ~1 F-kda/ratio_ci95_prompts",
+     "what": "its 95% interval",
+     "value": [
+      0.9729657491576675,
+      1.0692105864421966
+     ]
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-pre ~1 F-head/ratio",
+     "what": "step: prefill activations unquantized",
+     "value": 0.991078549022432
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-pre ~1 F-head/ratio_ci95_prompts",
+     "what": "its 95% interval",
+     "value": [
+      0.9658211216835336,
+      1.0174290359223386
+     ]
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6/ratio",
+     "what": "F-kda / C-K6 (its inverse is C-K6 / F-kda)",
+     "value": 1.037245104424603
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6/ratio_ci95_prompts",
+     "what": "F-kda / C-K6, 95% interval (invert and swap ends for C-K6 / F-kda)",
+     "value": [
+      0.9880058441319257,
+      1.0870059067802742
+     ]
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/gap_share/primary_p4_p15/F-kda/share",
+     "what": "KDA's share of the gap",
+     "value": 1.1569001085348238
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/gap_share/primary_p4_p15/F-kda/ci95_prompts",
+     "what": "its 95% interval",
+     "value": [
+      0.9482646349986026,
+      1.3676292853186862
+     ]
+    },
+    {
+     "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+     "pointer": "/reading/contrasts/primary_p4_p15/C-K6 ~1 F-pre/ratio_ci95_prompts",
+     "what": "C-K6 / F-pre, 95% interval",
+     "value": [
+      0.9130632160036982,
+      0.978788844063485
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-06-cuteafd-fp8-ablation/analysis/samples.csv",
+    "results/2026-11-05-code-thinking/analysis/samples.csv"
+   ],
+   "recompute": {
+    "kind": "seed_paired_ratio",
+    "data_a": "results/2026-11-06-cuteafd-fp8-ablation/analysis/samples.csv",
+    "a": "F-kda",
+    "data_b": "results/2026-11-05-code-thinking/analysis/samples.csv",
+    "b": "C-K6x",
+    "prompts": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ],
+    "script": "results/2026-11-06-cuteafd-fp8-ablation/analysis/analyze_fa.py",
+    "bootstrap": {
+     "draws": 4000,
+     "seed": 20261106,
+     "unit": "prompt",
+     "rng": "Python random.Random"
+    }
+   },
+   "note": "Cumulative design: each step is measured with the earlier settings already off. Post hoc (the frozen remainder clause was written for a shortfall): with all three off the BF16 core thinks a little longer than the native core on the 12 new prompts (C-K6 / F-pre 0.95x [0.91, 0.98]); not on all 16. Not separated: FP8 format vs the power-of-two scale rule; which packed KDA projections matter; whether the KDA weights' format or the KDA split path that changes with it carries the length; where the overshoot comes from is not located. C-K6x and C-K6 are the code study's arms, paired by seed; a replayed request was identical. analyze_fa.py reads the Block L analyzer's merged output (not published); analysis/samples.csv carries the same per-reply fields. C-K6 / C-K6x here uses bootstrap seed 20261106, the code study 20261105, so its interval differs in the third decimal."
   },
   {
    "id": "TL-experts",

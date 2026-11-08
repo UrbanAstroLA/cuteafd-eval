@@ -1,0 +1,28 @@
+{
+ "id": "2026-11-06-cuteafd-fp8-ablation",
+ "kind": "measurement",
+ "title": "Which part of CuteAFD's FP8 path shortens code reasoning: KDA FP8, FP8 head and FP8 prefill switched off cumulatively",
+ "protocol": "frozen 2026-11-06 before the first request (protocol/FROZEN.json)",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local",
+ "engine": "tpurtell/cuteafd v4.0.0 (coordinator image index sha256:e257bc61...), unmodified launcher",
+ "checkpoints": {
+  "F arms": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180 (local derived checkpoint, not a producer release; built by results/2026-11-03-cuteafd-core-swap/prep/build_derived.py)"
+ },
+ "slots": {
+  "fa": {
+   "title": "3 arms x 64 replies + 1 control replay",
+   "status": "done",
+   "files": [
+    "protocol/PROTOCOL.md",
+    "protocol/FROZEN.json",
+    "FA-RESULT.md",
+    "analysis/FA-RESULT.json",
+    "analysis/analyze_fa.py",
+    "code/chain-fa.sh",
+    "code/drivers/fp8_ablation.py",
+    "analysis/samples.csv",
+    "SUMMARY.json"
+   ]
+  }
+ }
+}

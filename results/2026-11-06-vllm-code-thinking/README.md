@@ -4,6 +4,7 @@ The CuteAFD code study ([`results/2026-11-05-code-thinking`](../2026-11-05-code-
 modification, not a tpurtell release): K4-Core-K6 with its 6-bit core rebuilt to BF16 at load (V-K6) against the same
 checkpoint with all 316 core tensors loaded from the original BF16 release (V-BF16). Same routed experts, same 16 code
 prompts, seeds and cap as the CuteAFD study. Site page: [Thinking length](../../docs/thinking.html).
+**Read with** [`results/2026-11-06-cuteafd-fp8-ablation`](../2026-11-06-cuteafd-fp8-ablation/): the FP8 pieces listed in `CUTEAFD-FP8-PATH.md` switched off cumulatively on CuteAFD.
 
 - `VCT-RESULT.md`: the result as read, with a post hoc cross-engine comparison marked as such.
 - `CUTEAFD-FP8-PATH.md`: what changes with the core's format on CuteAFD v4.0.0, read in its source and launch logs (no GPU).

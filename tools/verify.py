@@ -212,7 +212,8 @@ def check_findings():
         rc = f.get("recompute")
         if not rc: continue
         if rc["kind"] == "seed_paired_ratio":
-            rr = rows(rc["data"]); by = logs(rr, rc["a"], rr, rc["b"], set(rc["prompts"]))
+            ra = rows(rc["data"] if "data" in rc else rc["data_a"]); rb = ra if "data" in rc else rows(rc["data_b"])
+            by = logs(ra, rc["a"], rb, rc["b"], set(rc["prompts"]))
             got = math.exp(statistics.mean(x for v in by.values() for x in v))
         elif rc["kind"] == "cross_engine_ratio":
             by = logs(rows(rc["data_a"]), rc["a"], rows(rc["data_b"]), rc["b"], set(rc["prompts"]))

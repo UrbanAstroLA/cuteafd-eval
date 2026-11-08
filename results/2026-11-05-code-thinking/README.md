@@ -4,6 +4,8 @@ K4-Core-K6 on CuteAFD v4.0.0 with its native 6-bit core (C-K6) against the same 
 restored to the BF16 originals, which CuteAFD converts to FP8 at load (C-K6x; the **local derived checkpoint, not a
 producer release**, of [`results/2026-11-03-cuteafd-core-swap`](../2026-11-03-cuteafd-core-swap/)). Same routed experts.
 16 code prompts x 4 seeds, the same seed on both arms. Site page: [Thinking length](../../docs/thinking.html).
+**Read with** [`results/2026-11-06-vllm-code-thinking`](../2026-11-06-vllm-code-thinking/) (the same prompts on the vLLM fork, where the two cores think alike) and
+[`results/2026-11-06-cuteafd-fp8-ablation`](../2026-11-06-cuteafd-fp8-ablation/) (CuteAFD's FP8 settings switched off cumulatively: the difference goes with the KDA setting).
 
 - `CT-RESULT.md`: the result as read (with a correction to one descriptive field of `analysis/CT-RESULT.json`).
 - `SUMMARY.json`: every number on the page.

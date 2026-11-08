@@ -21,6 +21,7 @@ SITE_URL = "https://urbanastrola.github.io/cuteafd-eval"
 TLD, CSD = "results/2026-11-02-thinking-length", "results/2026-11-03-cuteafd-core-swap"
 CTD, APD = "results/2026-11-05-code-thinking", "results/2026-11-05-attn-position"
 NQD, VCD = "results/2026-11-06-new-questions", "results/2026-11-06-vllm-code-thinking"
+FAD = "results/2026-11-06-cuteafd-fp8-ablation"
 CUTEAFD = "tpurtell/cuteafd v4.0.0, unmodified launcher"
 VLLM = "tpurtell vLLM fork v0.9.2-experimental with a local loader modification (route b), not a tpurtell release"
 K6 = "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1"
@@ -88,7 +89,7 @@ def findings():
     out.append(finding(
         "TL-code-cuteafd-core", "On CuteAFD v4.0.0, does the native 6-bit core change how long code replies think, against the BF16 core converted to FP8 at load?",
         f"Yes: {r['value']:.2f}x [{r['ci95'][0]:.2f}, {r['ci95'][1]:.2f}], detected, every prompt above 1. See TL-code-engines and "
-        "TL-code-fp8-arm for which arm differs.", "measurement: frozen rule", r, e, CUTEAFD, CTD, "thinking.html#code",
+        "TL-code-fp8-arm for which arm differs and TL-fp8-ablation for which FP8 setting carries it.", "measurement: frozen rule", r, e, CUTEAFD, CTD, "thinking.html#code",
         [f"{CTD}/analysis/samples.csv"],
         {"kind": "seed_paired_ratio", "data": f"{CTD}/analysis/samples.csv", "a": "C-K6", "b": "C-K6x", "prompts": code_prompts,
          "script": f"{CTD}/analysis/analyze_ct.py", "bootstrap": {"draws": 4000, "seed": 20261105, "unit": "prompt", "rng": "Python random.Random"}},
@@ -146,14 +147,45 @@ def findings():
         "TL-fp8-path", "What differs between CuteAFD's two core formats besides the core's weights?",
         "With a BF16 core, CuteAFD v4.0.0's launcher also puts the KDA projections (including three gate projections outside the core) and the "
         "vocabulary head in FP8, and prefill runs the MLA and MLP projections with FP8 activations; with the native 6-bit core these stay on the "
-        "6-bit kernels or in BF16.", "source reading",
+        "6-bit kernels or in BF16. On a two-GPU head split the FP8 KDA path also comes with KDA output sharding, which v4 accepts only "
+        "with FP8 KDA and clears for the native core.", "source reading",
         None, [{"file": f"{VCD}/CUTEAFD-FP8-PATH.md", "what": "source and launch-log reading with file:line references"}],
         CUTEAFD, VCD, "thinking.html#fit"))
 
+    F = f"{FAD}/SUMMARY.json"; fb = "/reading/contrasts/primary_p4_p15/"
+    r, e = ratio_result(F, fb + esc("F-kda / C-K6x"), "reasoning tokens, F-kda / C-K6x (KDA setting off: projections FP8 -> BF16, KDA output sharding off), 12 new code prompts")
+    hd, pr_, nk = (at(F, fb + esc(k_)) for k_ in ("F-head / F-kda", "F-pre / F-head", "F-kda / C-K6"))
+    inv = lambda c_: (1 / c_["ratio"], 1 / c_["ratio_ci95_prompts"][1], 1 / c_["ratio_ci95_prompts"][0])
+    n_ = inv(nk); gs = at(F, "/reading/gap_share/primary_p4_p15/F-kda"); ov = at(F, fb + esc("C-K6 / F-pre"))
     out.append(finding(
-        "TL-fp8-ablation", "Which part of CuteAFD's FP8 path goes with the shorter code reasoning?",
-        "Being measured: the BF16-core checkpoint on CuteAFD with the KDA projections, then the head, then prefill activations switched back "
-        "off FP8, on the same prompts and seeds. Not published yet.", "in progress", None, [], CUTEAFD, None, "thinking.html#open"))
+        "TL-fp8-ablation", "Which part of CuteAFD's FP8 path goes with the shorter code reasoning of the BF16-core checkpoint (local derived checkpoint, not a producer release)?",
+        f"The KDA launch setting: switching the KDA projections from FP8 to BF16 (on this two-GPU layout that also turns off KDA output "
+        f"sharding, which v4 runs only with FP8 KDA) gives {r['value']:.2f}x [{r['ci95'][0]:.2f}, {r['ci95'][1]:.2f}], detected, every "
+        f"prompt above 1; then the vocabulary head {hd['ratio']:.2f}x [{hd['ratio_ci95_prompts'][0]:.2f}, {hd['ratio_ci95_prompts'][1]:.2f}] and "
+        f"prefill activations {pr_['ratio']:.2f}x [{pr_['ratio_ci95_prompts'][0]:.2f}, {pr_['ratio_ci95_prompts'][1]:.2f}], not detected. With the "
+        f"KDA setting off the gap to the native 6-bit core closes (C-K6 / F-kda {n_[0]:.2f}x [{n_[1]:.2f}, {n_[2]:.2f}]); KDA's share of "
+        f"the gap {gs['share']:.2f} [{gs['ci95_prompts'][0]:.2f}, {gs['ci95_prompts'][1]:.2f}] (above 1 = the point estimate passes the native core; "
+        "the interval includes 1, consistent with the whole gap). Settings were switched off cumulatively.", "measurement: frozen rule", r,
+        e + [ev(F, fb + esc("F-head / F-kda") + "/ratio", "step: head FP8 -> BF16"), ev(F, fb + esc("F-head / F-kda") + "/ratio_ci95_prompts", "its 95% interval"),
+             ev(F, fb + esc("F-pre / F-head") + "/ratio", "step: prefill activations unquantized"), ev(F, fb + esc("F-pre / F-head") + "/ratio_ci95_prompts", "its 95% interval"),
+             ev(F, fb + esc("F-kda / C-K6") + "/ratio", "F-kda / C-K6 (its inverse is C-K6 / F-kda)"),
+             ev(F, fb + esc("F-kda / C-K6") + "/ratio_ci95_prompts", "F-kda / C-K6, 95% interval (invert and swap ends for C-K6 / F-kda)"),
+             ev(F, "/reading/gap_share/primary_p4_p15/F-kda/share", "KDA's share of the gap"),
+             ev(F, "/reading/gap_share/primary_p4_p15/F-kda/ci95_prompts", "its 95% interval"),
+             ev(F, fb + esc("C-K6 / F-pre") + "/ratio_ci95_prompts", "C-K6 / F-pre, 95% interval")],
+        CUTEAFD, FAD, "thinking.html#fp8", [f"{FAD}/analysis/samples.csv", f"{CTD}/analysis/samples.csv"],
+        {"kind": "seed_paired_ratio", "data_a": f"{FAD}/analysis/samples.csv", "a": "F-kda", "data_b": f"{CTD}/analysis/samples.csv", "b": "C-K6x",
+         "prompts": code_prompts, "script": f"{FAD}/analysis/analyze_fa.py",
+         "bootstrap": {"draws": 4000, "seed": 20261106, "unit": "prompt", "rng": "Python random.Random"}},
+        "ratio above 1 = the arm with the setting off thought longer",
+        f"Cumulative design: each step is measured with the earlier settings already off. Post hoc (the frozen remainder clause was written for a "
+        f"shortfall): with all three off the BF16 core thinks a little longer "
+        f"than the native core on the 12 new prompts (C-K6 / F-pre {ov['ratio']:.2f}x [{ov['ratio_ci95_prompts'][0]:.2f}, "
+        f"{ov['ratio_ci95_prompts'][1]:.2f}]); not on all 16. Not separated: FP8 format vs the power-of-two scale rule; which packed KDA "
+        "projections matter; whether the KDA weights' format or the KDA split path that changes with it carries the length; where the "
+        "overshoot comes from is not located. C-K6x and C-K6 are the code study's arms, paired by seed; a replayed "
+        "request was identical. analyze_fa.py reads the Block L analyzer's merged output (not published); analysis/samples.csv carries the "
+        "same per-reply fields. C-K6 / C-K6x here uses bootstrap seed 20261106, the code study 20261105, so its interval differs in the third decimal."))
 
     r, e = ratio_result(CS, "/step1/contrasts/experts", "reasoning tokens, K4-Core-K6's experts / K4's, 8 prompts")
     out.append(finding(
