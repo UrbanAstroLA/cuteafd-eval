@@ -7,22 +7,31 @@ Every page is generated from the files in the repository; numbers are never type
 machine-readable files below rather than scraping HTML.
 
 ## Machine-readable entry points
-- https://urbanastrola.github.io/cuteafd-eval/findings.json: the Thinking length investigation's claims, one entry per claim, with status, value,
+- https://urbanastrola.github.io/cuteafd-eval/findings.json: the claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe
+  (CP-*), one entry per claim, with status, value,
   95% interval, a JSON pointer into the source file, and the per-reply data and script that recompute it.
 - https://github.com/UrbanAstroLA/cuteafd-eval/tree/main/results: one folder per run. In each: RUN.json (id, kind, title, protocol, engine,
   checkpoints), SUMMARY.json (every number its page shows), MANIFEST.json (sha256 of every file), README.md.
 - results/*/analysis/samples.csv: one row per reply (arm, prompt, seed, finish, reasoning tokens, decode speed, tests).
+  The context probe's table has one row per request (arm, pass, item, family, length, seed, finish class, fields, correct).
 - https://github.com/UrbanAstroLA/cuteafd-eval/blob/main/protocol/README.md: the frozen protocol; protocol/HASHES.json binds published files to it.
 
 ## How to read the results
 - Run kinds: measurement (protocol frozen before the first request), exploratory (evidence, not a frozen comparison),
   check. A finding's status says which; post hoc numbers are labelled post hoc.
-- Intervals are 95% bootstrap intervals over the unit named (prompts, questions, windows); "detected" means the interval
+- Intervals are 95% bootstrap intervals over the unit named (prompts, questions, windows, items); "detected" means the interval
   excludes the null (1 for ratios, 0 for differences). Bootstrap seeds differ per run: see each run's protocol, or
   recompute.bootstrap in findings.json.
-- "Finished" = finish_reason stop and not capped. Medians are over finished replies. findings.json has a definitions block
+- "Finished" = finish_reason stop and not capped. Medians in TL-* entries are over finished replies; the medians on the v5 page
+  (thinking length, speed) are over all replies. findings.json has a definitions block
   with every estimator used.
 - findings.json pointers are RFC 6901: unescape ~1 to / and ~0 to ~ after splitting (some keys contain a slash).
+- Context probe (CP-*): three arms on CuteAFD v5.0.0 that differ in the precision of the tensors outside the experts: anchor
+  (BF16 core and BF16 output head, FP8 conversions off; a locally derived checkpoint; the reference, not a recommendation),
+  hqa (BF16 q_b_proj and o_proj, rest of the core and the head K6) and compact (K6 core and head). K4 experts and one seed
+  list in every arm. A request scores fields correct / fields, 0 if it did not finish with stop; differences are paired by item
+  and named "b - a" (above 0 = b higher). Data length label 128k is the 127K-token rendering. The K4-Core-K6-HQA repository
+  is no longer available on the hub (checked 2026-11-11); the runs used a local copy.
 - Thinking-length ratios put K4-Core-K6, or the part under test, first: above 1 = it thought longer. Each finding states
   its own direction.
 - Numbers from different model families or tokenizers are not comparable; NLL is per tokenizer.
@@ -32,7 +41,7 @@ machine-readable files below rather than scraping HTML.
 
 ## Validate
 - `python3 tools/verify.py` checks every manifest hash, every site link and anchor, every findings.json pointer, and
-  recomputes the code-study ratios and test counts from the per-reply tables.
+  recomputes the code-study ratios and test counts and the context-probe differences from the per-reply tables.
 - Each run folder's code/ and analysis/ hold the scripts that produced its numbers; repro/REPRODUCE.md covers re-running.
 
 ## Status vocabulary in findings.json
@@ -44,7 +53,7 @@ machine-readable files below rather than scraping HTML.
 - judgement: source and measurements: a conclusion drawn from source reading and published measurements together; not isolated by a run of its own
 - in progress: running; no result published
 
-## Thinking length findings (summary)
+## Findings (summary)
 - TL-code-vllm-core [measurement: frozen rule]: On the vLLM fork, does K4-Core-K6's 6-bit core change how long code replies think, against the original BF16 core? No: 1.00x [0.96, 1.04], not detected.
 - TL-code-cuteafd-core [measurement: frozen rule]: On CuteAFD v4.0.0, does the native 6-bit core change how long code replies think, against the BF16 core converted to FP8 at load? Yes: 1.26x [1.24, 1.29], detected, every prompt above 1. See TL-code-engines and TL-code-fp8-arm for which arm differs and TL-fp8-ablation for which FP8 setting carries it.
 - TL-code-engines [measurement: frozen rule]: Do the two engines agree on the core's effect on code thinking length? No: vLLM ratio / CuteAFD ratio = 0.79 [0.75, 0.83] (exp of the vLLM log ratio minus the CuteAFD log ratio, paired by prompt). By the reading stated before the run, the CuteAFD gap goes with how CuteAFD serves the core, not with the weight values.
@@ -59,6 +68,15 @@ machine-readable files below rather than scraping HTML.
 - TL-stop-vllm [exploratory]: On the vLLM fork, does the core change when the model decides to stop on fixed science-question reasoning traces? No: -0.0109 [-0.0315, +0.0046] on the new questions.
 - TL-qbo [exploratory]: Do q_b and the output projections in BF16 move the stop decision? Not in general: +0.0118 on the 11 questions they were found on, -0.0032 [-0.0161, +0.0064] on 30 new questions, not replicated.
 - TL-identity [measurement: frozen rule]: Do two launches of the same model agree? CuteAFD: bit-identical on every scored row, also two days later. vLLM fork: no; the launch difference is as large as the core's.
+- CP-hqa-vs-anchor [measurement: frozen rule]: On CuteAFD v5.0.0, does the default HQA core (BF16 q_b_proj and o_proj, rest K6) score lower than a BF16 core on graded tasks from 4K to 127K tokens? 0.000 [-0.012, +0.012] in field score, pooled over lengths; the interval includes 0. No difference measured. Basis: 60 items at four lengths, two passes; strength: moderate (one model family, synthetic tasks). Per-length intervals at 64K and 127K are wider (see SUMMARY.json).
+- CP-compact-vs-anchor [measurement: frozen rule]: On CuteAFD v5.0.0, does the K6 core (ATTENTION_MODE=compact) score lower than a BF16 core on the same tasks? -0.010 [-0.026, +0.006] in field score, pooled over lengths; the interval includes 0. No difference measured; compact's largest nominal gap is running totals at 64K and 127K (CP-ledger-long-context).
+- CP-hqa-vs-compact [measurement: frozen rule]: Do the two modes of the K4-Core-K6-HQA checkpoint, hqa and compact, differ on the same tasks? +0.010 [-0.005, +0.025] in field score, pooled over lengths; the interval includes 0. No difference measured.
+- CP-length-effect [measurement: descriptive]: Does accuracy fall with context length, and does core precision produce the fall? It falls in every arm, the BF16 reference included: field score 0.98 at 4K and 0.89 to 0.91 at 127K. The reference loses about as much as the other arms (0.08 against 0.07 and 0.09), so core precision does not produce it. A third to a half of the loss is replies that did not finish (cap or repetition abort, scored 0): among finished replies the 127K score is anchor 0.942, hqa 0.936, compact 0.928. Where the rest sits is open: the arms share the model, the K4 experts, the engine, the drafter, the sampling settings and the reply cap.
+- CP-ledger-long-context [measurement: post hoc]: Does the K6 core cost accuracy on running totals (ledger tasks) at 64K and 127K? Open. compact - anchor is -0.062 [-0.127, +0.002] in field score (includes 0) and -0.138 [-0.263, -0.025] in every-field-right (excludes 0), on 20 items. Post hoc: 48 such intervals were computed and two exclude 0, both compact - anchor on ledger every-field-right (single message; with the eight-turn pass): a lead, not a finding. hqa - anchor on the same slice is -0.023 [-0.073, +0.023] in field score (includes 0).
+- CP-turns-scope [measurement: descriptive]: Did the eight-turn pass test a conversation whose history the model wrote? No. Decode ran in every reply, but the model's own turns were a median 9% of the final prompt at 4K and 0.3-0.4% at 127K: at long context over 99% of the history was written by prefill. What the pass shows is split delivery: delivering the same input as eight messages shows no accuracy cost (16K to 127K: every interval includes 0, a cost up to about 0.07 is not excluded; 4K: eight turns score slightly higher in anchor and hqa, intervals exclude 0). The turn design is to be revised.
+- CP-intermediate-caps [measurement: descriptive]: In the eight-turn pass, how often was a delivery turn's reply not the requested acknowledgement, and how often did it run to its 4,096-token cap? Not the bare acknowledgement: anchor 4, hqa 6, compact 17 turns. Ran to the cap: anchor 0 of 1920 turns (0 sessions); hqa 2 of 1920 turns (2 sessions); compact 13 of 1920 turns (8 sessions). 6 of compact's capped turns were in one session. Descriptive; the final answers were scored as usual.
+- CP-kv-pool [source reading]: On two RTX PRO 6000, do the cheaper core settings admit a larger KV pool than the BF16 core? Not in the graded runs: every arm was admitted the configured maximum, 2,097,152 tokens, in all nine serving launches. The saving shows as resident weights and unallocated memory under the cap. A smaller pool for anchor was seen only in the scoring launches of the exploratory depth profile (16 requests at once).
+- CP-exploratory-checks [exploratory]: What did the checks before the graded runs show? Depth profile (five arms: anchor, hqa, compact, fp8c = ATTENTION_MODE=fp8-compact, core-fp8 = the BF16-core checkpoint with the engine's default FP8 conversions; texts to 128K, not the task items): no arm measurably worse than the BF16 reference at predicting the text at any depth. GLM5_FLASH_FP8_PREFILL=off on the HQA checkpoint: every recorded distribution bit-identical, so not an arm. Two launches of the same arm: bit-identical rows. Prefix-cache resume against a decode replay: bit-identical in 45 of 46 conversations over four arms together (the exception is a harness artifact). Greedy output alone and eight at once: one text in all 260 requests per arm. One capture each; numbers are in the protocol text only.
 
 ## Pages
 - https://urbanastrola.github.io/cuteafd-eval/index.html: overview
@@ -66,6 +84,7 @@ machine-readable files below rather than scraping HTML.
 - https://urbanastrola.github.io/cuteafd-eval/thinking.html: thinking length and the 6-bit core (the investigation findings.json covers)
 - https://urbanastrola.github.io/cuteafd-eval/precision.html: closeness to the BF16 model by context
 - https://urbanastrola.github.io/cuteafd-eval/speed.html: decode and prefill speed
+- https://urbanastrola.github.io/cuteafd-eval/v5.html: CuteAFD v5.0.0: three core precisions at 4K to 127K (CP-* in findings.json)
 - https://urbanastrola.github.io/cuteafd-eval/v4.html: CuteAFD v4.0.0 rerun
 - https://urbanastrola.github.io/cuteafd-eval/tools.html: multi-turn tool calling
 - https://urbanastrola.github.io/cuteafd-eval/method.html: method
@@ -89,6 +108,7 @@ machine-readable files below rather than scraping HTML.
 - 2026-11-06-cuteafd-fp8-ablation (measurement): Which part of CuteAFD's FP8 path shortens code reasoning: KDA FP8, FP8 head and FP8 prefill switched off cumulatively
 - 2026-11-06-new-questions (exploratory): New questions: the q_b + output-projection stop-decision shift and the core, on 30 questions not used before
 - 2026-11-06-vllm-code-thinking (measurement): Code thinking length on the vLLM fork: K4-Core-K6's 6-bit core against its BF16 core, 16 code prompts x 4 seeds
+- 2026-11-10-context-probe (measurement): CuteAFD v5.0.0 core precision at long context: BF16 reference, HQA and K6 core on graded tasks from 4K to 127K tokens
 
 ## Not published
 Model output text (replies, reasoning), benchmark question text, and raw dumps.

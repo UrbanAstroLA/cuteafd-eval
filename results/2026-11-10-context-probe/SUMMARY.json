@@ -1,0 +1,2137 @@
+{
+ "about": "Every number of the CuteAFD v5 page (docs/v5.html). Differences are second-named arm subtracted from the first-named (\"hqa - anchor\" above 0 = hqa scored higher). One engine, one model family, K4 experts and the same drafter in every arm: nothing here measures expert quantisation. Synthetic items; scores are not comparable with any other model family or fixture.",
+ "engine": "tpurtell/cuteafd v5.0.0 (tag d8e566e85; coordinator image sha256:6194637e531906b3b037d1fb6b55d2d566604c26fbb05fe26045fa4c744e3d83), unmodified launcher; arm settings per launch with run.sh --set",
+ "arms": {
+  "anchor": {
+   "what": "every core matrix and the output head at original precision (BF16), FP8 conversions off: the reference, not a recommendation",
+   "checkpoint": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180c693ebbad90190dca8d5f0a7ca4d3753 (local derived checkpoint, not a producer release)",
+   "settings": "--set GLM5_FLASH_KDA_FP8=off --set GLM5_FLASH_FP8_HEAD=off --set GLM5_FLASH_FP8_PREFILL=off"
+  },
+  "hqa": {
+   "what": "BF16 q_b_proj and o_proj, rest of the core and the head K6 (the checkpoint's default mode)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6-HQA @ e0ecc3d55d117e656a03d5790521cad0c4fcb624",
+   "settings": "default (ATTENTION_MODE=hqa)"
+  },
+  "compact": {
+   "what": "K6 core and head: the K6 copies of the same projections",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6-HQA @ e0ecc3d55d117e656a03d5790521cad0c4fcb624",
+   "settings": "--set ATTENTION_MODE=compact"
+  }
+ },
+ "shared_by_every_arm": "K4 experts; drafter incoai/GLM-5.3-Flash-DFlash2 @ bf582e4e; 2 GPUs, experts local",
+ "hqa_checkpoint": {
+  "what": "K4 experts, K6 core and head, and BF16 copies of two attention projection groups (q_b_proj, 12 matrices; o_proj, 46) beside the K6 ones; ATTENTION_MODE selects which copies run",
+  "availability": "The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11). These runs used a local copy downloaded on 2026-11-10. The anchor checkpoint is derived locally and was never a hub release."
+ },
+ "launch": {
+  "source": "each launch's server log (load line and memory admission); logs are not published",
+  "serving": {
+   "anchor": [
+    {
+     "launch": "anchor-serve-195517",
+     "coordinator_weights_gib": 6.2098,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[None]",
+     "head": "BF16",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 83129,
+       "workspaces_mib": 3065,
+       "reserve_mib": 1163,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 82897,
+       "workspaces_mib": 3011,
+       "reserve_mib": 2535,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    },
+    {
+     "launch": "anchor-serve-000059",
+     "coordinator_weights_gib": 6.2098,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[None]",
+     "head": "BF16",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 83129,
+       "workspaces_mib": 3065,
+       "reserve_mib": 1163,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 82897,
+       "workspaces_mib": 3011,
+       "reserve_mib": 2535,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    },
+    {
+     "launch": "anchor-serve-040244",
+     "coordinator_weights_gib": 6.2098,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[None]",
+     "head": "BF16",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 83129,
+       "workspaces_mib": 3065,
+       "reserve_mib": 1163,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 82897,
+       "workspaces_mib": 3011,
+       "reserve_mib": 2535,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    }
+   ],
+   "hqa": [
+    {
+     "launch": "hqa-serve-211428",
+     "coordinator_weights_gib": 4.4958,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[Mla, Ffn]",
+     "head": "K6",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 81827,
+       "workspaces_mib": 3960,
+       "reserve_mib": 1107,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 79931,
+       "workspaces_mib": 3337,
+       "reserve_mib": 2542,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    },
+    {
+     "launch": "hqa-serve-011434",
+     "coordinator_weights_gib": 4.4958,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[Mla, Ffn]",
+     "head": "K6",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 81827,
+       "workspaces_mib": 3960,
+       "reserve_mib": 1107,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 79931,
+       "workspaces_mib": 3337,
+       "reserve_mib": 2542,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    },
+    {
+     "launch": "hqa-serve-052343",
+     "coordinator_weights_gib": 4.4958,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[Mla, Ffn]",
+     "head": "K6",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 81827,
+       "workspaces_mib": 3960,
+       "reserve_mib": 1107,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 79931,
+       "workspaces_mib": 3337,
+       "reserve_mib": 2542,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    }
+   ],
+   "compact": [
+    {
+     "launch": "compact-serve-223548",
+     "coordinator_weights_gib": 3.2419,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[Mla, Ffn]",
+     "head": "K6",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 80543,
+       "workspaces_mib": 4015,
+       "reserve_mib": 1107,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 78647,
+       "workspaces_mib": 3392,
+       "reserve_mib": 2542,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    },
+    {
+     "launch": "compact-serve-023828",
+     "coordinator_weights_gib": 3.2419,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[Mla, Ffn]",
+     "head": "K6",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 80543,
+       "workspaces_mib": 4015,
+       "reserve_mib": 1107,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 78647,
+       "workspaces_mib": 3392,
+       "reserve_mib": 2542,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    },
+    {
+     "launch": "compact-serve-065548",
+     "coordinator_weights_gib": 3.2419,
+     "kda_fp8": "Off",
+     "fp8_prefill": "[Mla, Ffn]",
+     "head": "K6",
+     "kv_pool_tokens": 2097152,
+     "gpus": {
+      "rtx0": {
+       "cap_mib": 97250,
+       "weights_mib": 80543,
+       "workspaces_mib": 4015,
+       "reserve_mib": 1107,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      },
+      "rtx1": {
+       "cap_mib": 97247,
+       "weights_mib": 78647,
+       "workspaces_mib": 3392,
+       "reserve_mib": 2542,
+       "kv_pool_tokens": 2097152,
+       "kv_pool_mib": 7603
+      }
+     }
+    }
+   ]
+  },
+  "resident_weights_mib_rtx0_rtx1": {
+   "anchor": [
+    83129,
+    82897
+   ],
+   "hqa": [
+    81827,
+    79931
+   ],
+   "compact": [
+    80543,
+    78647
+   ]
+  },
+  "kv_pool_tokens_serving": {
+   "anchor": 2097152,
+   "hqa": 2097152,
+   "compact": 2097152
+  },
+  "kv_pool_tokens_scoring_launches": {
+   "anchor": [
+    1318400
+   ],
+   "compact": [
+    2097152
+   ],
+   "core-fp8": [
+    2057216
+   ],
+   "fp8c": [
+    2097152
+   ],
+   "hqa": [
+    2097152
+   ],
+   "hqa-bf16pre": [
+    2097152
+   ]
+  },
+  "note": "In the nine serving launches of the graded runs every arm was admitted the configured maximum KV pool. A smaller pool for anchor was seen only in the scoring launches of the exploratory depth profile (concurrency 16). Corrected 2026-11-11: RESULTS.md first gave anchor's scoring-launch pool in the graded-run table."
+ },
+ "settings": {
+  "items": "60 synthetic items (join, ledger, trace; 20 each), each rendered at 4K, 16K, 64K and 127K tokens (length labels 4k, 16k, 64k, 128k in the data); 8 answer fields per item",
+  "passes_per_arm": [
+   "single message, pass 1 (single-rep0)",
+   "single message, pass 2 (single-rep1)",
+   "eight delivery turns then the question (turns-p8-rep0)"
+  ],
+  "sampling": "thinking on, temperature 1.0, top_p 0.95, top_k -1, one recorded seed per (item, length, pass): distinct within an arm, the same in every arm",
+  "reply_cap_tokens": 32768,
+  "acknowledgement_cap_tokens": 4096,
+  "concurrency": 8,
+  "frozen": "2026-11-10 19:55:10, seven seconds before the first serving launch and before the first measured request (protocol/FROZEN.json); amendments: none"
+ },
+ "estimators": {
+  "request_score": "fields correct / fields, read from the last ANSWER: line; 0 if the reply did not finish with stop (reply cap or loop abort)",
+  "every_field_right": "share of requests with request_score = 1",
+  "paired_difference_frozen_rule": "per item, the mean over the shared (pass, length) requests of score(b) - score(a); the estimate is the mean over items; 95% interval: percentile over 10,000 resamples of the items (seed 5). Unit: the item (60; 20 for one family)",
+  "flip_share": "share of (item, length) pairs whose every-field-right outcome differs: between two arms in the same pass (same seed), or between the two passes of one arm (the floor); p from an exact McNemar test",
+  "turns_minus_single": "per item, eight-turn score minus the mean of the two single-message scores; interval as above",
+  "model_written_share": "per eight-turn session: completion tokens of the delivery turns / prompt tokens of the final turn",
+  "post_hoc": "64K and 127K pooled; per item, mean over passes and the two lengths; plain item bootstrap, 10,000 draws, seed 7"
+ },
+ "frozen_rule": {
+  "differences": {
+   "hqa - anchor": {
+    "single": {
+     "4k": [
+      -0.0021,
+      -0.0135,
+      0.0083,
+      60
+     ],
+     "16k": [
+      0.0052,
+      -0.0042,
+      0.0146,
+      60
+     ],
+     "64k": [
+      -0.0125,
+      -0.0458,
+      0.0177,
+      60
+     ],
+     "128k": [
+      0.0094,
+      -0.026,
+      0.0469,
+      60
+     ],
+     "all": [
+      0.0,
+      -0.0122,
+      0.012,
+      60
+     ]
+    },
+    "turns-p8": {
+     "4k": [
+      0.0,
+      -0.0083,
+      0.0083,
+      60
+     ],
+     "16k": [
+      0.0125,
+      -0.0125,
+      0.05,
+      60
+     ],
+     "64k": [
+      -0.0208,
+      -0.0938,
+      0.05,
+      60
+     ],
+     "128k": [
+      0.0229,
+      -0.0333,
+      0.0833,
+      60
+     ],
+     "all": [
+      0.0036,
+      -0.0234,
+      0.0318,
+      60
+     ]
+    }
+   },
+   "compact - anchor": {
+    "single": {
+     "4k": [
+      0.001,
+      -0.0083,
+      0.0115,
+      60
+     ],
+     "16k": [
+      -0.0021,
+      -0.0104,
+      0.0063,
+      60
+     ],
+     "64k": [
+      -0.024,
+      -0.0563,
+      0.0042,
+      60
+     ],
+     "128k": [
+      -0.0135,
+      -0.0688,
+      0.0406,
+      60
+     ],
+     "all": [
+      -0.0096,
+      -0.0263,
+      0.0063,
+      60
+     ]
+    },
+    "turns-p8": {
+     "4k": [
+      -0.0042,
+      -0.0125,
+      0.0042,
+      60
+     ],
+     "16k": [
+      0.0063,
+      -0.0396,
+      0.05,
+      60
+     ],
+     "64k": [
+      -0.0208,
+      -0.0896,
+      0.0479,
+      60
+     ],
+     "128k": [
+      0.0292,
+      -0.0458,
+      0.1062,
+      60
+     ],
+     "all": [
+      0.0026,
+      -0.0266,
+      0.0333,
+      60
+     ]
+    }
+   },
+   "hqa - compact": {
+    "single": {
+     "4k": [
+      -0.0031,
+      -0.0146,
+      0.0073,
+      60
+     ],
+     "16k": [
+      0.0073,
+      -0.0042,
+      0.0187,
+      60
+     ],
+     "64k": [
+      0.0115,
+      -0.0135,
+      0.0396,
+      60
+     ],
+     "128k": [
+      0.0229,
+      -0.026,
+      0.0729,
+      60
+     ],
+     "all": [
+      0.0096,
+      -0.0047,
+      0.0253,
+      60
+     ]
+    },
+    "turns-p8": {
+     "4k": [
+      0.0042,
+      -0.0063,
+      0.0146,
+      60
+     ],
+     "16k": [
+      0.0063,
+      -0.0229,
+      0.0479,
+      60
+     ],
+     "64k": [
+      0.0,
+      -0.075,
+      0.0771,
+      60
+     ],
+     "128k": [
+      -0.0063,
+      -0.0813,
+      0.0646,
+      60
+     ],
+     "all": [
+      0.001,
+      -0.0271,
+      0.0281,
+      60
+     ]
+    }
+   }
+  },
+  "flips_single": {
+   "hqa - anchor": {
+    "between": {
+     "rep0": {
+      "pairs": 240,
+      "a_only": 17,
+      "b_only": 29,
+      "discordant": 0.1917,
+      "p_exact": 0.1038
+     },
+     "rep1": {
+      "pairs": 240,
+      "a_only": 34,
+      "b_only": 22,
+      "discordant": 0.2333,
+      "p_exact": 0.1409
+     }
+    },
+    "floor": {
+     "a rep0|rep1": {
+      "pairs": 240,
+      "a_only": 22,
+      "b_only": 33,
+      "discordant": 0.2292,
+      "p_exact": 0.177
+     },
+     "b rep0|rep1": {
+      "pairs": 240,
+      "a_only": 34,
+      "b_only": 21,
+      "discordant": 0.2292,
+      "p_exact": 0.1048
+     }
+    }
+   },
+   "compact - anchor": {
+    "between": {
+     "rep0": {
+      "pairs": 240,
+      "a_only": 25,
+      "b_only": 24,
+      "discordant": 0.2042,
+      "p_exact": 1.0
+     },
+     "rep1": {
+      "pairs": 240,
+      "a_only": 34,
+      "b_only": 19,
+      "discordant": 0.2208,
+      "p_exact": 0.0534
+     }
+    },
+    "floor": {
+     "a rep0|rep1": {
+      "pairs": 240,
+      "a_only": 22,
+      "b_only": 33,
+      "discordant": 0.2292,
+      "p_exact": 0.177
+     },
+     "b rep0|rep1": {
+      "pairs": 240,
+      "a_only": 31,
+      "b_only": 28,
+      "discordant": 0.2458,
+      "p_exact": 0.7948
+     }
+    }
+   },
+   "hqa - compact": {
+    "between": {
+     "rep0": {
+      "pairs": 240,
+      "a_only": 15,
+      "b_only": 28,
+      "discordant": 0.1792,
+      "p_exact": 0.066
+     },
+     "rep1": {
+      "pairs": 240,
+      "a_only": 26,
+      "b_only": 29,
+      "discordant": 0.2292,
+      "p_exact": 0.7877
+     }
+    },
+    "floor": {
+     "a rep0|rep1": {
+      "pairs": 240,
+      "a_only": 31,
+      "b_only": 28,
+      "discordant": 0.2458,
+      "p_exact": 0.7948
+     },
+     "b rep0|rep1": {
+      "pairs": 240,
+      "a_only": 34,
+      "b_only": 21,
+      "discordant": 0.2292,
+      "p_exact": 0.1048
+     }
+    }
+   }
+  }
+ },
+ "score_by_length": {
+  "anchor": {
+   "single": {
+    "4k": {
+     "requests": 120,
+     "score": 0.9833,
+     "every_field_right": 0.875,
+     "finish": {
+      "stop": 120
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.983333,
+     "reasoning_chars_median": 7289.0,
+     "completion_tokens_median": 3343.5,
+     "decode_tok_s_median": 40.5205,
+     "ttft_s_median": 0.7231
+    },
+    "16k": {
+     "requests": 120,
+     "score": 0.9771,
+     "every_field_right": 0.8333,
+     "finish": {
+      "stop": 120
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.977083,
+     "reasoning_chars_median": 7265.5,
+     "completion_tokens_median": 3700.0,
+     "decode_tok_s_median": 36.605,
+     "ttft_s_median": 2.7544500000000003
+    },
+    "64k": {
+     "requests": 120,
+     "score": 0.9563,
+     "every_field_right": 0.775,
+     "finish": {
+      "stop": 119,
+      "cap": 1
+     },
+     "unfinished": 1,
+     "score_finished_only": 0.964286,
+     "reasoning_chars_median": 8714.0,
+     "completion_tokens_median": 4162.0,
+     "decode_tok_s_median": 37.693,
+     "ttft_s_median": 11.09455
+    },
+    "128k": {
+     "requests": 120,
+     "score": 0.9031,
+     "every_field_right": 0.675,
+     "finish": {
+      "stop": 115,
+      "cap": 4,
+      "repetition": 1
+     },
+     "unfinished": 5,
+     "score_finished_only": 0.942391,
+     "reasoning_chars_median": 11366.5,
+     "completion_tokens_median": 5518.0,
+     "decode_tok_s_median": 40.489000000000004,
+     "ttft_s_median": 21.8027
+    }
+   },
+   "turns-p8": {
+    "4k": {
+     "requests": 60,
+     "score": 0.9958,
+     "every_field_right": 0.9667,
+     "finish": {
+      "stop": 60
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.995833,
+     "reasoning_chars_median": 7812.5,
+     "completion_tokens_median": 4336.0,
+     "decode_tok_s_median": 54.329,
+     "ttft_s_median": 0.10485
+    },
+    "16k": {
+     "requests": 60,
+     "score": 0.9667,
+     "every_field_right": 0.8667,
+     "finish": {
+      "stop": 59,
+      "cap": 1
+     },
+     "unfinished": 1,
+     "score_finished_only": 0.983051,
+     "reasoning_chars_median": 6811.5,
+     "completion_tokens_median": 4302.5,
+     "decode_tok_s_median": 54.6305,
+     "ttft_s_median": 0.121
+    },
+    "64k": {
+     "requests": 60,
+     "score": 0.9479,
+     "every_field_right": 0.85,
+     "finish": {
+      "stop": 58,
+      "cap": 2
+     },
+     "unfinished": 2,
+     "score_finished_only": 0.980603,
+     "reasoning_chars_median": 9244.5,
+     "completion_tokens_median": 5811.0,
+     "decode_tok_s_median": 52.928,
+     "ttft_s_median": 0.10925
+    },
+    "128k": {
+     "requests": 60,
+     "score": 0.9021,
+     "every_field_right": 0.75,
+     "finish": {
+      "cap": 3,
+      "stop": 57
+     },
+     "unfinished": 3,
+     "score_finished_only": 0.949561,
+     "reasoning_chars_median": 9419.0,
+     "completion_tokens_median": 5862.5,
+     "decode_tok_s_median": 50.712500000000006,
+     "ttft_s_median": 0.1261
+    }
+   }
+  },
+  "hqa": {
+   "single": {
+    "4k": {
+     "requests": 120,
+     "score": 0.9812,
+     "every_field_right": 0.8833,
+     "finish": {
+      "stop": 120
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.98125,
+     "reasoning_chars_median": 6538.0,
+     "completion_tokens_median": 3061.0,
+     "decode_tok_s_median": 34.426,
+     "ttft_s_median": 0.8196
+    },
+    "16k": {
+     "requests": 120,
+     "score": 0.9823,
+     "every_field_right": 0.875,
+     "finish": {
+      "stop": 120
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.982292,
+     "reasoning_chars_median": 6888.0,
+     "completion_tokens_median": 3808.0,
+     "decode_tok_s_median": 32.269000000000005,
+     "ttft_s_median": 3.167
+    },
+    "64k": {
+     "requests": 120,
+     "score": 0.9437,
+     "every_field_right": 0.7333,
+     "finish": {
+      "stop": 118,
+      "cap": 2
+     },
+     "unfinished": 2,
+     "score_finished_only": 0.959746,
+     "reasoning_chars_median": 8965.5,
+     "completion_tokens_median": 4671.0,
+     "decode_tok_s_median": 34.73650000000001,
+     "ttft_s_median": 12.74145
+    },
+    "128k": {
+     "requests": 120,
+     "score": 0.9125,
+     "every_field_right": 0.6667,
+     "finish": {
+      "stop": 117,
+      "cap": 2,
+      "repetition": 1
+     },
+     "unfinished": 3,
+     "score_finished_only": 0.935897,
+     "reasoning_chars_median": 9636.0,
+     "completion_tokens_median": 4834.0,
+     "decode_tok_s_median": 35.4435,
+     "ttft_s_median": 25.0826
+    }
+   },
+   "turns-p8": {
+    "4k": {
+     "requests": 60,
+     "score": 0.9958,
+     "every_field_right": 0.9667,
+     "finish": {
+      "stop": 60
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.995833,
+     "reasoning_chars_median": 10570.5,
+     "completion_tokens_median": 5532.5,
+     "decode_tok_s_median": 49.367000000000004,
+     "ttft_s_median": 0.108
+    },
+    "16k": {
+     "requests": 60,
+     "score": 0.9792,
+     "every_field_right": 0.85,
+     "finish": {
+      "stop": 60
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.979167,
+     "reasoning_chars_median": 6927.5,
+     "completion_tokens_median": 4182.0,
+     "decode_tok_s_median": 46.393,
+     "ttft_s_median": 0.12405
+    },
+    "64k": {
+     "requests": 60,
+     "score": 0.9271,
+     "every_field_right": 0.7833,
+     "finish": {
+      "stop": 57,
+      "cap": 3
+     },
+     "unfinished": 3,
+     "score_finished_only": 0.975877,
+     "reasoning_chars_median": 8616.0,
+     "completion_tokens_median": 5512.0,
+     "decode_tok_s_median": 49.650000000000006,
+     "ttft_s_median": 0.11265
+    },
+    "128k": {
+     "requests": 60,
+     "score": 0.925,
+     "every_field_right": 0.8167,
+     "finish": {
+      "stop": 57,
+      "cap": 3
+     },
+     "unfinished": 3,
+     "score_finished_only": 0.973684,
+     "reasoning_chars_median": 10445.0,
+     "completion_tokens_median": 6782.5,
+     "decode_tok_s_median": 52.278499999999994,
+     "ttft_s_median": 0.1305
+    }
+   }
+  },
+  "compact": {
+   "single": {
+    "4k": {
+     "requests": 120,
+     "score": 0.9844,
+     "every_field_right": 0.875,
+     "finish": {
+      "stop": 120
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.984375,
+     "reasoning_chars_median": 6657.0,
+     "completion_tokens_median": 3030.5,
+     "decode_tok_s_median": 36.697,
+     "ttft_s_median": 0.83305
+    },
+    "16k": {
+     "requests": 120,
+     "score": 0.975,
+     "every_field_right": 0.825,
+     "finish": {
+      "stop": 120
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.975,
+     "reasoning_chars_median": 7697.0,
+     "completion_tokens_median": 3664.0,
+     "decode_tok_s_median": 33.024,
+     "ttft_s_median": 3.2073
+    },
+    "64k": {
+     "requests": 120,
+     "score": 0.9323,
+     "every_field_right": 0.7,
+     "finish": {
+      "stop": 118,
+      "cap": 1,
+      "repetition": 1
+     },
+     "unfinished": 2,
+     "score_finished_only": 0.948093,
+     "reasoning_chars_median": 8478.5,
+     "completion_tokens_median": 4461.5,
+     "decode_tok_s_median": 33.72,
+     "ttft_s_median": 12.930700000000002
+    },
+    "128k": {
+     "requests": 120,
+     "score": 0.8896,
+     "every_field_right": 0.625,
+     "finish": {
+      "stop": 115,
+      "cap": 4,
+      "repetition": 1
+     },
+     "unfinished": 5,
+     "score_finished_only": 0.928261,
+     "reasoning_chars_median": 9785.5,
+     "completion_tokens_median": 5276.0,
+     "decode_tok_s_median": 36.876999999999995,
+     "ttft_s_median": 25.4545
+    }
+   },
+   "turns-p8": {
+    "4k": {
+     "requests": 60,
+     "score": 0.9917,
+     "every_field_right": 0.9333,
+     "finish": {
+      "stop": 60
+     },
+     "unfinished": 0,
+     "score_finished_only": 0.991667,
+     "reasoning_chars_median": 5476.0,
+     "completion_tokens_median": 3432.0,
+     "decode_tok_s_median": 50.5285,
+     "ttft_s_median": 0.1084
+    },
+    "16k": {
+     "requests": 60,
+     "score": 0.9729,
+     "every_field_right": 0.9,
+     "finish": {
+      "stop": 59,
+      "cap": 1
+     },
+     "unfinished": 1,
+     "score_finished_only": 0.989407,
+     "reasoning_chars_median": 7511.0,
+     "completion_tokens_median": 4719.0,
+     "decode_tok_s_median": 45.616,
+     "ttft_s_median": 0.1216
+    },
+    "64k": {
+     "requests": 60,
+     "score": 0.9271,
+     "every_field_right": 0.8,
+     "finish": {
+      "stop": 57,
+      "cap": 3
+     },
+     "unfinished": 3,
+     "score_finished_only": 0.975877,
+     "reasoning_chars_median": 8232.5,
+     "completion_tokens_median": 5458.0,
+     "decode_tok_s_median": 50.0995,
+     "ttft_s_median": 0.11295
+    },
+    "128k": {
+     "requests": 60,
+     "score": 0.9313,
+     "every_field_right": 0.7833,
+     "finish": {
+      "stop": 58,
+      "cap": 2
+     },
+     "unfinished": 2,
+     "score_finished_only": 0.963362,
+     "reasoning_chars_median": 9138.0,
+     "completion_tokens_median": 6200.0,
+     "decode_tok_s_median": 55.962500000000006,
+     "ttft_s_median": 0.13069999999999998
+    }
+   }
+  }
+ },
+ "by_family": {
+  "anchor": {
+   "join": {
+    "4k": {
+     "score": 0.9969,
+     "every_field_right": [
+      39,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.996875
+    },
+    "16k": {
+     "score": 0.9906,
+     "every_field_right": [
+      37,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.990625
+    },
+    "64k": {
+     "score": 0.9969,
+     "every_field_right": [
+      39,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.996875
+    },
+    "128k": {
+     "score": 0.8969,
+     "every_field_right": [
+      35,
+      40
+     ],
+     "unfinished": 4,
+     "score_finished_only": 0.996528
+    }
+   },
+   "ledger": {
+    "4k": {
+     "score": 0.9781,
+     "every_field_right": [
+      34,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.978125
+    },
+    "16k": {
+     "score": 0.9656,
+     "every_field_right": [
+      31,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.965625
+    },
+    "64k": {
+     "score": 0.8906,
+     "every_field_right": [
+      19,
+      40
+     ],
+     "unfinished": 1,
+     "score_finished_only": 0.913462
+    },
+    "128k": {
+     "score": 0.8469,
+     "every_field_right": [
+      14,
+      40
+     ],
+     "unfinished": 1,
+     "score_finished_only": 0.86859
+    }
+   },
+   "trace": {
+    "4k": {
+     "score": 0.975,
+     "every_field_right": [
+      32,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.975
+    },
+    "16k": {
+     "score": 0.975,
+     "every_field_right": [
+      32,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.975
+    },
+    "64k": {
+     "score": 0.9812,
+     "every_field_right": [
+      35,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.98125
+    },
+    "128k": {
+     "score": 0.9656,
+     "every_field_right": [
+      32,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.965625
+    }
+   }
+  },
+  "hqa": {
+   "join": {
+    "4k": {
+     "score": 0.9969,
+     "every_field_right": [
+      39,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.996875
+    },
+    "16k": {
+     "score": 0.9938,
+     "every_field_right": [
+      38,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.99375
+    },
+    "64k": {
+     "score": 0.9938,
+     "every_field_right": [
+      38,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.99375
+    },
+    "128k": {
+     "score": 0.9469,
+     "every_field_right": [
+      37,
+      40
+     ],
+     "unfinished": 2,
+     "score_finished_only": 0.996711
+    }
+   },
+   "ledger": {
+    "4k": {
+     "score": 0.9812,
+     "every_field_right": [
+      35,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.98125
+    },
+    "16k": {
+     "score": 0.975,
+     "every_field_right": [
+      33,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.975
+    },
+    "64k": {
+     "score": 0.85,
+     "every_field_right": [
+      14,
+      40
+     ],
+     "unfinished": 2,
+     "score_finished_only": 0.894737
+    },
+    "128k": {
+     "score": 0.8406,
+     "every_field_right": [
+      14,
+      40
+     ],
+     "unfinished": 1,
+     "score_finished_only": 0.862179
+    }
+   },
+   "trace": {
+    "4k": {
+     "score": 0.9656,
+     "every_field_right": [
+      32,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.965625
+    },
+    "16k": {
+     "score": 0.9781,
+     "every_field_right": [
+      34,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.978125
+    },
+    "64k": {
+     "score": 0.9875,
+     "every_field_right": [
+      36,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.9875
+    },
+    "128k": {
+     "score": 0.95,
+     "every_field_right": [
+      29,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.95
+    }
+   }
+  },
+  "compact": {
+   "join": {
+    "4k": {
+     "score": 0.9969,
+     "every_field_right": [
+      39,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.996875
+    },
+    "16k": {
+     "score": 0.9906,
+     "every_field_right": [
+      37,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.990625
+    },
+    "64k": {
+     "score": 0.9969,
+     "every_field_right": [
+      39,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.996875
+    },
+    "128k": {
+     "score": 0.9125,
+     "every_field_right": [
+      33,
+      40
+     ],
+     "unfinished": 3,
+     "score_finished_only": 0.986486
+    }
+   },
+   "ledger": {
+    "4k": {
+     "score": 0.975,
+     "every_field_right": [
+      32,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.975
+    },
+    "16k": {
+     "score": 0.9625,
+     "every_field_right": [
+      31,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.9625
+    },
+    "64k": {
+     "score": 0.825,
+     "every_field_right": [
+      12,
+      40
+     ],
+     "unfinished": 2,
+     "score_finished_only": 0.868421
+    },
+    "128k": {
+     "score": 0.7875,
+     "every_field_right": [
+      10,
+      40
+     ],
+     "unfinished": 2,
+     "score_finished_only": 0.828947
+    }
+   },
+   "trace": {
+    "4k": {
+     "score": 0.9812,
+     "every_field_right": [
+      34,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.98125
+    },
+    "16k": {
+     "score": 0.9719,
+     "every_field_right": [
+      31,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.971875
+    },
+    "64k": {
+     "score": 0.975,
+     "every_field_right": [
+      33,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.975
+    },
+    "128k": {
+     "score": 0.9688,
+     "every_field_right": [
+      32,
+      40
+     ],
+     "unfinished": 0,
+     "score_finished_only": 0.96875
+    }
+   }
+  }
+ },
+ "turns": {
+  "scope": "Decode ran in every reply of every pass. What the 8-turn pass did not exercise is history written by decode: the model's own turns (thinking included, which stays in context) are a median 9% of the final prompt at 4K, 2.7% at 16K, 0.7% at 64K and 0.3-0.4% at 127K, so at long context more than 99% of the history the final answer was conditioned on was written by prefill. The pass measures split delivery of the same input. It does not test a conversation whose history the model wrote (protocol question 3). The turn design is to be revised.",
+  "status": "design to be revised; the protocol's advance reading (\"turn check v2 not needed\") is withdrawn",
+  "turns_minus_single": {
+   "anchor": {
+    "4k": [
+     0.0125,
+     0.0021,
+     0.024,
+     60
+    ],
+    "16k": [
+     -0.0104,
+     -0.05,
+     0.0167,
+     60
+    ],
+    "64k": [
+     -0.0083,
+     -0.0656,
+     0.0375,
+     60
+    ],
+    "128k": [
+     -0.001,
+     -0.0698,
+     0.0604,
+     60
+    ]
+   },
+   "hqa": {
+    "4k": [
+     0.0146,
+     0.0031,
+     0.0271,
+     60
+    ],
+    "16k": [
+     -0.0031,
+     -0.0167,
+     0.0094,
+     60
+    ],
+    "64k": [
+     -0.0167,
+     -0.074,
+     0.0302,
+     60
+    ],
+    "128k": [
+     0.0125,
+     -0.0469,
+     0.0646,
+     60
+    ]
+   },
+   "compact": {
+    "4k": [
+     0.0073,
+     -0.0042,
+     0.0187,
+     60
+    ],
+    "16k": [
+     -0.0021,
+     -0.0396,
+     0.024,
+     60
+    ],
+    "64k": [
+     -0.0052,
+     -0.0667,
+     0.0479,
+     60
+    ],
+    "128k": [
+     0.0417,
+     -0.0208,
+     0.1,
+     60
+    ]
+   }
+  },
+  "model_written_share": {
+   "anchor": {
+    "4k": {
+     "median": 0.0928,
+     "max": 0.3961,
+     "sessions": 60
+    },
+    "16k": {
+     "median": 0.0273,
+     "max": 0.137,
+     "sessions": 60
+    },
+    "64k": {
+     "median": 0.0073,
+     "max": 0.0158,
+     "sessions": 60
+    },
+    "128k": {
+     "median": 0.0035,
+     "max": 0.0057,
+     "sessions": 60
+    }
+   },
+   "hqa": {
+    "4k": {
+     "median": 0.0923,
+     "max": 0.5592,
+     "sessions": 60
+    },
+    "16k": {
+     "median": 0.0271,
+     "max": 0.2065,
+     "sessions": 60
+    },
+    "64k": {
+     "median": 0.0073,
+     "max": 0.0142,
+     "sessions": 60
+    },
+    "128k": {
+     "median": 0.0033,
+     "max": 0.0061,
+     "sessions": 60
+    }
+   },
+   "compact": {
+    "4k": {
+     "median": 0.0939,
+     "max": 0.6558,
+     "sessions": 60
+    },
+    "16k": {
+     "median": 0.0263,
+     "max": 0.2097,
+     "sessions": 60
+    },
+    "64k": {
+     "median": 0.0071,
+     "max": 0.0682,
+     "sessions": 60
+    },
+    "128k": {
+     "median": 0.0032,
+     "max": 0.166,
+     "sessions": 60
+    }
+   }
+  },
+  "intermediate_caps": {
+   "anchor": {
+    "delivery_turns": 1920,
+    "sessions": 240,
+    "turns_not_stop": 0,
+    "turns_not_the_acknowledgement": 4,
+    "of_which_finished_with_stop": 4,
+    "sessions_with_one": 0,
+    "most_in_one_session": 0
+   },
+   "hqa": {
+    "delivery_turns": 1920,
+    "sessions": 240,
+    "turns_not_stop": 2,
+    "turns_not_the_acknowledgement": 6,
+    "of_which_finished_with_stop": 4,
+    "sessions_with_one": 2,
+    "most_in_one_session": 1
+   },
+   "compact": {
+    "delivery_turns": 1920,
+    "sessions": 240,
+    "turns_not_stop": 13,
+    "turns_not_the_acknowledgement": 17,
+    "of_which_finished_with_stop": 4,
+    "sessions_with_one": 8,
+    "most_in_one_session": 6
+   }
+  }
+ },
+ "ledger_exploratory": {
+  "note": "by family, as the protocol asks of every table; outside the frozen comparison rule (plain item bootstrap, seed 20261111, indices 250 and 9750); 20 items",
+  "differences": {
+   "note": "by family, as the protocol asks of every table; outside the frozen comparison rule",
+   "interval": "10,000 item resamples, seed 20261111",
+   "single": {
+    "hqa - anchor": {
+     "4k": [
+      0.0031,
+      -0.0187,
+      0.0219,
+      20
+     ],
+     "16k": [
+      0.0094,
+      -0.0094,
+      0.0312,
+      20
+     ],
+     "64k": [
+      -0.0406,
+      -0.1375,
+      0.0469,
+      20
+     ],
+     "128k": [
+      -0.0063,
+      -0.05,
+      0.0375,
+      20
+     ]
+    },
+    "compact - anchor": {
+     "4k": [
+      -0.0031,
+      -0.025,
+      0.0187,
+      20
+     ],
+     "16k": [
+      -0.0031,
+      -0.0219,
+      0.0156,
+      20
+     ],
+     "64k": [
+      -0.0656,
+      -0.1531,
+      0.0125,
+      20
+     ],
+     "128k": [
+      -0.0594,
+      -0.1469,
+      0.0344,
+      20
+     ]
+    },
+    "hqa - compact": {
+     "4k": [
+      0.0063,
+      -0.0063,
+      0.0219,
+      20
+     ],
+     "16k": [
+      0.0125,
+      -0.0094,
+      0.0375,
+      20
+     ],
+     "64k": [
+      0.025,
+      -0.0437,
+      0.1031,
+      20
+     ],
+     "128k": [
+      0.0531,
+      -0.0437,
+      0.1531,
+      20
+     ]
+    }
+   },
+   "turns-p8": {
+    "hqa - anchor": {
+     "4k": [
+      -0.0063,
+      -0.025,
+      0.0125,
+      20
+     ],
+     "16k": [
+      0.05,
+      -0.0187,
+      0.15,
+      20
+     ],
+     "64k": [
+      -0.05,
+      -0.2625,
+      0.1625,
+      20
+     ],
+     "128k": [
+      -0.0437,
+      -0.1562,
+      0.0437,
+      20
+     ]
+    },
+    "compact - anchor": {
+     "4k": [
+      -0.0125,
+      -0.0312,
+      0.0,
+      20
+     ],
+     "16k": [
+      0.0563,
+      -0.0125,
+      0.1625,
+      20
+     ],
+     "64k": [
+      -0.0625,
+      -0.2625,
+      0.1375,
+      20
+     ],
+     "128k": [
+      -0.0125,
+      -0.1938,
+      0.175,
+      20
+     ]
+    },
+    "hqa - compact": {
+     "4k": [
+      0.0063,
+      -0.0187,
+      0.0312,
+      20
+     ],
+     "16k": [
+      -0.0063,
+      -0.0437,
+      0.0312,
+      20
+     ],
+     "64k": [
+      0.0125,
+      -0.2125,
+      0.2375,
+      20
+     ],
+     "128k": [
+      -0.0312,
+      -0.2437,
+      0.1875,
+      20
+     ]
+    }
+   }
+  },
+  "left_out_event_fields_64k_128k": {
+   "anchor": {
+    "single-rep0": 17,
+    "single-rep1": 16,
+    "turns-p8-rep0": 9
+   },
+   "hqa": {
+    "single-rep0": 16,
+    "single-rep1": 17,
+    "turns-p8-rep0": 9
+   },
+   "compact": {
+    "single-rep0": 17,
+    "single-rep1": 25,
+    "turns-p8-rep0": 13
+   }
+  },
+  "wrong_fields_single_64k_128k": {
+   "anchor": {
+    "wrong": 68,
+    "finished_fields": 624
+   },
+   "hqa": {
+    "wrong": 75,
+    "finished_fields": 616
+   },
+   "compact": {
+    "wrong": 92,
+    "finished_fields": 608
+   }
+  },
+  "classifier": "exploratory reading, not part of the frozen protocol: wrong answer fields on stop-finished `ledger` replies, by the kind of arithmetic slip the given value matches (heuristic: a wrong value can match a kind by coincidence)",
+  "extension": "held, not run (notes/ledger-extension-hold.md); its first trigger condition is met"
+ },
+ "post_hoc_long_context": {
+  "note": "post hoc; not in the frozen protocol; this section holds 48 intervals, of which two exclude 0",
+  "interval": "10,000 item resamples, seed 7",
+  "4k+16k": {
+   "hqa - anchor": {
+    "all families": {
+     "score": {
+      "single": [
+       0.0016,
+       -0.0057,
+       0.0089,
+       60
+      ],
+      "single+turns": [
+       0.0031,
+       -0.0045,
+       0.0118,
+       60
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       0.025,
+       -0.025,
+       0.075,
+       60
+      ],
+      "single+turns": [
+       0.0139,
+       -0.025,
+       0.0556,
+       60
+      ]
+     }
+    },
+    "ledger": {
+     "score": {
+      "single": [
+       0.0063,
+       -0.0078,
+       0.0203,
+       20
+      ],
+      "single+turns": [
+       0.0115,
+       -0.0063,
+       0.0333,
+       20
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       0.0375,
+       -0.05,
+       0.125,
+       20
+      ],
+      "single+turns": [
+       0.025,
+       -0.05,
+       0.1083,
+       20
+      ]
+     }
+    }
+   },
+   "compact - anchor": {
+    "all families": {
+     "score": {
+      "single": [
+       -0.0005,
+       -0.0068,
+       0.0063,
+       60
+      ],
+      "single+turns": [
+       0.0,
+       -0.0094,
+       0.0087,
+       60
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       -0.0042,
+       -0.0542,
+       0.0458,
+       60
+      ],
+      "single+turns": [
+       -0.0028,
+       -0.0444,
+       0.0361,
+       60
+      ]
+     }
+    },
+    "ledger": {
+     "score": {
+      "single": [
+       -0.0031,
+       -0.0172,
+       0.0109,
+       20
+      ],
+      "single+turns": [
+       0.0052,
+       -0.0104,
+       0.024,
+       20
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       -0.025,
+       -0.1375,
+       0.075,
+       20
+      ],
+      "single+turns": [
+       -0.025,
+       -0.1083,
+       0.0583,
+       20
+      ]
+     }
+    }
+   },
+   "hqa - compact": {
+    "all families": {
+     "score": {
+      "single": [
+       0.0021,
+       -0.0057,
+       0.0099,
+       60
+      ],
+      "single+turns": [
+       0.0031,
+       -0.0049,
+       0.0125,
+       60
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       0.0292,
+       -0.0208,
+       0.0792,
+       60
+      ],
+      "single+turns": [
+       0.0167,
+       -0.025,
+       0.0583,
+       60
+      ]
+     }
+    },
+    "ledger": {
+     "score": {
+      "single": [
+       0.0094,
+       -0.0047,
+       0.025,
+       20
+      ],
+      "single+turns": [
+       0.0062,
+       -0.0063,
+       0.0187,
+       20
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       0.0625,
+       -0.025,
+       0.15,
+       20
+      ],
+      "single+turns": [
+       0.05,
+       -0.025,
+       0.125,
+       20
+      ]
+     }
+    }
+   }
+  },
+  "64k+128k": {
+   "hqa - anchor": {
+    "all families": {
+     "score": {
+      "single": [
+       -0.0016,
+       -0.025,
+       0.0214,
+       60
+      ],
+      "single+turns": [
+       -0.0007,
+       -0.0243,
+       0.0215,
+       60
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       -0.025,
+       -0.0833,
+       0.0333,
+       60
+      ],
+      "single+turns": [
+       -0.0167,
+       -0.0611,
+       0.0278,
+       60
+      ]
+     }
+    },
+    "ledger": {
+     "score": {
+      "single": [
+       -0.0234,
+       -0.0734,
+       0.0234,
+       20
+      ],
+      "single+turns": [
+       -0.0312,
+       -0.0875,
+       0.0188,
+       20
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       -0.0625,
+       -0.1875,
+       0.075,
+       20
+      ],
+      "single+turns": [
+       -0.0583,
+       -0.1583,
+       0.0417,
+       20
+      ]
+     }
+    }
+   },
+   "compact - anchor": {
+    "all families": {
+     "score": {
+      "single": [
+       -0.0187,
+       -0.0505,
+       0.0125,
+       60
+      ],
+      "single+turns": [
+       -0.0111,
+       -0.0389,
+       0.0167,
+       60
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       -0.0625,
+       -0.1292,
+       0.0042,
+       60
+      ],
+      "single+turns": [
+       -0.0444,
+       -0.0944,
+       0.0056,
+       60
+      ]
+     }
+    },
+    "ledger": {
+     "score": {
+      "single": [
+       -0.0625,
+       -0.1266,
+       0.0016,
+       20
+      ],
+      "single+turns": [
+       -0.0542,
+       -0.1146,
+       0.0083,
+       20
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       -0.1375,
+       -0.2625,
+       -0.025,
+       20
+      ],
+      "single+turns": [
+       -0.1167,
+       -0.2167,
+       -0.0167,
+       20
+      ]
+     }
+    }
+   },
+   "hqa - compact": {
+    "all families": {
+     "score": {
+      "single": [
+       0.0172,
+       -0.0115,
+       0.0479,
+       60
+      ],
+      "single+turns": [
+       0.0104,
+       -0.016,
+       0.0365,
+       60
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       0.0375,
+       -0.0167,
+       0.0917,
+       60
+      ],
+      "single+turns": [
+       0.0278,
+       -0.0194,
+       0.075,
+       60
+      ]
+     }
+    },
+    "ledger": {
+     "score": {
+      "single": [
+       0.0391,
+       -0.025,
+       0.1125,
+       20
+      ],
+      "single+turns": [
+       0.0229,
+       -0.049,
+       0.0906,
+       20
+      ]
+     },
+     "every_field_right": {
+      "single": [
+       0.075,
+       -0.025,
+       0.175,
+       20
+      ],
+      "single+turns": [
+       0.0583,
+       -0.0417,
+       0.1583,
+       20
+      ]
+     }
+    }
+   }
+  }
+ },
+ "limits": [
+  "one model family",
+  "K4 experts in every arm",
+  "contexts to 127K",
+  "synthetic tasks",
+  "60 items per length",
+  "speeds are per stream under a mixed concurrency-8 load and are not an arm comparison"
+ ],
+ "open_questions": [
+  "Where does the long-context loss that every arm shows, the reference included, come from? The arms share the model, the K4 experts, the engine, the drafter, the sampling settings and the reply cap; a third to a half of the loss is replies that did not finish.",
+  "Is the K6 core's nominal gap on long-context running totals (ledger at 64K and 127K) real? Twenty items leave both zero and a loss of about 0.13 in field score inside the pooled interval.",
+  "Is a conversation continued on history the model itself wrote equivalent to the same tokens prefilled? The eight-turn pass did not test this."
+ ]
+}

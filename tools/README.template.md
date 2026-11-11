@@ -64,7 +64,9 @@ Tables built from the published receipts; text and intervals per run in each run
 [`results/2026-11-03-cuteafd-core-swap`](results/2026-11-03-cuteafd-core-swap/) (the same question on CuteAFD: core or experts), with its
 follow-ups [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking/) (16 code prompts, CuteAFD) and
 [`results/2026-11-06-vllm-code-thinking`](results/2026-11-06-vllm-code-thinking/) (the same prompts on the vLLM fork; two
-exploratory follow-ups are listed under other runs). One machine, one model family, one
+exploratory follow-ups are listed under other runs), and
+[`results/2026-11-10-context-probe`](results/2026-11-10-context-probe/) (CuteAFD v5.0.0: three core precisions on graded
+tasks from 4K to 127K tokens). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket

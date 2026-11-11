@@ -28,8 +28,10 @@ _cs = importlib.util.spec_from_file_location("site_charts", ROOT / "tools" / "si
 C = importlib.util.module_from_spec(_cs); _cs.loader.exec_module(C)
 _v4 = importlib.util.spec_from_file_location("site_v4", ROOT / "tools" / "site_v4.py")
 V4 = importlib.util.module_from_spec(_v4); _v4.loader.exec_module(V4)
+_v5 = importlib.util.spec_from_file_location("site_v5", ROOT / "tools" / "site_v5.py")
+V5 = importlib.util.module_from_spec(_v5); _v5.loader.exec_module(V5)
 
-PAGES = [("index.html", "Home"), ("checkpoints.html", "Checkpoints"), ("v4.html", "CuteAFD v4"), ("tools.html", "Tool calling"), ("thinking.html", "Thinking length"), ("precision.html", "Precision"), ("settings.html", "Settings"), ("speed.html", "Speed"),
+PAGES = [("index.html", "Home"), ("checkpoints.html", "Checkpoints"), ("v5.html", "CuteAFD v5"), ("v4.html", "CuteAFD v4"), ("tools.html", "Tool calling"), ("thinking.html", "Thinking length"), ("precision.html", "Precision"), ("settings.html", "Settings"), ("speed.html", "Speed"),
          ("long-tasks.html", "Long tasks"), ("running.html", "Running it"), ("method.html", "Method"), ("audit.html", "Audit"),
          ("research.html", "Research"), ("reproduce.html", "Reproduce")]
 SITE = {p for p, _ in PAGES}
@@ -406,7 +408,7 @@ def dl_glossary(items):
     return '<dl class="gl">' + "".join(f"<div><dt>{E(k)}</dt><dd>{E(v)}</dd></div>" for k, v in items) + "</dl>"
 
 
-PAGE_LINKS = [("checkpoints.html", "Checkpoints", "K3.25, K4, K4-Core-K6"), ("v4.html", "CuteAFD v4", "the v4.0.0 rerun"),
+PAGE_LINKS = [("checkpoints.html", "Checkpoints", "K3.25, K4, K4-Core-K6"), ("v5.html", "CuteAFD v5", "core precision at long context"), ("v4.html", "CuteAFD v4", "the v4.0.0 rerun"),
               ("tools.html", "Tool calling", "multi-turn tool use, both engines"), ("thinking.html", "Thinking length", "investigation: the 6-bit core, the experts and when the model stops"), ("precision.html", "Precision", "closeness to BF16"), ("settings.html", "Settings", "every CuteAFD setting"),
               ("speed.html", "Speed", "every speed cell"), ("long-tasks.html", "Long tasks", "long replies, long prompts"),
               ("running.html", "Running it", "operator notes"), ("method.html", "Method", "protocols and timeline"),
@@ -1446,6 +1448,7 @@ def main():
     page_home(); page_precision(F, K); page_settings(F, K); page_speed(F, K); page_long(F, K); page_running(F, K)
     page_method(F, K); page_audit(); page_research(F, K); page_reproduce(K)
     V4.build(ROOT, page, h2, gh, details)
+    V5.build(ROOT, page, h2, gh, details)
     for name, (target, label) in MOVED.items(): moved_page(name, target, label)
     print(f"wrote {len(PAGES)} pages and {len(MOVED)} forwarding stubs to docs/")
 

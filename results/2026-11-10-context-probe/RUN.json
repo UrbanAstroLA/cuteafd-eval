@@ -1,0 +1,54 @@
+{
+ "id": "2026-11-10-context-probe",
+ "kind": "measurement",
+ "title": "CuteAFD v5.0.0 core precision at long context: BF16 reference, HQA and K6 core on graded tasks from 4K to 127K tokens",
+ "protocol": "frozen 2026-11-10 before the first measured request (protocol/FROZEN.json); sections 10 to 13 of the protocol report exploratory checks",
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local",
+ "engine": "tpurtell/cuteafd v5.0.0 (coordinator image sha256:6194637e...), unmodified launcher",
+ "checkpoints": {
+  "anchor": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180c693ebbad90190dca8d5f0a7ca4d3753 (local derived checkpoint, not a producer release)",
+  "hqa, compact": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6-HQA @ e0ecc3d55d117e656a03d5790521cad0c4fcb624 (K4 experts, K6 core and head, and BF16 copies of two attention projection groups (q_b_proj, 12 matrices; o_proj, 46) beside the K6 ones; ATTENTION_MODE selects which copies run)",
+  "availability": "The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11). These runs used a local copy downloaded on 2026-11-10. The anchor checkpoint is derived locally and was never a hub release."
+ },
+ "slots": {
+  "cp": {
+   "title": "3 arms x (2 single-message passes + 1 eight-turn pass) x 240 item-lengths",
+   "status": "done",
+   "files": [
+    "protocol/PROTOCOL.md",
+    "protocol/FROZEN.json",
+    "RESULTS.md",
+    "drivers/analyze_tasks.py",
+    "drivers/depth_profile.py",
+    "drivers/depth_strata.py",
+    "drivers/gen_tasks.py",
+    "drivers/probelib.py",
+    "drivers/repeat_check.py",
+    "drivers/run_tasks.py",
+    "drivers/strata_boot.py",
+    "drivers/tasklib.py",
+    "drivers/turn_check.py",
+    "drivers/turn_summary.py",
+    "analysis/samples.csv",
+    "analysis/make_samples.py",
+    "analysis/posthoc.py",
+    "analysis/POSTHOC.json",
+    "exploratory/ledger_errors.py",
+    "exploratory/ledger_errors.json",
+    "notes/ledger-extension-hold.md",
+    "tasks/anchor/summary-measured.json",
+    "tasks/hqa/summary-measured.json",
+    "tasks/compact/summary-measured.json",
+    "tasks/compare-anchor__hqa-measured.json",
+    "tasks/compare-anchor__compact-measured.json",
+    "tasks/compare-compact__hqa-measured.json",
+    "items/measured/index.json",
+    "chain.sh",
+    "turncheck-plan.sh",
+    "configs/glm53-flash-exl3-k4-core-k6-hqa-2rtx.config",
+    "configs/glm53-flash-exl3-k4-core-k6-bf16core-2rtx.config",
+    "SUMMARY.json"
+   ]
+  }
+ }
+}

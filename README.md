@@ -16,7 +16,7 @@ The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in
 **K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The questions: how close each engine stays to
 the original BF16 model, how fast it is, and how to set it up.
 
-Results as of 2026-10-31; versions tested: CuteAFD v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA).
+Results as of 2026-11-11; versions tested: CuteAFD v5.0.0 (core precision only), v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA).
 
 > This README and the results site in `docs/` are generated from the files under `results/` by `tools/build_readme.py`
 > and `tools/build_site.py`. Each section below has a page of its own on the site.
@@ -26,7 +26,24 @@ Results as of 2026-10-31; versions tested: CuteAFD v4.0.0 and v3.0.1, vLLM fork 
 
 ## Findings
 
-**Latest: CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
+**Latest: CuteAFD v5.0.0, core precision at long context (2026-11-10/11).** v5.0.0 adds `ATTENTION_MODE`: the core of
+the K4-Core-K6-HQA checkpoint runs with two attention projection groups in BF16 (`hqa`, the default) or all K6
+(`compact`). Both were set against a BF16 core (`anchor`, a locally derived checkpoint, the reference) on 60 graded
+tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm; the arms differ in the precision of the core (and, for `anchor`, the output head).
+
+- **Neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` 0.000 [−0.012, +0.012],
+  `compact` − `anchor` −0.010 [−0.026, +0.006], pooled over lengths (95% interval over items; frozen rule).
+- **Accuracy falls with length in every arm, the reference included** (0.98 at 4K, 0.89 to 0.91 at 127K), so
+  that loss is not produced by core precision. A third to a half of it is replies that did not finish.
+- **One slice leans against the K6 core:** running totals at 64K and 127K, where `compact` is nominally lower. Twenty
+  items do not decide it; a post hoc lead, not a finding.
+- **Every arm was admitted the same KV pool** (2,097,152 tokens) in the graded runs: on two RTX the cheaper settings buy
+  memory headroom, not context room.
+- **The eight-turn pass tested split delivery, not model-written history** (under 1% of a long prompt was written by
+  the model); its design is to be revised.
+- The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. [CuteAFD v5](results/2026-11-10-context-probe/)
+
+**CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
 v4.1.0, released after the run, was read in source, not run: no change to this GPU-only setup's compute path was found.
 
 - **v4.0.0 against the vLLM fork:** faster or level in every speed cell measured (1 and 4 streams), first token level or sooner in every cell, KV pool
@@ -305,7 +322,9 @@ Tables built from the published receipts; text and intervals per run in each run
 [`results/2026-11-03-cuteafd-core-swap`](results/2026-11-03-cuteafd-core-swap/) (the same question on CuteAFD: core or experts), with its
 follow-ups [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking/) (16 code prompts, CuteAFD) and
 [`results/2026-11-06-vllm-code-thinking`](results/2026-11-06-vllm-code-thinking/) (the same prompts on the vLLM fork; two
-exploratory follow-ups are listed under other runs). One machine, one model family, one
+exploratory follow-ups are listed under other runs), and
+[`results/2026-11-10-context-probe`](results/2026-11-10-context-probe/) (CuteAFD v5.0.0: three core precisions on graded
+tasks from 4K to 127K tokens). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket

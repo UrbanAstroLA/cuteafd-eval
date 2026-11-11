@@ -255,7 +255,7 @@ def other_runs():
     for d in sorted((ROOT / "results").iterdir()):
         if d.is_dir() and (d / "RUN.json").exists() and d.name not in (RUN, K4, "2026-10-30-cuteafd-v4", "2026-11-02-tool-calling", "2026-11-02-thinking-length", "2026-11-03-cuteafd-core-swap",
                                                        "2026-11-05-code-thinking", "2026-11-06-vllm-code-thinking",
-                                                       "2026-11-06-cuteafd-fp8-ablation"):
+                                                       "2026-11-06-cuteafd-fp8-ablation", "2026-11-10-context-probe"):
             r = load(d / "RUN.json")
             rows.append([f"[`{d.name}`](results/{d.name}/)", r["kind"], r["title"]])
     return table(["Run", "Kind", "What it is"], rows)
@@ -902,13 +902,46 @@ def secs(x): return f"{x:.2f} s" if x < 10 else f"{x:.1f} s"
 def tok_rng(r): return f"{r[0]:.0f}-{r[1]:.0f}"
 
 
+def V5_LATEST(lk):
+    """The CuteAFD v5.0.0 block that opens the findings (numbers from results/2026-11-10-context-probe/SUMMARY.json)."""
+    p = ROOT / "results/2026-11-10-context-probe/SUMMARY.json"
+    if not p.exists():
+        return ""
+    S = load(p); F = S["frozen_rule"]["differences"]; SL = S["score_by_length"]
+    def d(pair):
+        v = F[pair]["single"]["all"]
+        return "%s [%s, %s]" % tuple(("0.000" if round(x, 3) == 0 else f"{x:+.3f}").replace("-", "−") for x in v[:3])
+    lo = min(SL[a]["single"]["128k"]["score"] for a in SL); hi = max(SL[a]["single"]["128k"]["score"] for a in SL)
+    lo4 = min(SL[a]["single"]["4k"]["score"] for a in SL); hi4 = max(SL[a]["single"]["4k"]["score"] for a in SL)
+    kv = S["launch"]["kv_pool_tokens_serving"]["anchor"]
+    v5 = lk("CuteAFD v5", "v5.html", "results/2026-11-10-context-probe/")
+    return f"""**Latest: CuteAFD v5.0.0, core precision at long context (2026-11-10/11).** v5.0.0 adds `ATTENTION_MODE`: the core of
+the K4-Core-K6-HQA checkpoint runs with two attention projection groups in BF16 (`hqa`, the default) or all K6
+(`compact`). Both were set against a BF16 core (`anchor`, a locally derived checkpoint, the reference) on 60 graded
+tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm; the arms differ in the precision of the core (and, for `anchor`, the output head).
+
+- **Neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` {d("hqa - anchor")},
+  `compact` − `anchor` {d("compact - anchor")}, pooled over lengths (95% interval over items; frozen rule).
+- **Accuracy falls with length in every arm, the reference included** ({lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
+  that loss is not produced by core precision. A third to a half of it is replies that did not finish.
+- **One slice leans against the K6 core:** running totals at 64K and 127K, where `compact` is nominally lower. Twenty
+  items do not decide it; a post hoc lead, not a finding.
+- **Every arm was admitted the same KV pool** ({kv:,} tokens) in the graded runs: on two RTX the cheaper settings buy
+  memory headroom, not context room.
+- **The eight-turn pass tested split delivery, not model-written history** (under 1% of a long prompt was written by
+  the model); its design is to be revised.
+- The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. {v5}
+
+"""
+
+
 def V4_LATEST(lk):
     """The CuteAFD v4.0.0 block that opens the findings (numbers from results/2026-10-30-cuteafd-v4/SUMMARY.json)."""
     S = load(ROOT / "results/2026-10-30-cuteafd-v4/SUMMARY.json")
     fv = S["precision_fullvocab_pa"]["cuteafd_minus_vllm"]; kv = S["kv_pool"]; p = S["per_1000"]["pa"]
     v4 = lk("CuteAFD v4", "v4.html", "results/2026-10-30-cuteafd-v4/"); ck = lk("Three checkpoints", "checkpoints.html", "results/2026-10-30-cuteafd-v4/"); tc = lk("Tool calling", "tools.html", "results/2026-11-02-tool-calling/")
     tl = lk("Thinking length", "thinking.html", "results/2026-11-03-cuteafd-core-swap/") + " " + lk("vLLM part", "thinking.html#stop-decision", "results/2026-11-02-thinking-length/")
-    return f"""**Latest: CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
+    return f"""**CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
 v4.1.0, released after the run, was read in source, not run: no change to this GPU-only setup's compute path was found.
 
 - **v4.0.0 against the vLLM fork:** faster or level in every speed cell measured (1 and 4 streams), first token level or sooner in every cell, KV pool
@@ -968,7 +1001,7 @@ The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in
 **K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The questions: how close each engine stays to
 the original BF16 model, how fast it is, and how to set it up.
 
-Results as of 2026-10-31; versions tested: CuteAFD v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA)."""
+Results as of 2026-11-11; versions tested: CuteAFD v5.0.0 (core precision only), v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA)."""
     needle_txt = ""
     if nd:
         needle_txt = (f" Needles in prompts of 256K to 1M tokens (K3.25): {'all found' if nd['all_ok'] else 'not all found'} on both "
@@ -977,7 +1010,7 @@ Results as of 2026-10-31; versions tested: CuteAFD v4.0.0 and v3.0.1, vLLM fork 
     r3 = vc["completion_tokens_median"] and cc["completion_tokens_median"] / vc["completion_tokens_median"]
     r4 = cc4["completion_tokens_median"] / vc4["completion_tokens_median"]
     t8, t16 = N["k325"]["ttft_1k8"], N["k325"]["ttft_1k16"]
-    P["findings"] = V4_LATEST(lk) + "\n".join([
+    P["findings"] = V5_LATEST(lk) + V4_LATEST(lk) + "\n".join([
         f"- **Precision: the quantization matters more than the engine.** On K3.25, KL from the BF16 model (teacher panel) "
         f"is {pa['v']:.4f} on the vLLM fork and {pa['c']:.4f} on CuteAFD. The largest engine difference is on long code "
         f"(8-16K-token prompts): CuteAFD {f4s(pb8['d'])} further on K3.25, {f4s(k8['d'])} on K4 (top-20 measure). " +

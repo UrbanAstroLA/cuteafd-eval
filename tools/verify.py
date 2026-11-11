@@ -233,6 +233,29 @@ def check_findings():
                 got = statistics.mean(int(A[k]) - int(B[k]) for k in ks)
                 if abs(got - want) > 1e-9: fails.append(f"findings {fid}: {c_} recomputed {got:.6f}, findings.json says {want:.6f}")
             continue
+        elif rc["kind"] == "item_paired_difference":
+            import random
+            def val(r): return int(r["correct"]) / int(r["fields"]) if r["finish_class"] == "stop" and int(r["fields"] or 0) else 0.0
+            F = {(r["arm"], r["pass"], r["item"], r["length"]): r for r in rows(rc["data"]) if r["final"] == "1" and r["status"] == "ok"}
+            fam = {k[2]: r["family"] for k, r in F.items()}
+            items = sorted(i for i in fam if rc.get("family") in (None, fam[i]))
+            cells = [(p, L) for p in rc["passes"] for L in rc["lengths"]]
+            n, draws = len(items), rc["bootstrap"]["draws"]; rng = random.Random(rc["bootstrap"]["seed"])
+            if rc["estimator"] == "frozen":
+                d = [statistics.fmean(val(F[(rc["b"], p, i, L)]) - val(F[(rc["a"], p, i, L)]) for p, L in cells
+                                      if (rc["a"], p, i, L) in F and (rc["b"], p, i, L) in F) for i in items]
+                bs = sorted(statistics.fmean(d[rng.randrange(n)] for _ in range(n)) for _ in range(draws))
+                got = [statistics.fmean(d), bs[int(0.025 * draws)], bs[int(0.975 * draws) - 1]]
+            else:
+                def sc(arm, i):
+                    v = [val(F[(arm, p, i, L)]) for p, L in cells]
+                    return sum((x == 1.0) if rc.get("strict") else x for x in v) / len(v)
+                d = [sc(rc["b"], i) - sc(rc["a"], i) for i in items]
+                bs = sorted(sum(d[rng.randrange(n)] for _ in range(n)) / n for _ in range(draws))
+                got = [sum(d) / n, bs[int(0.025 * draws)], bs[int(0.975 * draws)]]
+            got = [round(x, 4) for x in got]; want = [f["result"]["value"]] + list(f["result"]["ci95"])
+            if got != want or n != f["result"]["items"]: fails.append(f"findings {fid}: recomputed {got} over {n} items, findings.json says {want} over {f['result']['items']}")
+            continue
         else:
             fails.append(f"findings {fid}: unknown recompute kind {rc['kind']}"); continue
         if abs(got - f["result"]["value"]) > 1e-9: fails.append(f"findings {fid}: recomputed {got:.6f} from {rc.get('data') or rc.get('data_a')}, findings.json says {f['result']['value']:.6f}")

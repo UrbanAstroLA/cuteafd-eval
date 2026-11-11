@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Machine-readable entry points for agents and scripts: docs/findings.json and docs/llms.txt.
 
-findings.json lists the claims of the Thinking length investigation, one entry per claim: the question, the answer as
+findings.json lists the claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), one entry per claim: the question, the answer as
 the page states it, its status (frozen measurement, post hoc, exploratory, source reading, in progress), the value with
 its interval, and where it comes from: a file and a JSON pointer (RFC 6901) into it, plus the per-reply data and the
 script that recompute it. Every value is read from the results at build time, never typed here. tools/verify.py
-re-resolves every pointer and recomputes the code-study ratios from the published per-reply tables.
+re-resolves every pointer and recomputes the code-study ratios and the context-probe differences from the published
+per-reply tables.
 
 llms.txt is a plain-text orientation for language-model agents: what the repository is, how to read it, where the
 machine-readable data lives, and how to validate it.
@@ -22,6 +23,9 @@ TLD, CSD = "results/2026-11-02-thinking-length", "results/2026-11-03-cuteafd-cor
 CTD, APD = "results/2026-11-05-code-thinking", "results/2026-11-05-attn-position"
 NQD, VCD = "results/2026-11-06-new-questions", "results/2026-11-06-vllm-code-thinking"
 FAD = "results/2026-11-06-cuteafd-fp8-ablation"
+CPD = "results/2026-11-10-context-probe"
+CP_ARMS = ("anchor", "hqa", "compact")
+CUTEAFD5 = "tpurtell/cuteafd v5.0.0, unmodified launcher"
 CUTEAFD = "tpurtell/cuteafd v4.0.0, unmodified launcher"
 VLLM = "tpurtell vLLM fork v0.9.2-experimental with a local loader modification (route b), not a tpurtell release"
 K6 = "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1"
@@ -265,6 +269,117 @@ def findings():
         [ev(CS, "/step2/identity_second_launch/rows_bit_identical", "rows bit-identical, second launch"),
          ev(A, "/cuteafd_cross_day_recheck/rows_bit_identical", "rows bit-identical, two days later")],
         "both", CSD, "thinking.html#at-a-glance"))
+    return out + cp_findings()
+
+
+def cp_findings():
+    """The CuteAFD v5.0.0 context probe (results/2026-11-10-context-probe): one engine, three core precisions."""
+    if not (ROOT / CPD / "SUMMARY.json").exists():
+        return []
+    out = []
+    S = f"{CPD}/SUMMARY.json"; data = [f"{CPD}/analysis/samples.csv"]; single = ["single-rep0", "single-rep1"]
+    def s3(x): return "0.000" if round(x, 3) == 0 else f"{x:+.3f}"
+    def iv(v): return f"{s3(v[0])} [{s3(v[1])}, {s3(v[2])}]"
+    def res(pointer, what):
+        v = at(S, pointer)
+        return ({"name": what, "value": v[0], "ci95": [v[1], v[2]], "ci_over": "items", "detected": v[1] > 0 or v[2] < 0, "items": v[3]},
+                [ev(S, pointer, what + " [estimate, 2.5%, 97.5%, items]")])
+    def frozen(a, b):
+        return {"kind": "item_paired_difference", "estimator": "frozen", "data": data[0], "a": a, "b": b, "passes": single,
+                "lengths": ["4k", "16k", "64k", "128k"], "script": f"{CPD}/analysis/posthoc.py",
+                "bootstrap": {"draws": 10000, "seed": 5, "unit": "item", "rng": "Python random.Random", "indices": [250, 9749]}}
+    page = "v5.html"
+    for fid, a, b, q, tail in (
+            ("CP-hqa-vs-anchor", "anchor", "hqa",
+             "On CuteAFD v5.0.0, does the default HQA core (BF16 q_b_proj and o_proj, rest K6) score lower than a BF16 core on graded tasks from 4K to 127K tokens?",
+             "No difference measured. Basis: 60 items at four lengths, two passes; strength: moderate (one model family, synthetic tasks). "
+             "Per-length intervals at 64K and 127K are wider (see SUMMARY.json)."),
+            ("CP-compact-vs-anchor", "anchor", "compact",
+             "On CuteAFD v5.0.0, does the K6 core (ATTENTION_MODE=compact) score lower than a BF16 core on the same tasks?",
+             "No difference measured; compact's largest nominal gap is running totals at 64K and 127K (CP-ledger-long-context)."),
+            ("CP-hqa-vs-compact", "compact", "hqa",
+             "Do the two modes of the K4-Core-K6-HQA checkpoint, hqa and compact, differ on the same tasks?", "No difference measured.")):
+        r, e = res(f"/frozen_rule/differences/{b} - {a}/single/all", f"field score, {b} - {a}, single message, all lengths")
+        out.append(finding(fid, q, f"{iv([r['value']] + r['ci95'])} in field score, pooled over lengths; the interval includes 0. {tail}",
+                           "measurement: frozen rule", r, e, CUTEAFD5, CPD, f"{page}#differences", data, frozen(a, b),
+                           f"above 0 = {b} scored higher than {a}"))
+
+    sc = {a: {k: at(S, f"/score_by_length/{a}/single/{k}/score") for k in ("4k", "16k", "64k", "128k")} for a in CP_ARMS}
+    fin = {a: at(S, f"/score_by_length/{a}/single/128k/score_finished_only") for a in CP_ARMS}
+    out.append(finding(
+        "CP-length-effect", "Does accuracy fall with context length, and does core precision produce the fall?",
+        f"It falls in every arm, the BF16 reference included: field score {min(v['4k'] for v in sc.values()):.2f} "
+        f"at 4K and {min(v['128k'] for v in sc.values()):.2f} to {max(v['128k'] for v in sc.values()):.2f} at 127K. The reference loses about as much "
+        "as the other arms (0.08 against 0.07 and 0.09), so core precision does not produce it. A third to a half of the loss is replies "
+        "that did not finish (cap or repetition abort, scored 0): among finished replies the 127K score is "
+        + ", ".join(f"{a} {fin[a]:.3f}" for a in CP_ARMS) + ". Where the rest sits is open: the arms share the model, the K4 experts, the engine, "
+        "the drafter, the sampling settings and the reply cap.", "measurement: descriptive",
+        {"name": "field score by arm and length, single message, two passes", "value": sc, "finished_only_127k": fin},
+        [ev(S, f"/score_by_length/{a}/single/{k}/score", f"{a}, {k}") for a in CP_ARMS for k in ("4k", "128k")], CUTEAFD5, CPD, f"{page}#by-length", data))
+
+    base = "/post_hoc_long_context/64k+128k/compact - anchor/ledger"
+    r, e = res(f"{base}/score/single", "ledger field score, compact - anchor, 64K and 127K pooled, single message")
+    st = at(S, f"{base}/every_field_right/single"); st3 = at(S, f"{base}/every_field_right/single+turns")
+    lh = at(S, "/post_hoc_long_context/64k+128k/hqa - anchor/ledger/score/single")
+    r["every_field_right"] = {"single": st, "single+turns": st3}
+    e += [ev(S, f"{base}/every_field_right/single", "every field right, single message [estimate, 2.5%, 97.5%, items]"),
+          ev(S, f"{base}/every_field_right/single+turns", "every field right, with the eight-turn pass")]
+    out.append(finding(
+        "CP-ledger-long-context", "Does the K6 core cost accuracy on running totals (ledger tasks) at 64K and 127K?",
+        f"Open. compact - anchor is {iv([r['value']] + r['ci95'])} in field score (includes 0) and {iv(st)} in every-field-right "
+        "(excludes 0), on 20 items. Post hoc: 48 such intervals were computed and two exclude 0, both compact - anchor on ledger "
+        f"every-field-right (single message; with the eight-turn pass): a lead, not a finding. hqa - anchor on the same slice is {iv(lh)} "
+        "in field score (includes 0).", "measurement: post hoc", r, e, CUTEAFD5, CPD, f"{page}#ledger", data,
+        {"kind": "item_paired_difference", "estimator": "pooled", "data": data[0], "a": "anchor", "b": "compact", "passes": single,
+         "lengths": ["64k", "128k"], "family": "ledger", "strict": False, "script": f"{CPD}/analysis/posthoc.py",
+         "bootstrap": {"draws": 10000, "seed": 7, "unit": "item", "rng": "Python random.Random", "indices": [250, 9750]}},
+        "above 0 = compact scored higher than anchor"))
+
+    mw = {a: {k: at(S, f"/turns/model_written_share/{a}/{k}/median") for k in ("4k", "16k", "64k", "128k")} for a in CP_ARMS}
+    out.append(finding(
+        "CP-turns-scope", "Did the eight-turn pass test a conversation whose history the model wrote?",
+        "No. Decode ran in every reply, but the model's own turns were a median "
+        f"{100 * mw['anchor']['4k']:.0f}% of the final prompt at 4K and {100 * min(v['128k'] for v in mw.values()):.1f}-{100 * max(v['128k'] for v in mw.values()):.1f}% "
+        "at 127K: at long context over 99% of the history was written by prefill. What the pass shows is split delivery: delivering "
+        "the same input as eight messages shows no accuracy cost (16K to 127K: every interval includes 0, a cost up to about 0.07 is not "
+        "excluded; 4K: eight turns score slightly higher in anchor and hqa, intervals exclude 0). The turn design is to be revised.", "measurement: descriptive",
+        {"name": "model-written share of the final prompt, median over 60 sessions", "value": mw,
+         "turns_minus_single": {a: at(S, f"/turns/turns_minus_single/{a}") for a in CP_ARMS}},
+        [ev(S, f"/turns/model_written_share/{a}/{k}/median", f"{a}, {k}") for a in CP_ARMS for k in ("4k", "128k")] +
+        [ev(S, "/turns/scope", "scope note"), ev(S, "/turns/status", "status")], CUTEAFD5, CPD, f"{page}#turns", data))
+
+    ic = {a: at(S, f"/turns/intermediate_caps/{a}") for a in CP_ARMS}
+    out.append(finding(
+        "CP-intermediate-caps", "In the eight-turn pass, how often was a delivery turn's reply not the requested acknowledgement, and how often did it run to its 4,096-token cap?",
+        "Not the bare acknowledgement: " + ", ".join(f"{a} {ic[a]['turns_not_the_acknowledgement']}" for a in CP_ARMS) + " turns. Ran to the cap: " +
+        "; ".join(f"{a} {ic[a]['turns_not_stop']} of {ic[a]['delivery_turns']} turns ({ic[a]['sessions_with_one']} sessions)" for a in CP_ARMS) +
+        f". {ic['compact']['most_in_one_session']} of compact's capped turns were in one session. Descriptive; the final answers were scored as usual.",
+        "measurement: descriptive", {"name": "delivery turns that did not finish with stop", "value": {a: ic[a]["turns_not_stop"] for a in CP_ARMS},
+         "not_the_acknowledgement": {a: ic[a]["turns_not_the_acknowledgement"] for a in CP_ARMS}},
+        [ev(S, f"/turns/intermediate_caps/{a}/turns_not_stop", a) for a in CP_ARMS] +
+        [ev(S, f"/turns/intermediate_caps/{a}/turns_not_the_acknowledgement", f"{a}, not the acknowledgement") for a in CP_ARMS], CUTEAFD5, CPD, f"{page}#turns", data))
+
+    kv = {a: at(S, f"/launch/kv_pool_tokens_serving/{a}") for a in CP_ARMS}
+    out.append(finding(
+        "CP-kv-pool", "On two RTX PRO 6000, do the cheaper core settings admit a larger KV pool than the BF16 core?",
+        f"Not in the graded runs: every arm was admitted the configured maximum, {kv['anchor']:,} tokens, in all nine serving launches. The "
+        "saving shows as resident weights and unallocated memory under the cap. A smaller pool for anchor was seen only in the scoring "
+        "launches of the exploratory depth profile (16 requests at once).", "source reading",
+        {"name": "KV pool admitted, tokens, serving launches", "value": kv,
+         "resident_weights_mib_rtx0_rtx1": at(S, "/launch/resident_weights_mib_rtx0_rtx1"),
+         "scoring_launches": at(S, "/launch/kv_pool_tokens_scoring_launches")},
+        [ev(S, f"/launch/kv_pool_tokens_serving/{a}", a) for a in CP_ARMS] + [ev(S, "/launch/note", "correction note")],
+        CUTEAFD5, CPD, f"{page}#memory"))
+
+    out.append(finding(
+        "CP-exploratory-checks", "What did the checks before the graded runs show?",
+        "Depth profile (five arms: anchor, hqa, compact, fp8c = ATTENTION_MODE=fp8-compact, core-fp8 = the BF16-core checkpoint with the engine's default FP8 conversions; texts to 128K, not the task items): no arm measurably worse than the BF16 reference at predicting the text at any depth. "
+        "GLM5_FLASH_FP8_PREFILL=off on the HQA checkpoint: every recorded distribution bit-identical, so not an arm. Two launches of the "
+        "same arm: bit-identical rows. Prefix-cache resume against a decode replay: bit-identical in 45 of 46 conversations over four arms together (the "
+        "exception is a harness artifact). Greedy output alone and eight at once: one text in all 260 requests per arm. One capture "
+        "each; numbers are in the protocol text only.", "exploratory", {"name": "see protocol sections 10 to 13"},
+        [{"file": f"{CPD}/protocol/PROTOCOL.md", "what": "sections 10 to 13 (exploratory results recorded before the freeze)"}],
+        CUTEAFD5, CPD, f"{page}#checks"))
     return out
 
 
@@ -297,22 +412,31 @@ def llms_txt(fs):
         "machine-readable files below rather than scraping HTML.",
         "",
         "## Machine-readable entry points",
-        f"- {SITE_URL}/findings.json: the Thinking length investigation's claims, one entry per claim, with status, value,",
+        f"- {SITE_URL}/findings.json: the claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe",
+        "  (CP-*), one entry per claim, with status, value,",
         "  95% interval, a JSON pointer into the source file, and the per-reply data and script that recompute it.",
         f"- {REPO_URL}/tree/main/results: one folder per run. In each: RUN.json (id, kind, title, protocol, engine,",
         "  checkpoints), SUMMARY.json (every number its page shows), MANIFEST.json (sha256 of every file), README.md.",
         "- results/*/analysis/samples.csv: one row per reply (arm, prompt, seed, finish, reasoning tokens, decode speed, tests).",
+        "  The context probe's table has one row per request (arm, pass, item, family, length, seed, finish class, fields, correct).",
         f"- {REPO_URL}/blob/main/protocol/README.md: the frozen protocol; protocol/HASHES.json binds published files to it.",
         "",
         "## How to read the results",
         "- Run kinds: measurement (protocol frozen before the first request), exploratory (evidence, not a frozen comparison),",
         "  check. A finding's status says which; post hoc numbers are labelled post hoc.",
-        "- Intervals are 95% bootstrap intervals over the unit named (prompts, questions, windows); \"detected\" means the interval",
+        "- Intervals are 95% bootstrap intervals over the unit named (prompts, questions, windows, items); \"detected\" means the interval",
         "  excludes the null (1 for ratios, 0 for differences). Bootstrap seeds differ per run: see each run's protocol, or",
         "  recompute.bootstrap in findings.json.",
-        "- \"Finished\" = finish_reason stop and not capped. Medians are over finished replies. findings.json has a definitions block",
+        "- \"Finished\" = finish_reason stop and not capped. Medians in TL-* entries are over finished replies; the medians on the v5 page",
+        "  (thinking length, speed) are over all replies. findings.json has a definitions block",
         "  with every estimator used.",
         "- findings.json pointers are RFC 6901: unescape ~1 to / and ~0 to ~ after splitting (some keys contain a slash).",
+        "- Context probe (CP-*): three arms on CuteAFD v5.0.0 that differ in the precision of the tensors outside the experts: anchor",
+        "  (BF16 core and BF16 output head, FP8 conversions off; a locally derived checkpoint; the reference, not a recommendation),",
+        "  hqa (BF16 q_b_proj and o_proj, rest of the core and the head K6) and compact (K6 core and head). K4 experts and one seed",
+        "  list in every arm. A request scores fields correct / fields, 0 if it did not finish with stop; differences are paired by item",
+        "  and named \"b - a\" (above 0 = b higher). Data length label 128k is the 127K-token rendering. The K4-Core-K6-HQA repository",
+        "  is no longer available on the hub (checked 2026-11-11); the runs used a local copy.",
         "- Thinking-length ratios put K4-Core-K6, or the part under test, first: above 1 = it thought longer. Each finding states",
         "  its own direction.",
         "- Numbers from different model families or tokenizers are not comparable; NLL is per tokenizer.",
@@ -322,13 +446,13 @@ def llms_txt(fs):
         "",
         "## Validate",
         "- `python3 tools/verify.py` checks every manifest hash, every site link and anchor, every findings.json pointer, and",
-        "  recomputes the code-study ratios and test counts from the per-reply tables.",
+        "  recomputes the code-study ratios and test counts and the context-probe differences from the per-reply tables.",
         "- Each run folder's code/ and analysis/ hold the scripts that produced its numbers; repro/REPRODUCE.md covers re-running.",
         "",
         "## Status vocabulary in findings.json",
     ] + [f"- {k}: {v}" for k, v in STATUS.items()] + [
         "",
-        "## Thinking length findings (summary)",
+        "## Findings (summary)",
     ] + [f"- {f['id']} [{f['status']}]: {f['question']} {f['answer']}" for f in fs] + [
         "",
         "## Pages",
@@ -336,7 +460,7 @@ def llms_txt(fs):
     pages = [("index.html", "overview"), ("checkpoints.html", "K3.25, K4 and K4-Core-K6 against each other"),
              ("thinking.html", "thinking length and the 6-bit core (the investigation findings.json covers)"),
              ("precision.html", "closeness to the BF16 model by context"), ("speed.html", "decode and prefill speed"),
-             ("v4.html", "CuteAFD v4.0.0 rerun"), ("tools.html", "multi-turn tool calling"), ("method.html", "method"),
+             ("v5.html", "CuteAFD v5.0.0: three core precisions at 4K to 127K (CP-* in findings.json)"), ("v4.html", "CuteAFD v4.0.0 rerun"), ("tools.html", "multi-turn tool calling"), ("method.html", "method"),
              ("reproduce.html", "how to reproduce"), ("audit.html", "independent audit"), ("ledger.html", "every run")]
     lines += [f"- {SITE_URL}/{p}: {d}" for p, d in pages if (ROOT / "docs" / p).exists()]
     lines += ["", "## Runs (results/<id>/RUN.json)"] + [f"- {i} ({k}): {t}" for i, k, t in runs()]
@@ -346,11 +470,11 @@ def llms_txt(fs):
 
 def main():
     fs = findings()
-    doc = {"about": "Claims of the Thinking length investigation, generated from the results by tools/build_findings.py. Each evidence "
+    doc = {"about": "Claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), generated from the results by tools/build_findings.py. Each evidence "
                     "entry names a repository file and an RFC 6901 JSON pointer; 'value' is what the pointer resolved to at build time. "
                     "tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables.",
            "repository": REPO_URL, "site": SITE_URL, "status_vocabulary": STATUS,
-           "conventions": {"interval": "95% bootstrap over the unit in ci_over (percentile), 4,000 draws; each run's seed is in its protocol and in recompute.bootstrap",
+           "conventions": {"interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py",
                            "detected": "interval excludes the null (1 for ratios, 0 for differences)",
                            "paths": "relative to the repository root",
                            "pointers": "RFC 6901: split on '/', then replace '~1' with '/' and '~0' with '~' (keys such as 'C-K6x/V-BF16' contain a slash)"},
@@ -367,6 +491,25 @@ def main():
                              "the pairs; interval: bootstrap over prompts as bootstrap_draws, on the pooled differences (seed 20261108)",
                "engine_comparison": "vLLM ratio / CuteAFD ratio = exp(mean over prompts of [vLLM prompt log ratio - CuteAFD prompt log ratio])",
                "median_reasoning_tokens": "median over finished replies",
+               "context_probe": {
+                   "applies_to": "CP-* entries (results/2026-11-10-context-probe); the definitions above apply to TL-* entries",
+                   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0)",
+                   "request_score": "correct / fields if finish_class == 'stop' and fields > 0, else 0 (a reply that hit the cap or was ended by the loop abort scores 0)",
+                   "every_field_right": "request_score == 1",
+                   "item_paired_difference_frozen": "for each item, over the (pass, length) cells in recompute.passes x recompute.lengths where both arms have a row: "
+                                                    "request_score(b) - request_score(a); mean within the item (statistics.fmean); estimate = mean over items, rounded to 4 places. "
+                                                    "Interval: items in sorted order, rng = random.Random(5); 10,000 draws, each the fmean of n values vals[rng.randrange(n)]; "
+                                                    "sorted draws at indices 250 and 9749",
+                   "item_paired_difference_pooled": "post hoc: items of recompute.family (all items if absent), sorted; per item and arm, the mean over passes x lengths of "
+                                                    "request_score (or of every_field_right when strict); d = b - a per item; estimate = sum(d) / n. Interval: "
+                                                    "rng = random.Random(seed); 10,000 draws, each sum of n values d[rng.randrange(n)] / n; sorted draws at indices 250 and 9750",
+                   "sign": "'b - a': above 0 = arm b scored higher",
+                   "lengths": {"4k": "4K tokens", "16k": "16K", "64k": "64K", "128k": "127K (the 128k label is the 127K-token rendering)"},
+                   "passes": {"single-rep0": "single message, pass 1", "single-rep1": "single message, pass 2 (distinct seeds)", "turns-p8-rep0": "the same records delivered over eight turns, then the question"},
+                   "arms": {"anchor": "BF16 core and BF16 output head, FP8 conversions off; locally derived checkpoint, not a producer release; the reference, not a recommendation",
+                            "hqa": "K4-Core-K6-HQA checkpoint, default mode: BF16 q_b_proj (12 matrices) and o_proj (46), rest of the core and the output head K6",
+                            "compact": "the same checkpoint with ATTENTION_MODE=compact: K6 core and output head"},
+                   "checkpoint_availability": "the K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy downloaded on 2026-11-10"},
                "arms": {"C-K6": "CuteAFD, native 6-bit core", "C-K6x": "CuteAFD, BF16 core converted to FP8 at load (with FP8 KDA projections, head, prefill activations)",
                         "V-K6": "vLLM fork, 6-bit core rebuilt to BF16 at load", "V-BF16": "vLLM fork, original BF16 core",
                         "F-kda": "C-K6x's config with KDA projections in BF16 (and KDA output sharding off)", "F-head": "F-kda plus the vocabulary head in BF16",

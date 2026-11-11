@@ -1,5 +1,5 @@
 {
- "about": "Claims of the Thinking length investigation, generated from the results by tools/build_findings.py. Each evidence entry names a repository file and an RFC 6901 JSON pointer; 'value' is what the pointer resolved to at build time. tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables.",
+ "about": "Claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), generated from the results by tools/build_findings.py. Each evidence entry names a repository file and an RFC 6901 JSON pointer; 'value' is what the pointer resolved to at build time. tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables.",
  "repository": "https://github.com/UrbanAstroLA/cuteafd-eval",
  "site": "https://urbanastrola.github.io/cuteafd-eval",
  "status_vocabulary": {
@@ -12,7 +12,7 @@
   "in progress": "running; no result published"
  },
  "conventions": {
-  "interval": "95% bootstrap over the unit in ci_over (percentile), 4,000 draws; each run's seed is in its protocol and in recompute.bootstrap",
+  "interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py",
   "detected": "interval excludes the null (1 for ratios, 0 for differences)",
   "paths": "relative to the repository root",
   "pointers": "RFC 6901: split on '/', then replace '~1' with '/' and '~0' with '~' (keys such as 'C-K6x/V-BF16' contain a slash)"
@@ -26,6 +26,32 @@
   "pass_pairs": "post hoc: for each (prompt, rep) where both arms finished: all_tests_pass A minus B (1, 0 or -1); mean over the pairs; interval: bootstrap over prompts as bootstrap_draws, on the pooled differences (seed 20261108)",
   "engine_comparison": "vLLM ratio / CuteAFD ratio = exp(mean over prompts of [vLLM prompt log ratio - CuteAFD prompt log ratio])",
   "median_reasoning_tokens": "median over finished replies",
+  "context_probe": {
+   "applies_to": "CP-* entries (results/2026-11-10-context-probe); the definitions above apply to TL-* entries",
+   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0)",
+   "request_score": "correct / fields if finish_class == 'stop' and fields > 0, else 0 (a reply that hit the cap or was ended by the loop abort scores 0)",
+   "every_field_right": "request_score == 1",
+   "item_paired_difference_frozen": "for each item, over the (pass, length) cells in recompute.passes x recompute.lengths where both arms have a row: request_score(b) - request_score(a); mean within the item (statistics.fmean); estimate = mean over items, rounded to 4 places. Interval: items in sorted order, rng = random.Random(5); 10,000 draws, each the fmean of n values vals[rng.randrange(n)]; sorted draws at indices 250 and 9749",
+   "item_paired_difference_pooled": "post hoc: items of recompute.family (all items if absent), sorted; per item and arm, the mean over passes x lengths of request_score (or of every_field_right when strict); d = b - a per item; estimate = sum(d) / n. Interval: rng = random.Random(seed); 10,000 draws, each sum of n values d[rng.randrange(n)] / n; sorted draws at indices 250 and 9750",
+   "sign": "'b - a': above 0 = arm b scored higher",
+   "lengths": {
+    "4k": "4K tokens",
+    "16k": "16K",
+    "64k": "64K",
+    "128k": "127K (the 128k label is the 127K-token rendering)"
+   },
+   "passes": {
+    "single-rep0": "single message, pass 1",
+    "single-rep1": "single message, pass 2 (distinct seeds)",
+    "turns-p8-rep0": "the same records delivered over eight turns, then the question"
+   },
+   "arms": {
+    "anchor": "BF16 core and BF16 output head, FP8 conversions off; locally derived checkpoint, not a producer release; the reference, not a recommendation",
+    "hqa": "K4-Core-K6-HQA checkpoint, default mode: BF16 q_b_proj (12 matrices) and o_proj (46), rest of the core and the output head K6",
+    "compact": "the same checkpoint with ATTENTION_MODE=compact: K6 core and output head"
+   },
+   "checkpoint_availability": "the K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy downloaded on 2026-11-10"
+  },
   "arms": {
    "C-K6": "CuteAFD, native 6-bit core",
    "C-K6x": "CuteAFD, BF16 core converted to FP8 at load (with FP8 KDA projections, head, prefill activations)",
@@ -899,6 +925,705 @@
      "pointer": "/cuteafd_cross_day_recheck/rows_bit_identical",
      "what": "rows bit-identical, two days later",
      "value": 18286
+    }
+   ],
+   "data": []
+  },
+  {
+   "id": "CP-hqa-vs-anchor",
+   "question": "On CuteAFD v5.0.0, does the default HQA core (BF16 q_b_proj and o_proj, rest K6) score lower than a BF16 core on graded tasks from 4K to 127K tokens?",
+   "answer": "0.000 [-0.012, +0.012] in field score, pooled over lengths; the interval includes 0. No difference measured. Basis: 60 items at four lengths, two passes; strength: moderate (one model family, synthetic tasks). Per-length intervals at 64K and 127K are wider (see SUMMARY.json).",
+   "status": "measurement: frozen rule",
+   "result": {
+    "name": "field score, hqa - anchor, single message, all lengths",
+    "value": 0.0,
+    "ci95": [
+     -0.0122,
+     0.012
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 60
+   },
+   "direction": "above 0 = hqa scored higher than anchor",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#differences",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/frozen_rule/differences/hqa - anchor/single/all",
+     "what": "field score, hqa - anchor, single message, all lengths [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0,
+      -0.0122,
+      0.012,
+      60
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "anchor",
+    "b": "hqa",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ]
+    }
+   }
+  },
+  {
+   "id": "CP-compact-vs-anchor",
+   "question": "On CuteAFD v5.0.0, does the K6 core (ATTENTION_MODE=compact) score lower than a BF16 core on the same tasks?",
+   "answer": "-0.010 [-0.026, +0.006] in field score, pooled over lengths; the interval includes 0. No difference measured; compact's largest nominal gap is running totals at 64K and 127K (CP-ledger-long-context).",
+   "status": "measurement: frozen rule",
+   "result": {
+    "name": "field score, compact - anchor, single message, all lengths",
+    "value": -0.0096,
+    "ci95": [
+     -0.0263,
+     0.0063
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 60
+   },
+   "direction": "above 0 = compact scored higher than anchor",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#differences",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/frozen_rule/differences/compact - anchor/single/all",
+     "what": "field score, compact - anchor, single message, all lengths [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      -0.0096,
+      -0.0263,
+      0.0063,
+      60
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "anchor",
+    "b": "compact",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ]
+    }
+   }
+  },
+  {
+   "id": "CP-hqa-vs-compact",
+   "question": "Do the two modes of the K4-Core-K6-HQA checkpoint, hqa and compact, differ on the same tasks?",
+   "answer": "+0.010 [-0.005, +0.025] in field score, pooled over lengths; the interval includes 0. No difference measured.",
+   "status": "measurement: frozen rule",
+   "result": {
+    "name": "field score, hqa - compact, single message, all lengths",
+    "value": 0.0096,
+    "ci95": [
+     -0.0047,
+     0.0253
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 60
+   },
+   "direction": "above 0 = hqa scored higher than compact",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#differences",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/frozen_rule/differences/hqa - compact/single/all",
+     "what": "field score, hqa - compact, single message, all lengths [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0096,
+      -0.0047,
+      0.0253,
+      60
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "compact",
+    "b": "hqa",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ]
+    }
+   }
+  },
+  {
+   "id": "CP-length-effect",
+   "question": "Does accuracy fall with context length, and does core precision produce the fall?",
+   "answer": "It falls in every arm, the BF16 reference included: field score 0.98 at 4K and 0.89 to 0.91 at 127K. The reference loses about as much as the other arms (0.08 against 0.07 and 0.09), so core precision does not produce it. A third to a half of the loss is replies that did not finish (cap or repetition abort, scored 0): among finished replies the 127K score is anchor 0.942, hqa 0.936, compact 0.928. Where the rest sits is open: the arms share the model, the K4 experts, the engine, the drafter, the sampling settings and the reply cap.",
+   "status": "measurement: descriptive",
+   "result": {
+    "name": "field score by arm and length, single message, two passes",
+    "value": {
+     "anchor": {
+      "4k": 0.9833,
+      "16k": 0.9771,
+      "64k": 0.9563,
+      "128k": 0.9031
+     },
+     "hqa": {
+      "4k": 0.9812,
+      "16k": 0.9823,
+      "64k": 0.9437,
+      "128k": 0.9125
+     },
+     "compact": {
+      "4k": 0.9844,
+      "16k": 0.975,
+      "64k": 0.9323,
+      "128k": 0.8896
+     }
+    },
+    "finished_only_127k": {
+     "anchor": 0.942391,
+     "hqa": 0.935897,
+     "compact": 0.928261
+    }
+   },
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#by-length",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/score_by_length/anchor/single/4k/score",
+     "what": "anchor, 4k",
+     "value": 0.9833
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/score_by_length/anchor/single/128k/score",
+     "what": "anchor, 128k",
+     "value": 0.9031
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/score_by_length/hqa/single/4k/score",
+     "what": "hqa, 4k",
+     "value": 0.9812
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/score_by_length/hqa/single/128k/score",
+     "what": "hqa, 128k",
+     "value": 0.9125
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/score_by_length/compact/single/4k/score",
+     "what": "compact, 4k",
+     "value": 0.9844
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/score_by_length/compact/single/128k/score",
+     "what": "compact, 128k",
+     "value": 0.8896
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv"
+   ]
+  },
+  {
+   "id": "CP-ledger-long-context",
+   "question": "Does the K6 core cost accuracy on running totals (ledger tasks) at 64K and 127K?",
+   "answer": "Open. compact - anchor is -0.062 [-0.127, +0.002] in field score (includes 0) and -0.138 [-0.263, -0.025] in every-field-right (excludes 0), on 20 items. Post hoc: 48 such intervals were computed and two exclude 0, both compact - anchor on ledger every-field-right (single message; with the eight-turn pass): a lead, not a finding. hqa - anchor on the same slice is -0.023 [-0.073, +0.023] in field score (includes 0).",
+   "status": "measurement: post hoc",
+   "result": {
+    "name": "ledger field score, compact - anchor, 64K and 127K pooled, single message",
+    "value": -0.0625,
+    "ci95": [
+     -0.1266,
+     0.0016
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 20,
+    "every_field_right": {
+     "single": [
+      -0.1375,
+      -0.2625,
+      -0.025,
+      20
+     ],
+     "single+turns": [
+      -0.1167,
+      -0.2167,
+      -0.0167,
+      20
+     ]
+    }
+   },
+   "direction": "above 0 = compact scored higher than anchor",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#ledger",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/post_hoc_long_context/64k+128k/compact - anchor/ledger/score/single",
+     "what": "ledger field score, compact - anchor, 64K and 127K pooled, single message [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      -0.0625,
+      -0.1266,
+      0.0016,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/post_hoc_long_context/64k+128k/compact - anchor/ledger/every_field_right/single",
+     "what": "every field right, single message [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      -0.1375,
+      -0.2625,
+      -0.025,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/post_hoc_long_context/64k+128k/compact - anchor/ledger/every_field_right/single+turns",
+     "what": "every field right, with the eight-turn pass",
+     "value": [
+      -0.1167,
+      -0.2167,
+      -0.0167,
+      20
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "pooled",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "anchor",
+    "b": "compact",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "64k",
+     "128k"
+    ],
+    "family": "ledger",
+    "strict": false,
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 7,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9750
+     ]
+    }
+   }
+  },
+  {
+   "id": "CP-turns-scope",
+   "question": "Did the eight-turn pass test a conversation whose history the model wrote?",
+   "answer": "No. Decode ran in every reply, but the model's own turns were a median 9% of the final prompt at 4K and 0.3-0.4% at 127K: at long context over 99% of the history was written by prefill. What the pass shows is split delivery: delivering the same input as eight messages shows no accuracy cost (16K to 127K: every interval includes 0, a cost up to about 0.07 is not excluded; 4K: eight turns score slightly higher in anchor and hqa, intervals exclude 0). The turn design is to be revised.",
+   "status": "measurement: descriptive",
+   "result": {
+    "name": "model-written share of the final prompt, median over 60 sessions",
+    "value": {
+     "anchor": {
+      "4k": 0.0928,
+      "16k": 0.0273,
+      "64k": 0.0073,
+      "128k": 0.0035
+     },
+     "hqa": {
+      "4k": 0.0923,
+      "16k": 0.0271,
+      "64k": 0.0073,
+      "128k": 0.0033
+     },
+     "compact": {
+      "4k": 0.0939,
+      "16k": 0.0263,
+      "64k": 0.0071,
+      "128k": 0.0032
+     }
+    },
+    "turns_minus_single": {
+     "anchor": {
+      "4k": [
+       0.0125,
+       0.0021,
+       0.024,
+       60
+      ],
+      "16k": [
+       -0.0104,
+       -0.05,
+       0.0167,
+       60
+      ],
+      "64k": [
+       -0.0083,
+       -0.0656,
+       0.0375,
+       60
+      ],
+      "128k": [
+       -0.001,
+       -0.0698,
+       0.0604,
+       60
+      ]
+     },
+     "hqa": {
+      "4k": [
+       0.0146,
+       0.0031,
+       0.0271,
+       60
+      ],
+      "16k": [
+       -0.0031,
+       -0.0167,
+       0.0094,
+       60
+      ],
+      "64k": [
+       -0.0167,
+       -0.074,
+       0.0302,
+       60
+      ],
+      "128k": [
+       0.0125,
+       -0.0469,
+       0.0646,
+       60
+      ]
+     },
+     "compact": {
+      "4k": [
+       0.0073,
+       -0.0042,
+       0.0187,
+       60
+      ],
+      "16k": [
+       -0.0021,
+       -0.0396,
+       0.024,
+       60
+      ],
+      "64k": [
+       -0.0052,
+       -0.0667,
+       0.0479,
+       60
+      ],
+      "128k": [
+       0.0417,
+       -0.0208,
+       0.1,
+       60
+      ]
+     }
+    }
+   },
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#turns",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/model_written_share/anchor/4k/median",
+     "what": "anchor, 4k",
+     "value": 0.0928
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/model_written_share/anchor/128k/median",
+     "what": "anchor, 128k",
+     "value": 0.0035
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/model_written_share/hqa/4k/median",
+     "what": "hqa, 4k",
+     "value": 0.0923
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/model_written_share/hqa/128k/median",
+     "what": "hqa, 128k",
+     "value": 0.0033
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/model_written_share/compact/4k/median",
+     "what": "compact, 4k",
+     "value": 0.0939
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/model_written_share/compact/128k/median",
+     "what": "compact, 128k",
+     "value": 0.0032
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/scope",
+     "what": "scope note",
+     "value": "Decode ran in every reply of every pass. What the 8-turn pass did not exercise is history written by decode: the model's own turns (thinking included, which stays in context) are a median 9% of the final prompt at 4K, 2.7% at 16K, 0.7% at 64K and 0.3-0.4% at 127K, so at long context more than 99% of the history the final answer was conditioned on was written by prefill. The pass measures split delivery of the same input. It does not test a conversation whose history the model wrote (protocol question 3). The turn design is to be revised."
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/status",
+     "what": "status",
+     "value": "design to be revised; the protocol's advance reading (\"turn check v2 not needed\") is withdrawn"
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv"
+   ]
+  },
+  {
+   "id": "CP-intermediate-caps",
+   "question": "In the eight-turn pass, how often was a delivery turn's reply not the requested acknowledgement, and how often did it run to its 4,096-token cap?",
+   "answer": "Not the bare acknowledgement: anchor 4, hqa 6, compact 17 turns. Ran to the cap: anchor 0 of 1920 turns (0 sessions); hqa 2 of 1920 turns (2 sessions); compact 13 of 1920 turns (8 sessions). 6 of compact's capped turns were in one session. Descriptive; the final answers were scored as usual.",
+   "status": "measurement: descriptive",
+   "result": {
+    "name": "delivery turns that did not finish with stop",
+    "value": {
+     "anchor": 0,
+     "hqa": 2,
+     "compact": 13
+    },
+    "not_the_acknowledgement": {
+     "anchor": 4,
+     "hqa": 6,
+     "compact": 17
+    }
+   },
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#turns",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/intermediate_caps/anchor/turns_not_stop",
+     "what": "anchor",
+     "value": 0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/intermediate_caps/hqa/turns_not_stop",
+     "what": "hqa",
+     "value": 2
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/intermediate_caps/compact/turns_not_stop",
+     "what": "compact",
+     "value": 13
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/intermediate_caps/anchor/turns_not_the_acknowledgement",
+     "what": "anchor, not the acknowledgement",
+     "value": 4
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/intermediate_caps/hqa/turns_not_the_acknowledgement",
+     "what": "hqa, not the acknowledgement",
+     "value": 6
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/turns/intermediate_caps/compact/turns_not_the_acknowledgement",
+     "what": "compact, not the acknowledgement",
+     "value": 17
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv"
+   ]
+  },
+  {
+   "id": "CP-kv-pool",
+   "question": "On two RTX PRO 6000, do the cheaper core settings admit a larger KV pool than the BF16 core?",
+   "answer": "Not in the graded runs: every arm was admitted the configured maximum, 2,097,152 tokens, in all nine serving launches. The saving shows as resident weights and unallocated memory under the cap. A smaller pool for anchor was seen only in the scoring launches of the exploratory depth profile (16 requests at once).",
+   "status": "source reading",
+   "result": {
+    "name": "KV pool admitted, tokens, serving launches",
+    "value": {
+     "anchor": 2097152,
+     "hqa": 2097152,
+     "compact": 2097152
+    },
+    "resident_weights_mib_rtx0_rtx1": {
+     "anchor": [
+      83129,
+      82897
+     ],
+     "hqa": [
+      81827,
+      79931
+     ],
+     "compact": [
+      80543,
+      78647
+     ]
+    },
+    "scoring_launches": {
+     "anchor": [
+      1318400
+     ],
+     "compact": [
+      2097152
+     ],
+     "core-fp8": [
+      2057216
+     ],
+     "fp8c": [
+      2097152
+     ],
+     "hqa": [
+      2097152
+     ],
+     "hqa-bf16pre": [
+      2097152
+     ]
+    }
+   },
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#memory",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/launch/kv_pool_tokens_serving/anchor",
+     "what": "anchor",
+     "value": 2097152
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/launch/kv_pool_tokens_serving/hqa",
+     "what": "hqa",
+     "value": 2097152
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/launch/kv_pool_tokens_serving/compact",
+     "what": "compact",
+     "value": 2097152
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/launch/note",
+     "what": "correction note",
+     "value": "In the nine serving launches of the graded runs every arm was admitted the configured maximum KV pool. A smaller pool for anchor was seen only in the scoring launches of the exploratory depth profile (concurrency 16). Corrected 2026-11-11: RESULTS.md first gave anchor's scoring-launch pool in the graded-run table."
+    }
+   ],
+   "data": []
+  },
+  {
+   "id": "CP-exploratory-checks",
+   "question": "What did the checks before the graded runs show?",
+   "answer": "Depth profile (five arms: anchor, hqa, compact, fp8c = ATTENTION_MODE=fp8-compact, core-fp8 = the BF16-core checkpoint with the engine's default FP8 conversions; texts to 128K, not the task items): no arm measurably worse than the BF16 reference at predicting the text at any depth. GLM5_FLASH_FP8_PREFILL=off on the HQA checkpoint: every recorded distribution bit-identical, so not an arm. Two launches of the same arm: bit-identical rows. Prefix-cache resume against a decode replay: bit-identical in 45 of 46 conversations over four arms together (the exception is a harness artifact). Greedy output alone and eight at once: one text in all 260 requests per arm. One capture each; numbers are in the protocol text only.",
+   "status": "exploratory",
+   "result": {
+    "name": "see protocol sections 10 to 13"
+   },
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#checks",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+     "what": "sections 10 to 13 (exploratory results recorded before the freeze)"
     }
    ],
    "data": []
