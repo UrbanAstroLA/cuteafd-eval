@@ -444,6 +444,59 @@ def paired_share(rows, *, aria, W=640):
 
 # ------------------------------------------------------------------ legend and figure
 
+def layout(cols, groups, totals, weights, *, aria, bracket=None, W=720, label_w=250, strip=48):
+    """A structural map: one row per part of the model in the order data passes through it, one column per configuration.
+    cols: column names. groups: [(heading, [(label, share text, [cell], strong)])] with cell = (number text, [(bits, share
+    of the part)], hover title); each cell draws a strip split by the share of the part held at each width (classes q3, q4, q6,
+    q8, q16: one hue, by bits) and prints the number beside it, so nothing is colour-only. totals: [(label, share text,
+    [text], strong)] under a rule. weights: [(label, share of all weights, class)], drawn to scale across the full width.
+    bracket: (first column, last column, text) ties columns together."""
+    cw = (W - label_w) / len(cols); SW = strip; o = []
+    X = lambda j: label_w + j * cw
+    t1 = "Where the weights are, to scale"
+    y = 6; o.append(f'<rect class="secbg" x="0" y="{y}" width="{tw(t1, 7.0) + 8:.1f}" height="18"/>' + tx(2, y + 13, t1, "sec"))
+    y0 = y + 26; x = 0.0
+    for lab, share, cls in weights:
+        w = W * share
+        o.append(tip(f"{lab}: {100 * share:.1f}% of the weights",
+                     f'<rect class="{cls}" x="{x:.1f}" y="{y0}" width="{max(w - 2, 1):.1f}" height="14" rx="2"/>')); x += w
+    x = 0.0
+    for lab, share, cls in weights:
+        t = f"{lab} {100 * share:.1f}%"
+        o.append(f'<rect class="{cls}" x="{x:.1f}" y="{y0 + 23}" width="10" height="10" rx="2"/>' + tx(x + 15, y0 + 32, t, "lab")); x += 15 + tw(t) + 22
+    y = y0 + 54
+    t2 = "Bits per weight of each part, as the files store it"
+    o.append(f'<rect class="secbg" x="0" y="{y}" width="{tw(t2, 7.0) + 8:.1f}" height="18"/>' + tx(2, y + 13, t2, "sec"))
+    y += 26
+    if bracket:
+        j0, j1, text = bracket; xa, xb = X(j0) + 4, X(j1) + cw - 12
+        o.append(tx((xa + xb) / 2, y + 9, text, "sub", "middle")
+                 + f'<path class="lead" fill="none" d="M{xa:.1f},{y + 19} V{y + 14} H{xb:.1f} V{y + 19}"/>')
+    y += 22
+    o.append(tx(label_w - 10, y + 12, "share of weights", "tick", "end"))
+    for j, name in enumerate(cols): o.append(tx(X(j) + 4, y + 12, name, "sec"))
+    y += 22
+    for heading, rows in groups:
+        o.append(tx(0, y + 13, heading, "sub")); y += 19
+        for label, share, cells, strong in rows:
+            o.append(tx(10, y + 15, label, "sec" if strong else "lab") + tx(label_w - 10, y + 15, share, "val", "end"))
+            for j, (num, segs, title) in enumerate(cells):
+                x0 = X(j) + 4; xs = x0; g = f'<rect class="hit" x="{X(j):.1f}" y="{y}" width="{cw:.1f}" height="22"/>'
+                free = SW - 2 * (len(segs) - 1)                      # the gaps come off the whole strip, so the split keeps its proportions
+                for q, sh in segs:
+                    w = max(free * sh, 1)
+                    g += f'<rect class="q q{q}" x="{xs:.1f}" y="{y + 4}" width="{w:.1f}" height="13" rx="2"/>'; xs += w + 2
+                o.append(tip(title, g + tx(x0 + SW + 6, y + 15, num, "sec" if strong else "val")))
+            y += 22
+        y += 3
+    y += 3; o.append(f'<line class="axis" x1="0" x2="{W}" y1="{y}" y2="{y}"/>'); y += 5
+    for label, share, texts, strong in totals:
+        o.append(tx(0, y + 15, label, "sec" if strong else "lab") + tx(label_w - 10, y + 15, share, "val", "end")
+                 + "".join(tx(X(j) + 4 + SW + 6, y + 15, t, "sec" if strong else "val") for j, t in enumerate(texts)))
+        y += 21
+    return svg_open(W, y + 6, aria) + "".join(o) + "</svg>"
+
+
 def swatch(kind):
     s = {"v": marker(9, 7, "v", size=4.2), "c": marker(9, 8, "c", size=4.2), "ch": marker(9, 8, "c", True, 4.2),
          "ci": '<line class="wk wk-c" x1="1" x2="17" y1="7" y2="7"/>', "ciu": '<line class="wk wk-c unres" x1="1" x2="17" y1="7" y2="7"/>',
@@ -454,7 +507,8 @@ def swatch(kind):
          "lnv": '<line class="ln-v" x1="0" x2="18" y1="7" y2="7"/>', "lnc": '<line class="ln-c" x1="0" x2="18" y1="7" y2="7"/>',
          "gut": '<rect class="gutter" x="1" y="1" width="16" height="12" rx="2"/>',
          "bv": '<rect class="bar-v" x="1" y="2" width="16" height="10" rx="2"/>', "bc": '<rect class="bar-c" x="1" y="2" width="16" height="10" rx="2"/>',
-         "bcs": '<rect class="bar-cs" x="1" y="2" width="16" height="10" rx="2"/>', "br": '<rect class="bar-r" x="1" y="2" width="16" height="10" rx="2"/>'}[kind]
+         "bcs": '<rect class="bar-cs" x="1" y="2" width="16" height="10" rx="2"/>', "br": '<rect class="bar-r" x="1" y="2" width="16" height="10" rx="2"/>',
+         **{f"q{q}": f'<rect class="q q{q}" x="1" y="2" width="16" height="10" rx="2"/>' for q in (3, 4, 6, 8, 16)}}[kind]
     return f'<svg class="sw" viewBox="0 0 18 14" width="18" height="14" aria-hidden="true">{s}</svg>'
 
 
@@ -462,8 +516,9 @@ def legend(items):
     return '<div class="lg">' + "".join(f'<span>{swatch(k)}{E(t)}</span>' for k, t in items) + "</div>"
 
 
-def figure(fid, title, what, charts, howto, table, legend_items=None, caption=None):
-    """charts: list of (svg, spec strip html or None, heading or None). Table view is mandatory."""
+def figure(fid, title, what, charts, howto, table, legend_items=None, caption=None, calc=None):
+    """charts: list of (svg, spec strip html or None, heading or None). Table view is mandatory. calc: how the plotted
+    quantity is calculated, shown under the chart."""
     parts = [f'<figure class="fx" id="{fid}"><figcaption><div class="t">{E(title)}</div>'
              f'<p class="what"><b>What this shows.</b> {what}</p></figcaption>']
     if legend_items: parts.append(legend(legend_items))
@@ -473,6 +528,7 @@ def figure(fid, title, what, charts, howto, table, legend_items=None, caption=No
         parts.append(f'<div class="chart">{svg}</div>')
     if caption: parts.append(f'<p class="cap">{caption}</p>')
     parts.append(f'<p class="howto"><b>How to use it.</b> {howto}</p>')
+    if calc: parts.append(f'<p class="howto"><b>How it is calculated.</b> {calc}</p>')
     parts.append(f'<details class="data"><summary>Table view: the exact numbers</summary>{table}</details></figure>')
     return "".join(parts)
 
@@ -495,4 +551,8 @@ svg .wk{stroke-width:2.2;stroke-linecap:round}svg .wk-v{stroke:var(--s1)}svg .wk
 svg .ln-v{stroke:var(--s1);stroke-width:2;fill:none;stroke-linejoin:round}svg .ln-c{stroke:var(--s2);stroke-width:2;fill:none;stroke-linejoin:round}
 svg .thin{stroke-width:1.2;opacity:.7}svg .dsh{stroke-dasharray:5 3}
 svg g:hover>.mk-v,svg g:hover>.mk-c,svg g:hover>g>.mk-c,svg g:hover>.wk{opacity:.75}
-.cfg code{overflow-wrap:normal;white-space:nowrap}svg .bar-v{fill:var(--s1)}svg .bar-c{fill:var(--s2)}svg .bar-cs{fill:var(--surface);stroke:var(--s2);stroke-width:2}svg .bar-r{fill:var(--g2)}"""
+.cfg code{overflow-wrap:normal;white-space:nowrap}svg .bar-v{fill:var(--s1)}svg .bar-c{fill:var(--s2)}svg .bar-cs{fill:var(--surface);stroke:var(--s2);stroke-width:2}svg .bar-r{fill:var(--g2)}
+:root{--q3:#cfe1f8;--q4:#9dc0ee;--q6:#5f97e0;--q8:#2467c2;--q16:#0c2f66}
+@media (prefers-color-scheme:dark){:root{--q3:#24385a;--q4:#2b5190;--q6:#3572c9;--q8:#62a3f0;--q16:#d2e5fd}}
+svg .q{stroke:var(--axis);stroke-width:.75}svg .q3{fill:var(--q3)}svg .q4{fill:var(--q4)}svg .q6{fill:var(--q6)}svg .q8{fill:var(--q8)}svg .q16{fill:var(--q16)}
+svg .w1{fill:var(--g2)}svg .w2{fill:var(--g1)}svg .w3{fill:var(--axis)}svg g:hover>.q{opacity:.8}"""

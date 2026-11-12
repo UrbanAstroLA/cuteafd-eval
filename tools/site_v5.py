@@ -140,6 +140,97 @@ def sized_sections(S, h2, gh):
             "trades</a>.")]
     t_primer = '<dl class="gl">' + "".join(f"<div><dt>{k}</dt><dd>{v}</dd></div>" for k, v in primer) + "</dl>"
 
+    # ---- the layout figure: the parts of the model in the order data passes through them, and the format each configuration
+    #      stores them in. Colour is the stored width (one hue, five steps); the number beside each strip is the measured figure.
+    QB = {"EXL3 trellis, 3 bits": 3, "EXL3 trellis, 4 bits": 4, "EXLR8 trellis, 4 bits": 4, "EXL3 trellis, 6 bits": 6, "FP8": 8, "BF16": 16}
+    HEAD, EMB, SHX, DMLP = "output head", "embedding", "shared experts", "dense MLP (layers 0-2)"
+    LAY = [("Input", [(EMB, "token embedding")]),
+           ("Attention", [(OQ, "o_proj and q_b_proj"), (OA, "other projections")]),
+           ("Feed-forward", [(DMLP, "dense feed-forward, layers 0 to 2"), (SHX, "shared experts"), (RE, "routed experts")]),
+           ("Output", [(HEAD, "output head")]),
+           ("Stored after the main layers", [(MTP, "multi-token-prediction block")])]
+    drawn = [comp for _, rs in LAY for comp, _ in rs]
+    def segs(a, comp):
+        m = {}
+        for k_, v in fm(a, comp).items():
+            if v < 0.03: continue                                   # a sliver under 3% of the part is folded into the rest
+            if k_ not in QB: stale(f"a storage format the layout figure has no colour for ({k_})")
+            m[QB[k_]] = m.get(QB[k_], 0) + v
+        t = sum(m.values())
+        if t < 0.97: stale(f"the format mix of {a}, {comp}")
+        return [(q, v / t) for q, v in sorted(m.items())]
+    def mixf(a, comp):                                               # every format of the part, to a tenth of a percent
+        return ", ".join(f"{'100%' if v > 0.9995 else pc1(v)} {NAME.get(k_, k_)}" for k_, v in sorted(fm(a, comp).items(), key=lambda kv: -kv[1]) if v >= 0.0005)
+    d_re = (c("compact", RE) - c(REF, RE)) * SH[RE] * W / 8 / 2 ** 30   # GiB: the routed experts of compact over exlr8-k4's
+    fp8r = [c(a, comp) for a in ARMS5 for comp in drawn if fm(a, comp).get("FP8", 0) >= 0.99]
+    worked = SH[RE] * c("compact", RE) + SH[OUT] * outb["compact"] + SH[MTP] * c("compact", MTP)
+    if (sorted(drawn + ["other"]) != sorted(CM) or abs(SH[RE] + SH[OUT] + SH[MTP] - 1) > 5e-4 or pc2(SH["other"]) != "0.03%"
+            or any(abs(c(a, "other") - 16) > 0.01 for a in ARMS5) or f2(worked) != f2(bpw["compact"])
+            or f2(c("compact", RE)) != "4.01" or pc1(bpw["compact"] / 16) != pc1(rel["compact"])
+            or any(q != 4 for a in ARMS5 if a != K325 for q, _ in segs(a, RE)) or [q for q, _ in segs(K325, RE)] != [3, 4]
+            or any(q != 16 for comp in drawn if comp not in (RE, MTP) for q, _ in segs("anchor", comp))
+            or not c(REF, OA) > c("compact", OA) or not c(REF, HEAD) > c("compact", HEAD)
+            or any(not c(REF, comp) < c("compact", comp) for comp in (OQ, SHX, DMLP, EMB))
+            or c("compact", EMB) != c("hqa", EMB) or outb[REF] != min(outb.values()) or f1(gib["compact"] - gib[REF]) != "1.0"
+            or f1(d_re) != "0.3" or (f2(min(fp8r)), f2(max(fp8r))) != ("8.00", "8.26") or pc1(fm("compact", MTP).get("BF16", 0)) != "0.3%"
+            or fm("compact", MTP) != fm("anchor", MTP) or f2(c("compact", MTP)) != "4.05" or not c("hqa", MTP) > c("compact", MTP)):
+        stale("the layout figure of the bits-per-weight section")
+    lgroups = [(hd, [(lb, pc2(SH[comp]), [(f2(c(a, comp)), segs(a, comp), f"{a} · {lb}: {f2(c(a, comp))} bits per weight, {mixf(a, comp)}")
+                                           for a in ARMS5], comp == RE) for comp, lb in rs]) for hd, rs in LAY]
+    ltotals = [("main layers outside routed experts", pc2(SH[OUT]), [f2(outb[a]) for a in ARMS5], False),
+               ("whole language model", "100%", [f2(bpw[a]) for a in ARMS5], True),
+               ("relative to BF16 (÷ 16)", "", [pc1(rel[a]) for a in ARMS5], False)]
+    lsvg = V4.SC.layout(list(ARMS5), lgroups, ltotals,
+                        [("routed experts", SH[RE], "w1"), ("rest of the main layers", SH[OUT], "w2"), ("multi-token-prediction block", SH[MTP], "w3")],
+                        aria="For each of the five configurations, the storage format and bits per weight of each part of the model, "
+                             "with the share of the weights each part holds", bracket=(1, 2, "one checkpoint, two settings"),
+                        label_w=270, strip=44)
+    ltab = ('<div class="tbl"><table><thead><tr><th>Part</th><th>Share of weights</th>' + "".join(f"<th>{code(a)}</th>" for a in ARMS5)
+            + "</tr></thead><tbody>"
+            + "".join(f"<tr><td>{E(hd)}: {E(lb)}</td><td>{pc2(SH[comp])}</td>"
+                      + "".join(f"<td>{f2(c(a, comp))} · {E(mixf(a, comp))}</td>" for a in ARMS5) + "</tr>" for hd, rs in LAY for comp, lb in rs)
+            + "".join(f"<tr><td>{E(lb)}</td><td>{sh}</td>" + "".join(f"<td>{E(t)}</td>" for t in ts) + "</tr>" for lb, sh, ts, _ in ltotals)
+            + "</tbody></table></div>")
+    fig_layout = V4.SC.figure(
+        "layout", "How each configuration is built: storage format and bits per weight, part by part",
+        "Rows are the parts of the model, from the input embedding to the output head, then the multi-token-prediction block the "
+        "files store after them; columns are the five configurations. The strip in a cell is split by how much of that part the files "
+        "store in each format (the colours in the key), and the number beside it is the part's bits per weight. The bar at the top "
+        "is the whole model to scale: how its weights divide between the routed experts and everything else. <code>hqa</code> and "
+        "<code>compact</code> are one checkpoint that stores <code>o_proj</code> and <code>q_b_proj</code> twice, once at BF16 and "
+        "once at K6; each column counts the copy its setting loads.",
+        [(lsvg, None, None)],
+        f"Read down a column for how one configuration is built, across a row for where the configurations differ. The routed "
+        f"experts row holds {pc1(SH[RE])} of the weights and so nearly fixes the whole-model figure: it is 4-bit in four columns, and "
+        f"{code(K325)} is the one column where it is a mix of 3-bit and 4-bit. <code>anchor</code>, <code>hqa</code> and "
+        f"<code>compact</code> have the same experts and differ in the other rows down to the output head, which together are "
+        f"{pc1(SH[OUT])} of the weights. In <code>anchor</code> those rows are all BF16. In <code>hqa</code> and <code>compact</code> "
+        "they are K6 except the embedding (BF16) and a tenth of the other attention projections (BF16), and the two differ in one "
+        "row: <code>o_proj</code> and <code>q_b_proj</code>, BF16 in <code>hqa</code> and K6 in <code>compact</code> (the same two "
+        f"projections inside the multi-token-prediction block are why that row reads {f2(c('hqa', MTP))} in <code>hqa</code>). "
+        f"{code(REF)} spends its bits differently outside the experts: FP8 on the "
+        "embedding, the head and most attention projections, its 4-bit trellis on <code>o_proj</code>, <code>q_b_proj</code>, the "
+        f"shared experts and the dense feed-forward. That comes to {f2(outb[REF])} bits outside the routed experts, the lowest of the "
+        f"five, although its head and other attention projections are stored at more bits than <code>compact</code>'s.",
+        ltab,
+        [("q3", "3-bit trellis (K3)"), ("q4", "4-bit trellis (K4; EXL3 or EXLR8)"), ("q6", "6-bit trellis (K6)"), ("q8", "FP8, 8 bits"),
+         ("q16", "BF16, 16 bits")],
+        calc="The bits per weight of a part is the bits its files store (the coded values plus the scale and sign vectors kept "
+             "with them) divided by the number of weights the part stands for (rows × columns of each matrix). The vectors are why a "
+             f"4-bit EXL3 trellis reads {f2(c('compact', RE))} and not 4.00, and why FP8 reads {f2(min(fp8r))} to {f2(max(fp8r))} depending on "
+             "how many scale values are kept with it. A part with a little of a second format lands between the two widths: the "
+             f"multi-token-prediction block of <code>compact</code> is K4 with {pc1(fm('compact', MTP)['BF16'])} BF16, which gives "
+             f"{f2(c('compact', MTP))}. The whole-model figure pools every part, so each part counts by "
+             f"its share of the weights. For <code>compact</code>: {pc2(SH[RE])} × {f2(c('compact', RE))} (routed experts) + "
+             f"{pc2(SH[OUT])} × {f2(outb['compact'])} (rest of the main layers) + {pc2(SH[MTP])} × {f2(c('compact', MTP))} "
+             f"(multi-token-prediction block) = {f2(bpw['compact'])}. Relative to BF16 is that figure over 16: {f2(bpw['compact'])} ÷ 16 "
+             f"= {pc1(rel['compact'])}. Everything is read from the headers of the checkpoint files by "
+             f"{gh(f'{RD}/analysis/bpw.py', '<code>bpw.py</code>')}; no weight is loaded. A sliver under 3% of a part is not drawn (the "
+             f"table view lists every format to a tenth of a percent), and the remaining {pc2(SH['other'])} of the weights (normalization vectors and small tables, "
+             "16 bits in every configuration) has no row but is in the totals. The figure is the files as stored, for <code>hqa</code> "
+             "and <code>compact</code> the copy each setting loads; what the engine "
+             'held in another form in memory is under "As run" below.')
+
     FSK = {a: BD["arms"][a]["fidelity_set"]["kl"][0] for a in ARMS4}
     reach = f"{BD['sets']['fidelity_set']['last_generated_position'] / 1000:.1f}K"
     BL = FP["by_length"]
@@ -203,6 +294,7 @@ def sized_sections(S, h2, gh):
     b4 = [bpw[a] for a in ARMS4]
     d_hc, d_ac, d_kc = gib["hqa"] - gib["compact"], gib["anchor"] - gib["compact"], gib["compact"] - gib[K325]
     DHA = BD["differences"]["hqa - anchor"]
+    if (c("compact", RE) - c(K325, RE)) * SH[RE] * W / 8 / 2 ** 30 <= d_kc or outb[K325] <= outb["hqa"]: stale("where k325-fp8 is smaller than compact")
     if (pc0(min(rel.values())), pc0(max(rel.values()))) != ("22%", "27%") or DHA["fidelity_set"]["overall"][0] > 0 or DHA["teacher_panel"][0] > 0:
         stale("the bits-per-weight reading")
     sref = FP["paired"][f"{REF} - anchor"]["p1234"]["score"]["all"]
@@ -218,8 +310,16 @@ def sized_sections(S, h2, gh):
                     f"<code>compact</code> moves {pc1(moved)} of the weights from 16 bits to about 6 or 7: {f2(bpw['anchor'])} to "
                     f"{f2(bpw['compact'])}, {f1(d_ac)} GiB. The embedding stays at BF16 in all three.</li>"
                     f"<li><b>{code(K325)} is the one that changes the experts</b>: {f2(c(K325, RE))} bits against "
-                    f"{f2(c('compact', RE))} there, which is {f1(d_kc)} GiB less than <code>compact</code>, with a core stored at more "
-                    "bits than <code>hqa</code>'s or <code>compact</code>'s (as stored; see \"As run\" above).</li>"
+                    f"{f2(c('compact', RE))} there. Its files are {f1(d_kc)} GiB smaller than <code>compact</code>'s in all: the experts "
+                    "are smaller by more than that, and its core is stored at more bits than <code>hqa</code>'s or "
+                    "<code>compact</code>'s (as stored; see \"As run\" above).</li>"
+                    f"<li><b>{code(REF)} is the smallest of the four measured, though its head and most of its attention projections "
+                    f"are FP8</b>, more bits than <code>compact</code>'s K6 there. It stores <code>o_proj</code>, <code>q_b_proj</code>, "
+                    "the shared experts and the dense feed-forward in its 4-bit trellis where <code>compact</code> has K6, and its "
+                    f"embedding at FP8 where <code>compact</code>'s is BF16: {f2(outb[REF])} bits outside the routed experts against "
+                    f"{f2(outb['compact'])} (<a href=\"#layout\">the layout figure</a>). Its files are "
+                    f"{f1(gib['compact'] - gib[REF])} GiB smaller in all, {f1(d_re)} GiB of that in the experts "
+                    f"({f2(c(REF, RE))} bits against {f2(c('compact', RE))}).</li>"
                     "<li><b>Bits per weight is a size, not a quality score.</b> Among the four measured configurations neither distance "
                     f"from BF16 nor task score follows it: <code>hqa</code> at {f2(bpw['hqa'])} is no farther from BF16 than "
                     f'<code>anchor</code> at {f2(bpw["anchor"])} on either set (<a href="#bf16">distance from the BF16 model</a>), and '
@@ -227,7 +327,7 @@ def sized_sections(S, h2, gh):
                     "below say what it bought.</li></ul>")
     bits_limits = ("<p>Limits: " + "; ".join(E(x) for x in BW["limits"]) + "; the HQA checkpoint is no longer on the hub and "
                    "<code>anchor</code>'s is derived locally, so a reader can rerun the script on " + f"{code(REF)} and {code(K325)} only.</p>")
-    bits = (h2("bits", "Bits per weight: one unit for the checkpoints") + bits_intro + t_primer + t_size + t_comp + bits_mix +
+    bits = (h2("bits", "Bits per weight: one unit for the checkpoints") + bits_intro + t_primer + fig_layout + t_size + t_comp + bits_mix +
             bits_reading + bits_limits)
 
     # ================================================================ how the replies ended

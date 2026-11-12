@@ -857,7 +857,12 @@ def cp_findings():
         if (A5 != A4[:3] + (REFA, "k325-fp8") or BW["k325-fp8"]["status"] != "running" or BW["bf16_bits_per_weight"] != 16
                 or [a for a in sorted(A5, key=lambda a: -BA[a]["bits_per_weight"])] != list(A5[:3]) + [REFA, "k325-fp8"]
                 or any(abs(bpc(a, RE_) - 4) > 0.02 for a in m4) or BA["hqa"]["checkpoint"] != BA["compact"]["checkpoint"]
-                or BW["as_run"]["launches"]["k325-fp8"]["kda_fp8"] != "Row128" or BW["as_run"]["launches"]["k325-fp8"]["kda_bf16_mib"]):
+                or BW["as_run"]["launches"]["k325-fp8"]["kda_fp8"] != "Row128" or BW["as_run"]["launches"]["k325-fp8"]["kda_bf16_mib"]
+                or min(A5, key=lambda a: BA[a]["outside_routed_experts_bits_per_weight"]) != REFA
+                or any(BA[REFA]["by_component"][c]["formats"].get("EXLR8 trellis, 4 bits", 0) < 0.99
+                       for c in ("attention: o_proj and q_b_proj", "shared experts", "dense MLP (layers 0-2)"))
+                or any(BA[REFA]["by_component"][c]["formats"].get("FP8", 0) < 0.99
+                       for c in ("embedding", "output head", "attention: other projections"))):
             raise SystemExit("findings: the bits-per-weight accounting no longer matches the answer written for it")
         out.append(finding(
             "CP-bits-per-weight",
@@ -869,11 +874,13 @@ def cp_findings():
             f"close together; k325-fp8 is the one that changes the experts ({b2(bpc('k325-fp8', RE_))} bits, three quarters of the expert "
             "matrices at 3 bits and one quarter at 4). Outside the routed experts the figures spread: "
             + ", ".join(f"{a} {b2(BA[a]['outside_routed_experts_bits_per_weight'])}" for a in A5)
+            + f" ({REFA} is lowest there: 4-bit trellis on o_proj, q_b_proj, the shared experts and the dense feed-forward, FP8 on the "
+            "embedding, the head and the other attention projections)"
             + f". hqa to compact moves {100 * mv_hc:.2f}% of the weights (o_proj and q_b_proj of the main layers) from 16 bits to 6, "
             f"{gib(BA['hqa']['stored_gib'] - BA['compact']['stored_gib'])} of files, {gib(mtp_hc)} of it the same two projections in the "
-            "multi-token-prediction block; anchor to compact moves {pct(mv_ac)}, "
+            f"multi-token-prediction block; anchor to compact moves {pct(mv_ac)}, "
             f"{gib(BA['anchor']['stored_gib'] - BA['compact']['stored_gib'])}. hqa and compact are one checkpoint that stores those two "
-            "projections twice; each row counts the copy its setting loads. Bits per weight is a size, not a quality score: among the four "
+            "projections twice; each configuration counts the copy its setting loads. Bits per weight is a size, not a quality score: among the four "
             "measured configurations neither distance from BF16 (CP-bf16-distance) nor task score follows it. As stored is not as run: under "
             "the engine's defaults the load line of k325-fp8 reports its attention group held as FP8, converted at load, and an FP8 output "
             "head, so part of what its files hold at BF16 runs at FP8; an as-run figure is not computed because the logs do not itemize the "
@@ -892,6 +899,7 @@ def cp_findings():
             [ev(S, f"/bits_per_weight/arms/{a}/checkpoint", f"{a}: checkpoint and revision") for a in A5] +
             [ev(S, "/bits_per_weight/share_of_weights", "share of the language model's weights by component"),
              ev(S, "/bits_per_weight/arms/compact/by_component", "compact: bits per weight and stored formats by component"),
+             ev(S, f"/bits_per_weight/arms/{REFA}/by_component", f"{REFA}: bits per weight and stored formats by component"),
              ev(S, "/bits_per_weight/arms/k325-fp8/by_component", "k325-fp8: bits per weight and stored formats by component"),
              ev(S, "/bits_per_weight/language_model_weights", "weights counted"),
              ev(S, "/bits_per_weight/language_model_gib_at_bf16", "the same weights at BF16, GiB"),

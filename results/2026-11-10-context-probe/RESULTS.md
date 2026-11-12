@@ -1020,8 +1020,18 @@ not of the launch. An as-run figure is not computed, because the logs do not ite
   weight, 2.6 GiB of files, 0.1 GiB of it the same two projections in the multi-token-prediction block.
   `anchor` to `compact` moves 2.4% of the weights from 16 bits to about 6 or 7: 4.35 to 4.10, 9.1 GiB.
   The embedding stays at BF16 in all three.
-- **`k325-fp8` is the one that changes the experts**: 3.26 bits against 4.01 there, which is 20.5 GiB less than
-  `compact`, with a core stored at more bits than `hqa`'s or `compact`'s (stored; see "as run" above).
+- **`k325-fp8` is the one that changes the experts**: 3.26 bits against 4.01 there. Its files are 20.5 GiB
+  smaller than `compact`'s in all: the experts are smaller by more than that, and its core is stored at more bits
+  than `hqa`'s or `compact`'s (stored; see "as run" above).
+- **`exlr8-k4` is the smallest of the four measured, though its head and most of its attention projections are
+  FP8**, more bits than `compact`'s K6 there. It stores `o_proj`, `q_b_proj`, the shared experts and the dense
+  feed-forward in its 4-bit trellis where `compact` has K6, and its embedding at FP8 where `compact`'s is BF16:
+  6.55 bits outside the routed experts against 7.25. Its files are 1.0 GiB smaller in all, 0.3 GiB of that in the
+  experts (4.00 bits against 4.01).
+- **How the whole-model figure is formed.** It pools every part, so each part counts by its share of the
+  weights. For `compact`: 94.90% x 4.01 (routed experts) + 2.78% x 7.25 (rest of the main layers) + 2.32% x 4.05
+  (multi-token-prediction block) = 4.10, and 4.10 / 16 = 25.6% of BF16. The published page draws this part by
+  part for the five configurations (its layout figure).
 - **Bits per weight is a size, not a quality score.** Among the four measured configurations distance from BF16
   and task score do not follow it: `hqa` at 4.17 is no farther from BF16 than `anchor` at 4.35 on either set
   (section 12), and `exlr8-k4` at 4.08 scores level with `anchor`. The unit says what was spent; sections 11 to

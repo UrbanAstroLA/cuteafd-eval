@@ -4240,7 +4240,7 @@
   {
    "id": "CP-bits-per-weight",
    "question": "In one unit, how large is each configuration's checkpoint compared with the unquantized BF16 model, and where do the configurations differ?",
-   "answer": "Bits per weight (stored bits / weights; BF16 = 16), language model as stored: anchor 4.35 (27.2% of BF16, 162.3 GiB); hqa 4.17 (26.1% of BF16, 155.8 GiB); compact 4.10 (25.6% of BF16, 153.2 GiB); exlr8-k4 4.08 (25.5% of BF16, 152.2 GiB); k325-fp8 3.55 (22.2% of BF16, 132.7 GiB). At BF16 the same weights are 597.5 GiB. The routed experts are 94.9% of the weights and sit at 4.00 to 4.01 bits in the four configurations with K4 experts, so their whole-model figures lie close together; k325-fp8 is the one that changes the experts (3.26 bits, three quarters of the expert matrices at 3 bits and one quarter at 4). Outside the routed experts the figures spread: anchor 16.00, hqa 9.66, compact 7.25, exlr8-k4 6.55, k325-fp8 13.65. hqa to compact moves 0.67% of the weights (o_proj and q_b_proj of the main layers) from 16 bits to 6, 2.6 GiB of files, 0.1 GiB of it the same two projections in the multi-token-prediction block; anchor to compact moves {pct(mv_ac)}, 9.1 GiB. hqa and compact are one checkpoint that stores those two projections twice; each row counts the copy its setting loads. Bits per weight is a size, not a quality score: among the four measured configurations neither distance from BF16 (CP-bf16-distance) nor task score follows it. As stored is not as run: under the engine's defaults the load line of k325-fp8 reports its attention group held as FP8, converted at load, and an FP8 output head, so part of what its files hold at BF16 runs at FP8; an as-run figure is not computed because the logs do not itemize the conversion by matrix. k325-fp8 is a fifth configuration added on 2026-11-12 (protocol/AMENDMENT-2026-11-12.md); this entry holds its file accounting only, and its task passes and BF16-reference capture were running when this was written. Limits: file accounting, not memory in use and not arithmetic precision at run time; the vision tower is not counted (every configuration ran with vision off); whether the engine uses the multi-token-prediction block when serving was not checked.",
+   "answer": "Bits per weight (stored bits / weights; BF16 = 16), language model as stored: anchor 4.35 (27.2% of BF16, 162.3 GiB); hqa 4.17 (26.1% of BF16, 155.8 GiB); compact 4.10 (25.6% of BF16, 153.2 GiB); exlr8-k4 4.08 (25.5% of BF16, 152.2 GiB); k325-fp8 3.55 (22.2% of BF16, 132.7 GiB). At BF16 the same weights are 597.5 GiB. The routed experts are 94.9% of the weights and sit at 4.00 to 4.01 bits in the four configurations with K4 experts, so their whole-model figures lie close together; k325-fp8 is the one that changes the experts (3.26 bits, three quarters of the expert matrices at 3 bits and one quarter at 4). Outside the routed experts the figures spread: anchor 16.00, hqa 9.66, compact 7.25, exlr8-k4 6.55, k325-fp8 13.65 (exlr8-k4 is lowest there: 4-bit trellis on o_proj, q_b_proj, the shared experts and the dense feed-forward, FP8 on the embedding, the head and the other attention projections). hqa to compact moves 0.67% of the weights (o_proj and q_b_proj of the main layers) from 16 bits to 6, 2.6 GiB of files, 0.1 GiB of it the same two projections in the multi-token-prediction block; anchor to compact moves 2.4%, 9.1 GiB. hqa and compact are one checkpoint that stores those two projections twice; each configuration counts the copy its setting loads. Bits per weight is a size, not a quality score: among the four measured configurations neither distance from BF16 (CP-bf16-distance) nor task score follows it. As stored is not as run: under the engine's defaults the load line of k325-fp8 reports its attention group held as FP8, converted at load, and an FP8 output head, so part of what its files hold at BF16 runs at FP8; an as-run figure is not computed because the logs do not itemize the conversion by matrix. k325-fp8 is a fifth configuration added on 2026-11-12 (protocol/AMENDMENT-2026-11-12.md); this entry holds its file accounting only, and its task passes and BF16-reference capture were running when this was written. Limits: file accounting, not memory in use and not arithmetic precision at run time; the vision tower is not counted (every configuration ran with vision off); whether the engine uses the multi-token-prediction block when serving was not checked.",
    "status": "accounting: checkpoint files",
    "result": {
     "name": "bits per weight of the language model as stored, per configuration",
@@ -4537,6 +4537,73 @@
        "formats": {
         "EXL3 trellis, 4 bits": 0.9966,
         "BF16": 0.0034,
+        "vectors and small tables, as stored": 0.0001
+       }
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/exlr8-k4/by_component",
+     "what": "exlr8-k4: bits per weight and stored formats by component",
+     "value": {
+      "routed experts": {
+       "bits_per_weight": 4.004,
+       "formats": {
+        "EXLR8 trellis, 4 bits": 1.0
+       }
+      },
+      "shared experts": {
+       "bits_per_weight": 4.004,
+       "formats": {
+        "EXLR8 trellis, 4 bits": 1.0
+       }
+      },
+      "dense MLP (layers 0-2)": {
+       "bits_per_weight": 4.0052,
+       "formats": {
+        "EXLR8 trellis, 4 bits": 1.0
+       }
+      },
+      "attention: o_proj and q_b_proj": {
+       "bits_per_weight": 4.0062,
+       "formats": {
+        "EXLR8 trellis, 4 bits": 1.0
+       }
+      },
+      "attention: other projections": {
+       "bits_per_weight": 8.261,
+       "formats": {
+        "FP8": 0.9972,
+        "vectors and small tables, as stored": 0.0016,
+        "BF16": 0.0012
+       }
+      },
+      "output head": {
+       "bits_per_weight": 8.0078,
+       "formats": {
+        "FP8": 1.0
+       }
+      },
+      "embedding": {
+       "bits_per_weight": 8.0078,
+       "formats": {
+        "FP8": 1.0
+       }
+      },
+      "other": {
+       "bits_per_weight": 16.005,
+       "formats": {
+        "BF16": 0.5808,
+        "vectors and small tables, as stored": 0.4192
+       }
+      },
+      "multi-token-prediction block": {
+       "bits_per_weight": 4.0439,
+       "formats": {
+        "EXLR8 trellis, 4 bits": 0.9909,
+        "FP8": 0.0088,
+        "BF16": 0.0002,
         "vectors and small tables, as stored": 0.0001
        }
       }
