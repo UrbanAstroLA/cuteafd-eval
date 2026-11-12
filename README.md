@@ -47,7 +47,15 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
   For `compact` a cost at 127K is indicated, not established: 0.887 there against 0.918 to 0.924, the
   lowest arm in both pass sets; `hqa` − `compact` +0.037 [+0.004, +0.073] at 127K and +0.013 [+0.002, +0.024] over all lengths
   (excludes 0 only at four passes), while `compact` − `anchor` −0.010 [−0.021, +0.002] includes 0. Pooled, the gap matches
-  unfinished replies, but the two pass sets do not agree on that split, so where it comes from is not settled.
+  unfinished replies, but the two pass sets do not agree on that split, so these counts alone do not say where it comes
+  from; the next line does.
+- **How the replies ended (added 2026-11-12): `compact`'s 127K gap is replies that did not finish, not answers that were
+  wrong.** 44 of 3,840 replies did not finish, none with answer text. `compact`'s excess is in one place, the `join`
+  family at 127K: 10 of 80 against 4 (`anchor`), 2 (`hqa`), 1 (`exlr8-k4`). Of the +0.037 between
+  `hqa` and `compact` at 127K, +0.035 is `join`, and the finished replies score level. The ending is one every
+  configuration shows, `anchor` included: the reasoning copies the prompt's records out in order and runs to the reply cap.
+  Whether the K6 projections raise its rate is indicated, not established: the paired difference in the share of unfinished `join`
+  replies is +0.100 [+0.025, +0.175] for `compact` − `hqa` and +0.075 [−0.013, +0.163] for `compact` − `anchor`, with no excess in passes 1-2 alone. Post hoc.
 - **Distance from the BF16 model (added 2026-11-12): all four configurations sit in one band.** Coarse KL on tpurtell's
   fidelity set, contexts to 14.4K: `hqa` 0.0302, `compact` 0.0314, `anchor` 0.0328, `exlr8-k4` 0.0360,
   between the official FP8 model (0.0216, the baseline tpurtell recorded in the set's manifest) and K3.25 on
@@ -56,6 +64,12 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
   differs from `hqa` in its output head as well as its core (both BF16 in `anchor`), and why it measures slightly farther is
   an open question.
   Neither reference set reaches past 14.4K, so the 127K task difference lies beyond both.
+- **Size in one unit (added 2026-11-12): bits per weight, BF16 = 16.** `anchor` 4.35, `hqa` 4.17, `compact` 4.10, `exlr8-k4` 4.08:
+  25.5% to 27.2% of the BF16 model. The routed experts are 94.9% of the weights and sit at 4 bits in all four, so
+  in size the configurations differ only in the remaining few percent (16.00, 9.66, 7.25 and 6.55 bits there). A size, not a
+  quality score. A fifth configuration, `k325-fp8` (K3.25 experts, run with an FP8 core; 3.55 bits as its files are stored, 22.2% of BF16), was
+  added by a dated amendment; its passes are running and it has no measured figures yet. The v5 page carries a short primer
+  on the formats.
 - **Accuracy falls with length in every probe arm, `anchor` included** (two passes: 0.98 at 4K, 0.89 to 0.91 at 127K), so
   that loss is not produced by core precision. A third to a half of it is replies that did not finish. Added 2026-11-12, four passes: the fall from 4K to 127K is about 0.06 in
   every configuration, `exlr8-k4` included, and about 0.09 in `compact` (its 127K gap above). The tasks are shared too and no unquantized model ran

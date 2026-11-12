@@ -2,14 +2,15 @@
  "id": "2026-11-10-context-probe",
  "kind": "measurement",
  "title": "CuteAFD v5.0.0 core precision at long context: BF16 reference, HQA and K6 core on graded tasks from 4K to 127K tokens",
- "protocol": "frozen 2026-11-10 before the first measured request (protocol/FROZEN.json); sections 10 to 13 of the protocol report exploratory checks. Added 2026-11-11 after the results were read: a reference checkpoint (two single-message passes, post hoc), a scoring capture on it (exploratory), and amendment 1 (protocol/AMENDMENT-2026-11-11.md), whose two further single-message passes per arm completed 2026-11-12. A BF16-reference stage (descriptive; plan bf16ref/ADDENDUM-BF16REF.md written 2026-11-11 17:54 before its first request) measured the distance of the four configurations from the BF16 model on 2026-11-12",
+ "protocol": "frozen 2026-11-10 before the first measured request (protocol/FROZEN.json); sections 10 to 13 of the protocol report exploratory checks. Added 2026-11-11 after the results were read: a reference checkpoint (two single-message passes, post hoc), a scoring capture on it (exploratory), and amendment 1 (protocol/AMENDMENT-2026-11-11.md), whose two further single-message passes per arm completed 2026-11-12. A BF16-reference stage (descriptive; plan bf16ref/ADDENDUM-BF16REF.md written 2026-11-11 17:54 before its first request) measured the distance of the four configurations from the BF16 model on 2026-11-12. Added later on 2026-11-12: a post hoc count of how the replies of the four passes ended (RESULTS.md section 14), a bits-per-weight accounting of the checkpoint files (section 15), and amendment 2 (protocol/AMENDMENT-2026-11-12.md, written 2026-11-12 11:57:02 -0800 before its first request), which adds a fifth configuration, k325-fp8; its passes were running at this export and none of its measured figures is published here",
  "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local",
  "engine": "tpurtell/cuteafd v5.0.0 (coordinator image sha256:6194637e...), unmodified launcher",
  "checkpoints": {
   "anchor": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180c693ebbad90190dca8d5f0a7ca4d3753 (local derived checkpoint, not a producer release)",
   "hqa, compact": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6-HQA @ e0ecc3d55d117e656a03d5790521cad0c4fcb624 (K4 experts, K6 core and head, and BF16 copies of two attention projection groups (q_b_proj, 12 matrices; o_proj, 46) beside the K6 ones; ATTENTION_MODE selects which copies run)",
   "availability": "The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11). These runs used a local copy downloaded on 2026-11-10. The anchor checkpoint is derived locally and was never a hub release.",
-  "exlr8-k4 (reference, added after the results were read)": "kindlingai/glm-5.3-flash-exlr8-k2-k3-k4 @ 867580abd28d142bb4c56218bb81a752b7dea988, manifest k4 (native EXLR8 checkpoint: routed and shared experts in a K4 trellis format with E4M3 rounding; attention output, q_b_proj and the dense MLP at K4; attention input projections MXFP8; embedding and head FP8)"
+  "exlr8-k4 (reference, added after the results were read)": "kindlingai/glm-5.3-flash-exlr8-k2-k3-k4 @ 867580abd28d142bb4c56218bb81a752b7dea988, manifest k4 (native EXLR8 checkpoint: routed and shared experts in a K4 trellis format with E4M3 rounding; attention output, q_b_proj and the dense MLP at K4; attention input projections MXFP8; embedding and head FP8)",
+  "k325-fp8 (amendment 2; passes running, file accounting only)": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc921f1f098b4a56d37aaccb3cdef4096184 (EXL3 routed experts at K3.25 with the official FP8 attention, dense and shared-expert blocks bundled in the same checkpoint; the checkpoint of the engine's own starting config for two RTX cards)"
  },
  "slots": {
   "cp": {
@@ -84,6 +85,20 @@
     "bf16ref/ADDENDUM-BF16REF.md",
     "bf16ref/FROZEN.json",
     "bf16ref/BF16REF.json"
+   ]
+  },
+  "end": {
+   "title": "how the replies of the four passes ended (post hoc); bits per weight of five configurations; amendment 2, which adds k325-fp8 (its passes running at this export)",
+   "status": "done",
+   "files": [
+    "analysis/endings.csv",
+    "analysis/make_endings.py",
+    "analysis/endings.py",
+    "analysis/ENDINGS.json",
+    "analysis/bpw.py",
+    "analysis/BPW.json",
+    "protocol/AMENDMENT-2026-11-12.md",
+    "configs/glm53-flash-exl3-k3.25-core-fp8-2rtx.config"
    ]
   }
  }

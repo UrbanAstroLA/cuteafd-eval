@@ -1,0 +1,615 @@
+{
+ "unit": "bits per weight = stored bits / weights; relative = bits per weight / 16 (BF16 = 1.00)",
+ "counted": "language model as stored in the checkpoint; vision tower and container bookkeeping left out",
+ "components": [
+  "routed experts",
+  "shared experts",
+  "dense MLP (layers 0-2)",
+  "attention: o_proj and q_b_proj",
+  "attention: other projections",
+  "output head",
+  "embedding",
+  "other",
+  "multi-token-prediction block"
+ ],
+ "arms": {
+  "anchor": {
+   "checkpoint": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core",
+   "revision": "049c0180c693ebbad90190dca8d5f0a7ca4d3753",
+   "files": 48,
+   "weights": 320759391998,
+   "stored_bytes": 174256808984,
+   "bits_per_weight": 4.3461,
+   "relative_to_bf16": 0.2716,
+   "bookkeeping_bytes": 0,
+   "vision_bytes_not_counted": 1127254016,
+   "by_component": {
+    "routed experts": {
+     "weights": 304405807104,
+     "stored_bytes": 152648955648,
+     "share_of_weights": 0.949,
+     "bits_per_weight": 4.0117,
+     "relative_to_bf16": 0.2507,
+     "formats": {
+      "EXL3 trellis, 4 bits": 1.0
+     }
+    },
+    "shared experts": {
+     "weights": 1056964608,
+     "stored_bytes": 2113929216,
+     "share_of_weights": 0.0033,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "dense MLP (layers 0-2)": {
+     "weights": 452984832,
+     "stored_bytes": 905969664,
+     "share_of_weights": 0.0014,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "attention: o_proj and q_b_proj": {
+     "weights": 2155872256,
+     "stored_bytes": 4311744512,
+     "share_of_weights": 0.0067,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "attention: other projections": {
+     "weights": 3901084288,
+     "stored_bytes": 7802729984,
+     "share_of_weights": 0.0122,
+     "bits_per_weight": 16.0012,
+     "relative_to_bf16": 1.0001,
+     "formats": {
+      "BF16": 0.9984,
+      "vectors and small tables, as stored": 0.0016
+     }
+    },
+    "output head": {
+     "weights": 634388480,
+     "stored_bytes": 1268776960,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "embedding": {
+     "weights": 634388480,
+     "stored_bytes": 1268776960,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "other": {
+     "weights": 85309822,
+     "stored_bytes": 170672888,
+     "share_of_weights": 0.0003,
+     "bits_per_weight": 16.005,
+     "relative_to_bf16": 1.0003,
+     "formats": {
+      "BF16": 0.5808,
+      "vectors and small tables, as stored": 0.4192
+     }
+    },
+    "multi-token-prediction block": {
+     "weights": 7432592128,
+     "stored_bytes": 3765253152,
+     "share_of_weights": 0.0232,
+     "bits_per_weight": 4.0527,
+     "relative_to_bf16": 0.2533,
+     "formats": {
+      "EXL3 trellis, 4 bits": 0.9966,
+      "BF16": 0.0034,
+      "vectors and small tables, as stored": 0.0001
+     }
+    }
+   },
+   "routed_expert_widths": {
+    "4": 36288
+   },
+   "outside_routed_experts": {
+    "what": "main layers, every component but the routed experts",
+    "weights": 8920992766,
+    "stored_bytes": 17842600184,
+    "share_of_weights": 0.0278,
+    "bits_per_weight": 16.0006,
+    "relative_to_bf16": 1.0
+   }
+  },
+  "hqa": {
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6-HQA",
+   "revision": "e0ecc3d55d117e656a03d5790521cad0c4fcb624",
+   "files": 49,
+   "weights": 320759391998,
+   "stored_bytes": 167326082592,
+   "bits_per_weight": 4.1732,
+   "relative_to_bf16": 0.2608,
+   "bookkeeping_bytes": 0,
+   "vision_bytes_not_counted": 1127254016,
+   "by_component": {
+    "routed experts": {
+     "weights": 304405807104,
+     "stored_bytes": 152648955648,
+     "share_of_weights": 0.949,
+     "bits_per_weight": 4.0117,
+     "relative_to_bf16": 0.2507,
+     "formats": {
+      "EXL3 trellis, 4 bits": 1.0
+     }
+    },
+    "shared experts": {
+     "weights": 1056964608,
+     "stored_bytes": 794272248,
+     "share_of_weights": 0.0033,
+     "bits_per_weight": 6.0117,
+     "relative_to_bf16": 0.3757,
+     "formats": {
+      "EXL3 trellis, 6 bits": 1.0
+     }
+    },
+    "dense MLP (layers 0-2)": {
+     "weights": 452984832,
+     "stored_bytes": 340033572,
+     "share_of_weights": 0.0014,
+     "bits_per_weight": 6.0052,
+     "relative_to_bf16": 0.3753,
+     "formats": {
+      "EXL3 trellis, 6 bits": 1.0
+     }
+    },
+    "attention: o_proj and q_b_proj": {
+     "weights": 2155872256,
+     "stored_bytes": 4311744512,
+     "share_of_weights": 0.0067,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "attention: other projections": {
+     "weights": 3901084288,
+     "stored_bytes": 3411929072,
+     "share_of_weights": 0.0122,
+     "bits_per_weight": 6.9969,
+     "relative_to_bf16": 0.4373,
+     "formats": {
+      "EXL3 trellis, 6 bits": 0.901,
+      "BF16": 0.0975,
+      "vectors and small tables, as stored": 0.0016
+     }
+    },
+    "output head": {
+     "weights": 634388480,
+     "stored_bytes": 476109316,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 6.004,
+     "relative_to_bf16": 0.3753,
+     "formats": {
+      "EXL3 trellis, 6 bits": 1.0
+     }
+    },
+    "embedding": {
+     "weights": 634388480,
+     "stored_bytes": 1268776960,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "other": {
+     "weights": 85309822,
+     "stored_bytes": 170672888,
+     "share_of_weights": 0.0003,
+     "bits_per_weight": 16.005,
+     "relative_to_bf16": 1.0003,
+     "formats": {
+      "BF16": 0.5808,
+      "vectors and small tables, as stored": 0.4192
+     }
+    },
+    "multi-token-prediction block": {
+     "weights": 7432592128,
+     "stored_bytes": 3903588376,
+     "share_of_weights": 0.0232,
+     "bits_per_weight": 4.2016,
+     "relative_to_bf16": 0.2626,
+     "formats": {
+      "EXL3 trellis, 4 bits": 0.9842,
+      "BF16": 0.0158,
+      "vectors and small tables, as stored": 0.0001
+     }
+    }
+   },
+   "routed_expert_widths": {
+    "4": 36288
+   },
+   "outside_routed_experts": {
+    "what": "main layers, every component but the routed experts",
+    "weights": 8920992766,
+    "stored_bytes": 10773538568,
+    "share_of_weights": 0.0278,
+    "bits_per_weight": 9.6613,
+    "relative_to_bf16": 0.6038
+   }
+  },
+  "compact": {
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6-HQA",
+   "revision": "e0ecc3d55d117e656a03d5790521cad0c4fcb624",
+   "files": 49,
+   "weights": 320759391998,
+   "stored_bytes": 164494587656,
+   "bits_per_weight": 4.1026,
+   "relative_to_bf16": 0.2564,
+   "bookkeeping_bytes": 0,
+   "vision_bytes_not_counted": 1127254016,
+   "by_component": {
+    "routed experts": {
+     "weights": 304405807104,
+     "stored_bytes": 152648955648,
+     "share_of_weights": 0.949,
+     "bits_per_weight": 4.0117,
+     "relative_to_bf16": 0.2507,
+     "formats": {
+      "EXL3 trellis, 4 bits": 1.0
+     }
+    },
+    "shared experts": {
+     "weights": 1056964608,
+     "stored_bytes": 794272248,
+     "share_of_weights": 0.0033,
+     "bits_per_weight": 6.0117,
+     "relative_to_bf16": 0.3757,
+     "formats": {
+      "EXL3 trellis, 6 bits": 1.0
+     }
+    },
+    "dense MLP (layers 0-2)": {
+     "weights": 452984832,
+     "stored_bytes": 340033572,
+     "share_of_weights": 0.0014,
+     "bits_per_weight": 6.0052,
+     "relative_to_bf16": 0.3753,
+     "formats": {
+      "EXL3 trellis, 6 bits": 1.0
+     }
+    },
+    "attention: o_proj and q_b_proj": {
+     "weights": 2155872256,
+     "stored_bytes": 1618584800,
+     "share_of_weights": 0.0067,
+     "bits_per_weight": 6.0062,
+     "relative_to_bf16": 0.3754,
+     "formats": {
+      "EXL3 trellis, 6 bits": 1.0
+     }
+    },
+    "attention: other projections": {
+     "weights": 3901084288,
+     "stored_bytes": 3411929072,
+     "share_of_weights": 0.0122,
+     "bits_per_weight": 6.9969,
+     "relative_to_bf16": 0.4373,
+     "formats": {
+      "EXL3 trellis, 6 bits": 0.901,
+      "BF16": 0.0975,
+      "vectors and small tables, as stored": 0.0016
+     }
+    },
+    "output head": {
+     "weights": 634388480,
+     "stored_bytes": 476109316,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 6.004,
+     "relative_to_bf16": 0.3753,
+     "formats": {
+      "EXL3 trellis, 6 bits": 1.0
+     }
+    },
+    "embedding": {
+     "weights": 634388480,
+     "stored_bytes": 1268776960,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "other": {
+     "weights": 85309822,
+     "stored_bytes": 170672888,
+     "share_of_weights": 0.0003,
+     "bits_per_weight": 16.005,
+     "relative_to_bf16": 1.0003,
+     "formats": {
+      "BF16": 0.5808,
+      "vectors and small tables, as stored": 0.4192
+     }
+    },
+    "multi-token-prediction block": {
+     "weights": 7432592128,
+     "stored_bytes": 3765253152,
+     "share_of_weights": 0.0232,
+     "bits_per_weight": 4.0527,
+     "relative_to_bf16": 0.2533,
+     "formats": {
+      "EXL3 trellis, 4 bits": 0.9966,
+      "BF16": 0.0034,
+      "vectors and small tables, as stored": 0.0001
+     }
+    }
+   },
+   "routed_expert_widths": {
+    "4": 36288
+   },
+   "outside_routed_experts": {
+    "what": "main layers, every component but the routed experts",
+    "weights": 8920992766,
+    "stored_bytes": 8080378856,
+    "share_of_weights": 0.0278,
+    "bits_per_weight": 7.2462,
+    "relative_to_bf16": 0.4529
+   }
+  },
+  "exlr8-k4": {
+   "checkpoint": "kindlingai/glm-5.3-flash-exlr8-k2-k3-k4",
+   "revision": "867580abd28d142bb4c56218bb81a752b7dea988",
+   "files": 134,
+   "weights": 320759391998,
+   "stored_bytes": 163415737272,
+   "bits_per_weight": 4.0757,
+   "relative_to_bf16": 0.2547,
+   "bookkeeping_bytes": 241670792,
+   "vision_bytes_not_counted": 1127254016,
+   "by_component": {
+    "routed experts": {
+     "weights": 304405807104,
+     "stored_bytes": 152354205696,
+     "share_of_weights": 0.949,
+     "bits_per_weight": 4.004,
+     "relative_to_bf16": 0.2502,
+     "formats": {
+      "EXLR8 trellis, 4 bits": 1.0
+     }
+    },
+    "shared experts": {
+     "weights": 1056964608,
+     "stored_bytes": 529006464,
+     "share_of_weights": 0.0033,
+     "bits_per_weight": 4.004,
+     "relative_to_bf16": 0.2502,
+     "formats": {
+      "EXLR8 trellis, 4 bits": 1.0
+     }
+    },
+    "dense MLP (layers 0-2)": {
+     "weights": 452984832,
+     "stored_bytes": 226787328,
+     "share_of_weights": 0.0014,
+     "bits_per_weight": 4.0052,
+     "relative_to_bf16": 0.2503,
+     "formats": {
+      "EXLR8 trellis, 4 bits": 1.0
+     }
+    },
+    "attention: o_proj and q_b_proj": {
+     "weights": 2155872256,
+     "stored_bytes": 1079616512,
+     "share_of_weights": 0.0067,
+     "bits_per_weight": 4.0062,
+     "relative_to_bf16": 0.2504,
+     "formats": {
+      "EXLR8 trellis, 4 bits": 1.0
+     }
+    },
+    "attention: other projections": {
+     "weights": 3901084288,
+     "stored_bytes": 4028360192,
+     "share_of_weights": 0.0122,
+     "bits_per_weight": 8.261,
+     "relative_to_bf16": 0.5163,
+     "formats": {
+      "FP8": 0.9972,
+      "vectors and small tables, as stored": 0.0016,
+      "BF16": 0.0012
+     }
+    },
+    "output head": {
+     "weights": 634388480,
+     "stored_bytes": 635008000,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 8.0078,
+     "relative_to_bf16": 0.5005,
+     "formats": {
+      "FP8": 1.0
+     }
+    },
+    "embedding": {
+     "weights": 634388480,
+     "stored_bytes": 635008000,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 8.0078,
+     "relative_to_bf16": 0.5005,
+     "formats": {
+      "FP8": 1.0
+     }
+    },
+    "other": {
+     "weights": 85309822,
+     "stored_bytes": 170672888,
+     "share_of_weights": 0.0003,
+     "bits_per_weight": 16.005,
+     "relative_to_bf16": 1.0003,
+     "formats": {
+      "BF16": 0.5808,
+      "vectors and small tables, as stored": 0.4192
+     }
+    },
+    "multi-token-prediction block": {
+     "weights": 7432592128,
+     "stored_bytes": 3757072192,
+     "share_of_weights": 0.0232,
+     "bits_per_weight": 4.0439,
+     "relative_to_bf16": 0.2527,
+     "formats": {
+      "EXLR8 trellis, 4 bits": 0.9909,
+      "FP8": 0.0088,
+      "BF16": 0.0002,
+      "vectors and small tables, as stored": 0.0001
+     }
+    }
+   },
+   "routed_expert_widths": {
+    "4": 36288
+   },
+   "outside_routed_experts": {
+    "what": "main layers, every component but the routed experts",
+    "weights": 8920992766,
+    "stored_bytes": 7304459384,
+    "share_of_weights": 0.0278,
+    "bits_per_weight": 6.5504,
+    "relative_to_bf16": 0.4094
+   }
+  },
+  "k325-fp8": {
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8",
+   "revision": "d31ebc921f1f098b4a56d37aaccb3cdef4096184",
+   "files": 18,
+   "weights": 320759391998,
+   "stored_bytes": 142435104760,
+   "bits_per_weight": 3.5524,
+   "relative_to_bf16": 0.222,
+   "bookkeeping_bytes": 0,
+   "vision_bytes_not_counted": 1127254016,
+   "by_component": {
+    "routed experts": {
+     "weights": 304405807104,
+     "stored_bytes": 124110911232,
+     "share_of_weights": 0.949,
+     "bits_per_weight": 3.2617,
+     "relative_to_bf16": 0.2039,
+     "formats": {
+      "EXL3 trellis, 3 bits": 0.75,
+      "EXL3 trellis, 4 bits": 0.25
+     }
+    },
+    "shared experts": {
+     "weights": 1056964608,
+     "stored_bytes": 1057222656,
+     "share_of_weights": 0.0033,
+     "bits_per_weight": 8.002,
+     "relative_to_bf16": 0.5001,
+     "formats": {
+      "FP8": 1.0
+     }
+    },
+    "dense MLP (layers 0-2)": {
+     "weights": 452984832,
+     "stored_bytes": 453095424,
+     "share_of_weights": 0.0014,
+     "bits_per_weight": 8.002,
+     "relative_to_bf16": 0.5001,
+     "formats": {
+      "FP8": 1.0
+     }
+    },
+    "attention: o_proj and q_b_proj": {
+     "weights": 2155872256,
+     "stored_bytes": 3296970752,
+     "share_of_weights": 0.0067,
+     "bits_per_weight": 12.2344,
+     "relative_to_bf16": 0.7646,
+     "formats": {
+      "BF16": 0.5292,
+      "FP8": 0.4708
+     }
+    },
+    "attention: other projections": {
+     "weights": 3901084288,
+     "stored_bytes": 7710477824,
+     "share_of_weights": 0.0122,
+     "bits_per_weight": 15.812,
+     "relative_to_bf16": 0.9882,
+     "formats": {
+      "BF16": 0.9748,
+      "FP8": 0.0237,
+      "vectors and small tables, as stored": 0.0016
+     }
+    },
+    "output head": {
+     "weights": 634388480,
+     "stored_bytes": 1268776960,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "embedding": {
+     "weights": 634388480,
+     "stored_bytes": 1268776960,
+     "share_of_weights": 0.002,
+     "bits_per_weight": 16.0,
+     "relative_to_bf16": 1.0,
+     "formats": {
+      "BF16": 1.0
+     }
+    },
+    "other": {
+     "weights": 85309822,
+     "stored_bytes": 170672888,
+     "share_of_weights": 0.0003,
+     "bits_per_weight": 16.005,
+     "relative_to_bf16": 1.0003,
+     "formats": {
+      "BF16": 0.5808,
+      "vectors and small tables, as stored": 0.4192
+     }
+    },
+    "multi-token-prediction block": {
+     "weights": 7432592128,
+     "stored_bytes": 3098200064,
+     "share_of_weights": 0.0232,
+     "bits_per_weight": 3.3347,
+     "relative_to_bf16": 0.2084,
+     "formats": {
+      "EXL3 trellis, 3 bits": 0.9751,
+      "BF16": 0.0248,
+      "vectors and small tables, as stored": 0.0001
+     }
+    }
+   },
+   "routed_expert_widths": {
+    "3": 27216,
+    "4": 9072
+   },
+   "outside_routed_experts": {
+    "what": "main layers, every component but the routed experts",
+    "weights": 8920992766,
+    "stored_bytes": 15225993464,
+    "share_of_weights": 0.0278,
+    "bits_per_weight": 13.6541,
+    "relative_to_bf16": 0.8534
+   }
+  }
+ }
+}

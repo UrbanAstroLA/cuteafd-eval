@@ -237,6 +237,8 @@ def check_findings():
         elif rc["kind"] == "item_paired_difference":
             import random
             def val(r): return int(r["correct"]) / int(r["fields"]) if r["finish_class"] == "stop" and int(r["fields"] or 0) else 0.0
+            if rc.get("value") == "unfinished":            # share of replies that did not finish, in place of the request score
+                def val(r): return float(r["finish_class"] != "stop")
             F = {(r["arm"], r["pass"], r["item"], r["length"]): r for d in ([rc["data"]] if isinstance(rc["data"], str) else rc["data"])
                  for r in rows(d) if r["final"] == "1" and r["status"] == "ok"}
             fam = {k[2]: r["family"] for k, r in F.items()}

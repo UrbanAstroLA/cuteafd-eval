@@ -36,6 +36,9 @@ arm_cfg(){ # sets CFG (config base name) and SETS (launcher --set arguments) for
     # reference checkpoint added 2026-11-11 (see `reference` below). The engine loads native EXLR8 experts only
     # from a SparkNest store, so this arm alone reads its snapshot through the one-host store's mount.
     exlr8-k4) CFG=glm53-flash-exlr8-k4-2rtx; NSROOT=<stacks>/sparknest/mnt ;;
+    # fifth configuration added 2026-11-12 (AMENDMENT-2026-11-12.md, stage script amend2.sh): the engine's
+    # release-default checkpoint for this model, EXL3 K3.25 routed experts with the official FP8 core blocks.
+    k325-fp8) CFG=glm53-flash-exl3-k3.25-core-fp8-2rtx ;;
     *) log "unknown arm $1"; return 1 ;;
   esac; }
 make_key(){ ( umask 077; mkdir -p "$(dirname $KEY)" && head -c 32 /dev/urandom | base64 | tr -d '/+=\n' > $KEY ); }

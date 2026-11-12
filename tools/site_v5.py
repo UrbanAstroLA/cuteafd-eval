@@ -3,9 +3,9 @@
 
 Reads results/2026-11-10-context-probe/SUMMARY.json. Same grammar as tools/site_v4.py, whose cell builders it reuses:
 plain HTML/CSS, a bar for a level, a centred bar for a difference (solid when its 95% interval excludes 0, dashed
-when it does not) and a word badge. Arms are named in text, never coloured. Page order: what each configuration
-trades, distance from the BF16 model, four passes (all added 2026-11-12), then the frozen two-pass result as published
-on 2026-11-11 with dated pointers.
+when it does not) and a word badge. Arms are named in text, never coloured. Page order: bits per weight with a short
+primer, what each configuration trades, distance from the BF16 model, four passes, how the replies ended (all added
+2026-11-12), then the frozen two-pass result as published on 2026-11-11 with dated pointers.
 """
 import importlib.util, json
 from decimal import Decimal, ROUND_HALF_UP
@@ -21,7 +21,7 @@ ARMS = ("anchor", "hqa", "compact")
 PAIRS = ("hqa - anchor", "compact - anchor", "hqa - compact")
 LENS = (("4k", "4K"), ("16k", "16K"), ("64k", "64K"), ("128k", "127K"))
 ARM_SUB = {"anchor": "BF16 core, reference", "hqa": "BF16 q_b_proj + o_proj, rest K6", "compact": "K6 core",
-           "exlr8-k4": "EXLR8 K4 checkpoint, added later"}
+           "exlr8-k4": "EXLR8 K4 checkpoint, added later", "k325-fp8": "K3.25 experts, FP8 core, added later"}
 REF = "exlr8-k4"                       # reference checkpoint added after the results were read; never part of ARMS or PAIRS
 ARMS4 = ARMS + (REF,)
 
@@ -61,10 +61,404 @@ def dcell4(v, span): return diverge(v[0], span, excl(v), label=s4(v[0])) + f' <s
 def stale(what): raise SystemExit(f"v5 page: {what} no longer match the reading written for them")
 
 
+K325 = "k325-fp8"                      # fifth configuration (amendment 2): file accounting only until its passes are in
+ARMS5 = ARMS4 + (K325,)
+
+
+def sized_sections(S, h2, gh):
+    """Added later on 2026-11-12: bits per weight for the five checkpoints with a short primer (RESULTS.md section 15) and how
+    the replies of the four passes ended (section 14). Returns the two sections, the sentences other sections quote and the data
+    line. As elsewhere, a sentence that states a reading checks the numbers it rests on."""
+    BW, EN, FP, BD = S["bits_per_weight"], S["endings"], S["four_pass"], S["bf16_distance"]
+    code = lambda a: f"<code>{a}</code>"
+    f1, f2, f4 = (lambda x: f"{x:.1f}"), (lambda x: f"{x:.2f}"), (lambda x: f"{x:.4f}")
+    pc0, pc1, pc2 = (lambda x: f"{100 * x:.0f}%"), (lambda x: f"{100 * x:.1f}%"), (lambda x: f"{100 * x:.2f}%")
+    def seq(xs): return ", ".join(str(x) for x in xs[:-1]) + f" and {xs[-1]}"
+    others = [a for a in ARMS4 if a != "compact"]
+
+    # ================================================================ bits per weight
+    AR, SH, CM, RUNL = BW["arms"], BW["share_of_weights"], BW["components"], BW["as_run"]["launches"]
+    OUT, RE, MTP, OQ, OA = "outside the routed experts, main layers", "routed experts", "multi-token-prediction block", "attention: o_proj and q_b_proj", "attention: other projections"
+    if tuple(AR) != ARMS5 or BW["k325-fp8"]["status"] != "running" or BW["bf16_bits_per_weight"] != 16: stale("the configurations of the bits-per-weight table")
+    bpw = {a: AR[a]["bits_per_weight"] for a in ARMS5}
+    rel = {a: AR[a]["relative_to_bf16"] for a in ARMS5}
+    gib = {a: AR[a]["stored_gib"] for a in ARMS5}
+    outb = {a: AR[a]["outside_routed_experts_bits_per_weight"] for a in ARMS5}
+    def c(a, comp): return AR[a]["by_component"][comp]["bits_per_weight"]
+    def fm(a, comp): return AR[a]["by_component"][comp]["formats"]
+    NAME = {"EXL3 trellis, 3 bits": "K3", "EXL3 trellis, 4 bits": "K4", "EXL3 trellis, 6 bits": "K6", "EXLR8 trellis, 4 bits": "EXLR8 4-bit trellis"}
+    def mix(a, comp): return " and ".join(f"{pc0(v)} {NAME.get(k, k)}" for k, v in sorted(fm(a, comp).items(), key=lambda kv: -kv[1]) if v >= 0.01)
+    W = BW["language_model_weights"]
+    w3, w4 = AR[K325]["routed_expert_widths"]["3"], AR[K325]["routed_expert_widths"]["4"]
+    fp8 = [c(a, comp) for a in ARMS5 for comp in CM if fm(a, comp).get("FP8", 0) >= 0.99]
+    moved = sum(SH[comp] * (1 - fm("compact", comp).get("BF16", 0)) for comp in CM if comp not in (RE, MTP, "other"))
+    d_mtp = (c("hqa", MTP) - c("compact", MTP)) * SH[MTP] * W / 8 / 2 ** 30      # GiB: hqa's BF16 projections in the multi-token-prediction block
+    if not 0.05 < d_mtp < 0.2 or c("anchor", MTP) != c("compact", MTP): stale("the multi-token-prediction block of hqa")
+    if (sorted(ARMS5, key=bpw.get, reverse=True) != list(ARMS5) or w3 != 3 * w4 or w3 + w4 != 288 * 42 * 3 or len(fp8) < 4
+            or f2(c("anchor", RE)) != "4.01" or f2(c("hqa", "shared experts")) != "6.01" or f2(c(REF, RE)) != "4.00"
+            or any(f2(c(a, RE)) != "4.01" for a in ARMS) or fm("hqa", OQ) != {"BF16": 1.0} or fm("compact", OQ) != {"EXL3 trellis, 6 bits": 1.0}
+            or any(AR[a]["by_component"][comp] != AR["hqa"]["by_component"][comp] for a in ("compact",) for comp in CM if comp not in (OQ, MTP))
+            or any(abs(c("anchor", comp) - 16) > 0.01 for comp in CM if comp not in (RE, MTP))
+            or any(f2(c(a, "embedding")) != "16.00" for a in ARMS) or pc1(moved) != "2.4%" or pc1(SH[RE]) != "94.9%"
+            or not c("hqa", OA) < outb["compact"] < outb["hqa"] < outb[K325] < 16.01 or outb[REF] >= outb["compact"]):
+        stale("the bits-per-weight figures behind the primer")
+    bits_intro = ("<p>The configurations on this page mix several storage formats inside one model, and their names (K4, K3.25, "
+                  "Core-K6, FP8) each describe one part. This section puts them on one unit, <b>bits per weight</b>, counted from the "
+                  "checkpoint files, with a short primer for readers who do not work with quantized models. Added later on "
+                  "2026-11-12.</p>")
+    primer = [
+        ("Weights and bits", "a language model is a set of matrices of numbers, its weights. This model's language part has "
+            f"{W / 1e9:.1f} billion of them. Bits per weight is the storage a part of the model takes divided by the number of weights "
+            "in it: how many bits each weight gets on average. It sets the size of the files and, closely, of the model in memory, "
+            "and a lower value is a coarser copy of the original."),
+        ("BF16", "16 bits per weight, the format the model was released in. It is full precision here, and the 100% mark. At 16 bits "
+            f"the language model would be {n0(BW['language_model_gib_at_bf16'])} GiB."),
+        ("FP8", "an 8-bit floating-point number per weight plus a small table of scales: "
+            f"{f1(min(fp8))} to {f1(max(fp8))} bits per weight as stored in these files."),
+        ("EXL3 and the K numbers", "EXL3 is a trellis-coded format: a matrix is stored as a code of K bits per weight plus two short "
+            f"scale vectors. K4 is 4 bits per weight ({f2(c('anchor', RE))} as stored) and K6 is 6 ({f2(c('hqa', 'shared experts'))})."),
+        ("Mixed widths", "a fractional K is an average over matrices, not a width. In the K3.25 checkpoint three quarters of the "
+            f"expert matrices are stored at 3 bits and one quarter at 4 ({n0(w3)} and {n0(w4)} matrices), which comes to "
+            f"{f2(c(K325, RE))} bits per weight. Which matrix gets which width is the checkpoint author's allocation and is not "
+            "examined here."),
+        ("EXLR8", f"another trellis-coded format, by another author. Its K4 experts are {f2(c(REF, RE))} bits per weight. The same "
+            f"nominal width in a different design is not the same code, so {code(REF)} is read as a whole checkpoint."),
+        ("Where the weights are", f"{pc1(SH[RE])} of the weights are the routed experts: 288 small feed-forward blocks in each of 42 "
+            "layers, of which a token passes through 8 per layer. Everything else in the main layers (attention, shared experts, the "
+            f"dense feed-forward of the first three layers, the output head, the embedding) is {pc1(SH[OUT])}, and every token passes "
+            f"through all of it. A further {pc1(SH[MTP])} is a multi-token-prediction block stored after the main layers. So the name "
+            "on a checkpoint describes its experts and nearly fixes its size, while <code>anchor</code>, <code>hqa</code> and "
+            f"<code>compact</code> differ inside the {pc1(SH[OUT])} (and, for <code>hqa</code>, in a {d_mtp:.1f} GiB part of the "
+            "multi-token-prediction block)."),
+        ("Names of the parts", "the <i>core</i> is everything in the main layers outside the routed experts. The <i>shared experts</i> "
+            "are a feed-forward block beside the routed ones that every token passes through. <code>o_proj</code> and "
+            "<code>q_b_proj</code> are two of the attention projection matrices of a layer, the two that <code>ATTENTION_MODE</code> "
+            "selects the precision of. The <i>output head</i> turns the last hidden state into token scores. KDA is the engine's name, "
+            "in its load line (the line it logs when a checkpoint is loaded), for a group of attention matrices it can hold as FP8."),
+        ("Stored and run", "the tables count what the files hold. The engine can hold a matrix in another form in memory; where it "
+            'does, that is said under the component table. Memory in use is under <a href="#trades">What each configuration '
+            "trades</a>.")]
+    t_primer = '<dl class="gl">' + "".join(f"<div><dt>{k}</dt><dd>{v}</dd></div>" for k, v in primer) + "</dl>"
+
+    FSK = {a: BD["arms"][a]["fidelity_set"]["kl"][0] for a in ARMS4}
+    reach = f"{BD['sets']['fidelity_set']['last_generated_position'] / 1000:.1f}K"
+    BL = FP["by_length"]
+    run = '<span class="ci">running</span>'
+    def meas(label, f): return [label] + [f(a) for a in ARMS4] + [run]
+    AM2 = gh(f"{RD}/protocol/AMENDMENT-2026-11-12.md", "amendment 2")
+    rows = [("grp", "Size, counted from the checkpoint files"),
+            ["Bits per weight, whole language model"] + [bar(bpw[a], 16, f2(bpw[a])) for a in ARMS5],
+            ["Share of BF16 (bits per weight / 16)"] + [pc1(rel[a]) for a in ARMS5],
+            ["Bits per weight outside the routed experts, as stored"] + [bar(outb[a], 16, f2(outb[a])) for a in ARMS5],
+            ["Stored, GiB"] + [f1(gib[a]) for a in ARMS5],
+            ("grp", "Measured, from the sections below"),
+            meas(f"KL from BF16, fidelity set, to {reach} (lower is closer)", lambda a: f4(FSK[a])),
+            meas("Task score, four passes, all lengths", lambda a: f3(BL[a]["p1234"]["all"]["score"][0])),
+            meas("Task score at 127K", lambda a: f3(BL[a]["p1234"]["128k"]["score"][0])),
+            meas("Replies at 127K that did not finish, of 240", lambda a: str(BL[a]["p1234"]["128k"]["unfinished"]))]
+    t_size = rich("Size beside what was measured", "One column per configuration. Bars: full width = 16 bits per weight, the BF16 model",
+                  [""] + [code(a) for a in ARMS5], rows,
+                  foot=f"{code(K325)} is a fifth configuration: the K3.25-Core-FP8 checkpoint ({E(BW['k325-fp8']['checkpoint'].split(' @ ')[0])}, "
+                       f"revision {E(BW['k325-fp8']['checkpoint'].split(' @ ')[1][:8])}), the checkpoint of the engine's own starting "
+                       f"config for two RTX cards. Its four task passes and its distance from BF16 are running under {AM2}, written "
+                       "before their first request; its measured cells are filled when they are in. The K3.25 row of the distance tables "
+                       "below is this checkpoint measured on an earlier engine release (CuteAFD v3.0.1) and is not carried into this "
+                       "table. Like "
+                       f"{code(REF)} it is another checkpoint, so a difference from another column is a whole-checkpoint difference.")
+    def lab(comp): return {OQ: "attention: <code>o_proj</code> and <code>q_b_proj</code>"}.get(comp, E(comp))
+    rows = [[lab(comp), pc2(SH[comp])] + [bar(c(a, comp), 16, f2(c(a, comp))) for a in ARMS5] for comp in CM]
+    rows += [[E(OUT), pc2(SH[OUT])] + [bar(outb[a], 16, f2(outb[a])) for a in ARMS5],
+             ["<b>whole language model</b>", "100%"] + [bar(bpw[a], 16, f"<b>{f2(bpw[a])}</b>") for a in ARMS5]]
+    t_comp = rich("Bits per weight by component, as stored", "Stored bits of each matrix's payload and of its scale and sign vectors, "
+                  "over rows × columns of the matrix they stand for. Bars: full width = 16 bits",
+                  ["Component", "Share of weights"] + [code(a) for a in ARMS5], rows, hi=(len(rows) - 1,), cls="nb",
+                  foot=f"From {gh(f'{RD}/analysis/bpw.py', '<code>bpw.py</code>')}, which reads the header of every checkpoint file "
+                       "(tensor names, types and sizes; no weight is loaded). Alignment padding, checksums and index records are left "
+                       "out, and so is the vision tower (every configuration ran with vision off). <code>hqa</code> and "
+                       "<code>compact</code> are two readings of one checkpoint, which stores <code>o_proj</code> and "
+                       "<code>q_b_proj</code> twice: <code>hqa</code> counts the BF16 copy, <code>compact</code> the K6 copy.")
+    k = RUNL[K325]
+    if (mix("hqa", OA) != "90% K6 and 10% BF16" or mix(K325, OQ) != "53% BF16 and 47% FP8" or pc0(fm(K325, OA)["BF16"]) != "97%"
+            or fm(K325, "shared experts") != {"FP8": 1.0} or fm(K325, "dense MLP (layers 0-2)") != {"FP8": 1.0}
+            or (k["kda_fp8"], k["head"], k["kda_bf16_mib"]) != ("Row128", "FP8", 0.0) or RUNL["anchor"]["kda_fp8"] != "Off"
+            or (RUNL["anchor"]["head"], RUNL["hqa"]["head"], RUNL["compact"]["head"], RUNL[REF]["head"]) != ("BF16", "K6", "K6", "row-FP8")):
+        stale("what the component rows mix or the load lines")
+    bits_mix = ("<p><b>What the rows mix.</b> <code>hqa</code> and <code>compact</code>, other attention projections at "
+                f"{f2(c('hqa', OA))}: {mix('hqa', OA)}. {code(K325)}: shared experts and dense feed-forward FP8; <code>o_proj</code> and "
+                f"<code>q_b_proj</code> {mix(K325, OQ)}; other attention projections {pc0(fm(K325, OA)['BF16'])} BF16; head and "
+                f"embedding BF16. {code(REF)}: <code>o_proj</code>, <code>q_b_proj</code>, shared experts and dense feed-forward in its "
+                f"4-bit trellis; other attention projections FP8 with block scales ({f2(c(REF, OA))}); head and embedding FP8 with one "
+                f"scale per row ({f2(c(REF, 'output head'))}). The multi-token-prediction block is stored almost wholly at the experts' width in "
+                f"every checkpoint, <code>anchor</code>'s included; its BF16 part is largest in <code>hqa</code> "
+                f"({pc1(fm('hqa', MTP)['BF16'])} of the block), whose reading counts that block's <code>o_proj</code> and "
+                "<code>q_b_proj</code> at BF16 too. Whether the engine uses that block when serving was not checked.</p>"
+                "<p><b>As run</b>, from each launch's load line. <code>anchor</code>: no FP8 conversion, head BF16. <code>hqa</code> and "
+                f"<code>compact</code>: head K6, as stored. {code(REF)}: head FP8 with row scales, as stored. <b>{code(K325)}: under the "
+                "engine's defaults the load line reports the attention group it calls KDA held as FP8, converted at load "
+                f"(<code>kda_fp8={E(k['kda_fp8'])}</code>: {n0(k['kda_fp8_mib'])} MiB as FP8, {n0(k['kda_bf16_mib'])} MiB as BF16), and an "
+                f"FP8 output head ({n0(k['head_mib'])} MiB, against {n0(RUNL['anchor']['head_mib'])} MiB for the BF16 head in "
+                f"<code>anchor</code>).</b> So part of what this file stores at BF16 is run at FP8, and its {f2(outb[K325])} bits outside "
+                "the routed experts is a property of the file, not of the launch. An as-run figure is not computed, because the logs do "
+                "not itemize the conversion by matrix.</p>")
+    b4 = [bpw[a] for a in ARMS4]
+    d_hc, d_ac, d_kc = gib["hqa"] - gib["compact"], gib["anchor"] - gib["compact"], gib["compact"] - gib[K325]
+    DHA = BD["differences"]["hqa - anchor"]
+    if (pc0(min(rel.values())), pc0(max(rel.values()))) != ("22%", "27%") or DHA["fidelity_set"]["overall"][0] > 0 or DHA["teacher_panel"][0] > 0:
+        stale("the bits-per-weight reading")
+    sref = FP["paired"][f"{REF} - anchor"]["p1234"]["score"]["all"]
+    if excl(sref) or abs(sref[0]) > 0.005: stale(f"{REF} against anchor on score")
+    bits_reading = ("<ul>"
+                    f"<li><b>Every configuration here is a {pc0(min(rel.values()))} to {pc0(max(rel.values()))} copy of the BF16 model "
+                    f"by bits.</b> The four measured ones span {f2(min(b4))} to {f2(max(b4))} bits per weight, "
+                    f"{f2(round(max(b4), 2) - round(min(b4), 2))} bits end to end, because their experts are all at 4 bits and the "
+                    f"experts are {pc0(SH[RE])} of the weights.</li>"
+                    f"<li><b><code>hqa</code> to <code>compact</code> moves {pc2(SH[OQ])} of the weights from 16 bits to 6</b> in the main "
+                    f"layers: {f2(bpw['hqa'])} to {f2(bpw['compact'])} bits per weight, {f1(d_hc)} GiB of files, {d_mtp:.1f} GiB of "
+                    "it the same two projections in the multi-token-prediction block. <code>anchor</code> to "
+                    f"<code>compact</code> moves {pc1(moved)} of the weights from 16 bits to about 6 or 7: {f2(bpw['anchor'])} to "
+                    f"{f2(bpw['compact'])}, {f1(d_ac)} GiB. The embedding stays at BF16 in all three.</li>"
+                    f"<li><b>{code(K325)} is the one that changes the experts</b>: {f2(c(K325, RE))} bits against "
+                    f"{f2(c('compact', RE))} there, which is {f1(d_kc)} GiB less than <code>compact</code>, with a core stored at more "
+                    "bits than <code>hqa</code>'s or <code>compact</code>'s (as stored; see \"As run\" above).</li>"
+                    "<li><b>Bits per weight is a size, not a quality score.</b> Among the four measured configurations neither distance "
+                    f"from BF16 nor task score follows it: <code>hqa</code> at {f2(bpw['hqa'])} is no farther from BF16 than "
+                    f'<code>anchor</code> at {f2(bpw["anchor"])} on either set (<a href="#bf16">distance from the BF16 model</a>), and '
+                    f"{code(REF)} at {f2(bpw[REF])} scores level with <code>anchor</code>. The unit says what was spent; the sections "
+                    "below say what it bought.</li></ul>")
+    bits_limits = ("<p>Limits: " + "; ".join(E(x) for x in BW["limits"]) + "; the HQA checkpoint is no longer on the hub and "
+                   "<code>anchor</code>'s is derived locally, so a reader can rerun the script on " + f"{code(REF)} and {code(K325)} only.</p>")
+    bits = (h2("bits", "Bits per weight: one unit for the checkpoints") + bits_intro + t_primer + t_size + t_comp + bits_mix +
+            bits_reading + bits_limits)
+
+    # ================================================================ how the replies ended
+    H, U, J, SC, G, P, FT, UR = (EN[k_] for k_ in ("how_each_request_ended", "unfinished", "join_127k", "score_127k", "gap_127k_by_family",
+                                                    "paired_unfinished_share", "finished_reply_tokens", "unfinished_replies"))
+    CL = ("every field right", "1 wrong", "2 wrong", "3 or more wrong", "reply cap", "loop abort")
+    FAMS = ("join", "ledger", "trace")
+    def ended(k_): return [[arm(a)] + [str(H[a]["p1234"][k_][x]) for x in CL] for a in ARMS4]
+    n_all, n_127 = (sum(H["anchor"]["p1234"][k_].values()) for k_ in ("all", "128k"))
+    unf = {a: H[a]["p1234"]["all"]["reply cap"] + H[a]["p1234"]["all"]["loop abort"] for a in ARMS4}
+    BAFL = U["by_arm_family_length"]
+    cells = [(f, k_) for f in FAMS for k_, _ in LENS if any(BAFL[a][f][k_] for a in ARMS4)]
+    if (cells != [("join", "128k"), ("ledger", "64k"), ("ledger", "128k"), ("trace", "16k")] or U["with_answer_text"] or U["total"] != sum(unf.values())
+            or len(UR) != U["total"] or n_all != FP["requests_per_arm"] or any(unf[a] != BL[a]["p1234"]["all"]["unfinished"] for a in ARMS4)):
+        stale("the unfinished replies by cell")
+    end_intro = ('<p>The <a href="#four-pass">four-pass tables</a> count the replies that did not finish. This section says how each of '
+                 f"the {n0(len(ARMS4) * n_all)} replies ended and, for the {U['total']} that did not finish, what their reasoning was made "
+                 "of. It is descriptive and post hoc: the classification was written on 2026-11-12, after the four-pass results were "
+                 f"read, and its intervals come on top of the {FP['intervals']['per_pass_set']} per pass set above. The counts are made "
+                 "over the saved replies; no reply text is published. Added later on 2026-11-12.</p>")
+    t_end = rich("What each reply came to, four passes", f"Single message, four passes: {n_all} replies per configuration, {n_127} of them at 127K",
+                 ["Configuration", "Every field right", "1 field wrong", "2 wrong", "3 or more wrong", "Hit the reply cap", "Loop abort"],
+                 [("grp", f"All four lengths, of {n_all}")] + ended("all") + [("grp", f"At 127K, of {n_127}")] + ended("128k"),
+                 foot="Hit the reply cap: the reply reached the 32,768-token cap (finish class <code>cap</code>). Loop abort: the engine "
+                      "stopped it for repetition (finish class <code>repetition</code>). Both score 0 under the frozen rule; "
+                      "\"unfinished\" means one of the two.")
+    LN = dict(LENS)
+    rows = [[arm(a)] + [str(BAFL[a][f][k_]) for f, k_ in cells] + [str(unf[a])] for a in ARMS4]
+    t_cells = rich("Where the unfinished replies are", "Four passes, 80 requests per configuration in each family and length. The other "
+                   "eight cells have none",
+                   ["Configuration"] + [f"<code>{f}</code> {LN[k_]}" for f, k_ in cells] + ["All"], rows)
+    led = [BAFL[a]["ledger"]["64k"] + BAFL[a]["ledger"]["128k"] for a in ARMS4]
+    j = {a: J[a]["p1234"] for a in ARMS4}
+    jn = j["compact"]["requests"]
+    if max(led) - min(led) > 2 or j["compact"]["unfinished"] < 2 * max(j[a]["unfinished"] for a in others) or any(j[a]["requests"] != jn for a in ARMS4):
+        stale("the level ledger counts or compact's join count")
+    end_where = (f"<p><b>All {U['total']} unfinished replies ended inside the reasoning; none had written any answer text.</b> "
+                 f"<code>ledger</code> has {seq(led)} over its two lengths, level across the configurations. <code>compact</code>'s "
+                 f"excess is <code>join</code> at 127K: {j['compact']['unfinished']} of {jn} against "
+                 f"{seq([j[a]['unfinished'] for a in others])} ({', '.join(code(a) for a in others)}).</p>")
+    KIND = U["by_arm_family_kind"]
+    def kind(a, f, w): return sum(v for k_, v in KIND[a][f].items() if k_.startswith(w))
+    jr = [r for r in UR if r["item"].startswith("join")]
+    jc = [r for r in jr if r["kind"].startswith("copying")]
+    jo = [r for r in jr if not r["kind"].startswith("copying")]
+    recs = sorted(r["records"] for r in jr)
+    if (len(jr) != sum(j[a]["unfinished"] for a in ARMS4) or len(jo) != 2 or {r["length"] for r in jr} != {"128k"}
+            or [(r["arm"], f2(r["copy_share"]), r["run_start_chars"] is None) for r in sorted(jo, key=lambda r: r["arm"], reverse=True)]
+               != [("hqa", "0.49", False), ("compact", "0.01", True)]
+            or any(kind(a, "trace", "copying") for a in ARMS4) or min(kind(a, "join", "copying") for a in ARMS4) < 1
+            or recs[0] < 8600 or recs[-1] > 8700):
+        stale("the make-up of the unfinished join replies")
+    o_c = next(r for r in jo if r["arm"] == "compact")
+    end_terms = ("<p><b>What the unfinished reasoning was made of.</b> A <code>join</code> item is a list of records of three kinds in no "
+                 "order (courier carries parcel, parcel routes via hub, hub ships from dock); the question names eight couriers and "
+                 f"asks for each one's dock, three lookups per answer. At 127K the prompt holds about {n0(round(recs[len(recs) // 2], -1))} "
+                 "records. A <i>step line</i> is a line of the reasoning that carries the record following, in the prompt, the record of "
+                 "the previous such line: the reply is writing the prompt's records out in the prompt's order. A reply counts as "
+                 "<i>copying</i> when step lines make up at least half of its reasoning by characters, and a <i>copy run</i> is 20 or "
+                 f"more step lines in a row. The {U['total']} replies are listed with their shares in "
+                 f"{gh(f'{RD}/analysis/ENDINGS.json', '<code>ENDINGS.json</code>')}, so another threshold can be applied.</p>")
+    rows = [[arm(a), str(kind(a, "join", "copying")), str(kind(a, "join", "other")), str(kind(a, "ledger", "copying")),
+             str(kind(a, "ledger", "other")), str(kind(a, "trace", "other"))] for a in ARMS4]
+    t_kind = rich("Unfinished replies by what the reasoning was doing", f"The {U['total']} unfinished replies of four passes",
+                  ["Configuration", "<code>join</code>: copying", "<code>join</code>: other", "<code>ledger</code>: copying",
+                   "<code>ledger</code>: other", "<code>trace</code>: other"], rows,
+                  foot=f"Of the {len(jr)} unfinished <code>join</code> replies, {len(jc)} are copying. One more (<code>hqa</code>) has a "
+                       f"copy run and a share just under the threshold ({f2(next(r for r in jo if r['arm'] == 'hqa')['copy_share'])}); the "
+                       f"last (<code>compact</code>) has no copy run and is {o_c['reasoning_chars'] / 1000:.0f} thousand characters of "
+                       "other reasoning. In <code>ledger</code> the make-up differs by configuration on counts of "
+                       f"{min(kind(a, 'ledger', '') for a in ARMS4)} to {max(kind(a, 'ledger', '') for a in ARMS4)}; no reading is taken "
+                       "from that.")
+    BP = EN["join_127k_unfinished_by_pass"]
+    rows = [[arm(a), str(j[a]["unfinished"]), " / ".join(str(x) for x in BP[a]), str(j[a]["with_copy_run"]), str(j[a]["copy_run_finished"]),
+             str(j[a]["copy_run_unfinished"]), str(j[a]["copy_run_unfinished_all_8_docks_before"]), str(j[a]["items_with_unfinished"])] for a in ARMS4]
+    t_join = rich("<code>join</code> at 127K, every reply", f"{jn} requests per configuration over four passes, whether the reply finished or not",
+                  ["Configuration", "Unfinished", "By pass", "Copy run", "Finished", "Unfinished", "All 8 before", "Items"], rows, cls="nb",
+                  foot=f"Unfinished: of {jn}. By pass: the same count in passes 1 / 2 / 3 / 4. Copy run: replies with one, then how many "
+                       "of those finished and how many did not. All 8 before: unfinished replies with a copy run in which all eight "
+                       "correct docks were written before the run started. Items: of the 20 <code>join</code> items, those with at "
+                       "least one unfinished reply.")
+    starts = [r["run_start_chars"] for r in jc]
+    before = {n: sum(r["answers_before"] == n for r in jc) for n in {r["answers_before"] for r in jc}}
+    loop = [r for r in jc if r["finish"] == "repetition"]
+    cr = {k_: [j[a][k_] for a in ARMS4] for k_ in ("with_copy_run", "copy_run_finished", "copy_run_finished_score")}
+    iC, iO = ARMS4.index("compact"), [ARMS4.index(a) for a in others]
+    if (set(before) != {7, 8} or len(loop) != 1 or loop[0]["arm"] != "anchor" or min(cr["copy_run_finished"]) < 1 or min(cr["copy_run_finished_score"]) < 0.95
+            or cr["with_copy_run"][iC] <= max(cr["with_copy_run"][i] for i in iO) or cr["copy_run_finished"][iC] >= min(cr["copy_run_finished"][i] for i in iO)
+            or any(r["finish"] != "cap" for r in jc if r is not loop[0])):
+        stale("the shape of the copying replies")
+    end_shape = (f"<p>The {len(jc)} copying replies have the same shape in every configuration, <code>anchor</code> included. The reasoning "
+                 f"runs for {min(starts) / 1000:.1f} to {max(starts) / 1000:.1f} thousand characters, then starts writing the prompt's "
+                 "records out in order and goes on until the reply cap (one <code>anchor</code> reply was stopped by the loop abort at "
+                 f"{n0(loop[0]['tokens'])} tokens). In {before[8]} of the {len(jc)}, all eight correct docks had already been written in "
+                 f"the reasoning before the copy run started; in the other {['', 'one', 'two', 'three'][before[7]]}, seven had. That is a "
+                 "text match on the dock identifiers; it does not check that each dock was attached to the right courier. A copy run is "
+                 f"not always the end of a reply: {seq(cr['copy_run_finished'])} replies with one went on to finish, and scored "
+                 f"{seq([f3(x) for x in cr['copy_run_finished_score']])} ({', '.join(code(a) for a in ARMS4)}). <code>compact</code> has "
+                 f"more replies with a copy run than the others ({cr['with_copy_run'][iC]} against "
+                 f"{seq([cr['with_copy_run'][i] for i in iO])}) and fewer of them finished ({cr['copy_run_finished'][iC]} against "
+                 f"{seq([cr['copy_run_finished'][i] for i in iO])}). Across the four configurations, "
+                 f"{EN['join_127k_items_with_unfinished_any_arm']} of the 20 <code>join</code> items have at least one unfinished reply "
+                 "at 127K.</p>")
+    s = {a: SC[a]["p1234"] for a in ARMS4}
+    def scell(v, fo): return f'{f3(v)}<small class="t">finished only {f3(fo)}</small>'
+    rows = [[arm(a)] + [scell(s[a]["by_family"][f]["score"], s[a]["by_family"][f]["finished_only"]) for f in FAMS] +
+            [scell(s[a]["score"], s[a]["finished_only"])] for a in ARMS4]
+    t_fam = rich("Score at 127K by task family, and of the finished replies alone", "Four passes, 80 requests per family and configuration. "
+                 "Unfinished replies score 0 in the first figure and are left out of the second",
+                 ["Configuration"] + [f"<code>{f}</code>" for f in FAMS] + ["All families"], rows)
+    fo = {f: {a: s[a]["by_family"][f]["finished_only"] for a in ARMS4} for f in FAMS}
+    GP = ("anchor - compact", "hqa - compact", f"{REF} - compact")
+    if (list(G) != list(GP) or any(max(fo[f][a] for a in others) - fo[f]["compact"] > 0.01 for f in FAMS)
+            or any(G[p]["join"] < 0.8 * G[p]["all"] or abs(G[p]["ledger"]) > 0.01 or G[p]["trace"] > 0 for p in GP)
+            or any(abs(s[a]["score"] - BL[a]["p1234"]["128k"]["score"][0]) > 0.0006 for a in ARMS4)):
+        stale("the split of the 127K gap by family")
+    rows = [[pair4(p)] + [s3(G[p][k_]) for k_ in ("all",) + FAMS] for p in GP]
+    t_gap = rich("The 127K difference in score, split by task family", "Each family is a third of the requests at 127K, so a difference "
+                 "in score there is the sum of three parts up to rounding (each family's own difference divided by 3). No intervals: this is "
+                 "arithmetic on the table above",
+                 ["Difference in score at 127K", "All", "From <code>join</code>", "From <code>ledger</code>", "From <code>trace</code>"], rows)
+    PS = (("p12", "Passes 1-2"), ("p34", "Passes 3-4"), ("p1234", "All four passes"))
+    SCOPE = (("unfinished_127k", "all families"), ("unfinished_127k_join", "<code>join</code>"), ("unfinished_127k_ledger", "<code>ledger</code>"))
+    rows = []
+    for key, name in SCOPE:
+        rows.append(("grp", f"At 127K, {name.replace('<code>', '').replace('</code>', '')}"))
+        rows += [[pair4(f"compact - {o}")] + [dcell(P[f"compact - {o}"][ps][key], 0.35) for ps, _ in PS] for o in ("anchor", "hqa", REF)]
+    allp = [(pr, ps, key, v) for pr, d_ in P.items() for ps, c_ in d_.items() for key, v in c_.items()]
+    shown = [x for x in allp if x[0].startswith("compact - ") and x[2] in dict(SCOPE)]
+    n_ps, n_shown, n_ex, n_exs = len(allp), len(shown), sum(excl(x[3]) for x in allp), sum(excl(x[3]) for x in shown)
+    t_pair = rich("Paired difference in the share of unfinished replies", "Right of the line: <code>compact</code> had more unfinished "
+                  "replies. Paired by item, repeats averaged within the item; 95% interval from 10,000 resamples of the items (Python "
+                  "<code>random.Random(5)</code>; the sorted draws at indices 250 and 9,749); 60 items in the all-families rows, 20 "
+                  "in the <code>join</code> and <code>ledger</code> rows; solid bar: the interval excludes 0; bar edge = 0.35",
+                  ["Difference"] + [n for _, n in PS], rows,
+                  foot=f"Post hoc. This table shows {n_shown} of the {n_ps} intervals of this kind in SUMMARY.json (5 pairs, 3 pass sets, "
+                       f"4 cells); {n_ex} of the {n_ps} exclude 0, {n_exs} of them here. They come on top of the intervals of the "
+                       "four-pass tables, none was selected by a rule and no correction is applied. A single interval of this table is "
+                       "not evidence on its own.")
+    if (n_shown, n_ps) != (3 * (len(rows) - len(SCOPE)), 60): stale("the count of share intervals")
+    ft = {a: FT[a]["128k"] for a in ARMS4}
+    end_len = (f"<p>Finished replies at 127K are about as long in every configuration: median {min(ft[a]['median'] for a in ARMS4) / 1000:.1f} to "
+               f"{max(ft[a]['median'] for a in ARMS4) / 1000:.1f} thousand tokens, 99th percentile "
+               f"{min(ft[a]['p99'] for a in ARMS4) / 1000:.0f} to {max(ft[a]['p99'] for a in ARMS4) / 1000:.0f} thousand, and "
+               f"{seq([ft[a]['over_half_cap'] for a in ARMS4])} of them longer than half the cap.</p>")
+    pj = {o: P[f"compact - {o}"]["p1234"]["unfinished_127k_join"] for o in ("anchor", "hqa", REF)}
+    items = {a: j[a]["items_with_unfinished"] for a in ARMS4}
+    dec = {a: FP["descriptive_speed"]["by_pass_set"]["p1234"][a]["decode_tok_s_median"]["128k"] for a in ARMS4}
+    mins = [32768 / v / 60 for v in dec.values()]
+    def one_in(a): return f"one in {round(jn / j[a]['unfinished'])}"
+    oth_rate = sorted(others, key=lambda a: -j[a]["unfinished"])
+    if (not excl(pj["hqa"]) or excl(pj["anchor"]) or P["compact - anchor"]["p12"]["unfinished_127k_join"][0] > 0
+            or sum(BP["compact"][:2]) > sum(BP["anchor"][:2]) or one_in("compact") != "one in 8" or min(mins) < 12 or max(mins) > 18
+            or kind("compact", "join", "copying") <= max(kind(a, "join", "copying") for a in others)):
+        stale("the reading of the endings")
+    g_h, g_a = G["hqa - compact"], G["anchor - compact"]
+    def fo_line(f): return f"<code>{f}</code> {f3(fo[f]['compact'])} against {span([fo[f][a] for a in others], f3)}"
+    end_reading = ("<ul>"
+                   "<li><b><code>compact</code>'s 127K gap is <code>join</code> replies that did not finish, not answers that were "
+                   f"wrong.</b> Of the {f3(g_h['all'])} between <code>hqa</code> and <code>compact</code> at 127K, {f3(g_h['join'])} is "
+                   f"<code>join</code>; of the {f3(g_a['all'])} between <code>anchor</code> and <code>compact</code>, {f3(g_a['join'])}. "
+                   f"The finished replies score level in every family ({', '.join(fo_line(f) for f in FAMS)}). Basis: "
+                   f"{n_all} requests per configuration, every unfinished reply classified. Strength: this is a count of what "
+                   "happened, not an estimate; it holds for these four passes.</li>"
+                   "<li><b>The ending is one every configuration shows, the BF16-core <code>anchor</code> included.</b> The reasoning "
+                   "has written all or all but one of the answers, starts copying the records and does not come back. <code>anchor</code> has "
+                   f"{kind('anchor', 'join', 'copying')} such replies of {jn}, <code>hqa</code> {kind('hqa', 'join', 'copying')} and one "
+                   f"just under the copying threshold, {code(REF)} {kind(REF, 'join', 'copying')}, <code>compact</code> "
+                   f"{kind('compact', 'join', 'copying')} and one of another kind. It is a way this model's reasoning fails to terminate on a long lookup task under these settings, "
+                   "seen at every core precision measured here; <code>compact</code> shows it more often.</li>"
+                   "<li><b>Whether the K6 <code>q_b_proj</code> and <code>o_proj</code> raise its rate is indicated, not "
+                   "established.</b> For: <code>hqa</code> and <code>compact</code> are one checkpoint and differ in those two "
+                   f"projections alone, and <code>compact</code> has {j['compact']['unfinished']} unfinished of {jn} against "
+                   f"{j['hqa']['unfinished']} ({iv3(pj['hqa'])}), over {items['compact']} items against {items['hqa']}. Against: "
+                   "<code>anchor</code>, whose projections are BF16 as <code>hqa</code>'s are, has "
+                   f"{j['anchor']['unfinished']}, and the interval against it includes 0 ({iv3(pj['anchor'])}); by pass the counts are "
+                   f"{seq(BP['compact'])} for <code>compact</code> against {seq(BP['anchor'])} for <code>anchor</code>, so the first "
+                   f"two passes alone show no excess. The event is rare ({len(jr)} replies of {len(ARMS4) * jn}), the items are 20 and "
+                   "the classification is post hoc.</li>"
+                   '<li><b>What this changes in the sections above.</b> The size of the gap stands. Its nature is narrower than "a cost '
+                   'of about one point" suggests: about one <code>join</code> reply in eight at 127K did not return an answer (the other '
+                   f"configurations: {one_in(oth_rate[0])} to {one_in(oth_rate[-1])}), and "
+                   "no loss of accuracy is measured on the replies that did. A reply that runs to the cap takes "
+                   f"{min(mins):.0f} to {max(mins):.0f} minutes at the median decode rates above and returns nothing.</li>"
+                   "<li><b>Not measured:</b> " + "; ".join(E(x) for x in EN["not_measured"]) + ". With the cap as it was, whether these "
+                   "replies would have ended on their own is not known. <code>trace</code> and the shorter lengths show no excess for "
+                   f"<code>compact</code> (one loop abort at 16K).</li></ul>")
+    if BAFL["compact"]["trace"]["16k"] != 1 or sum(BAFL[a]["trace"][k_] for a in ARMS4 for k_, _ in LENS) != 1: stale("the trace cell")
+    end_limits = "<p>Limits: " + "; ".join(E(x) for x in EN["limits"]) + ".</p>"
+    ends = (h2("endings", "How the replies ended") + end_intro + t_end + t_cells + end_where + end_terms + t_kind + t_join + end_shape +
+            t_fam + t_gap + t_pair + end_len + end_reading + end_limits)
+
+    how = '<a href="#endings">How the replies ended</a>'
+    jo3 = seq([j[a]["unfinished"] for a in others])
+    quote = {
+        "fp": (f" <b>Added later on 2026-11-12:</b> {how} counts every reply's ending and locates the gap over the four passes: "
+               f"<code>join</code> replies at 127K that did not finish, {j['compact']['unfinished']} of {jn} "
+               f"against {jo3}, with an ending every configuration shows. Of the {f3(g_h['all'])} between <code>hqa</code> and "
+               f"<code>compact</code> at 127K, {f3(g_h['join'])} is <code>join</code>, and where <code>compact</code> answered it was as "
+               "right as the others. What stays unsettled is whether the K6 projections raise the rate of such replies."),
+        "trade": (f" <b>Added later on 2026-11-12:</b> {how} locates it. The gap is <code>join</code> replies at 127K that did not "
+                  f"finish ({j['compact']['unfinished']} of {jn} against {jo3} in "
+                  f"{', '.join(code(a) for a in others[:-1])} and {code(others[-1])}); where <code>compact</code> answered it was as "
+                  "right as the others. Whether the K6 projections cause the higher rate is indicated, not established."),
+        "lede_gap": (f"indicated, not established. Over the four passes the gap is replies to <code>join</code>, one of the three "
+                     "task families, at 127K that did not finish "
+                     f"({j['compact']['unfinished']} of {jn} against {jo3}), not answers that were wrong, and every configuration shows "
+                     f"that ending ({how})"),
+        "lede_bits": (f"<p><b>Size</b>: by bits the four measured configurations are {pc1(min(rel[a] for a in ARMS4))} to "
+                      f"{pc1(max(rel[a] for a in ARMS4))} of the BF16 model ({f2(min(b4))} to {f2(max(b4))} bits per weight); a fifth, the "
+                      f"K3.25-Core-FP8 checkpoint at {f2(bpw[K325])}, has its passes running and no measured figures yet. "
+                      '<a href="#bits">Bits per weight</a> has the table and a short primer on the formats.</p>'),
+        "open": (f"Later on 2026-11-12, on the question above: over the four passes it is replies that did not finish, in "
+                 f"<code>join</code> ({how}). Still open: whether the K6 projections raise the rate of such replies (indicated, not "
+                 "established), and whether those replies would end on their own under a larger reply cap."),
+        "k325_term": f" Since this was written the checkpoint has become a fifth configuration, {code(K325)}, on v5.0.0 "
+                     '(<a href="#bits">bits per weight</a>); its passes are running.'}
+    data = (f'<p class="sign">Added later on 2026-11-12. How the replies ended: {gh(f"{RD}/analysis/endings.csv", "<code>endings.csv</code>")} '
+            "(counts over each reply's reasoning, no text) and "
+            f'{gh(f"{RD}/analysis/endings.py", "<code>endings.py</code>")}, which recomputes that section from the four CSVs into '
+            f'{gh(f"{RD}/analysis/ENDINGS.json", "<code>ENDINGS.json</code>")}; {gh(f"{RD}/analysis/make_endings.py", "<code>make_endings.py</code>")} '
+            "made the counts from the saved replies, which are not published. Bits per weight: "
+            f'{gh(f"{RD}/analysis/bpw.py", "<code>bpw.py</code>")} and {gh(f"{RD}/analysis/BPW.json", "<code>BPW.json</code>")}.</p>')
+    return bits, ends, quote, data
+
+
 def extension_sections(S, h2, gh):
     """Added 2026-11-12, after the frozen two-pass result: what each configuration trades, the distance of each from the BF16
     model, and the four-pass reading (RESULTS.md sections 13, 12 and 11). Returns the page's lede, the three sections and the
     data line. Sentences that state a reading check the numbers they rest on, so the text cannot outlive a change in the data."""
+    sz_bits, sz_ends, sz, sz_data = sized_sections(S, h2, gh) if "endings" in S and "bits_per_weight" in S else ("", "", None, "")
     FP, BD, TO, AM = S["four_pass"], S["bf16_distance"], S["trade_offs"], S["amendment_1"]
     code = lambda a: f"<code>{a}</code>"
     LAB = {"all": "all lengths", "4k": "4K", "16k": "16K", "64k": "64K", "128k": "127K", "4k+16k": "4K and 16K pooled", "64k+128k": "64K and 127K pooled"}
@@ -222,7 +616,8 @@ def extension_sections(S, h2, gh):
                   f"{IV['per_pass_set']}: there <code>compact</code> is below <code>hqa</code> in every pass (by {f3(min(hmar))} in the "
                   f"closest, pass {hmar.index(min(hmar)) + 1}) and below <code>anchor</code> in three of four (pass 1 reverses: "
                   f"{f3(bp['anchor'][0])} against {f3(bp['compact'][0])}).</li>"
-                  "<li><b>Where <code>compact</code>'s 127K gap comes from is not settled.</b> Pooled over four passes it matches the "
+                  "<li><b>Where <code>compact</code>'s 127K gap comes from: these tables do not settle it; the replies themselves do.</b> "
+                  "Pooled over four passes it matches the "
                   f"unfinished replies: {A7['p1234']['compact']['unfinished']} of {A7['p1234']['compact']['n']} at 127K against "
                   f"{', '.join(a7('p1234', 'unfinished', others)[:-1])} and {a7('p1234', 'unfinished', others)[-1]}, while replies that "
                   f"finished score level ({f3(fo['p1234']['compact'])} against {span([fo['p1234'][a] for a in others], f3)}). The two pass "
@@ -242,7 +637,7 @@ def extension_sections(S, h2, gh):
                   f"{iv4(CAPC['nll_minus_ref'])} (lower is better), share of positions whose top token is the given one "
                   f"{iv4(CAPC['top1_minus_ref'])} (exploratory, one capture, {n0(CAPR)} positions to 128K). The capture does not locate "
                   "the gap. It shows only that <code>compact</code> is not worse at next-token prediction on long given text; the gap "
-                  "was seen in generated replies at 127K.</li>"
+                  "was seen in generated replies at 127K." + (sz["fp"] if sz else "") + "</li>"
                   f'<li><b>The two-pass lead of {code(REF)} over <code>compact</code> (<a href="#reference">reference checkpoint</a>) did '
                   f"not repeat.</b> Passes 3-4 alone give {iv3(r34)} and the four-pass interval includes 0 ({iv3(rc)}). At 127K the "
                   f"four-pass difference is {iv3(r127)}, the same size as <code>hqa</code>'s over <code>compact</code>.</li>"
@@ -509,8 +904,9 @@ def extension_sections(S, h2, gh):
                      "sets). The step changes two things together: the core outside the two projection groups and the output head, "
                      'both BF16 in <code>anchor</code> and K6 in <code>hqa</code> (<a href="#trade-terms">FP8 settings as logged</a>). '
                      "It does not separate the two.</li>"
-                     f"<li><b><code>hqa</code> to <code>compact</code>: a further {n0(WB['hqa_to_compact'])} MiB back; a cost of about one "
-                     "point over all lengths is indicated, and it sits at 127K.</b> The two differ in <code>ATTENTION_MODE</code> alone. "
+                     f"<li><b><code>hqa</code> to <code>compact</code>: a further {n0(WB['hqa_to_compact'])} MiB back; a score about one "
+                     "point lower over all lengths is indicated, and it is replies at 127K that did not finish, not answers that were "
+                     "wrong.</b> The two differ in <code>ATTENTION_MODE</code> alone. "
                      f"Over all lengths <code>hqa</code> {MINUS} <code>compact</code> is {iv3(hc)} and <code>compact</code> {MINUS} "
                      f"<code>anchor</code> {iv3(ca)}. "
                      "Up to 64K <code>compact</code>'s task score is level with the other two, and its overall distance from BF16 is "
@@ -524,8 +920,8 @@ def extension_sections(S, h2, gh):
                      f"{A7['p1234']['compact']['n']} at 127K against {', '.join(a7('p1234', 'unfinished', others)[:-1])} and "
                      f"{a7('p1234', 'unfinished', others)[-1]}, with finished replies level ({f3(fo['p1234']['compact'])} against "
                      f"{span([fo['p1234'][a] for a in others], f3)}). The two pass sets do not agree on that split or on the task "
-                     "family, so where the gap comes from is not settled. Strength: "
-                     "indicated, not established "
+                     "family, so these tables alone do not say where the gap comes from." + (sz["trade"] if sz else "") +
+                     " Strength of the gap itself: indicated, not established "
                      '(<a href="#four-pass">four passes</a>).</li>'
                      f"<li><b>What the memory buys on this hardware.</b> Of the first step, {n0(2 * AP_['layers_mib_per_gpu'])} MiB is "
                      f"in the 45 layers ({n0(AP_['layers_mib_per_gpu'])} MiB on each GPU) and {n0(AP_['head_difference_mib'])} MiB is the "
@@ -583,9 +979,9 @@ def extension_sections(S, h2, gh):
         ("Core", "the attention and other layer weights outside the experts."),
         ("Head", "the output matrix that turns the last hidden state into token scores."),
         ("K4 and K6", "quantized formats at about 4 and 6 bits per weight (BF16 holds 16)."),
-        ("K3.25", "a checkpoint of the same model in the same family of formats at about 3.25 bits per weight, with an FP8 core, "
-                  "measured here on 2026-10-26 on an earlier engine release (CuteAFD v3.0.1); a row for scale, not part of this "
-                  "comparison."),
+        ("K3.25", "a checkpoint of the same model in the same family of formats, with routed experts at about 3.25 bits per weight and "
+                  "an FP8 core, measured here on 2026-10-26 on an earlier engine release (CuteAFD v3.0.1); in the distance tables it "
+                  "is a row for scale, not part of that comparison." + (sz["k325_term"] if sz else "")),
         ("FP8 settings", "the engine has three FP8 conversion settings (<code>GLM5_FLASH_KDA_FP8</code>, "
                   "<code>GLM5_FLASH_FP8_HEAD</code>, <code>GLM5_FLASH_FP8_PREFILL</code>). <code>anchor</code> is launched with all "
                   "three off, which keeps its BF16 core matrices and head at BF16. As logged at load, KDA FP8 reads Off in all "
@@ -634,28 +1030,31 @@ def extension_sections(S, h2, gh):
             "projections of the HQA checkpoint of GLM 5.3 Flash run. It has three values; the graded runs here cover two, "
             "<code>hqa</code> (BF16 copies) and <code>compact</code> (K6 copies), and the third, <code>fp8-compact</code>, appears only "
             'in an <a href="#checks">exploratory check</a>. A locally derived all-BF16 core (<code>anchor</code>) is the reference here, not a '
-            f"recommendation, and {code(REF)} is a reference checkpoint in another quantisation format. Updated 2026-11-12 with two "
-            "additions to the frozen two-pass result: four graded passes per configuration, and the distance of each configuration from "
-            "the unquantized BF16 model.</p>"
+            f"recommendation, and {code(REF)} is a reference checkpoint in another quantisation format. Updated 2026-11-12 with "
+            "additions to the frozen two-pass result: four graded passes per configuration, the distance of each configuration from "
+            "the unquantized BF16 model and, later that day, how the replies ended and the size of each checkpoint in bits per "
+            "weight.</p>" + (sz["lede_bits"] if sz else "") +
             f"<p><b>Distance from BF16</b> (two reference sets, contexts to {reach}): all four sit in one band, KL "
             f"{f3_(RD_['band_fidelity_set'][0])} to {f3_(RD_['band_fidelity_set'][1])} on the fidelity set, between the recorded baseline "
-            f"for the official FP8 model ({f4(fp8['fidelity_set_kl'])}) and a K3.25 checkpoint measured earlier on this engine "
+            f"for the official FP8 model ({f4(fp8['fidelity_set_kl'])}) and a K3.25 checkpoint measured on an earlier release of this engine "
             f"({f4(k325['fidelity_set_kl'])}); the three probe arms are within {f3_(probe_gap)} of each other. <b>Graded tasks</b>, 4K to 127K, "
-            f"four passes: <code>hqa</code> {MINUS} <code>anchor</code> {iv3(ha)}, no difference measured; <code>compact</code> is the "
-            f"lowest in both pass sets, with the gap at 127K ({f3(sc('compact', '128k')[0])} against {span(o127, f3)}): indicated, not "
-            f"established, and where it comes from is not settled; {code(REF)} {MINUS} <code>anchor</code> {iv3(ra)}. That 127K difference "
+            f"four passes: <code>hqa</code> {MINUS} <code>anchor</code> {iv3(ha)} and {code(REF)} {MINUS} <code>anchor</code> {iv3(ra)}, "
+            "no difference measured; <code>compact</code> is the "
+            f"lowest in both pass sets, with the gap at 127K ({f3(sc('compact', '128k')[0])} against {span(o127, f3)}): " +
+            (sz["lede_gap"] if sz else "indicated, not established, and where it comes from is not settled") +
+            ". That 127K difference "
             f"lies beyond the {reach} reach of both reference sets. Accuracy falls with length in every configuration, "
             '<code>anchor</code> included. <a href="#trades">What each configuration trades</a> puts cost and measured quality side by '
             "side.</p>")
-    body = (h2("trades", "What each configuration trades") + trade_intro + t_trade + trade_reading + trade_terms + trade_limits +
+    body = (sz_bits + h2("trades", "What each configuration trades") + trade_intro + t_trade + trade_reading + trade_terms + trade_limits +
             h2("bf16", "Distance from the BF16 model") + bf_intro + t_kl + fig + t_refsets + t_other + repeat + t_diff + bf_reading + bf_limits +
-            h2("four-pass", "Four passes") + fp_intro + t_arms + t_sets + t_len + counts + fp_reading + fp_desc)
+            h2("four-pass", "Four passes") + fp_intro + t_arms + t_sets + t_len + counts + fp_reading + fp_desc + sz_ends)
     data = (f'<p class="sign">Added 2026-11-12. Four passes: {gh(f"{RD}/analysis/samples-extension.csv", "<code>samples-extension.csv</code>")} '
             f'(one row per request of passes 3 and 4, no text) and {gh(f"{RD}/analysis/fourpass.py", "<code>fourpass.py</code>")}, which '
             f'recomputes the four-pass tables from the three CSVs into {gh(f"{RD}/analysis/FOURPASS.json", "<code>FOURPASS.json</code>")} '
             f'(standard library only). Distance from BF16: {gh(f"{RD}/bf16ref/BF16REF.json", "<code>BF16REF.json</code>")}, with the '
             "per-window figures every fidelity-set value and interval follows from; the stage's score files, per-row tables and dumps are "
-            "not published.</p>")
+            "not published.</p>") + sz_data
     four = '<a href="#four-pass">Four passes</a>'
     notes = {
         "hc": f"2026-11-12: over four passes this interval excludes 0 ({iv3(hc)}); indicated, not established ({four}).",
@@ -670,7 +1069,7 @@ def extension_sections(S, h2, gh):
                  f"and is {iv3(lg['p1234'])} over four ({four}).",
                  "Added 2026-11-12: is <code>compact</code>'s lower score at 127K real, and does it come from replies that do not "
                  "finish, from wrong fields in replies that do, or from one task family? Over four passes it is indicated, not "
-                 f"established, and the two pass sets disagree on each of those splits ({four}).",
+                 f"established, and the two pass sets disagree on each of those splits ({four})." + (" " + sz["open"] if sz else ""),
                  "Added 2026-11-12: why does <code>anchor</code>, with a BF16 core and head, measure slightly farther from the "
                  f"BF16 model than <code>hqa</code> on the fidelity set (<code>hqa</code> {MINUS} <code>anchor</code> "
                  f"{iv4(dha['fidelity_set']['overall'])}) and level with it on the teacher panel ({iv4(dha['teacher_panel'])})? "
@@ -866,6 +1265,12 @@ def reference_sections(S, h2, gh):
     amend += (f'<p>Added 2026-11-12: both passes are complete for all four configurations ({E(AM["ran"])}). Their numbers are under '
               '<a href="#four-pass">Four passes</a>; the tables of this part of the page hold passes 1 and 2 only.</p>')
     rows = [[arm(a), badge(True, "done", "pending"), badge(True, "done", "pending")] for a in ARMS4]
+    am2 = ""
+    if S.get("bits_per_weight", {}).get("k325-fp8", {}).get("status") == "running":
+        am2 = (f'<p><b>Amendment 2</b> ({gh(f"{RD}/protocol/AMENDMENT-2026-11-12.md", "text")}), written on 2026-11-12 before its first '
+               f"request, adds a fifth configuration, <code>{K325}</code>: the same four single-message passes and the same capture for "
+               'distance from BF16. Those runs are in progress and none of their results is on this page; '
+               '<a href="#bits">Bits per weight</a> carries its file accounting.</p>')
     t_am = rich("Passes added by amendment 1", "Complete 2026-11-12",
                 ["Arm", "Single message, pass 3", "Single message, pass 4"], rows)
 
@@ -881,7 +1286,7 @@ def reference_sections(S, h2, gh):
               'and the four-pass interval includes 0 (<a href="#four-pass">Four passes</a>).</li>')
     body = (h2("reference", "Reference checkpoint: EXLR8 K4") + intro + ref_reading + t_score + t_cls + t_pair + t_agree + t_cost +
             h2("capture", "Scoring capture on the reference checkpoint") + cap_intro + cap_reading + t_abs + t_band + t_heavy + cap_between +
-            h2("amendment", "Amendment 1: passes 3 and 4") + amend + t_am)
+            h2("amendment", "Amendment 1: passes 3 and 4") + amend + t_am + am2)
     data = (f'<p class="sign">Reference checkpoint: {gh(f"{RD}/analysis/samples-reference.csv", "<code>samples-reference.csv</code>")} '
             f'(one row per request, no text) and {gh(f"{RD}/analysis/reference.py", "<code>reference.py</code>")}, which recomputes its '
             f'tables from the two CSVs into {gh(f"{RD}/analysis/REFERENCE.json", "<code>REFERENCE.json</code>")} (standard library only).</p>')

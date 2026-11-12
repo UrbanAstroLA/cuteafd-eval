@@ -915,7 +915,7 @@ def V5_LATEST(lk):
     lo4 = min(SL[a]["single"]["4k"]["score"] for a in SL); hi4 = max(SL[a]["single"]["4k"]["score"] for a in SL)
     kv = S["launch"]["kv_pool_tokens_serving"]["anchor"]
     v5 = lk("CuteAFD v5", "v5.html", "results/2026-11-10-context-probe/")
-    ref = ref4 = ext = bf = tr = led4 = kv4 = len4 = ""; two = "frozen rule"; dates = "2026-11-10/11"
+    ref = ref4 = ext = bf = tr = led4 = kv4 = len4 = end = bits = ""; two = "frozen rule"; dates = "2026-11-10/11"
     if "four_pass" in S:                    # amendment 1 (four passes) and the BF16 stage, added 2026-11-12; beside the frozen two-pass result
         Q = S["four_pass"]; B = S["bf16_distance"]; two = "frozen rule, two passes"; dates = "2026-11-10/12"
         fmt = lambda v: "%s [%s, %s]" % tuple(("0.000" if round(x, 3) == 0 else f"{x:+.3f}").replace("-", "−") for x in v[:3])
@@ -938,7 +938,33 @@ def V5_LATEST(lk):
                f"  For `compact` a cost at 127K is indicated, not established: {s127['compact']:.3f} there against {min(oth):.3f} to {max(oth):.3f}, the\n"
                f"  lowest arm in both pass sets; `hqa` − `compact` {fmt(q('hqa - compact', '128k'))} at 127K and {fmt(q('hqa - compact'))} over all lengths\n"
                f"  (excludes 0 only at four passes), while `compact` − `anchor` {fmt(q('compact - anchor'))} includes 0. Pooled, the gap matches\n"
-               f"  unfinished replies, but the two pass sets do not agree on that split, so where it comes from is not settled.\n")
+               f"  unfinished replies, but the two pass sets do not agree on that split, so these counts alone do not say where it comes\n"
+               f"  from; the next line does.\n")
+        if "endings" in S and "bits_per_weight" in S:      # how the replies ended and the size of each checkpoint, added later on 2026-11-12
+            EN = S["endings"]; J = {a: EN["join_127k"][a]["p1234"] for a in A4}; G = EN["gap_127k_by_family"]; PU = EN["paired_unfinished_share"]
+            ch, ca = (PU[f"compact - {a}"]["p1234"]["unfinished_127k_join"] for a in ("hqa", "anchor"))
+            byp = EN["join_127k_unfinished_by_pass"]; sg = lambda x: f"{x:+.3f}".replace("-", "−")
+            if (EN["unfinished"]["with_answer_text"] or not out0(ch) or out0(ca) or G["hqa - compact"]["join"] < 0.8 * G["hqa - compact"]["all"]
+                    or sum(byp["compact"][:2]) > sum(byp["anchor"][:2]) or J["compact"]["unfinished"] <= max(J[a]["unfinished"] for a in A4 if a != "compact")):
+                raise SystemExit("README: the endings of the four passes no longer match the line written for them")
+            end = (f"- **How the replies ended (added 2026-11-12): `compact`'s 127K gap is replies that did not finish, not answers that were\n"
+                   f"  wrong.** {EN['unfinished']['total']} of {4 * Q['requests_per_arm']:,} replies did not finish, none with answer text. `compact`'s excess is in one place, the `join`\n"
+                   f"  family at 127K: {J['compact']['unfinished']} of {J['compact']['requests']} against " + ", ".join(f"{J[a]['unfinished']} (`{a}`)" for a in A4 if a != "compact") + ". Of the "
+                   f"{sg(G['hqa - compact']['all'])} between\n  `hqa` and `compact` at 127K, {sg(G['hqa - compact']['join'])} is `join`, and the finished replies score level. "
+                   f"The ending is one every\n  configuration shows, `anchor` included: the reasoning copies the prompt's records out in order and runs to the reply cap.\n"
+                   f"  Whether the K6 projections raise its rate is indicated, not established: the paired difference in the share of unfinished `join`\n"
+                   f"  replies is {fmt(ch)} for `compact` − `hqa` and {fmt(ca)} for `compact` − `anchor`, with no excess in passes 1-2 alone. Post hoc.\n")
+            BW = S["bits_per_weight"]; BA = BW["arms"]; b2 = lambda a: f"{BA[a]['bits_per_weight']:.2f}"; rl = [BA[a]["relative_to_bf16"] for a in A4]
+            if tuple(BA) != A4 + ("k325-fp8",) or BW["k325-fp8"]["status"] != "running" or BW["bf16_bits_per_weight"] != 16:
+                raise SystemExit("README: the bits-per-weight block no longer matches the line written for it")
+            bits = (f"- **Size in one unit (added 2026-11-12): bits per weight, BF16 = 16.** " + ", ".join(f"`{a}` {b2(a)}" for a in A4) + f":\n"
+                    f"  {100 * min(rl):.1f}% to {100 * max(rl):.1f}% of the BF16 model. The routed experts are {100 * BW['share_of_weights']['routed experts']:.1f}% of the weights and sit at 4 bits in all four, so\n"
+                    f"  in size the configurations differ only in the remaining few percent ({BA['anchor']['outside_routed_experts_bits_per_weight']:.2f}, "
+                    f"{BA['hqa']['outside_routed_experts_bits_per_weight']:.2f}, {BA['compact']['outside_routed_experts_bits_per_weight']:.2f} and "
+                    f"{BA['exlr8-k4']['outside_routed_experts_bits_per_weight']:.2f} bits there). A size, not a\n"
+                    f"  quality score. A fifth configuration, `k325-fp8` (K3.25 experts, run with an FP8 core; {b2('k325-fp8')} bits as its files are stored, "
+                    f"{100 * BA['k325-fp8']['relative_to_bf16']:.1f}% of BF16), was\n  added by a dated amendment; its passes are running and it has no measured figures yet. "
+                    f"The v5 page carries a short primer\n  on the formats.\n")
         bf = (f"- **Distance from the BF16 model (added 2026-11-12): all four configurations sit in one band.** Coarse KL on tpurtell's\n"
               f"  fidelity set, contexts to 14.4K: " + ", ".join(f"`{a}` {kl[a]:.4f}" for a in sorted(A4, key=kl.get)) + ",\n"
               f"  between the official FP8 model ({Y['official_fp8_release']['fidelity_set_kl']:.4f}, the baseline tpurtell recorded in the set's manifest) and K3.25 on\n"
@@ -993,7 +1019,7 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
 
 {tr}- **{"Frozen rule, two passes: neither" if ext else "Neither"} cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` {d("hqa - anchor")},
   `compact` − `anchor` {d("compact - anchor")}, pooled over lengths (95% interval over items{"" if ext else "; " + two}).
-{ext}{bf}- **Accuracy falls with length in every probe arm, `anchor` included** ({"two passes: " if ext else ""}{lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
+{ext}{end}{bf}{bits}- **Accuracy falls with length in every probe arm, `anchor` included** ({"two passes: " if ext else ""}{lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
   that loss is not produced by core precision. A third to a half of it is replies that did not finish.{len4}
 - **One slice leaned against the K6 core{" at two passes" if ext else ""}:** running totals at 64K and 127K, where `compact` was nominally lower. Twenty
   items do not decide it; a post hoc lead, not a finding.{led4}

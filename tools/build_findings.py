@@ -2,7 +2,7 @@
 """Machine-readable entry points for agents and scripts: docs/findings.json and docs/llms.txt.
 
 findings.json lists the claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), one entry per claim: the question, the answer as
-the page states it, its status (frozen measurement, extension, planned descriptive, post hoc, exploratory, source reading), the value with
+the page states it, its status (frozen measurement, extension, planned descriptive, post hoc, exploratory, source reading, file accounting), the value with
 its interval, and where it comes from: a file and a JSON pointer (RFC 6901) into it, plus the per-reply data and the
 script that recompute it. Every value is read from the results at build time, never typed here. tools/verify.py
 re-resolves every pointer and recomputes the code-study ratios and the context-probe differences from the published
@@ -578,8 +578,8 @@ def cp_findings():
             "while neither separates from anchor. Basis of the strength: the same sign in both pass sets and, at 127K, in every pass against hqa "
             f"(hqa {', '.join(f'{x:.3f}' for x in bp['hqa'])}; compact {', '.join(f'{x:.3f}' for x in bp['compact'])}) and in three of four "
             f"against anchor ({', '.join(f'{x:.3f}' for x in bp['anchor'])}; pass 1 reverses); not one interval among "
-            f"{n102}, of which {n6} exclude 0 at four passes where about 5 would with no difference anywhere. Where the gap comes from is not "
-            f"settled. Pooled over four passes it matches the unfinished replies ({A7['p1234']['compact']['unfinished']} of "
+            f"{n102}, of which {n6} exclude 0 at four passes where about 5 would with no difference anywhere. These counts alone do not "
+            f"settle where the gap comes from. Pooled over four passes it matches the unfinished replies ({A7['p1234']['compact']['unfinished']} of "
             f"{A7['p1234']['compact']['n']} at 127K against {u('p1234', others)}; finished replies score {fo('p1234', 'compact')} against "
             f"{rg([A7['p1234'][a]['score_finished_only'] for a in others])}), but the two pass sets do not agree on that split: in passes 1-2 "
             f"compact had as many unfinished replies at 127K as anchor ({A7['p12']['compact']['unfinished']} and "
@@ -589,7 +589,9 @@ def cp_findings():
             f"{CU['repetition']} ended on the repetition abort. A scoring capture on given texts to 128K, which samples nothing, shows no "
             f"deficit for compact at predicting text (NLL minus anchor's {capn[0]:+.4f} [{capn[1]:+.4f}, {capn[2]:+.4f}], lower is better; "
             "exploratory, one capture). The capture scores given text and does not locate the gap, which was seen in generated replies at 127K. The 127K length lies beyond the 14.4K reach of both BF16 reference sets, so the "
-            "BF16 stage (CP-bf16-distance) neither supports nor contradicts this.",
+            "BF16 stage (CP-bf16-distance) neither supports nor contradicts this. Added 2026-11-12, after this entry was first "
+            "published: the replies themselves were read (CP-fourpass-endings). The gap is join replies at 127K that did not finish, not "
+            "answers that were wrong; whether the K6 projections raise the rate of that ending is indicated, not established.",
             "measurement: extension", results, evs, CUTEAFD5, CPD, f"{page}#four-pass", fdata + [FJ],
             rec4("compact", "hqa", ("128k",), "hqa - compact, 127K"),
             "b - a: above 0 = the first-named arm scored higher", note=ext_note))
@@ -758,6 +760,157 @@ def cp_findings():
              {"file": f"{CPD}/protocol/AMENDMENT-2026-11-11.md", "what": "the amendment"}],
             CUTEAFD5, CPD, f"{page}#amendment", fdata + [FJ], note=ext_note))
 
+        EN = "/endings"; EJ, BWJ = f"{CPD}/analysis/ENDINGS.json", f"{CPD}/analysis/BPW.json"
+        ED = at(S, EN); J7 = {a: ED["join_127k"][a]["p1234"] for a in A4}
+        un = {a: {f: sum(v.values()) for f, v in ED["unfinished"]["by_arm_family_length"][a].items()} for a in A4}
+        jk = {a: ED["unfinished"]["by_arm_family_kind"][a]["join"] for a in A4}
+        jcopy = sum(v for a in A4 for k, v in jk[a].items() if k.startswith("copying")); jall = sum(un[a]["join"] for a in A4)
+        gp = ED["gap_127k_by_family"]; ps_ = ED["paired_unfinished_share"]; byp = ED["join_127k_unfinished_by_pass"]
+        ch, ca_ = (ps_[f"compact - {a}"]["p1234"]["unfinished_127k_join"] for a in ("hqa", "anchor"))
+        fj = [ED["score_127k"][a]["p1234"]["by_family"]["join"]["finished_only"] for a in A4]
+        runs_u = sum(J7[a]["copy_run_unfinished"] for a in A4); all8 = sum(J7[a]["copy_run_unfinished_all_8_docks_before"] for a in A4)
+        seven = sum(J7[a]["copy_run_unfinished_7_docks_before"] for a in A4)
+        n_ps = sum(len(m) for p in ps_.values() for m in p.values())
+        n_ex = sum(out0(v) for p in ps_.values() for m in p.values() for v in m.values())
+        if (ED["unfinished"]["with_answer_text"] or any(un[a]["join"] != J7[a]["unfinished"] for a in A4) or not out0(ch) or out0(ca_)
+                or any(gp[f"{a} - compact"]["join"] < 0.8 * gp[f"{a} - compact"]["all"] for a in others) or max(fj) - min(fj) > 0.01
+                or J7["compact"]["unfinished"] <= max(J7[a]["unfinished"] for a in others) or runs_u != all8 + seven
+                or sum(byp["compact"][:2]) > sum(byp["anchor"][:2]) or max(un[a]["ledger"] for a in A4) - min(un[a]["ledger"] for a in A4) > 2):
+            raise SystemExit("findings: the endings of the four passes no longer match the answer written for them")
+        out.append(finding(
+            "CP-fourpass-endings",
+            "How did the replies of the four single-message passes end, and what is compact's lower score at 127K made of?",
+            f"{ED['unfinished']['total']} of {4 * at(S, '/four_pass/requests_per_arm'):,} replies did not finish ("
+            + ", ".join(f"{a} {sum(un[a].values())}" for a in A4) + "), none of them with answer text, so each scores 0 under the frozen rule "
+            "whatever its reasoning had reached. compact's excess is in one place, the join family at 127K: "
+            f"{J7['compact']['unfinished']} of {J7['compact']['requests']} replies unfinished against "
+            + ", ".join(f"{a} {J7[a]['unfinished']}" for a in others) + "; every unfinished join reply of the run is at 127K. ledger is level ("
+            + ", ".join(f"{a} {un[a]['ledger']}" for a in A4) + " over all lengths) and trace has "
+            f"{sum(un[a]['trace'] for a in A4)} in total. The 127K difference in score is that family: hqa - compact "
+            f"{s3(gp['hqa - compact']['all'])}, of which join {s3(gp['hqa - compact']['join'])}; anchor - compact "
+            f"{s3(gp['anchor - compact']['all'])}, of which join {s3(gp['anchor - compact']['join'])}. The finished join replies at 127K score "
+            f"level ({rg(fj)} over the four configurations). The ending is one every configuration shows, the BF16-core anchor included: in "
+            f"{jcopy} of the {jall} unfinished join replies at least half of the reasoning is the prompt's records copied out in "
+            f"order, and in the {runs_u} of them with a copy run all eight of the item's correct identifiers ({all8} replies) or seven of "
+            f"them ({seven}) occur in the reasoning before the run starts (a text match). Whether the K6 q_b_proj and o_proj raise the rate of "
+            "that ending is indicated, not established: the paired difference in the share of unfinished join replies at 127K is "
+            f"{iv(ch)} for compact - hqa (excludes 0) and {iv(ca_)} for compact - anchor (includes 0), and by pass compact had "
+            f"{', '.join(str(x) for x in byp['compact'])} and anchor {', '.join(str(x) for x in byp['anchor'])}, so passes 1-2 alone show no "
+            "excess. Read with CP-fourpass-compact-127k: the gap there is replies that did not finish, not answers that were wrong. Not "
+            "measured: " + ", ".join(ED["not_measured"]) + ". Limits: post hoc; 20 items per family; the thresholds for copying (share of at "
+            "least 0.5) and for a copy run (20 lines) were chosen after the replies were seen (the 44 unfinished replies are listed with "
+            "their shares, so another threshold can be applied); reply text is not published, only the derived per-reply counts.",
+            "measurement: post hoc",
+            {"name": "unfinished join replies at 127K, four passes, per configuration", "value": {a: J7[a]["unfinished"] for a in A4},
+             "of": J7["compact"]["requests"], "by_pass": {a: byp[a] for a in A4},
+             "paired_share_difference": {"compact - hqa": ch[0], "compact - anchor": ca_[0]},
+             "ci95": {"compact - hqa": ch[1:3], "compact - anchor": ca_[1:3]}, "ci_over": "items",
+             "score_gap_127k": {p: {"all": gp[p]["all"], "join": gp[p]["join"]} for p in ("hqa - compact", "anchor - compact")},
+             "compact - hqa": {"name": "share of unfinished join replies at 127K, compact - hqa, four passes", "value": ch[0], "ci95": ch[1:3],
+                               "items": ch[3], "ci_over": "items"}},
+            [ev(S, f"{EN}/unfinished/total", "unfinished replies, four configurations, four passes"),
+             ev(S, f"{EN}/unfinished/with_answer_text", "of which with any answer text"),
+             ev(S, "/four_pass/requests_per_arm", "requests per configuration")] +
+            [ev(S, f"{EN}/unfinished/by_arm_family_length/{a}", f"{a}: unfinished replies by task family and length") for a in A4] +
+            [ev(S, f"{EN}/join_127k/{a}/p1234", f"{a}: join at 127K, four passes (unfinished, copy runs, identifiers written before the run)") for a in A4] +
+            [ev(S, f"{EN}/join_127k_unfinished_by_pass/{a}", f"{a}: unfinished join replies at 127K by pass") for a in A4] +
+            [ev(S, f"{EN}/unfinished/by_arm_family_kind/{a}/join", f"{a}: unfinished join replies by what the reasoning was doing") for a in A4] +
+            [ev(S, f"{EN}/gap_127k_by_family/{esc(f'{a} - compact')}", f"{a} - compact: difference in score at 127K, all families and by family") for a in others] +
+            [ev(S, f"{EN}/score_127k/{a}/p1234/by_family/join/finished_only", f"{a}: score of the finished join replies at 127K") for a in A4] +
+            [ev(S, f"{EN}/paired_unfinished_share/{esc(f'compact - {a}')}/p1234/unfinished_127k_join",
+                f"compact - {a}: paired difference in the share of unfinished join replies at 127K [estimate, 2.5%, 97.5%, items]") for a in others] +
+            [ev(S, f"{EN}/paired_unfinished_share/{esc(f'compact - {a}')}/{p}/unfinished_127k_join",
+                f"compact - {a}: the same at {p}") for a in ("hqa", "anchor") for p in ("p12", "p34")] +
+            [ev(S, f"{EN}/terms", "definitions"), ev(S, f"{EN}/interval", "interval"), ev(S, f"{EN}/limits", "limits"),
+             ev(S, f"{EN}/not_measured", "not measured"), ev(EJ, "/unfinished/total", "the same count in the analysis's own file")],
+            CUTEAFD5, CPD, f"{page}#endings", fdata + [EJ, f"{CPD}/analysis/endings.csv", f"{CPD}/analysis/endings.py"],
+            {"kind": "item_paired_difference", "estimator": "frozen", "value": "unfinished", "data": fdata, "a": "hqa", "b": "compact",
+             "family": "join", "passes": four, "lengths": ["128k"], "script": f"{CPD}/analysis/endings.py", "result": "compact - hqa",
+             "bootstrap": {"draws": 10000, "seed": 5, "unit": "item", "rng": "Python random.Random", "indices": [250, 9749],
+                           "definition": "definitions.context_probe.item_paired_unfinished_share"}},
+            "counts of unfinished replies: lower is fewer; share differences are b - a (above 0 = the first-named configuration left more replies unfinished)",
+            note="Definitions and estimators. Unfinished: finish class other than stop (the reply reached the 32,768-token reply cap, or the "
+                 "engine's repetition abort ended it). Step line: a line of the reasoning that carries the record following, in the prompt, the "
+                 "record of the previous such line. Copy share: characters on step lines / characters of the reasoning; copying: copy share of at "
+                 "least 0.5. Copy run: 20 or more consecutive step lines. Share of unfinished replies: per item, the share of its replies in the "
+                 "cell that did not finish; the difference b - a is taken per item (20 join items) and the 95% interval is the 2.5th and 97.5th "
+                 "percentile (sorted-draw indices 250 and 9,749) of 10,000 item resamples, Python random.Random(5). Difference in score by "
+                 "family: each family's mean request score x its share of the requests (one third), so the families sum to the difference over all "
+                 f"families up to rounding. Post hoc: SUMMARY.json lists {n_ps} such share intervals (5 pairs, 3 pass sets, 4 cells), of which {n_ex} "
+                 "exclude 0, on top of "
+                 "the intervals of the four-pass tables; none was selected by a rule and no correction is applied. The data are the frozen "
+                 "run's two passes and the two added by amendment 1. analysis/endings.py recomputes analysis/ENDINGS.json from the three "
+                 "per-request tables and analysis/endings.csv; the per-reply counts in endings.csv were derived from reply text that is not "
+                 "published, so they cannot be re-derived from this repository."))
+
+        BW = at(S, "/bits_per_weight"); BA = BW["arms"]; A5 = tuple(BA); SHW = BW["share_of_weights"]; RE_ = "routed experts"
+        m4 = [a for a in A5 if a != "k325-fp8"]
+        gib = lambda x: f"{x:.1f} GiB"; b2 = lambda x: f"{x:.2f}"; pct = lambda x: f"{100 * x:.1f}%"
+        bpc = lambda a, c: BA[a]["by_component"][c]["bits_per_weight"]
+        mv_hc = SHW["attention: o_proj and q_b_proj"]
+        MTPB = "multi-token-prediction block"
+        mtp_hc = (bpc("hqa", MTPB) - bpc("compact", MTPB)) * SHW[MTPB] * BW["language_model_weights"] / 8 / 2 ** 30
+        if not 0.05 < mtp_hc < 0.2 or bpc("anchor", MTPB) != bpc("compact", MTPB):
+            raise SystemExit("findings: the multi-token-prediction block of hqa no longer matches the answer written for it")
+        mv_ac = sum(SHW[c] * (1 - BA["compact"]["by_component"][c]["formats"].get("BF16", 0)) for c in BW["components"]
+                    if c not in (RE_, "multi-token-prediction block", "other"))
+        if (A5 != A4[:3] + (REFA, "k325-fp8") or BW["k325-fp8"]["status"] != "running" or BW["bf16_bits_per_weight"] != 16
+                or [a for a in sorted(A5, key=lambda a: -BA[a]["bits_per_weight"])] != list(A5[:3]) + [REFA, "k325-fp8"]
+                or any(abs(bpc(a, RE_) - 4) > 0.02 for a in m4) or BA["hqa"]["checkpoint"] != BA["compact"]["checkpoint"]
+                or BW["as_run"]["launches"]["k325-fp8"]["kda_fp8"] != "Row128" or BW["as_run"]["launches"]["k325-fp8"]["kda_bf16_mib"]):
+            raise SystemExit("findings: the bits-per-weight accounting no longer matches the answer written for it")
+        out.append(finding(
+            "CP-bits-per-weight",
+            "In one unit, how large is each configuration's checkpoint compared with the unquantized BF16 model, and where do the configurations differ?",
+            "Bits per weight (stored bits / weights; BF16 = 16), language model as stored: "
+            + "; ".join(f"{a} {b2(BA[a]['bits_per_weight'])} ({pct(BA[a]['relative_to_bf16'])} of BF16, {gib(BA[a]['stored_gib'])})" for a in A5)
+            + f". At BF16 the same weights are {gib(BW['language_model_gib_at_bf16'])}. The routed experts are {pct(SHW[RE_])} of the weights and "
+            f"sit at {rg([bpc(a, RE_) for a in m4], b2)} bits in the four configurations with K4 experts, so their whole-model figures lie "
+            f"close together; k325-fp8 is the one that changes the experts ({b2(bpc('k325-fp8', RE_))} bits, three quarters of the expert "
+            "matrices at 3 bits and one quarter at 4). Outside the routed experts the figures spread: "
+            + ", ".join(f"{a} {b2(BA[a]['outside_routed_experts_bits_per_weight'])}" for a in A5)
+            + f". hqa to compact moves {100 * mv_hc:.2f}% of the weights (o_proj and q_b_proj of the main layers) from 16 bits to 6, "
+            f"{gib(BA['hqa']['stored_gib'] - BA['compact']['stored_gib'])} of files, {gib(mtp_hc)} of it the same two projections in the "
+            "multi-token-prediction block; anchor to compact moves {pct(mv_ac)}, "
+            f"{gib(BA['anchor']['stored_gib'] - BA['compact']['stored_gib'])}. hqa and compact are one checkpoint that stores those two "
+            "projections twice; each row counts the copy its setting loads. Bits per weight is a size, not a quality score: among the four "
+            "measured configurations neither distance from BF16 (CP-bf16-distance) nor task score follows it. As stored is not as run: under "
+            "the engine's defaults the load line of k325-fp8 reports its attention group held as FP8, converted at load, and an FP8 output "
+            "head, so part of what its files hold at BF16 runs at FP8; an as-run figure is not computed because the logs do not itemize the "
+            "conversion by matrix. k325-fp8 is a fifth configuration added on 2026-11-12 (protocol/AMENDMENT-2026-11-12.md); this entry holds "
+            "its file accounting only, and its task passes and BF16-reference capture were running when this was written. Limits: "
+            + "; ".join(BW["limits"]) + ".",
+            "accounting: checkpoint files",
+            {"name": "bits per weight of the language model as stored, per configuration", "value": {a: BA[a]["bits_per_weight"] for a in A5},
+             "relative_to_bf16": {a: BA[a]["relative_to_bf16"] for a in A5}, "stored_gib": {a: BA[a]["stored_gib"] for a in A5},
+             "outside_routed_experts": {a: BA[a]["outside_routed_experts_bits_per_weight"] for a in A5}, "bf16": 16},
+            [ev(S, f"/bits_per_weight/arms/{a}/bits_per_weight", f"{a}: bits per weight, language model as stored") for a in A5] +
+            [ev(S, f"/bits_per_weight/arms/{a}/relative_to_bf16", f"{a}: bits per weight / 16") for a in A5] +
+            [ev(S, f"/bits_per_weight/arms/{a}/stored_gib", f"{a}: stored size of the counted weights, GiB") for a in A5] +
+            [ev(S, f"/bits_per_weight/arms/{a}/outside_routed_experts_bits_per_weight", f"{a}: bits per weight outside the routed experts, main layers") for a in A5] +
+            [ev(S, f"/bits_per_weight/arms/{a}/by_component/{esc(RE_)}/bits_per_weight", f"{a}: bits per weight of the routed experts") for a in A5] +
+            [ev(S, f"/bits_per_weight/arms/{a}/checkpoint", f"{a}: checkpoint and revision") for a in A5] +
+            [ev(S, "/bits_per_weight/share_of_weights", "share of the language model's weights by component"),
+             ev(S, "/bits_per_weight/arms/compact/by_component", "compact: bits per weight and stored formats by component"),
+             ev(S, "/bits_per_weight/arms/k325-fp8/by_component", "k325-fp8: bits per weight and stored formats by component"),
+             ev(S, "/bits_per_weight/language_model_weights", "weights counted"),
+             ev(S, "/bits_per_weight/language_model_gib_at_bf16", "the same weights at BF16, GiB"),
+             ev(S, "/bits_per_weight/counted", "what is counted"), ev(S, "/bits_per_weight/two_readings_of_one_checkpoint", "hqa and compact"),
+             ev(S, "/bits_per_weight/as_run/launches/k325-fp8", "k325-fp8: load line of its serving launch"),
+             ev(S, "/bits_per_weight/as_run/k325-fp8", "as stored against as run"),
+             ev(S, "/bits_per_weight/k325-fp8/status", "state of the fifth configuration's measured passes"),
+             ev(S, "/bits_per_weight/limits", "limits"), ev(BWJ, "/arms/compact/bits_per_weight", "the same figure in the accounting's own file")],
+            CUTEAFD5, CPD, f"{page}#bits", [BWJ, f"{CPD}/analysis/bpw.py", f"{CPD}/protocol/AMENDMENT-2026-11-12.md"], None,
+            "bits per weight: lower is a smaller checkpoint; 16 is the unquantized BF16 model",
+            note="Estimator. Counted from the headers of the checkpoint files (analysis/bpw.py, standard library only): for each matrix, the "
+                 "stored bits of its payload and of its scale and sign vectors, against rows x columns of the matrix they stand for; bits per "
+                 "weight = stored bits / weights, summed over the language model (vision tower and container bookkeeping left out); relative "
+                 "= bits per weight / 16. Outside the routed experts: the same ratio over the main layers' other matrices (the "
+                 "multi-token-prediction block is left out of that figure and counted in the whole-model one). The share of the weights "
+                 "moved from anchor to compact is the sum, over components outside the routed experts, of the component's share of the weights "
+                 "x the part of it compact does not store as BF16. No model is run. The HQA checkpoint is no longer on the hub and anchor's is "
+                 "derived locally, so the script can be rerun by a reader on exlr8-k4 and k325-fp8 only."))
+
         lg4 = {ps: at(S, f"/four_pass/paired/{esc('compact - anchor')}/{ps}/{esc('ledger_64k+128k_score')}") for ps in ("p12", "p34", "p1234")}
         rb4, scl4 = at(S, "/trade_offs/resident_weights_mib_back"), at(S, "/launch/kv_pool_tokens_scoring_launches")
         if any(out0(v) for v in lg4.values()) or lg4["p12"][0] > 0 or lg4["p34"][0] < 0 or set(scl4["hqa"] + scl4["compact"]) != {2097152}:
@@ -816,7 +969,8 @@ STATUS = {"measurement: frozen rule": "protocol and decision rule frozen (hashes
           "source reading": "read in source code and logs, no measurement",
           "judgement: source and measurements": "a conclusion drawn from source reading and published measurements together; not isolated by a run of its own",
           "measurement: extension": "passes added by a dated amendment, written after the frozen result was read and before the first added request; the frozen rule applied to more passes; not the frozen comparison",
-          "measurement: planned descriptive": "plan and file hashes written before the first request of the stage, after earlier results were read; descriptive, with no gate and no decision rule"}
+          "measurement: planned descriptive": "plan and file hashes written before the first request of the stage, after earlier results were read; descriptive, with no gate and no decision rule",
+          "accounting: checkpoint files": "counted from the headers of the checkpoint files; no model is run and nothing is compared by a rule"}
 
 
 def runs():
@@ -872,6 +1026,8 @@ def llms_txt(fs):
         "  scoring capture, then passes 3 and 4 under amendment 1. It is a different checkpoint from the three arms, not a setting of",
         "  the same one: any difference from an arm is",
         "  a whole-checkpoint difference and is not attributable to one component. Its intervals are post hoc.",
+        "- Amendment 2 to the context probe (protocol/AMENDMENT-2026-11-12.md) adds a fifth configuration, k325-fp8. Its runs were in",
+        "  progress when this file was built: no entry holds a measured figure for it; CP-bits-per-weight holds its file accounting.",
         "- Amendment 1 to the context probe (protocol/AMENDMENT-2026-11-11.md in the run folder) added single-message passes 3 and 4 per",
         "  configuration; complete 2026-11-12 (CP-fourpass-*, CP-extension-pending). It was written after the two-pass results were read and",
         "  before the first added request: the frozen rule applied to four passes, an extension, not the frozen comparison. The two-pass",
@@ -921,7 +1077,7 @@ def main():
                     "entry names a repository file and an RFC 6901 JSON pointer; 'value' is what the pointer resolved to at build time. "
                     "tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables (CP-bf16-distance: from the per-window figures).",
            "repository": REPO_URL, "site": SITE_URL, "status_vocabulary": STATUS,
-           "conventions": {"interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py; CP-bf16-* entries use window bootstraps (fidelity set: 5,000 replicates, SplitMix64 seed 20260829, linear-interpolation percentiles; teacher panel: 20,000 replicates, numpy generator seed 20260929)",
+           "conventions": {"interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule, and the post hoc share-of-unfinished intervals of CP-fourpass-endings), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py; CP-bf16-* entries use window bootstraps (fidelity set: 5,000 replicates, SplitMix64 seed 20260829, linear-interpolation percentiles; teacher panel: 20,000 replicates, numpy generator seed 20260929)",
                            "detected": "interval excludes the null (1 for ratios, 0 for differences)",
                            "paths": "relative to the repository root",
                            "pointers": "RFC 6901: split on '/', then replace '~1' with '/' and '~0' with '~' (keys such as 'C-K6x/V-BF16' contain a slash)"},
@@ -951,7 +1107,11 @@ def main():
                    "item_paired_difference_pooled": "post hoc: items of recompute.family (all items if absent), sorted; per item and arm, the mean over passes x lengths of "
                                                     "request_score (or of every_field_right when strict); d = b - a per item; estimate = sum(d) / n. Interval: "
                                                     "rng = random.Random(seed); 10,000 draws, each sum of n values d[rng.randrange(n)] / n; sorted draws at indices 250 and 9750",
-                   "sign": "'b - a': above 0 = arm b scored higher",
+                   "item_paired_unfinished_share": "post hoc (CP-fourpass-endings; recompute.value == 'unfinished'): as item_paired_difference_frozen with "
+                                                   "1 if finish_class != 'stop' else 0 in place of request_score, over the items of recompute.family, so the "
+                                                   "per-item value is the share of the item's replies in the cell that did not finish, b - a; same generator, "
+                                                   "seed and indices",
+                   "sign": "'b - a': above 0 = arm b scored higher (for item_paired_unfinished_share: arm b left more replies unfinished)",
                    "lengths": {"4k": "4K tokens", "16k": "16K", "64k": "64K", "128k": "127K (the 128k label is the 127K-token rendering)"},
                    "passes": {"single-rep0": "single message, pass 1", "single-rep1": "single message, pass 2 (distinct seeds)", "single-rep2": "single message, pass 3 (amendment 1; new seed block)", "single-rep3": "single message, pass 4 (amendment 1; new seed block)", "turns-p8-rep0": "the same records delivered over eight turns, then the question"},
                    "arms": {"anchor": "BF16 core and BF16 output head, FP8 conversions off; locally derived checkpoint, not a producer release; the reference, not a recommendation",
@@ -960,6 +1120,10 @@ def main():
                    "reference_checkpoint": {"exlr8-k4": "native EXLR8 K4 checkpoint (revision in the run's RUN.json), added after the three-arm results were read; two "
                                                         "single-message passes, then passes 3 and 4 under amendment 1; no eight-turn pass. A different checkpoint from the three arms, not a setting of the same "
                                                         "one: a difference from an arm is a whole-checkpoint difference, not attributable to one component"},
+                   "amendment_2": "protocol/AMENDMENT-2026-11-12.md adds a fifth configuration, k325-fp8 (the K3.25-Core-FP8 checkpoint, revision in SUMMARY.json "
+                                  "/bits_per_weight/k325-fp8): four single-message passes and the BF16-reference capture; written before its first request; "
+                                  "running when this file was built, so no entry holds a measured figure for it and CP-bits-per-weight holds its file "
+                                  "accounting only. A different checkpoint from the others: any difference is a whole-checkpoint difference",
                    "amendment_1": "protocol/AMENDMENT-2026-11-11.md adds single-message passes 3 and 4 per configuration (single-rep2, single-rep3), written after the two-pass results were read and before the first added request; complete 2026-11-12; the frozen rule (item_paired_difference_frozen) over four passes, reported as an extension beside the frozen two-pass result",
                    "pass_sets": {"p12": "passes 1-2 (the frozen protocol's result)", "p34": "passes 3-4 alone", "p1234": "all four passes"},
                    "fidelity_set_coarse_kl": "CP-bf16-* entries, fidelity set (the engine author's published set; 64 windows, 512 scored positions each, 15,104 generated positions in 53 windows, contexts to 14.4K): per position, KL(BF16 reference || configuration) in float64 over the reference's top 1,024 token ids plus one term for the rest of the vocabulary (coarse, not full-vocabulary). Statistic: sum of per-position KL over generated positions / number of generated positions (ratio of sums). Interval: window bootstrap, 5,000 replicates, SplitMix64 seed 20260829; windows in sorted order, one window drawn per window with replacement in each replicate; 2.5th and 97.5th percentiles with linear interpolation. A difference b - a uses the same rows and the same stream. Unit: the window",

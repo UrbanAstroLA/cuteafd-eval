@@ -35,6 +35,20 @@ teacher logits (2K windows; full-vocabulary KL). Its plan, `bf16ref/ADDENDUM-BF1
 and is descriptive: no gate, no ranking rule, every interval listed. Neither set reaches the 64K and 127K lengths of the task
 runs. Section 12 of `RESULTS.md`; section 13 puts cost and measured quality side by side.
 
+**How the replies ended (2026-11-12, post hoc).** Section 14 of `RESULTS.md` counts how each of the 3,840 replies of the four
+passes ended and what the reasoning of the 44 unfinished ones was made of. `compact`'s lower score at 127K is `join` replies
+that did not finish (10 of 80 against 4, 2 and 1), an ending every arm shows, `anchor` included; where
+`compact` answered it was as right as the others. Whether the K6 projections raise the rate of that ending is indicated, not
+established. The classification was written after the four-pass results were read.
+
+**Bits per weight, and a fifth configuration (2026-11-12).** Section 15 of `RESULTS.md` puts the checkpoints on one unit,
+bits per weight counted from the checkpoint files, whole model and by component, with a short primer on the formats. It
+includes `k325-fp8` (`wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc921f1f098b4a56d37aaccb3cdef4096184`: EXL3 routed experts at K3.25 with the official FP8 attention, dense and shared-expert blocks bundled in the same checkpoint; the checkpoint of the engine's own starting config for two RTX cards), which amendment 2 (`protocol/AMENDMENT-2026-11-12.md`, written
+2026-11-12 11:57:02 -0800 before its first request) adds as a fifth configuration with four single-message passes. Those passes were
+running when this was exported: this folder holds that checkpoint's file accounting and its launch config, and none of its
+measured figures. The published amendment differs from the file as written (sha256 9d90da18dede0283fff10c34277a59997f3d0effdb2564b362bb57db53521449) by a path placeholder;
+its stage script, like the BF16-reference stage's launcher, is not published.
+
 - `RESULTS.md`: the result as read, with its corrections dated. `SUMMARY.json`: the numbers of the page's tables, the launch facts
   (weights, memory admission, KV pool) and the estimators in words; the figures of the exploratory checks are in the protocol text.
 - `protocol/`: the protocol as frozen and `FROZEN.json` (hashes of the protocol, item index and drivers at the freeze). The
@@ -53,6 +67,13 @@ runs. Section 12 of `RESULTS.md`; section 13 puts cost and measured quality side
   `REFERENCE.json` (`python3 analysis/reference.py`, standard library only). For amendment 1: `samples-extension.csv` (1,920
   rows, passes 3 and 4 of the four arms, the same columns), `make_samples_extension.py`, and `fourpass.py`, which recomputes
   section 11 of `RESULTS.md` from the three CSVs into `FOURPASS.json` (`python3 analysis/fourpass.py`, standard library only).
+  For section 14: `endings.csv` (3,840 rows, one per reply of the four passes: counts of lines and characters of the
+  reasoning, of the lines that carry the next record of the prompt, of repeated lines, where a run of such lines starts and
+  how many of the item's correct answers occur before it; no text), `make_endings.py`, which made it from the saved replies and
+  so documents the computation without rerunning from this folder, and `endings.py`, which recomputes section 14 from the four
+  CSVs into `ENDINGS.json` (`python3 analysis/endings.py`, standard library only). For section 15: `bpw.py`, which reads the
+  headers of checkpoint files and writes `BPW.json` (`python3 analysis/bpw.py ARM=SNAPSHOT_DIR ...`, standard library only; it
+  needs a local copy of each checkpoint and loads no weight).
 - `bf16ref/`: `ADDENDUM-BF16REF.md`, the plan of the BF16-reference stage, and `FROZEN.json`, its hashes at the freeze. The
   hashes are of the files as they were on the measuring machine: the published plan differs from the hashed one by a few
   wording edits (file locations, the machine's usual serving setup), and the scorers it names are published, with path
@@ -69,7 +90,8 @@ runs. Section 12 of `RESULTS.md`; section 13 puts cost and measured quality side
 - `drivers/`: generator, request driver, analysis and the exploratory check drivers. `items/measured/index.json`: the item
   index (seeds, token counts and hashes). The item texts are not stored here; `drivers/gen_tasks.py` regenerates them from
   the index parameters and the tokenizer.
-- `chain.sh`, `turncheck-plan.sh`, `configs/`: how each arm was launched (local paths as placeholders).
+- `chain.sh`, `turncheck-plan.sh`, `configs/`: how each arm was launched (local paths as placeholders). `chain.sh` is the
+  file as it stands, with the arm definition amendment 2 added.
 
 ## Reproducing this
 
@@ -78,7 +100,8 @@ runs. Section 12 of `RESULTS.md`; section 13 puts cost and measured quality side
    `docs/findings.json` against the same table. Run from a clean copy of this folder on 2026-11-11: same output.
    `python3 analysis/reference.py` does the same for the reference checkpoint, from the two CSVs into `analysis/REFERENCE.json`,
    and `python3 analysis/fourpass.py` for the four-pass reading, from the three CSVs into `analysis/FOURPASS.json` (the export
-   reruns it on the published copies and requires the published file). The fidelity-set figures of `bf16ref/BF16REF.json`
+   reruns it on the published copies and requires the published file), and `python3 analysis/endings.py` for section 14,
+   from the four CSVs into `analysis/ENDINGS.json` (rerun by the export in the same way). The fidelity-set figures of `bf16ref/BF16REF.json`
    follow from its per-window table; `tools/verify.py` recomputes the ones `docs/findings.json` cites.
 2. **Rebuild the inputs.** `python3 drivers/gen_tasks.py --out <dir> --items 20 --first 100` regenerates the 240 rendered
    items from their seeds. It needs the `tokenizers` package and the model's `tokenizer.json` (set `TOKENIZER` at the top of the

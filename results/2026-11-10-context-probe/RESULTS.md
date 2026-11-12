@@ -507,7 +507,9 @@ interval excludes 0 in both two-pass sets. The lists are in `SUMMARY.json` (`fou
   [-0.0109, -0.0004] (lower is better), share of positions whose top token is the given one +0.0006
   [-0.0019, +0.0032] (exploratory, one capture, 9,728 positions to 128K). The capture does not locate the gap. It
   shows only that `compact` is not worse at next-token prediction on long given text; the gap was seen in
-  generated replies at 127K.
+  generated replies at 127K. *Added later on 2026-11-12:* section 14 reads the unfinished replies themselves and
+  locates the gap: `join` replies at 127K that did not finish, with an ending every arm shows. What stays unsettled is
+  whether the K6 projections raise their rate.
 - **The two-pass lead of `exlr8-k4` over `compact` (section 9) did not repeat.** Passes 3-4 alone give +0.002
   [-0.017, +0.022] and the four-pass interval includes 0. At 127K the four-pass difference is +0.033
   [-0.002, +0.069], the same size as `hqa`'s over `compact`.
@@ -680,7 +682,8 @@ arms. Core: the attention and other layer weights outside the experts. Head: the
 last hidden state into token scores. K4 and K6: quantized formats at about 4 and 6 bits per weight (BF16 holds
 16). K3.25: a checkpoint of the same model in the same family of formats at about 3.25 bits per weight, with an
 FP8 core, measured here on 2026-10-26 on an earlier engine release (CuteAFD v3.0.1); a row for scale, not part of
-this comparison. FP8 settings: the engine has three FP8 conversion settings (`GLM5_FLASH_KDA_FP8`,
+this comparison (since this was written the checkpoint has become a fifth configuration, `k325-fp8`; section 15
+gives measured bits per weight for all five and a short primer on the formats). FP8 settings: the engine has three FP8 conversion settings (`GLM5_FLASH_KDA_FP8`,
 `GLM5_FLASH_FP8_HEAD`, `GLM5_FLASH_FP8_PREFILL`). `anchor` is launched with all three off, which keeps its BF16
 core matrices and head at BF16. As logged at load, KDA FP8 reads Off in all nine serving launches of the three
 probe arms; the FP8 prefill setting reads none in `anchor` and `[Mla, Ffn]` in `hqa` and `compact`; the head reads
@@ -723,7 +726,10 @@ its most likely token a probability of at least 0.5.
   prediction; it does not locate the gap, which was seen in generated replies at 127K. Pooled over four passes the
   gap matches unfinished replies: 14 of 240 at 127K against 7, 5 and 4, with finished replies level (0.942 against
   0.936-0.945). The two pass sets do not agree on that split or on the task family, so where the gap comes from is
-  not settled. Strength: indicated, not established (section 11).
+  not settled. Strength: indicated, not established (section 11). *Added later on 2026-11-12:* section 14 locates
+  it. The gap is `join` replies at 127K that did not finish (10 of 80 against 4, 2 and 1
+  in `anchor`, `hqa` and `exlr8-k4`); where `compact` answered it was as right as the others. Whether the K6
+  projections cause the higher rate is indicated, not established.
 - **What the memory buys on this hardware.** Of the first step, 3,510 MiB is in the 45 layers (1,755 MiB on each
   GPU) and 756 MiB is the output head (1,210 MiB in BF16 against 454 MiB in K6), which `ATTENTION_MODE` does not
   select; the second step is all in the layers (1,284 MiB on each GPU). Resident weights fall by the same amounts
@@ -755,3 +761,274 @@ its most likely token a probability of at least 0.5.
 
 Limits: one model family; one engine release; synthetic tasks; 60 items per length; K4-class checkpoints only;
 BF16 reference to 14.4K only.
+
+## 14. How the replies ended, four passes (post hoc, added 2026-11-12)
+
+Sections 11 and 13 leave open where `compact`'s lower score at 127K comes from. This section counts how each of
+the 3,840 replies of the four passes ended and, for those that did not finish, what their reasoning was made of.
+It is descriptive and post hoc: the classification was written on 2026-11-12 after the four-pass results were
+read, and its intervals come on top of the 102 per pass set of section 11. The counts are from
+`analysis/endings.py` (`analysis/ENDINGS.json`), which reads the per-request tables and `analysis/endings.csv`;
+that file holds counts over each reply's reasoning, made by `analysis/make_endings.py` from the saved replies. No
+reply text is published.
+
+How each request ended, four passes (of 960 per arm):
+
+| arm | every field right | 1 field wrong | 2 wrong | 3 or more wrong | reply cap | loop abort |
+|---|---|---|---|---|---|---|
+| anchor | 760 | 133 | 45 | 13 | 7 | 2 |
+| hqa | 768 | 132 | 40 | 11 | 7 | 2 |
+| compact | 739 | 151 | 39 | 13 | 15 | 3 |
+| exlr8-k4 | 738 | 164 | 35 | 15 | 8 | 0 |
+
+The same at 127K (of 240 per arm):
+
+| arm | every field right | 1 field wrong | 2 wrong | 3 or more wrong | reply cap | loop abort |
+|---|---|---|---|---|---|---|
+| anchor | 165 | 41 | 20 | 7 | 5 | 2 |
+| hqa | 167 | 38 | 24 | 6 | 4 | 1 |
+| compact | 159 | 41 | 18 | 8 | 13 | 1 |
+| exlr8-k4 | 154 | 56 | 18 | 8 | 4 | 0 |
+
+`reply cap`: the reply reached the 32,768-token cap (finish class `cap`). `loop abort`: the engine stopped it for
+repetition (finish class `repetition`). Both score 0 under the frozen rule; "unfinished" means one of the two.
+
+**All 44 unfinished replies ended inside the reasoning; none had written any answer text.** They sit in four of
+the twelve family-length cells:
+
+| arm | `join` 127K | `ledger` 64K | `ledger` 127K | `trace` 16K | all |
+|---|---|---|---|---|---|
+| anchor | 4 | 2 | 3 | 0 | 9 |
+| hqa | 2 | 4 | 3 | 0 | 9 |
+| compact | 10 | 3 | 4 | 1 | 18 |
+| exlr8-k4 | 1 | 4 | 3 | 0 | 8 |
+
+`ledger` has 5, 7, 7 and 7 over its two lengths: level across the arms. `compact`'s excess is `join` at 127K: 10
+of 80 against 4, 2 and 1.
+
+**What the unfinished reasoning was made of.** A `join` item is a list of records of three kinds in no order
+(courier carries parcel, parcel routes via hub, hub ships from dock); the question names eight couriers and asks
+for each one's dock, three lookups per answer. At 127K the prompt holds about 8,660 records. A *step line* is a
+line of the reasoning that carries the record following, in the prompt, the record of the previous such line: the
+reply is writing the prompt's records out in the prompt's order. A reply counts as *copying* when step lines make
+up at least half of its reasoning by characters, and a *copy run* is 20 or more step lines in a row. The 44
+replies are listed with their shares in `ENDINGS.json`, so another threshold can be applied.
+
+| arm | `join`: copying | `join`: other | `ledger`: copying | `ledger`: other | `trace`: other |
+|---|---|---|---|---|---|
+| anchor | 4 | 0 | 3 | 2 | 0 |
+| hqa | 1 | 1 | 0 | 7 | 0 |
+| compact | 9 | 1 | 1 | 6 | 1 |
+| exlr8-k4 | 1 | 0 | 5 | 2 | 0 |
+
+Of the 17 unfinished `join` replies, 15 are copying. One more (`hqa`) has a copy run and a share just under the
+threshold (0.49); the last (`compact`) has no copy run and is 116 thousand characters of other reasoning. In
+`ledger` the make-up differs by arm (none of `hqa`'s 7 is copying, 5 of `exlr8-k4`'s 7 are) on counts of 5 to 7;
+no reading is taken from that.
+
+`join` at 127K, 80 requests per arm, every reply whether it finished or not:
+
+| arm | unfinished, of 80 | by pass | replies with a copy run | of those, finished | of those, unfinished | unfinished with all 8 answers written before the run | items with an unfinished reply, of 20 |
+|---|---|---|---|---|---|---|---|
+| anchor | 4 | 3 / 1 / 0 / 0 | 8 | 4 | 4 | 3 | 4 |
+| hqa | 2 | 0 / 2 / 0 / 0 | 5 | 3 | 2 | 0 | 2 |
+| compact | 10 | 1 / 2 / 4 / 3 | 11 | 2 | 9 | 9 | 8 |
+| exlr8-k4 | 1 | 0 / 0 / 1 / 0 | 4 | 3 | 1 | 1 | 1 |
+
+The 15 copying replies have the same shape in every arm, `anchor` included. The reasoning runs for 3.7 to 13.5
+thousand characters, then starts writing the prompt's records out in order and goes on until the reply cap (one
+`anchor` reply was stopped by the loop abort at 25,575 tokens). In 13 of the 15, all eight correct docks had
+already been written in the reasoning before the copy run started; in the other two, seven had. That is a text
+match on the dock identifiers (four characters, about 2,900 distinct ones in a 127K prompt); it does not check
+that each dock was attached to the right courier. A copy run is not always the end of a reply: 4, 3, 2 and 3
+replies with one went on to finish, and scored 1.000, 1.000, 1.000 and 0.958. In `join`, copy runs occur at 127K
+only, apart from one `compact` reply at 64K that finished. `compact` has more replies with a copy run than the
+other arms (11 against 8, 5 and 4) and fewer of them finished (2 against 4, 3 and 3). Across the four arms, 11 of
+the 20 `join` items have at least one unfinished reply at 127K.
+
+**Where it answered, `compact` was as right as the others.** Score at 127K by family, four passes, and the score
+of the finished replies alone:
+
+| arm | `join` | `ledger` | `trace` | all | finished only: `join` | finished only: `ledger` | finished only: `trace` | finished only: all |
+|---|---|---|---|---|---|---|---|---|
+| anchor | 0.945 | 0.839 | 0.969 | 0.918 | 0.995 | 0.872 | 0.969 | 0.945 |
+| hqa | 0.972 | 0.836 | 0.966 | 0.924 | 0.997 | 0.869 | 0.966 | 0.944 |
+| compact | 0.866 | 0.820 | 0.975 | 0.887 | 0.989 | 0.864 | 0.975 | 0.942 |
+| exlr8-k4 | 0.980 | 0.828 | 0.953 | 0.920 | 0.992 | 0.860 | 0.953 | 0.936 |
+
+Each family is a third of the requests at 127K, so a difference in score there splits into three parts (the
+family's own difference divided by 3):
+
+| difference in score at 127K | all | from `join` | from `ledger` | from `trace` |
+|---|---|---|---|---|
+| `anchor` - `compact` | +0.031 | +0.027 | +0.006 | -0.002 |
+| `hqa` - `compact` | +0.037 | +0.035 | +0.005 | -0.003 |
+| `exlr8-k4` - `compact` | +0.033 | +0.038 | +0.003 | -0.007 |
+
+Paired differences in the share of unfinished replies (b - a per item, repeats averaged within the item, 95%
+interval from 10,000 item resamples: Python `random.Random(5)`, the sorted draws at indices 250 and 9,749; 60
+items in the all-families rows, 20 in the `join` and `ledger` rows). Post hoc: the table shows 27 of the 60
+intervals of this kind in `ENDINGS.json` (5 pairs, 3 pass sets, 4 cells); 9 of the 60 exclude 0, 8 of them here,
+and no correction is applied:
+
+| difference in the share of unfinished replies | passes 1-2 | passes 3-4 | four passes |
+|---|---|---|---|
+| `compact` - `anchor`, 127K, all families | +0.000 [-0.050, +0.050] | +0.058 [+0.000, +0.125] | +0.029 [-0.008, +0.067] |
+| `compact` - `hqa`, 127K, all families | +0.017 [-0.025, +0.067] | +0.058 [+0.008, +0.117] | +0.037 [+0.008, +0.071] |
+| `compact` - `exlr8-k4`, 127K, all families | +0.033 [+0.000, +0.075] | +0.050 [+0.000, +0.108] | +0.042 [+0.008, +0.079] |
+| `compact` - `anchor`, 127K, `join` | -0.025 [-0.150, +0.100] | +0.175 [+0.050, +0.325] | +0.075 [-0.013, +0.163] |
+| `compact` - `hqa`, 127K, `join` | +0.025 [-0.075, +0.125] | +0.175 [+0.050, +0.325] | +0.100 [+0.025, +0.175] |
+| `compact` - `exlr8-k4`, 127K, `join` | +0.075 [+0.000, +0.150] | +0.150 [+0.050, +0.275] | +0.113 [+0.050, +0.175] |
+| `compact` - `anchor`, 127K, `ledger` | +0.025 [-0.050, +0.100] | +0.000 [-0.100, +0.100] | +0.013 [-0.050, +0.075] |
+| `compact` - `hqa`, 127K, `ledger` | +0.025 [-0.050, +0.100] | +0.000 [-0.075, +0.075] | +0.013 [-0.037, +0.062] |
+| `compact` - `exlr8-k4`, 127K, `ledger` | +0.025 [-0.050, +0.100] | +0.000 [-0.100, +0.100] | +0.013 [-0.062, +0.087] |
+
+Finished replies at 127K are about as long in every arm: median 4.8 to 5.0 thousand tokens, 99th percentile 25 to
+29 thousand, and 11, 5, 9 and 7 of them longer than half the cap.
+
+### Reading
+
+- **`compact`'s 127K gap is `join` replies that did not finish, not answers that were wrong.** Of the 0.037 between
+  `hqa` and `compact` at 127K, 0.035 is `join`; of the 0.031 between `anchor` and `compact`, 0.027. The finished
+  replies score level in every family (`join` 0.989 against 0.992 to 0.997, `ledger` 0.864 against 0.860 to
+  0.872, `trace` 0.975 against 0.953 to 0.969). Basis: 960 requests per arm, every unfinished reply classified.
+  Strength: this is a count of what happened, not an estimate; it holds for these four passes.
+- **The ending is one every arm shows, the BF16-core `anchor` included.** The reasoning has written all
+  or all but one of the answers, starts copying the records and does not come back. `anchor` has 4 such replies
+  of 80, `hqa` 1 and one just under the copying threshold, `exlr8-k4` 1, `compact` 9 and one of another kind. It is a way this model's reasoning fails to terminate on a long lookup
+  task under these settings, seen at every core precision measured here; `compact` shows it more often.
+- **Whether the K6 `q_b_proj` and `o_proj` raise its rate is indicated, not established.** For: `hqa` and
+  `compact` are one checkpoint and differ in those two projections alone, and `compact` has 10 unfinished of 80
+  against 2 (+0.100 [+0.025, +0.175]), over 8 items against 2. Against: `anchor`, whose projections are BF16 as
+  `hqa`'s are, has 4, and the interval against it includes 0 (+0.075 [-0.013, +0.163]); by pass the counts are 1,
+  2, 4 and 3 for `compact` against 3, 1, 0 and 0 for `anchor`, so the first two passes alone show no excess. The
+  event is rare (17 replies of 320), the items are 20 and the classification is post hoc.
+- **What this changes in sections 11 and 13.** The size of the gap stands. Its nature is narrower than "a cost of
+  about one point" suggests: about one `join` reply in eight at 127K did not return an answer (the other arms:
+  one in 20 to one in 80), and no loss of accuracy is measured on the replies that did. A reply that runs to the
+  cap takes 14 to 17 minutes at the median decode rates of section 11 and returns nothing.
+- **Not measured:** a larger reply cap, so whether these replies would have ended on their own is not known;
+  other sampling settings; a limit on reasoning length; natural documents. `trace` and the shorter lengths show
+  no excess for `compact` (one loop abort at 16K).
+
+Limits: post hoc; 20 items per family; one threshold for "copying" (0.5) and one for a copy run (20 lines), both
+chosen after the replies were seen; the dock check is a text match.
+
+## 15. Bits per weight: one unit for the five configurations (added 2026-11-12)
+
+The configurations here mix several storage formats inside one model, and their names ("K4", "K3.25", "Core-K6",
+"FP8") each describe one part. This section puts them on one unit, **bits per weight**, counted from the files.
+
+### A short primer
+
+- **Weights and bits.** A language model is a set of matrices of numbers, its weights. This model's language
+  part has 320.8 billion of them. Bits per weight is how many bits of storage each weight gets, on average: the
+  storage for a part of the model divided by the number of weights in it. It sets the size of the files and,
+  closely, of the model in memory, and lower values are coarser copies of the original.
+- **BF16** is 16 bits per weight, the format the model was released in. It is "full precision" here and the 100%
+  mark. At 16 bits the language model would be 597 GiB.
+- **FP8** is an 8-bit floating-point number per weight plus a small table of scales: 8.0 to 8.3 bits per weight
+  as stored in these files.
+- **EXL3 and the K numbers.** EXL3 is a trellis-coded format: a matrix is stored as a code of K bits per weight
+  plus two short scale vectors. K4 is 4 bits per weight (4.01 as stored), K6 is 6 (6.01).
+- **Mixed widths.** A fractional K is an average over matrices, not a width. In the K3.25 checkpoint three
+  quarters of the expert matrices are stored at 3 bits and one quarter at 4 (27,216 and 9,072 matrices). Which
+  matrix gets which width is the checkpoint author's allocation and is not examined here.
+- **EXLR8** is another trellis-coded format by another author. Its K4 experts are 4.00 bits per weight; the same
+  nominal width in a different design is not the same code, so `exlr8-k4` is read as a whole checkpoint.
+- **Where the weights are.** 94.9% of the weights are the routed experts: 288 small feed-forward blocks in each
+  of 42 layers, of which a token passes through 8 per layer. Everything else in the main layers (attention,
+  shared experts, the dense feed-forward of the first three layers, the output head, the embedding) is 2.8%, and
+  every token passes through all of it. A further 2.3% is a multi-token-prediction block stored after the main
+  layers. So the name on a checkpoint describes its experts and nearly fixes its size, while `anchor`, `hqa` and
+  `compact` differ inside the 2.8% (and, for `hqa`, in a 0.1 GiB part of the multi-token-prediction block).
+- **Names of the parts.** The core is everything in the main layers outside the routed experts. The shared
+  experts are a feed-forward block beside the routed ones that every token passes through. `o_proj` and
+  `q_b_proj` are two of the attention projection matrices of a layer, the two that `ATTENTION_MODE` selects the
+  precision of. The output head turns the last hidden state into token scores. KDA is the engine's name, in its
+  load line (the line it logs when a checkpoint is loaded), for a group of attention matrices it can hold as FP8.
+- **Configurations and checkpoints.** There are five configurations and four checkpoints: `hqa` and `compact`
+  are two settings of one checkpoint.
+- **Stored is not the same as run.** The table counts what the files hold. The engine can hold a matrix in
+  another form in memory; where it does, that is said below the table. Memory in use is in section 13.
+
+### Bits per weight by component
+
+From `analysis/bpw.py` (`analysis/BPW.json`): it reads the header of every checkpoint file (tensor names, types
+and sizes; no weight is loaded) and counts, for each matrix, the stored bits of its payload and of its scale and
+sign vectors against rows x columns of the matrix they stand for. Alignment padding, checksums and index records
+are left out, and so is the vision tower (every configuration ran with vision off). `hqa` and `compact` are two
+readings of one checkpoint, which stores `o_proj` and `q_b_proj` twice: `hqa` counts the BF16 copy, `compact` the
+K6 copy.
+
+| component | share of weights | `anchor` | `hqa` | `compact` | `exlr8-k4` | `k325-fp8` |
+|---|---|---|---|---|---|---|
+| routed experts | 94.90% | 4.01 | 4.01 | 4.01 | 4.00 | 3.26 |
+| shared experts | 0.33% | 16.00 | 6.01 | 6.01 | 4.00 | 8.00 |
+| dense MLP (layers 0-2) | 0.14% | 16.00 | 6.01 | 6.01 | 4.01 | 8.00 |
+| attention: o_proj and q_b_proj | 0.67% | 16.00 | 16.00 | 6.01 | 4.01 | 12.23 |
+| attention: other projections | 1.22% | 16.00 | 7.00 | 7.00 | 8.26 | 15.81 |
+| output head | 0.20% | 16.00 | 6.00 | 6.00 | 8.01 | 16.00 |
+| embedding | 0.20% | 16.00 | 16.00 | 16.00 | 8.01 | 16.00 |
+| other | 0.03% | 16.00 | 16.00 | 16.00 | 16.00 | 16.00 |
+| multi-token-prediction block | 2.32% | 4.05 | 4.20 | 4.05 | 4.04 | 3.33 |
+| outside the routed experts, main layers | 2.78% | 16.00 | 9.66 | 7.25 | 6.55 | 13.65 |
+| **whole language model** | 100% | **4.35** | **4.17** | **4.10** | **4.08** | **3.55** |
+| share of BF16 (bits per weight / 16) |  | 27.2% | 26.1% | 25.6% | 25.5% | 22.2% |
+| stored, GiB |  | 162.3 | 155.8 | 153.2 | 152.2 | 132.7 |
+
+`k325-fp8` is a fifth configuration, the K3.25-Core-FP8 checkpoint (`wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8`,
+revision d31ebc92), which the engine's own starting config for two RTX cards uses. Its four task passes and
+its distance from BF16 are running under amendment 2 (`protocol/AMENDMENT-2026-11-12.md`, written before their first request); this section holds
+its file accounting only.
+
+What the rows mix. `hqa` and `compact`, other attention projections at 7.00: 90% K6 and 10% BF16. `k325-fp8`:
+shared experts and dense feed-forward FP8; `o_proj` and `q_b_proj` 53% BF16 and 47% FP8; other attention
+projections 97% BF16; head and embedding BF16. `exlr8-k4`: `o_proj`, `q_b_proj`, shared experts and dense
+feed-forward in its 4-bit trellis; other attention projections FP8 with block scales (8.26); head and embedding
+FP8 with one scale per row (8.01). The multi-token-prediction block is stored almost wholly at the experts'
+width in every checkpoint, `anchor`'s included; its BF16 part is largest in `hqa` (1.6% of the block), whose
+reading counts that block's `o_proj` and `q_b_proj` at BF16 too. Whether the engine uses that block when serving
+was not checked.
+
+As run, from each launch's load line. `anchor`: no FP8 conversion, head BF16. `hqa` and `compact`: head K6, as
+stored. `exlr8-k4`: head FP8 with row scales, as stored. **`k325-fp8`: under the engine's defaults the load line
+reports the attention group it calls KDA held as FP8, converted at load (`kda_fp8=Row128`: 2,844 MiB as FP8, 0 MiB
+as BF16), and an FP8 output head (624 MiB, against 1,210 MiB for the BF16 head in `anchor`).** So part of what
+this file stores at BF16 is run at FP8, and its 13.65 bits outside the routed experts is a property of the file,
+not of the launch. An as-run figure is not computed, because the logs do not itemize the conversion by matrix.
+
+### Size beside what was measured
+
+| | `anchor` | `hqa` | `compact` | `exlr8-k4` | `k325-fp8` |
+|---|---|---|---|---|---|
+| Bits per weight, whole language model | 4.35 | 4.17 | 4.10 | 4.08 | 3.55 |
+| Share of BF16 | 27.2% | 26.1% | 25.6% | 25.5% | 22.2% |
+| Bits per weight outside the routed experts, as stored | 16.00 | 9.66 | 7.25 | 6.55 | 13.65 |
+| Stored, GiB | 162.3 | 155.8 | 153.2 | 152.2 | 132.7 |
+| KL from BF16, fidelity set, to 14.4K (section 12) | 0.0328 | 0.0302 | 0.0314 | 0.0360 | running |
+| Task score, four passes, all lengths (section 11) | 0.956 | 0.959 | 0.946 | 0.955 | running |
+| Task score at 127K | 0.918 | 0.924 | 0.887 | 0.920 | running |
+| Replies at 127K that did not finish, of 240 (section 14) | 7 | 5 | 14 | 4 | running |
+
+### Reading
+
+- **Every configuration here is a 22% to 27% copy of the BF16 model by bits.** The four measured ones span 4.08
+  to 4.35 bits per weight, 0.27 bits end to end, because their experts are all at 4 bits and the experts are 95%
+  of the weights.
+- **`hqa` to `compact` moves 0.67% of the weights from 16 bits to 6** in the main layers: 4.17 to 4.10 bits per
+  weight, 2.6 GiB of files, 0.1 GiB of it the same two projections in the multi-token-prediction block.
+  `anchor` to `compact` moves 2.4% of the weights from 16 bits to about 6 or 7: 4.35 to 4.10, 9.1 GiB.
+  The embedding stays at BF16 in all three.
+- **`k325-fp8` is the one that changes the experts**: 3.26 bits against 4.01 there, which is 20.5 GiB less than
+  `compact`, with a core stored at more bits than `hqa`'s or `compact`'s (stored; see "as run" above).
+- **Bits per weight is a size, not a quality score.** Among the four measured configurations distance from BF16
+  and task score do not follow it: `hqa` at 4.17 is no farther from BF16 than `anchor` at 4.35 on either set
+  (section 12), and `exlr8-k4` at 4.08 scores level with `anchor`. The unit says what was spent; sections 11 to
+  14 say what it bought.
+
+Limits: file accounting, not memory in use and not arithmetic precision at run time; the vision tower is not
+counted (every configuration ran with vision off); whether the engine uses the multi-token-prediction block when
+serving was not checked; the HQA checkpoint is no
+longer on the hub and `anchor`'s is derived locally, so the script can be rerun by a reader on `exlr8-k4` and
+`k325-fp8` only.
