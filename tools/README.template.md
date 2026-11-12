@@ -66,7 +66,7 @@ follow-ups [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking
 [`results/2026-11-06-vllm-code-thinking`](results/2026-11-06-vllm-code-thinking/) (the same prompts on the vLLM fork; two
 exploratory follow-ups are listed under other runs), and
 [`results/2026-11-10-context-probe`](results/2026-11-10-context-probe/) (CuteAFD v5.0.0: three core precisions on graded
-tasks from 4K to 127K tokens). One machine, one model family, one
+tasks from 4K to 127K tokens, and an EXLR8 K4 reference checkpoint added later). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket

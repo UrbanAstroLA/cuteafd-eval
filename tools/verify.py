@@ -236,7 +236,8 @@ def check_findings():
         elif rc["kind"] == "item_paired_difference":
             import random
             def val(r): return int(r["correct"]) / int(r["fields"]) if r["finish_class"] == "stop" and int(r["fields"] or 0) else 0.0
-            F = {(r["arm"], r["pass"], r["item"], r["length"]): r for r in rows(rc["data"]) if r["final"] == "1" and r["status"] == "ok"}
+            F = {(r["arm"], r["pass"], r["item"], r["length"]): r for d in ([rc["data"]] if isinstance(rc["data"], str) else rc["data"])
+                 for r in rows(d) if r["final"] == "1" and r["status"] == "ok"}
             fam = {k[2]: r["family"] for k, r in F.items()}
             items = sorted(i for i in fam if rc.get("family") in (None, fam[i]))
             cells = [(p, L) for p in rc["passes"] for L in rc["lengths"]]
@@ -253,8 +254,9 @@ def check_findings():
                 d = [sc(rc["b"], i) - sc(rc["a"], i) for i in items]
                 bs = sorted(sum(d[rng.randrange(n)] for _ in range(n)) / n for _ in range(draws))
                 got = [sum(d) / n, bs[int(0.025 * draws)], bs[int(0.975 * draws)]]
-            got = [round(x, 4) for x in got]; want = [f["result"]["value"]] + list(f["result"]["ci95"])
-            if got != want or n != f["result"]["items"]: fails.append(f"findings {fid}: recomputed {got} over {n} items, findings.json says {want} over {f['result']['items']}")
+            fr = f["result"][rc["result"]] if "result" in rc else f["result"]        # an entry with several results names the one recomputed
+            got = [round(x, 4) for x in got]; want = [fr["value"]] + list(fr["ci95"])
+            if got != want or n != fr["items"]: fails.append(f"findings {fid}: recomputed {got} over {n} items, findings.json says {want} over {fr['items']}")
             continue
         else:
             fails.append(f"findings {fid}: unknown recompute kind {rc['kind']}"); continue

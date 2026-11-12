@@ -915,6 +915,17 @@ def V5_LATEST(lk):
     lo4 = min(SL[a]["single"]["4k"]["score"] for a in SL); hi4 = max(SL[a]["single"]["4k"]["score"] for a in SL)
     kv = S["launch"]["kv_pool_tokens_serving"]["anchor"]
     v5 = lk("CuteAFD v5", "v5.html", "results/2026-11-10-context-probe/")
+    ref = ""
+    if "reference" in S:                    # reference checkpoint added after the results were read; outside the frozen comparison
+        P = S["reference"]["paired"]
+        def r(pair, k="all"):
+            return "%s [%s, %s]" % tuple(("0.000" if round(x, 3) == 0 else f"{x:+.3f}").replace("-", "−") for x in P[pair]["score"][k][:3])
+        ref = (f"- **Added after the results were read: a reference checkpoint in another quantisation format (`exlr8-k4`), no difference\n"
+               f"  measured from `anchor` or `hqa`:** field score `exlr8-k4` − `anchor` {r('exlr8-k4 - anchor')}, − `hqa` {r('exlr8-k4 - hqa')} (two\n"
+               f"  single-message passes, post hoc). Against `compact` {r('exlr8-k4 - compact')}, on the partial-credit score only and one of\n"
+               f"  {S['reference']['intervals']['computed']} intervals: a lead, not a finding. It is a different checkpoint, not a setting of the same one, so no\n"
+               f"  difference from an arm is attributable to one component. Two further single-message passes per arm are in progress\n"
+               f"  (amendment 1); none of their numbers is published.\n")
     return f"""**Latest: CuteAFD v5.0.0, core precision at long context (2026-11-10/11).** v5.0.0 adds `ATTENTION_MODE`: the core of
 the K4-Core-K6-HQA checkpoint runs with two attention projection groups in BF16 (`hqa`, the default) or all K6
 (`compact`). Both were set against a BF16 core (`anchor`, a locally derived checkpoint, the reference) on 60 graded
@@ -922,7 +933,7 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
 
 - **Neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` {d("hqa - anchor")},
   `compact` − `anchor` {d("compact - anchor")}, pooled over lengths (95% interval over items; frozen rule).
-- **Accuracy falls with length in every arm, the reference included** ({lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
+- **Accuracy falls with length in every probe arm, `anchor` included** ({lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
   that loss is not produced by core precision. A third to a half of it is replies that did not finish.
 - **One slice leans against the K6 core:** running totals at 64K and 127K, where `compact` is nominally lower. Twenty
   items do not decide it; a post hoc lead, not a finding.
@@ -930,7 +941,7 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
   memory headroom, not context room.
 - **The eight-turn pass tested split delivery, not model-written history** (under 1% of a long prompt was written by
   the model); its design is to be revised.
-- The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. {v5}
+{ref}- The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. {v5}
 
 """
 

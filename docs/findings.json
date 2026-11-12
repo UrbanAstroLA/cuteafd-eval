@@ -28,7 +28,7 @@
   "median_reasoning_tokens": "median over finished replies",
   "context_probe": {
    "applies_to": "CP-* entries (results/2026-11-10-context-probe); the definitions above apply to TL-* entries",
-   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0)",
+   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0); for the reference checkpoint, the same rows of analysis/samples-reference.csv beside them",
    "request_score": "correct / fields if finish_class == 'stop' and fields > 0, else 0 (a reply that hit the cap or was ended by the loop abort scores 0)",
    "every_field_right": "request_score == 1",
    "item_paired_difference_frozen": "for each item, over the (pass, length) cells in recompute.passes x recompute.lengths where both arms have a row: request_score(b) - request_score(a); mean within the item (statistics.fmean); estimate = mean over items, rounded to 4 places. Interval: items in sorted order, rng = random.Random(5); 10,000 draws, each the fmean of n values vals[rng.randrange(n)]; sorted draws at indices 250 and 9749",
@@ -50,6 +50,10 @@
     "hqa": "K4-Core-K6-HQA checkpoint, default mode: BF16 q_b_proj (12 matrices) and o_proj (46), rest of the core and the output head K6",
     "compact": "the same checkpoint with ATTENTION_MODE=compact: K6 core and output head"
    },
+   "reference_checkpoint": {
+    "exlr8-k4": "native EXLR8 K4 checkpoint (revision in the run's RUN.json), added after the three-arm results were read; two single-message passes, no eight-turn pass. A different checkpoint from the three arms, not a setting of the same one: a difference from an arm is a whole-checkpoint difference, not attributable to one component"
+   },
+   "amendment_1": "protocol/AMENDMENT-2026-11-11.md adds single-message passes 3 and 4 per arm (single-rep2, single-rep3); in progress, no number published",
    "checkpoint_availability": "the K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy downloaded on 2026-11-10"
   },
   "arms": {
@@ -1624,6 +1628,468 @@
     {
      "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
      "what": "sections 10 to 13 (exploratory results recorded before the freeze)"
+    }
+   ],
+   "data": []
+  },
+  {
+   "id": "CP-reference-exlr8-k4",
+   "question": "How does a native EXLR8 K4 checkpoint of the same model, served by the same engine, score on the same graded tasks from 4K to 127K tokens?",
+   "answer": "No difference measured from anchor or hqa: +0.006 [-0.007, +0.019] against anchor and +0.006 [-0.008, +0.019] against hqa. Against compact its field score is higher post hoc: +0.016 [+0.004, +0.029] over four lengths, +0.030 [+0.006, +0.056] at 64K and 127K pooled, +0.002 [-0.006, +0.009] at 4K and 16K. That is a lead, not a finding: the checkpoint was added after the results were read, and this is one of 84 intervals computed without correction, of which 3 exclude 0 (all exlr8-k4 - compact on field score). It is on the partial-credit score only: on every field right the pair does not separate (+0.025 [-0.017, +0.065]). exlr8-k4 is a different checkpoint from the three probe arms, not a setting of the same one. Any difference from a probe arm is a whole-checkpoint difference and is not attributable to one component. Basis: two single-message passes, 60 items, 480 requests per arm, 0 errors, prompt tokens equal to anchor's on every request; strength: low for the difference from compact (post hoc, one of many intervals), moderate for the absence of a measured difference from anchor and hqa (one model family, synthetic tasks, intervals of about 0.013 either side).",
+   "status": "measurement: post hoc",
+   "result": {
+    "exlr8-k4 - anchor": {
+     "name": "field score, exlr8-k4 - anchor, single message, four lengths, two passes",
+     "value": 0.0063,
+     "ci95": [
+      -0.0068,
+      0.019
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    },
+    "exlr8-k4 - hqa": {
+     "name": "field score, exlr8-k4 - hqa, single message, four lengths, two passes",
+     "value": 0.0063,
+     "ci95": [
+      -0.0081,
+      0.0193
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    },
+    "exlr8-k4 - compact": {
+     "name": "field score, exlr8-k4 - compact, single message, four lengths, two passes",
+     "value": 0.0159,
+     "ci95": [
+      0.0036,
+      0.0294
+     ],
+     "ci_over": "items",
+     "detected": true,
+     "items": 60
+    }
+   },
+   "direction": "b - a with the reference checkpoint as b: above 0 = exlr8-k4 scored higher",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#reference",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/paired/exlr8-k4 - anchor/score/all",
+     "what": "field score, exlr8-k4 - anchor, single message, four lengths, two passes [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0063,
+      -0.0068,
+      0.019,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/paired/exlr8-k4 - hqa/score/all",
+     "what": "field score, exlr8-k4 - hqa, single message, four lengths, two passes [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0063,
+      -0.0081,
+      0.0193,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/paired/exlr8-k4 - compact/score/all",
+     "what": "field score, exlr8-k4 - compact, single message, four lengths, two passes [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0159,
+      0.0036,
+      0.0294,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/paired/exlr8-k4 - compact/score/64k+128k",
+     "what": "field score, exlr8-k4 - compact, 64K and 127K pooled [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0297,
+      0.0063,
+      0.0557,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/paired/exlr8-k4 - compact/score/4k+16k",
+     "what": "field score, exlr8-k4 - compact, 4K and 16K pooled",
+     "value": [
+      0.0021,
+      -0.0057,
+      0.0094,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/paired/exlr8-k4 - compact/every_field_right/all",
+     "what": "every field right, exlr8-k4 - compact, four lengths",
+     "value": [
+      0.025,
+      -0.0167,
+      0.0646,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/intervals/computed",
+     "what": "intervals computed for the reference reading",
+     "value": 84
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/intervals/excluding_zero",
+     "what": "the intervals that exclude 0",
+     "value": [
+      {
+       "pair": "exlr8-k4 - compact",
+       "measure": "score",
+       "lengths": "128k",
+       "value": [
+        0.0448,
+        0.0094,
+        0.0854,
+        60
+       ]
+      },
+      {
+       "pair": "exlr8-k4 - compact",
+       "measure": "score",
+       "lengths": "all",
+       "value": [
+        0.0159,
+        0.0036,
+        0.0294,
+        60
+       ]
+      },
+      {
+       "pair": "exlr8-k4 - compact",
+       "measure": "score",
+       "lengths": "64k+128k",
+       "value": [
+        0.0297,
+        0.0063,
+        0.0557,
+        60
+       ]
+      }
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/by_length/exlr8-k4/all/score",
+     "what": "exlr8-k4: field score over four lengths [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.9612,
+      0.9471,
+      0.9729,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/requests/exlr8-k4",
+     "what": "requests",
+     "value": 480
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/errors/exlr8-k4",
+     "what": "errors",
+     "value": 0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/prompt_tokens_equal_to_anchor/exlr8-k4",
+     "what": "requests whose prompt token count equals anchor's",
+     "value": 480
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/reference/checkpoint",
+     "what": "checkpoint and revision",
+     "value": "kindlingai/glm-5.3-flash-exlr8-k2-k3-k4 @ 867580abd28d142bb4c56218bb81a752b7dea988, manifest k4"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/analysis/REFERENCE.json",
+     "pointer": "/paired/exlr8-k4 - anchor/score/all",
+     "what": "the same interval in the analysis output",
+     "value": [
+      0.0063,
+      -0.0068,
+      0.019,
+      60
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv",
+    "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+    "results/2026-11-10-context-probe/analysis/REFERENCE.json"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv"
+    ],
+    "a": "compact",
+    "b": "exlr8-k4",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/reference.py",
+    "result": "exlr8-k4 - compact",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "draw": "items sorted by id; each draw is statistics.fmean of n values vals[rng.randrange(n)], one randrange call per element; the 10,000 draws are sorted and read at the two indices",
+     "definition": "definitions.context_probe.item_paired_difference_frozen"
+    }
+   },
+   "note": "Outside the frozen comparison: the reference checkpoint was added after the three-arm results were read. The estimator is the frozen rule's (item_paired_difference_frozen), applied post hoc. The eight-turn pass was not run on it."
+  },
+  {
+   "id": "CP-reference-capture",
+   "question": "With the engine scoring given texts instead of generating, does the EXLR8 K4 reference checkpoint predict the text worse than the three probe arms, and how far apart are the arms?",
+   "answer": "Not measurably worse at predicting the text: over the whole capture the most likely token is the given one as often as for anchor (-0.0007 [-0.0037, +0.0023] on the prefill path; the interval spans 0 on both paths); values by depth band are published without intervals. Its mean NLL is lower than anchor's (-0.0134 [-0.0199, -0.0070] nats, prefill path), which is not read as an improvement: 99 of 9,728 positions carry -91.48 of the -130.40 nat (70% of the sum), the median per-position difference is 0 and the arm is ahead on fewer than half of the positions. Distance from the unquantized BF16 model is not measured for these four configurations in this run; the repository's BF16-referenced panels (texts to 14.4K tokens) cover other checkpoints. Between arms, which is not a distance from the BF16 model: the three probe arms share their experts, so the distance between two of them reflects the settings outside the experts alone, the core and for anchor the output head (prefill path, median KL 0.0004 to 0.0006, most likely token different on 4.20% to 5.15% of positions); exlr8-k4 has its own experts, so its distance to any probe arm (0.0015 to 0.0017; 8.83% to 8.88%) includes both expert quantizations and does not rank it against the probe arms by closeness to the BF16 model. exlr8-k4 is a different checkpoint from the three probe arms, not a setting of the same one. Any difference from a probe arm is a whole-checkpoint difference and is not attributable to one component. Basis: one capture per arm, five texts (not the task items), assistant frame; strength: low (exploratory, one capture, no correction for the number of comparisons).",
+   "status": "exploratory",
+   "result": {
+    "name": "share of positions whose most likely token is the given one, exlr8-k4 minus anchor, prefill path",
+    "value": -0.0007,
+    "ci95": [
+     -0.0037,
+     0.0023
+    ],
+    "ci_over": "runs of consecutive positions within each text",
+    "detected": false
+   },
+   "direction": "KL with the first-named arm as the reference distribution; NLL differences are arm minus anchor (below 0 = the arm predicts the given token better)",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#capture",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/arms/exlr8-k4/top1_minus_ref",
+     "what": "share with the given token most likely, minus anchor's, prefill path [estimate, 2.5%, 97.5%]",
+     "value": [
+      -0.0007,
+      -0.0037,
+      0.0023
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/decode/arms/exlr8-k4/top1_minus_ref",
+     "what": "the same on the decode path",
+     "value": [
+      0.001,
+      -0.0036,
+      0.0057
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_minus_ref",
+     "what": "NLL minus anchor's, prefill path [estimate, 2.5%, 97.5%]",
+     "value": [
+      -0.0134,
+      -0.0199,
+      -0.007
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_difference_rows/median",
+     "what": "median per-position NLL difference from anchor",
+     "value": 0.0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_difference_rows/share_rows_arm_better",
+     "what": "share of positions where the arm's NLL is lower",
+     "value": 0.4755
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_difference_rows/rows_over_1_nat",
+     "what": "positions more than 1 nat from anchor",
+     "value": 99
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_difference_rows/sum_of_those",
+     "what": "their summed difference, nats",
+     "value": -91.48
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_difference_rows/sum",
+     "what": "summed difference over all positions, nats",
+     "value": -130.4
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/against_text/prefill/rows",
+     "what": "positions on the prefill path",
+     "value": 9728
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/anchor | hqa/kl_median",
+     "what": "between arms: median KL, anchor | hqa, prefill path",
+     "value": 0.000542
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/anchor | compact/kl_median",
+     "what": "between arms: median KL, anchor | compact, prefill path",
+     "value": 0.00055
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/anchor | exlr8-k4/kl_median",
+     "what": "between arms: median KL, anchor | exlr8-k4, prefill path",
+     "value": 0.001672
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/hqa | compact/kl_median",
+     "what": "between arms: median KL, hqa | compact, prefill path",
+     "value": 0.000381
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/hqa | exlr8-k4/kl_median",
+     "what": "between arms: median KL, hqa | exlr8-k4, prefill path",
+     "value": 0.00161
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/compact | exlr8-k4/kl_median",
+     "what": "between arms: median KL, compact | exlr8-k4, prefill path",
+     "value": 0.001471
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/anchor | hqa/top1_differs",
+     "what": "between arms: share of positions whose most likely token differs, anchor | hqa, prefill path",
+     "value": 0.0507
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/anchor | compact/top1_differs",
+     "what": "between arms: share of positions whose most likely token differs, anchor | compact, prefill path",
+     "value": 0.0515
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/anchor | exlr8-k4/top1_differs",
+     "what": "between arms: share of positions whose most likely token differs, anchor | exlr8-k4, prefill path",
+     "value": 0.0885
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/hqa | compact/top1_differs",
+     "what": "between arms: share of positions whose most likely token differs, hqa | compact, prefill path",
+     "value": 0.042
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/hqa | exlr8-k4/top1_differs",
+     "what": "between arms: share of positions whose most likely token differs, hqa | exlr8-k4, prefill path",
+     "value": 0.0883
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/capture/between_arms/prefill/all/pairs/compact | exlr8-k4/top1_differs",
+     "what": "between arms: share of positions whose most likely token differs, compact | exlr8-k4, prefill path",
+     "value": 0.0888
+    },
+    {
+     "file": "results/2026-11-10-context-probe/exploratory/capture_pairs.json",
+     "pointer": "/prefill/all/pairs/anchor | exlr8-k4/kl_median",
+     "what": "the same median KL in the capture output",
+     "value": 0.001672
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/exploratory/capture_pairs.json",
+    "results/2026-11-10-context-probe/exploratory/capture_abs.json"
+   ],
+   "note": "The dumps and per-position files behind these numbers are not published; the scripts in exploratory/ document the computation. All four configurations are quantized: anchor has a BF16 core and K4 experts, so a difference from anchor is a difference from another quantization. Full tables: section 10 of RESULTS.md in the run folder."
+  },
+  {
+   "id": "CP-extension-pending",
+   "question": "Do two further single-message passes per arm change the reading?",
+   "answer": "Not known: in progress. Amendment 1 (written 2026-11-11 16:46:31 -0800, before the first request of the added passes) adds single-message passes 3 and 4 for the three arms and the reference checkpoint under the frozen comparison rule. No number from them is published.",
+   "status": "in progress",
+   "result": {
+    "name": "none published"
+   },
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#amendment",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_1/status",
+     "what": "status",
+     "value": "in progress"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_1/sha256",
+     "what": "sha256 of the amendment file",
+     "value": "c3487e41a0194ed57ba968bda809ab8b160d810a02a19b106ec26fe86101d9f8"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_1/pending",
+     "what": "passes pending",
+     "value": [
+      "anchor/single-rep2",
+      "anchor/single-rep3",
+      "hqa/single-rep2",
+      "hqa/single-rep3",
+      "compact/single-rep2",
+      "compact/single-rep3",
+      "exlr8-k4/single-rep2",
+      "exlr8-k4/single-rep3"
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/protocol/AMENDMENT-2026-11-11.md",
+     "what": "the amendment"
     }
    ],
    "data": []

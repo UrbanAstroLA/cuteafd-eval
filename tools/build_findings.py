@@ -380,6 +380,111 @@ def cp_findings():
         "each; numbers are in the protocol text only.", "exploratory", {"name": "see protocol sections 10 to 13"},
         [{"file": f"{CPD}/protocol/PROTOCOL.md", "what": "sections 10 to 13 (exploratory results recorded before the freeze)"}],
         CUTEAFD5, CPD, f"{page}#checks"))
+
+    if "reference" in json.loads((ROOT / S).read_text()):
+        REFA, RJ = "exlr8-k4", f"{CPD}/analysis/REFERENCE.json"
+        rdata = data + [f"{CPD}/analysis/samples-reference.csv"]
+        whole = at(S, "/reference/whole_checkpoint")
+        rp = {a: f"/reference/paired/{REFA} - {a}" for a in CP_ARMS}
+        ra, rh, rc = (at(S, rp[a] + "/score/all") for a in CP_ARMS)
+        rcl, rcs, rcx = at(S, rp["compact"] + "/score/64k+128k"), at(S, rp["compact"] + "/score/4k+16k"), at(S, rp["compact"] + "/every_field_right/all")
+        nint, nex = at(S, "/reference/intervals/computed"), len(at(S, "/reference/intervals/excluding_zero"))
+        def out0(v): return v[1] > 0 or v[2] < 0
+        if out0(ra) or out0(rh) or not out0(rc) or not out0(rcl) or out0(rcs) or out0(rcx):
+            raise SystemExit("findings: the reference checkpoint's intervals no longer match the answer written for them")
+        results, evs = {}, []
+        for a in CP_ARMS:
+            r, e = res(rp[a] + "/score/all", f"field score, {REFA} - {a}, single message, four lengths, two passes")
+            results[f"{REFA} - {a}"] = r; evs += e
+        evs += [ev(S, rp["compact"] + "/score/64k+128k", f"field score, {REFA} - compact, 64K and 127K pooled [estimate, 2.5%, 97.5%, items]"),
+                ev(S, rp["compact"] + "/score/4k+16k", f"field score, {REFA} - compact, 4K and 16K pooled"),
+                ev(S, rp["compact"] + "/every_field_right/all", f"every field right, {REFA} - compact, four lengths"),
+                ev(S, "/reference/intervals/computed", "intervals computed for the reference reading"),
+                ev(S, "/reference/intervals/excluding_zero", "the intervals that exclude 0"),
+                ev(S, f"/reference/by_length/{REFA}/all/score", f"{REFA}: field score over four lengths [estimate, 2.5%, 97.5%, items]"),
+                ev(S, f"/reference/requests/{REFA}", "requests"), ev(S, f"/reference/errors/{REFA}", "errors"),
+                ev(S, f"/reference/prompt_tokens_equal_to_anchor/{REFA}", "requests whose prompt token count equals anchor's"),
+                ev(S, "/reference/checkpoint", "checkpoint and revision"),
+                ev(RJ, f"/paired/{esc(REFA + ' - anchor')}/score/all", "the same interval in the analysis output")]
+        out.append(finding(
+            "CP-reference-exlr8-k4",
+            "How does a native EXLR8 K4 checkpoint of the same model, served by the same engine, score on the same graded tasks from 4K to 127K tokens?",
+            f"No difference measured from anchor or hqa: {iv(ra)} against anchor and {iv(rh)} against hqa. Against compact its field score is "
+            f"higher post hoc: {iv(rc)} over four lengths, {iv(rcl)} at 64K and 127K pooled, {iv(rcs)} at 4K and 16K. That is a lead, not a finding: "
+            f"the checkpoint was added after the results were read, and this is one of {nint} intervals computed without correction, of which {nex} "
+            f"exclude 0 (all exlr8-k4 - compact on field score). It is on the partial-credit score only: on every field right the pair does not "
+            f"separate ({iv(rcx)}). {whole} Basis: two single-message passes, 60 items, 480 requests per arm, 0 errors, prompt tokens equal to "
+            "anchor's on every request; strength: low for the difference from compact (post hoc, one of many intervals), moderate for the absence "
+            "of a measured difference from anchor and hqa (one model family, synthetic tasks, intervals of about 0.013 either side).",
+            "measurement: post hoc", results, evs, CUTEAFD5, CPD, f"{page}#reference", rdata + [RJ],
+            {"kind": "item_paired_difference", "estimator": "frozen", "data": rdata, "a": "compact", "b": REFA, "passes": single,
+             "lengths": ["4k", "16k", "64k", "128k"], "script": f"{CPD}/analysis/reference.py", "result": f"{REFA} - compact",
+             "bootstrap": {"draws": 10000, "seed": 5, "unit": "item", "rng": "Python random.Random", "indices": [250, 9749],
+                           "draw": "items sorted by id; each draw is statistics.fmean of n values vals[rng.randrange(n)], one "
+                                   "randrange call per element; the 10,000 draws are sorted and read at the two indices",
+                           "definition": "definitions.context_probe.item_paired_difference_frozen"}},
+            "b - a with the reference checkpoint as b: above 0 = exlr8-k4 scored higher",
+            note="Outside the frozen comparison: the reference checkpoint was added after the three-arm results were read. The estimator is the "
+                 "frozen rule's (item_paired_difference_frozen), applied post hoc. The eight-turn pass was not run on it."))
+
+        pk = lambda path, pair, key: f"/capture/between_arms/{path}/all/pairs/{esc(pair)}/{key}"
+        pairs = list(at(S, "/capture/between_arms/prefill/all/pairs"))
+        refp, prbp = [p for p in pairs if REFA in p], [p for p in pairs if REFA not in p]
+        km = {p: at(S, pk("prefill", p, "kl_median")) for p in pairs}; td = {p: at(S, pk("prefill", p, "top1_differs")) for p in pairs}
+        ab = lambda path, key: f"/capture/against_text/{path}/arms/{REFA}/{key}"
+        nd, hv = at(S, ab("prefill", "nll_minus_ref")), at(S, ab("prefill", "nll_difference_rows"))
+        t1 = [at(S, ab(path, "top1_minus_ref")) for path in ("prefill", "decode")]
+        nrows = at(S, "/capture/against_text/prefill/rows")
+        if (min(km[p] for p in refp) <= max(km[p] for p in prbp) or min(td[p] for p in refp) <= max(td[p] for p in prbp) or any(out0(v) for v in t1)
+                or hv["median"] != 0 or hv["share_rows_arm_better"] >= 0.5):
+            raise SystemExit("findings: the scoring capture's numbers no longer match the answer written for them")
+        rng = lambda d, ps, f: f"{f(min(d[p] for p in ps))} to {f(max(d[p] for p in ps))}"
+        k4 = lambda x: f"{x:.4f}"; pc = lambda x: f"{100 * x:.2f}%"
+        out.append(finding(
+            "CP-reference-capture",
+            "With the engine scoring given texts instead of generating, does the EXLR8 K4 reference checkpoint predict the text worse than the three probe arms, and how far apart are the arms?",
+            f"Not measurably worse at predicting the text: over the whole capture the most likely token is the given one as often as for anchor "
+            f"({t1[0][0]:+.4f} [{t1[0][1]:+.4f}, {t1[0][2]:+.4f}] on the prefill path; the interval spans 0 on both paths); values by depth band are "
+            f"published without intervals. Its mean NLL is lower than anchor's ({nd[0]:+.4f} [{nd[1]:+.4f}, {nd[2]:+.4f}] nats, prefill path), which "
+            f"is not read as an improvement: {hv['rows_over_1_nat']} of {nrows:,} positions carry {hv['sum_of_those']:+.2f} of the {hv['sum']:+.2f} nat "
+            f"({100 * hv['sum_of_those'] / hv['sum']:.0f}% of the sum), the median per-position difference is 0 and the arm is ahead on fewer than "
+            "half of the positions. Distance from the unquantized BF16 model is not measured for these four configurations in this run; the "
+            "repository's BF16-referenced panels (texts to 14.4K tokens) cover other checkpoints. Between arms, which is not a distance from the BF16 "
+            f"model: the three probe arms share their experts, so the distance between two of them reflects the settings outside the experts alone, the core and for anchor the output head (prefill path, "
+            f"median KL {rng(km, prbp, k4)}, most likely token different on {rng(td, prbp, pc)} of positions); exlr8-k4 has its own experts, so its "
+            f"distance to any probe arm ({rng(km, refp, k4)}; {rng(td, refp, pc)}) includes both expert quantizations and does not rank it against "
+            f"the probe arms by closeness to the BF16 model. {whole} Basis: one capture per arm, five texts (not the task items), assistant frame; "
+            "strength: low (exploratory, one capture, no correction for the number of comparisons).",
+            "exploratory", {"name": "share of positions whose most likely token is the given one, exlr8-k4 minus anchor, prefill path",
+                            "value": t1[0][0], "ci95": [t1[0][1], t1[0][2]], "ci_over": "runs of consecutive positions within each text",
+                            "detected": out0(t1[0])},
+            [ev(S, ab("prefill", "top1_minus_ref"), "share with the given token most likely, minus anchor's, prefill path [estimate, 2.5%, 97.5%]"),
+             ev(S, ab("decode", "top1_minus_ref"), "the same on the decode path"),
+             ev(S, ab("prefill", "nll_minus_ref"), "NLL minus anchor's, prefill path [estimate, 2.5%, 97.5%]"),
+             ev(S, ab("prefill", "nll_difference_rows/median"), "median per-position NLL difference from anchor"),
+             ev(S, ab("prefill", "nll_difference_rows/share_rows_arm_better"), "share of positions where the arm's NLL is lower"),
+             ev(S, ab("prefill", "nll_difference_rows/rows_over_1_nat"), "positions more than 1 nat from anchor"),
+             ev(S, ab("prefill", "nll_difference_rows/sum_of_those"), "their summed difference, nats"),
+             ev(S, ab("prefill", "nll_difference_rows/sum"), "summed difference over all positions, nats"),
+             ev(S, "/capture/against_text/prefill/rows", "positions on the prefill path")] +
+            [ev(S, pk("prefill", p, "kl_median"), f"between arms: median KL, {p}, prefill path") for p in pairs] +
+            [ev(S, pk("prefill", p, "top1_differs"), f"between arms: share of positions whose most likely token differs, {p}, prefill path") for p in pairs] +
+            [ev(f"{CPD}/exploratory/capture_pairs.json", f"/prefill/all/pairs/{esc(refp[0])}/kl_median", "the same median KL in the capture output")],
+            CUTEAFD5, CPD, f"{page}#capture", [f"{CPD}/exploratory/capture_pairs.json", f"{CPD}/exploratory/capture_abs.json"],
+            direction="KL with the first-named arm as the reference distribution; NLL differences are arm minus anchor (below 0 = the arm predicts the given token better)",
+            note="The dumps and per-position files behind these numbers are not published; the scripts in exploratory/ document the computation. "
+                 "All four configurations are quantized: anchor has a BF16 core and K4 experts, so a difference from anchor is a difference from "
+                 "another quantization. Full tables: section 10 of RESULTS.md in the run folder."))
+
+        out.append(finding(
+            "CP-extension-pending", "Do two further single-message passes per arm change the reading?",
+            f"Not known: {at(S, '/amendment_1/status')}. Amendment 1 (written {at(S, '/amendment_1/written')}, before the first request of the added "
+            "passes) adds single-message passes 3 and 4 for the three arms and the reference checkpoint under the frozen comparison rule. No number "
+            "from them is published.",
+            "in progress", {"name": "none published"},
+            [ev(S, "/amendment_1/status", "status"), ev(S, "/amendment_1/sha256", "sha256 of the amendment file"),
+             ev(S, "/amendment_1/pending", "passes pending"), {"file": f"{CPD}/protocol/AMENDMENT-2026-11-11.md", "what": "the amendment"}],
+            CUTEAFD5, CPD, f"{page}#amendment"))
     return out
 
 
@@ -418,7 +523,8 @@ def llms_txt(fs):
         f"- {REPO_URL}/tree/main/results: one folder per run. In each: RUN.json (id, kind, title, protocol, engine,",
         "  checkpoints), SUMMARY.json (every number its page shows), MANIFEST.json (sha256 of every file), README.md.",
         "- results/*/analysis/samples.csv: one row per reply (arm, prompt, seed, finish, reasoning tokens, decode speed, tests).",
-        "  The context probe's table has one row per request (arm, pass, item, family, length, seed, finish class, fields, correct).",
+        "  The context probe's table has one row per request (arm, pass, item, family, length, seed, finish class, fields, correct);",
+        "  its reference checkpoint's rows are in analysis/samples-reference.csv (same columns), recomputed by analysis/reference.py.",
         f"- {REPO_URL}/blob/main/protocol/README.md: the frozen protocol; protocol/HASHES.json binds published files to it.",
         "",
         "## How to read the results",
@@ -437,6 +543,11 @@ def llms_txt(fs):
         "  list in every arm. A request scores fields correct / fields, 0 if it did not finish with stop; differences are paired by item",
         "  and named \"b - a\" (above 0 = b higher). Data length label 128k is the 127K-token rendering. The K4-Core-K6-HQA repository",
         "  is no longer available on the hub (checked 2026-11-11); the runs used a local copy.",
+        "- Reference checkpoint exlr8-k4 (CP-reference-*): added after the three-arm results were read; two single-message passes and one",
+        "  scoring capture. It is a different checkpoint from the three arms, not a setting of the same one: any difference from an arm is",
+        "  a whole-checkpoint difference and is not attributable to one component. Its intervals are post hoc.",
+        "- Amendment 1 to the context probe (protocol/AMENDMENT-2026-11-11.md in the run folder) adds single-message passes 3 and 4 per arm;",
+        "  they are in progress and no number from them is published (CP-extension-pending).",
         "- Thinking-length ratios put K4-Core-K6, or the part under test, first: above 1 = it thought longer. Each finding states",
         "  its own direction.",
         "- Numbers from different model families or tokenizers are not comparable; NLL is per tokenizer.",
@@ -460,7 +571,7 @@ def llms_txt(fs):
     pages = [("index.html", "overview"), ("checkpoints.html", "K3.25, K4 and K4-Core-K6 against each other"),
              ("thinking.html", "thinking length and the 6-bit core (the investigation findings.json covers)"),
              ("precision.html", "closeness to the BF16 model by context"), ("speed.html", "decode and prefill speed"),
-             ("v5.html", "CuteAFD v5.0.0: three core precisions at 4K to 127K (CP-* in findings.json)"), ("v4.html", "CuteAFD v4.0.0 rerun"), ("tools.html", "multi-turn tool calling"), ("method.html", "method"),
+             ("v5.html", "CuteAFD v5.0.0: three core precisions at 4K to 127K, and an EXLR8 K4 reference checkpoint added later (CP-* in findings.json)"), ("v4.html", "CuteAFD v4.0.0 rerun"), ("tools.html", "multi-turn tool calling"), ("method.html", "method"),
              ("reproduce.html", "how to reproduce"), ("audit.html", "independent audit"), ("ledger.html", "every run")]
     lines += [f"- {SITE_URL}/{p}: {d}" for p, d in pages if (ROOT / "docs" / p).exists()]
     lines += ["", "## Runs (results/<id>/RUN.json)"] + [f"- {i} ({k}): {t}" for i, k, t in runs()]
@@ -493,7 +604,8 @@ def main():
                "median_reasoning_tokens": "median over finished replies",
                "context_probe": {
                    "applies_to": "CP-* entries (results/2026-11-10-context-probe); the definitions above apply to TL-* entries",
-                   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0)",
+                   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0); "
+                                "for the reference checkpoint, the same rows of analysis/samples-reference.csv beside them",
                    "request_score": "correct / fields if finish_class == 'stop' and fields > 0, else 0 (a reply that hit the cap or was ended by the loop abort scores 0)",
                    "every_field_right": "request_score == 1",
                    "item_paired_difference_frozen": "for each item, over the (pass, length) cells in recompute.passes x recompute.lengths where both arms have a row: "
@@ -509,6 +621,10 @@ def main():
                    "arms": {"anchor": "BF16 core and BF16 output head, FP8 conversions off; locally derived checkpoint, not a producer release; the reference, not a recommendation",
                             "hqa": "K4-Core-K6-HQA checkpoint, default mode: BF16 q_b_proj (12 matrices) and o_proj (46), rest of the core and the output head K6",
                             "compact": "the same checkpoint with ATTENTION_MODE=compact: K6 core and output head"},
+                   "reference_checkpoint": {"exlr8-k4": "native EXLR8 K4 checkpoint (revision in the run's RUN.json), added after the three-arm results were read; two "
+                                                        "single-message passes, no eight-turn pass. A different checkpoint from the three arms, not a setting of the same "
+                                                        "one: a difference from an arm is a whole-checkpoint difference, not attributable to one component"},
+                   "amendment_1": "protocol/AMENDMENT-2026-11-11.md adds single-message passes 3 and 4 per arm (single-rep2, single-rep3); in progress, no number published",
                    "checkpoint_availability": "the K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy downloaded on 2026-11-10"},
                "arms": {"C-K6": "CuteAFD, native 6-bit core", "C-K6x": "CuteAFD, BF16 core converted to FP8 at load (with FP8 KDA projections, head, prefill activations)",
                         "V-K6": "vLLM fork, 6-bit core rebuilt to BF16 at load", "V-BF16": "vLLM fork, original BF16 core",

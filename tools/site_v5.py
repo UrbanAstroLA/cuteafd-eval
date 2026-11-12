@@ -18,7 +18,10 @@ RD = f"results/{RUN}"
 ARMS = ("anchor", "hqa", "compact")
 PAIRS = ("hqa - anchor", "compact - anchor", "hqa - compact")
 LENS = (("4k", "4K"), ("16k", "16K"), ("64k", "64K"), ("128k", "127K"))
-ARM_SUB = {"anchor": "BF16 core, reference", "hqa": "BF16 q_b_proj + o_proj, rest K6", "compact": "K6 core"}
+ARM_SUB = {"anchor": "BF16 core, reference", "hqa": "BF16 q_b_proj + o_proj, rest K6", "compact": "K6 core",
+           "exlr8-k4": "EXLR8 K4 checkpoint, added later"}
+REF = "exlr8-k4"                       # reference checkpoint added after the results were read; never part of ARMS or PAIRS
+ARMS4 = ARMS + (REF,)
 
 
 def load(root):
@@ -38,6 +41,211 @@ def unfinished(fin):
     return "0" if not c + r else f"{c} cap / {r} loop"
 
 
+def pair4(p): return " ".join(f"<code>{x}</code>" if x in ARMS4 else MINUS for x in p.split())
+def iv3(v): return f"{s3(v[0])} [{s3(v[1])}, {s3(v[2])}]"
+def span(vals, fmt):
+    lo, hi = fmt(min(vals)), fmt(max(vals))
+    return lo if lo == hi else f"{lo} to {hi}"
+
+
+def reference_sections(S, h2, gh):
+    """The reference checkpoint, the scoring capture on it and amendment 1: added after the results were read. Returns the
+    paragraph for the lede, the bullet for the reading and the three sections. Sentences that state a reading check the
+    numbers they rest on, so the text cannot outlive a change in the data."""
+    RF, CA, AM, LA = S["reference"], S["capture"], S["amendment_1"], S["launch"]
+    BL, PD, IV = RF["by_length"], RF["paired"], RF["intervals"]
+    rp = [f"{REF} - {a}" for a in ARMS]
+    ra, rh, rc = (PD[p]["score"]["all"] for p in rp)
+    rc_long, rc_short, rc_strict = PD[rp[2]]["score"]["64k+128k"], PD[rp[2]]["score"]["4k+16k"], PD[rp[2]]["every_field_right"]["all"]
+    if excl(ra) or excl(rh) or not excl(rc) or not excl(rc_long) or excl(rc_short) or excl(rc_strict):
+        raise SystemExit("v5 page: the reference checkpoint's intervals no longer match the reading written for them")
+    if any(excl(PD[p]["every_field_right"][k]) for p in rp for k in PD[p]["every_field_right"]):
+        raise SystemExit("v5 page: an every-field-right interval of the reference checkpoint excludes 0")
+    code = f"<code>{REF}</code>"
+    req, same = RF["requests"][REF], RF["prompt_tokens_equal_to_anchor"][REF]
+
+    intro = (f"<p>{code} is a reference checkpoint added after the results above were read: <code>{E(RF['checkpoint'])}</code>, a "
+             f"{E(RF['what'])}. Same engine release and image, same drafter, the same 60 items at the same four lengths, the same "
+             f"seeds, reply cap, concurrency and sampling settings; the two single-message passes only ({E(RF['ran'])}). "
+             f"{n0(req)} requests, {RF['errors'][REF]} errors; prompt tokens equal to <code>anchor</code>'s on {same} of {req}. "
+             f"{E(RF['loading'])} {E(RF['upstream_status'])}</p>"
+             f"<p><b>{E(RF['whole_checkpoint'])}</b> It is outside the frozen comparison, and every interval in this section is post "
+             "hoc. <code>anchor</code> stays the reference of the probe, not a recommendation.</p>")
+
+    def sc(a, k): return BL[a][k]["score"]
+    rows = [[arm(a)] + [bar(sc(a, k)[0], 1.0, f3(sc(a, k)[0]), sub=f'all 8 right {BL[a][k]["right"]} of {BL[a][k]["n"]}') for k, _ in LENS] +
+            [f'{f3(sc(a, "all")[0])} <span class="ci">[{f3(sc(a, "all")[1])}, {f3(sc(a, "all")[2])}]</span>',
+             f'{BL[a]["all"]["right"]} of {BL[a]["all"]["n"]}'] for a in ARMS4]
+    by_pass = "; ".join(f'<code>{a}</code> {f3(BL[a]["128k"]["score_by_pass"][0])} and {f3(BL[a]["128k"]["score_by_pass"][1])}' for a in ARMS4)
+    fin = " / ".join(f3(BL[a]["128k"]["score_finished_only"]) for a in ARMS4)
+    t_score = rich("Share of answer fields right, with the reference checkpoint", "Single message, two passes pooled (120 requests per "
+                   "cell). Unfinished replies score 0. Second figure: replies with every field right. Interval: 95% over items",
+                   ["Arm"] + [n for _, n in LENS] + ["All lengths", "Every field right, all lengths"], rows,
+                   foot=f"The two passes at 127K, pass 1 and pass 2: {by_pass}. Among finished replies at 127K: {fin} (same arm order).")
+
+    CL = ("right", "1 wrong", "2 wrong", "3+ wrong", "cap", "repetition")
+    rows = [[arm(a)] + [str(BL[a]["all"]["classes"].get(c, 0)) for c in CL] for a in ARMS4]
+    t_cls = rich("What each reply came to", "Of 480 replies per arm: four lengths, two passes",
+                 ["Arm", "Every field right", "1 field wrong", "2 wrong", "3 or more wrong", "Hit the reply cap", "Loop abort"], rows,
+                 foot="Loop abort: the engine's repetition abort, finish class <code>repetition</code> in the per-request tables. Hit "
+                      "the reply cap: finish class <code>cap</code>. Both score 0.")
+
+    rows = [[pair4(p), dcell(PD[p]["score"]["all"], 0.08), dcell(PD[p]["score"]["4k+16k"], 0.08), dcell(PD[p]["score"]["64k+128k"], 0.08),
+             badge(excl(PD[p]["score"]["all"]), "excludes 0", "includes 0"), dcell(PD[p]["every_field_right"]["all"], 0.08)] for p in rp]
+    LAB = {"all": "all lengths", "4k": "4K", "16k": "16K", "64k": "64K", "128k": "127K", "4k+16k": "4K and 16K pooled", "64k+128k": "64K and 127K pooled"}
+    ex = "; ".join(f'{LAB[x["lengths"]]} {iv3(x["value"])}' for x in IV["excluding_zero"])
+    t_pair = rich("Reference checkpoint against each probe arm: paired difference", "Post hoc. Right of the line: the reference checkpoint "
+                  "scored higher. Paired by item, 95% interval over the 60 items; bar edge = 0.08",
+                  ["Difference", "Field score, all lengths", "4K and 16K", "64K and 127K", "Pooled interval", "Every field right, all lengths"], rows,
+                  foot=f"{IV['computed']} intervals were computed for this section (six pairs, the three probe pairs included; field score "
+                       f"and every field right, by length and pooled) with no correction for their number. {len(IV['excluding_zero'])} exclude 0, all "
+                       f"{code} {MINUS} <code>compact</code> on field score: {ex}. On every field right no pair separates at any length. "
+                       "An interval that excludes 0 in a post hoc reading is a lead, not a finding.")
+
+    DC, FF, AG = RF["discordant"], RF["flip_floor"], RF["agreement"]
+    rows = [("grp", "Reference checkpoint against a probe arm, same pass and seed: right only in the reference / right only in the probe arm")]
+    rows += [[f"{code} vs <code>{a}</code>"] + [f"{DC[f'{REF} vs {a}'][ps][0]} / {DC[f'{REF} vs {a}'][ps][1]}" for ps in RF["passes"]] for a in ARMS]
+    rows += [("grp", "Floor: one arm against its own second pass, pairs with a different outcome")]
+    rows += [[f"<code>{a}</code>", str(FF[a]), ""] for a in ARMS4]
+    tot = [sum(DC[f"{REF} vs {a}"][ps]) for a in ARMS for ps in RF["passes"]]
+    t_agree = rich("How often \"every field right\" differs", "Counts of the 240 (item, length) pairs", ["Pair", "Pass 1", "Pass 2"], rows,
+                   foot=f"Per pass the reference checkpoint and a probe arm differ on {min(tot)} to {max(tot)} of 240 pairs; one arm against its "
+                        f"own second pass differs on {min(FF.values())} to {max(FF.values())}. Every field right in all four arms on "
+                        f"{AG['all_four_right']} of {AG['of']} requests, in none on {AG['none_right']}.")
+
+    def res(a): return sum(RF["launch"]["resident_weights_mib_rtx0_rtx1"] if a == REF else LA["resident_weights_mib_rtx0_rtx1"][a])
+    def kvp(a): return RF["launch"]["kv_pool_tokens_serving"] if a == REF else LA["kv_pool_tokens_serving"][a]
+    rows = [[arm(a), n0(res(a)), n0(kvp(a)), " / ".join(n0(x) for x in RF["pass_wall_s"][a]),
+             " / ".join(f'{BL[a][k]["decode_tok_s_median"]:.1f}' for k, _ in LENS), f'{BL[a]["128k"]["ttft_s_median"]:.1f}'] for a in ARMS4]
+    t_cost = rich("Memory, duration and speed", "Resident weights: both GPUs together, from the launch logs. Duration: wall time of each "
+                  "single-message pass (240 requests, eight at once). Speed: median per stream at 4K / 16K / 64K / 127K",
+                  ["Arm", "Resident weights, MiB", "KV pool, tokens", "Pass 1 / pass 2, s", "Tokens/s per stream", "First token at 127K, s"], rows,
+                  foot="Speeds and durations are under a mixed load of eight requests and depend on what else was in the batch and on how long "
+                       "the replies ran: they are not an arm comparison. The two launches of the reference checkpoint report the same figures.")
+
+    ref_reading = ("<ul>"
+                   f"<li><b>{code} against <code>anchor</code> and against <code>hqa</code>: no difference measured</b>, {iv3(ra)} and "
+                   f"{iv3(rh)} pooled. Basis: two passes, 60 items, 480 requests per arm.</li>"
+                   f"<li><b>{code} against <code>compact</code>: higher field score, post hoc</b>, {iv3(rc)} pooled and {iv3(rc_long)} at "
+                   f"64K and 127K; at 4K and 16K {iv3(rc_short)}. The arm was added after the results were read and this is one of "
+                   f"{IV['computed']} intervals, so it is a lead and not a finding. It is on the partial-credit score only: on every field "
+                   f"right the pair does not separate ({iv3(rc_strict)}). Being a whole-checkpoint difference, it does not say which "
+                   "component carries it.</li>"
+                   f"<li><b>Accuracy falls with length in the reference checkpoint as in the probe arms</b> ({f3(sc(REF, '4k')[0])} at 4K to "
+                   f"{f3(sc(REF, '128k')[0])} at 127K; finished replies only at 127K {f3(BL[REF]['128k']['score_finished_only'])}, "
+                   f"<code>anchor</code> {f3(BL['anchor']['128k']['score_finished_only'])}).</li></ul>")
+
+    # ---- scoring capture
+    BA, AT = CA["between_arms"], CA["against_text"]
+    def pct(x, nd=2): return f"{100 * x:.{nd}f}%"
+    def k4(x): return f"{x:.4f}" if round(x, 4) >= 0.0001 else f"{x:.6f}"
+    def s4(x): return "0.0000" if round(x, 4) == 0 else f"{x:+.4f}".replace("-", MINUS)
+    def nat(x): return f"{x:+.2f}".replace("-", MINUS)
+    def iv4(v): return f'{s4(v[0])} <span class="ci">[{s4(v[1])}, {s4(v[2])}]</span>'
+    PATHS = (("prefill", "Prefill path"), ("decode", "Decode path"))
+    rows = []
+    for path, lab in PATHS:
+        rows.append(("grp", f"{lab}, {n0(AT[path]['rows'])} positions"))
+        for a in ARMS4:
+            d = AT[path]["arms"][a]
+            rows.append([arm(a), f'{d["nll"]:.4f}', iv4(d["nll_minus_ref"]) if a != "anchor" else "", f'{d["top1_given"]:.4f}',
+                         iv4(d["top1_minus_ref"]) if a != "anchor" else ""])
+    bands = list(AT["prefill"]["arms"][REF]["nll_by_band"])
+    bd = [AT["prefill"]["arms"][REF]["nll_by_band"][b] - AT["prefill"]["arms"]["anchor"]["nll_by_band"][b] for b in bands]
+    t_abs = rich("Against the given text", "NLL of the given token in nats (lower = predicted better) and the share of positions whose most "
+                 f"likely token is the given one. Differences are arm minus <code>anchor</code>; interval: {E(AT['interval'])}",
+                 ["Arm", "NLL", "NLL minus anchor", "Top token is the given one", "Minus anchor"], rows,
+                 foot="One capture per arm; intervals are not corrected for their number.")
+    rows = [[arm(a)] + [f'{AT["prefill"]["arms"][a]["nll_by_band"][b]:.3f}<small>top token given {AT["prefill"]["arms"][a]["top1_given_by_band"][b][0]:.3f}</small>'
+                        for b in bands] for a in ARMS4]
+    t_band = rich("Against the given text, by depth", "Prefill path. NLL of the given token in nats; second figure: the share of positions "
+                  "whose most likely token is the given one. Values per band are shown without intervals",
+                  ["Arm"] + [f"{b} tokens" for b in bands], rows,
+                  foot=f"{code} minus <code>anchor</code> in NLL by depth: " + "; ".join(f"{b} {s4(x)}" for b, x in zip(bands, bd)) + ".")
+    rows = []
+    for a in ("compact", REF):
+        d = AT["prefill"]["arms"][a]["nll_difference_rows"]; c = d["by_text"]["code"]
+        rows.append([arm(a), nat(d["sum"]), s4(d["median"]),
+                     f'{d["rows_over_1_nat"]} ({pct(d["rows_over_1_nat"] / AT["prefill"]["rows"], 1)})', nat(d["sum_of_those"]),
+                     f'{c["rows_over_1_nat"]} positions, {nat(c["sum_of_those"])}', nat(c["sum"]),
+                     s4(d["mean_trimmed_1pct_each_side"]), pct(d["share_rows_arm_better"], 1)])
+    def col(path): return ", ".join(f'<code>{a}</code> {AT[path]["arms"][a]["collapse_rows"]["n"]}' for a in ARMS4)
+    ctexts = sorted({x for a in ARMS4 for x in AT["prefill"]["arms"][a]["collapse_rows"]["by_text"]})
+    if any(AT["decode"]["arms"][a]["collapse_rows"]["n"] for a in ARMS4) or ctexts != ["code"]:
+        raise SystemExit("v5 page: collapse rows are no longer prefill-only and in the text `code`")
+    t_heavy = rich("Where the NLL difference from <code>anchor</code> sits", "Prefill path, per-position NLL of the arm minus "
+                   "<code>anchor</code>'s, nats; below 0 = the arm predicts the given token better there",
+                   ["Arm", "Sum over all positions", "Median per position", "Positions more than 1 nat apart", "Their sum",
+                    "Of those, in the text <code>code</code>", "Sum in <code>code</code>", "Mean, 1% trimmed each side", "Positions where the arm is ahead"], rows,
+                   foot=f"Positions where one arm gives the given token under 0.05 while every other arm gives it at least 0.9 "
+                        f"(prefill path): {col('prefill')}, all in the text <code>code</code>; decode path: none in any arm.")
+    kr = [v["kl_median"] for k, v in BA["prefill"]["all"]["pairs"].items() if REF in k]; kp = [v["kl_median"] for k, v in BA["prefill"]["all"]["pairs"].items() if REF not in k]
+    tr = [v["top1_differs"] for k, v in BA["prefill"]["all"]["pairs"].items() if REF in k]; tp = [v["top1_differs"] for k, v in BA["prefill"]["all"]["pairs"].items() if REF not in k]
+    hr, hc = (AT["prefill"]["arms"][a]["nll_difference_rows"] for a in (REF, "compact"))
+    t1 = [AT[path]["arms"][a]["top1_minus_ref"] for path, _ in PATHS for a in ARMS4 if a != "anchor"]
+    share = hr["rows_over_1_nat"] / AT["prefill"]["rows"]
+    if (min(kr) <= max(kp) or min(tr) <= max(tp) or any(excl(v) for v in t1) or max(bd) >= 0.003 or hr["median"] != 0
+            or hr["share_rows_arm_better"] >= 0.5 or not 0.005 < share < 0.015
+            or 2 * hr["by_text"]["code"]["rows_over_1_nat"] <= hr["rows_over_1_nat"]):
+        raise SystemExit("v5 page: the scoring capture's numbers no longer match the reading written for them")
+    cap_intro = (f"<p>One capture of {code} in which the engine scores given texts instead of generating: five long texts (not the task "
+                 "items), assistant frame, on the prefill path and on the decode path, read beside the same capture of the three probe arms. "
+                 "Exploratory: one capture per arm, no correction for the number of comparisons. The whole-checkpoint statement above "
+                 "applies.</p>"
+                 "<p><b>Distance from the unquantized BF16 model is not measured for these four configurations in this run.</b> All four "
+                 "are quantized: <code>anchor</code> has a BF16 core and K4 experts, so a difference from <code>anchor</code> is a "
+                 'difference from another quantization. The <a href="precision.html">BF16-referenced panels</a> of this repository (texts '
+                 "to 14.4K tokens) cover other checkpoints. What this capture references to something fixed is the given text.</p>"
+                 "<p>The dumps and per-position files are not published; the numbers are in "
+                 f'{gh(f"{RD}/exploratory/capture_abs.json", "<code>capture_abs.json</code>")} and '
+                 f'{gh(f"{RD}/exploratory/capture_pairs.json", "<code>capture_pairs.json</code>")}.</p>')
+    cap_reading = ("<ul>"
+                   f"<li><b>{code} is not measurably worse at predicting the text than <code>anchor</code></b>: over the whole capture its "
+                   "most likely token is the given one as often as for <code>anchor</code> (the difference's interval spans zero on "
+                   "both paths, as it does for <code>hqa</code> and <code>compact</code>). By depth band its NLL is below "
+                   "<code>anchor</code>'s or within 0.003 of it; the per-band values carry no interval.</li>"
+                   "<li><b>The lower mean NLL (prefill path) is carried by about 1% of positions, most of them in one text, and is not read as an "
+                   f"improvement</b>: {hr['rows_over_1_nat']} of {n0(AT['prefill']['rows'])} positions carry {nat(hr['sum_of_those'])} of "
+                   f"the {nat(hr['sum'])} nat, {100 * hr['sum_of_those'] / hr['sum']:.0f}% of the sum "
+                   f"({hr['by_text']['code']['rows_over_1_nat']} of them in <code>code</code>); the median per-position difference is "
+                   "zero and the arm is ahead on fewer than half of the positions. <code>compact</code>'s smaller sum also sits "
+                   f"mostly in <code>code</code> ({nat(hc['sum'])} nat in all, {nat(hc['by_text']['code']['sum'])} of it in <code>code</code>) "
+                   f"but is less concentrated in single positions ({hc['rows_over_1_nat']} positions over 1 nat carry "
+                   f"{nat(hc['sum_of_those'])} of it).</li></ul>")
+    cap_between = ("<p><b>Between arms (not a distance from the BF16 model).</b> The three probe arms share their experts, so the "
+                   f"distance between two of them reflects the settings outside the experts alone (the core and, for <code>anchor</code>, the output head): median KL {span(kp, k4)}, most likely token different "
+                   f"on {span(tp, pct)} of positions (prefill path). {code} has its own experts, so its distance to any probe arm "
+                   f"({span(kr, k4)}; {span(tr, pct)}) includes both expert quantizations and does not rank it against the probe arms by "
+                   f'closeness to the BF16 model. Full tables: {gh(f"{RD}/RESULTS.md", "<code>RESULTS.md</code>")}, section 10, and '
+                   f'{gh(f"{RD}/exploratory/capture_pairs.json", "<code>capture_pairs.json</code>")}.</p>')
+
+    # ---- amendment 1
+    am_link = gh(f"{RD}/{AM['file']}", "Amendment 1")
+    amend = (f"<p>{am_link} (written {E(AM['written'])}; sha256 <code>{AM['sha256']}</code>) was written after {E(AM['written_after'])} "
+             f"and before {E(AM['written_before'])}. It adds {E(AM['adds'])}. Reading rule: {E(AM['rule'])}. No eight-turn pass and no "
+             "items are added. The protocol file is unchanged and its hash still holds.</p>")
+    rows = [[arm(a), badge(False, "done", "pending"), badge(False, "done", "pending")] for a in ARMS4]
+    t_am = rich("Passes added by amendment 1", "In progress. No number from these passes is on this page",
+                ["Arm", "Single message, pass 3", "Single message, pass 4"], rows)
+
+    lede = (f"<p>Added after these results were read: a reference checkpoint in another quantisation format, {code}, on the same items "
+            f"(two single-message passes). No difference from <code>anchor</code> ({iv3(ra)}) or from <code>hqa</code> ({iv3(rh)}) is "
+            "measured; it differs from the arms as a whole checkpoint, so no difference from an arm is attributable to one component "
+            '(<a href="#reference">reference checkpoint</a>). Two further single-message passes per arm are in progress under '
+            '<a href="#amendment">amendment 1</a>; none of their numbers is on this page.</p>')
+    bullet = (f"<li><b>Reference checkpoint {code}, added after the results were read: no difference from <code>anchor</code> or "
+              f"<code>hqa</code> measured</b> ({iv3(ra)} and {iv3(rh)} pooled). Against <code>compact</code> its field score is higher post "
+              f"hoc ({iv3(rc)}), on the partial-credit score only: a lead, not a finding. Each is a whole-checkpoint difference "
+              '(<a href="#reference">details</a>).</li>')
+    body = (h2("reference", "Reference checkpoint: EXLR8 K4") + intro + ref_reading + t_score + t_cls + t_pair + t_agree + t_cost +
+            h2("capture", "Scoring capture on the reference checkpoint") + cap_intro + cap_reading + t_abs + t_band + t_heavy + cap_between +
+            h2("amendment", "Amendment 1: passes 3 and 4, in progress") + amend + t_am)
+    data = (f'<p class="sign">Reference checkpoint: {gh(f"{RD}/analysis/samples-reference.csv", "<code>samples-reference.csv</code>")} '
+            f'(one row per request, no text) and {gh(f"{RD}/analysis/reference.py", "<code>reference.py</code>")}, which recomputes its '
+            f'tables from the two CSVs into {gh(f"{RD}/analysis/REFERENCE.json", "<code>REFERENCE.json</code>")} (standard library only).</p>')
+    return lede, bullet, body, data
+
+
 def page_v5(S, page, h2, gh, details):
     F = S["frozen_rule"]["differences"]
     SL, BF, T, LG, PH, LA = S["score_by_length"], S["by_family"], S["turns"], S["ledger_exploratory"], S["post_hoc_long_context"], S["launch"]
@@ -52,7 +260,7 @@ def page_v5(S, page, h2, gh, details):
             "127K tokens, neither setting is measurably behind the reference: "
             f"<code>hqa</code> {MINUS} <code>anchor</code> {s3(ha[0])} [{s3(ha[1])}, {s3(ha[2])}] and "
             f"<code>compact</code> {MINUS} <code>anchor</code> {s3(ca[0])} [{s3(ca[1])}, {s3(ca[2])}] in field score, pooled over lengths. "
-            f"Accuracy falls with length in every arm, the reference included ({lo4:.2f} at 4K, {lo127:.2f} to {hi127:.2f} at 127K), so "
+            f"Accuracy falls with length in every probe arm, <code>anchor</code> included ({lo4:.2f} at 4K, {lo127:.2f} to {hi127:.2f} at 127K), so "
             "that loss is not produced by core precision; a third to a half of it is replies that did not finish. One slice leans "
             "against the K6 core, running totals at 64K and 127K, and twenty items do not decide it. The eight-turn pass did not test history written by the model; its design is to be revised.</p>")
 
@@ -246,6 +454,9 @@ def page_v5(S, page, h2, gh, details):
                "<li><b>The long-context loss is shared.</b> The reference loses about as much as the other arms, so core precision does not "
                "produce it; a third to a half of it is replies that did not finish.</li>"
                "<li><b>Split delivery shows no accuracy cost</b> within intervals of about 0.07; whether model-written history does is untested here.</li></ul>")
+    ref_lede, ref_bullet, ref_body, ref_data = reference_sections(S, h2, gh) if "reference" in S else ("", "", "", "")
+    lede += ref_lede
+    reading = reading[:-len("</ul>")] + ref_bullet + "</ul>"
     openq = "<ul>" + "".join(f"<li>{E(q)}</li>" for q in S["open_questions"]) + "</ul>"
     limits = "<p>" + (lambda t: t[:1].upper() + t[1:])("; ".join(E(x) for x in S["limits"])) + ".</p>"
     data = (f'<p class="sign">Numbers: {gh(f"{RD}/SUMMARY.json", "<code>SUMMARY.json</code>")}. Result as read, with dated corrections: '
@@ -277,10 +488,10 @@ def page_v5(S, page, h2, gh, details):
             h2("turns", "Eight turns: what this pass tested") + turns_txt + turns_t + share_t +
             h2("memory", "What the cheaper settings buy") + mem +
             h2("descriptive", "Thinking length and speed") + desc +
-            h2("checks", "Checks before the graded runs") + checks +
+            h2("checks", "Checks before the graded runs") + checks + ref_body +
             h2("open", "Open questions") + openq +
             h2("limits", "Limits") + limits +
-            h2("reproduce", "Reproducing this") + repro + data)
+            h2("reproduce", "Reproducing this") + repro + data + ref_data)
     page("v5.html", "CuteAFD v5.0.0: core precision at long context", lede, body)
 
 

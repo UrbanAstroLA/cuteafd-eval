@@ -33,7 +33,7 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
 
 - **Neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` 0.000 [−0.012, +0.012],
   `compact` − `anchor` −0.010 [−0.026, +0.006], pooled over lengths (95% interval over items; frozen rule).
-- **Accuracy falls with length in every arm, the reference included** (0.98 at 4K, 0.89 to 0.91 at 127K), so
+- **Accuracy falls with length in every probe arm, `anchor` included** (0.98 at 4K, 0.89 to 0.91 at 127K), so
   that loss is not produced by core precision. A third to a half of it is replies that did not finish.
 - **One slice leans against the K6 core:** running totals at 64K and 127K, where `compact` is nominally lower. Twenty
   items do not decide it; a post hoc lead, not a finding.
@@ -41,6 +41,12 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
   memory headroom, not context room.
 - **The eight-turn pass tested split delivery, not model-written history** (under 1% of a long prompt was written by
   the model); its design is to be revised.
+- **Added after the results were read: a reference checkpoint in another quantisation format (`exlr8-k4`), no difference
+  measured from `anchor` or `hqa`:** field score `exlr8-k4` − `anchor` +0.006 [−0.007, +0.019], − `hqa` +0.006 [−0.008, +0.019] (two
+  single-message passes, post hoc). Against `compact` +0.016 [+0.004, +0.029], on the partial-credit score only and one of
+  84 intervals: a lead, not a finding. It is a different checkpoint, not a setting of the same one, so no
+  difference from an arm is attributable to one component. Two further single-message passes per arm are in progress
+  (amendment 1); none of their numbers is published.
 - The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. [CuteAFD v5](results/2026-11-10-context-probe/)
 
 **CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
@@ -324,7 +330,7 @@ follow-ups [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking
 [`results/2026-11-06-vllm-code-thinking`](results/2026-11-06-vllm-code-thinking/) (the same prompts on the vLLM fork; two
 exploratory follow-ups are listed under other runs), and
 [`results/2026-11-10-context-probe`](results/2026-11-10-context-probe/) (CuteAFD v5.0.0: three core precisions on graded
-tasks from 4K to 127K tokens). One machine, one model family, one
+tasks from 4K to 127K tokens, and an EXLR8 K4 reference checkpoint added later). One machine, one model family, one
 tokenizer; intervals are 95% bootstrap intervals over windows or documents.
 
 ### K3.25: precision by context bucket
