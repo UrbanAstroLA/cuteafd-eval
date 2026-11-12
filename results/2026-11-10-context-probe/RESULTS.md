@@ -1,11 +1,18 @@
 # Graded task runs: results (measured set, frozen protocol)
 
-Run under `protocol/PROTOCOL.md` as frozen 2026-11-10 19:55 (`protocol/FROZEN.json`); amendments: none. Chain: 2026-11-10 19:55 to
+Run under `protocol/PROTOCOL.md` as frozen 2026-11-10 19:55 (`protocol/FROZEN.json`); amendments to the frozen run of sections 1 to 8: none
+(amendment 1, section 11, adds passes and changes nothing in it). Chain: 2026-11-10 19:55 to
 2026-11-11 08:28, nine units, every unit exit 0. Per-request receipts hold reply text and are not published; `analysis/samples.csv` carries their fields. Tables below are the output of
 `drivers/analyze_tasks.py summary|compare --set measured`; the `ledger`-only section is an added exploratory
 reading (`exploratory/ledger_errors.py`), not part of the frozen protocol. `analysis/posthoc.py` recomputes every
 number here from `analysis/samples.csv` (one row per request, no text). Published 2026-11-11; the protocol's line
 "results stay local" was written before that decision.
+
+**Added 2026-11-12.** Sections 1 to 8 are the frozen two-pass run and stay as written. Three later sections
+extend them: section 11 (amendment 1, four single-message passes per arm), section 12 (distance of each
+configuration from the BF16 model) and section 13, a one-table summary of what each configuration trades.
+Section 13 is the place to start. Where a later section changes a reading given earlier, the earlier line carries
+a dated pointer.
 
 One engine (CuteAFD v5.0.0), one model family (GLM 5.3 Flash), K4 experts and the same drafter in every arm, so
 nothing here measures expert quantisation. Arms differ in the precision of the tensors outside the experts: the core and,
@@ -161,7 +168,8 @@ every arm; the [0.10-0.25] bin is the lowest of the three at 64K and 127K in eve
 - **`compact` against `anchor`: no difference measured**, -0.010 [-0.026, +0.006] pooled; a pooled loss larger than
   about 0.026 is excluded. Its largest nominal gap is `ledger` at 64K and 127K, undecided at 20 items; `hqa` is nominally lower there too
   (-0.023 [-0.073, +0.023] pooled over the two lengths).
-- **`hqa` against `compact`: no difference measured**, +0.010 [-0.005, +0.025].
+- **`hqa` against `compact`: no difference measured**, +0.010 [-0.005, +0.025]. (2026-11-12: with four passes the
+  interval is +0.013 [+0.002, +0.024] and the difference is at 127K; strength and caveats in section 11.)
 - **No penalty for split input in any arm.** The rule written in advance reads this as "turn check v2 not needed". Read
   against the scope note in section 3 (2026-11-11), the 8-turn design did not test the turn question: decode ran in
   every reply, but almost none of the history the final answer was conditioned on was written by decode. That
@@ -297,6 +305,8 @@ Reading:
   the results were read and this is one of 84 intervals, so it is a lead and not a finding. It is on the
   partial-credit score only: on every field right the pair does not separate (+0.025 [-0.017, +0.065]).
   Being a whole-checkpoint difference, it does not say which component carries it.
+  (2026-11-12: it did not repeat. Passes 3-4 alone give +0.002 [-0.017, +0.022] and four passes +0.009
+  [-0.003, +0.021]; section 11.)
 - **Accuracy falls with length in the reference checkpoint as in the probe arms** (0.987 at 4K to
   0.934 at 127K; finished replies only at 127K 0.942, `anchor` 0.942).
 - `ledger` every field right at 64K and 127K (of 40 each): `anchor` 19 and 14; `hqa` 14 and 14; `compact` 12 and 10; `exlr8-k4` 13 and 10.
@@ -350,6 +360,8 @@ path: `anchor` 2, `hqa` 1, `compact` 0, `exlr8-k4` 1; all in `code`. Decode path
 
 ### Between arms (not a distance from the BF16 model)
 
+(2026-11-12: the distance of each configuration from the BF16 model is now measured, on reference sets to 14.4K; section 12.)
+
 The three probe arms share their experts, so the distance between two of them reflects the settings outside the
 experts alone (the core and, for `anchor`, the output head).
 `exlr8-k4` has its own experts, so its distance to any probe arm includes both expert quantizations and does not
@@ -398,20 +410,348 @@ Reading (exploratory):
   quantizations, which the first does not, so the two do not rank the reference checkpoint against the probe arms
   by closeness to the BF16 model.
 
-## 11. Amendment 1 (2026-11-11): two further single-message passes per arm, in progress
+## 11. Amendment 1: four single-message passes per arm (added 2026-11-12)
 
-The head of this file says "amendments: none"; that describes the frozen run of sections 1 to 8. Amendment 1
+The frozen run of sections 1 to 8 has no amendment. Amendment 1
 (`protocol/AMENDMENT-2026-11-11.md`, written 2026-11-11 16:46:31 -0800, sha256
 c3487e41a0194ed57ba968bda809ab8b160d810a02a19b106ec26fe86101d9f8) was written after the two-pass results of
 sections 1 to 9 were read and before the first request of the passes it adds. The protocol file is unchanged and
 its hash in `protocol/FROZEN.json` still holds.
 
 It adds single-message passes 3 and 4 (`single-rep2`, `single-rep3`) for `anchor`, `hqa`, `compact` and
-`exlr8-k4`: same items, lengths, reply cap, concurrency and sampling settings, new seed blocks. The total is fixed
-at four single-message passes per arm before the first request of pass 3, so the stopping point does not depend
-on what the added passes show. The comparison rule is the frozen one applied to four passes; the two-pass tables
-above stay as the result of the frozen protocol, and the four-pass tables will be reported beside them, labelled
-as an extension decided after the two-pass results were read. No 8-turn pass and no items are added. The
-amendment also records the scoring capture of section 10 as exploratory.
+`exlr8-k4`: same items, lengths, reply cap, concurrency and sampling settings, new seed blocks. The total was
+fixed at four passes per arm before the first request of pass 3, so the stopping point does not depend on what
+the added passes show. The added passes ran 2026-11-11 17:02 to 2026-11-12 03:59: 1,920 requests, 0 errors, no
+seed reused within an arm, prompt tokens equal to `anchor`'s first pass on 1,920 of 1,920 requests.
 
-Status: passes 3 and 4 are in progress. No number from them is in this file.
+The rule is the frozen one applied to more passes: request score = correct / fields if the reply finished with
+`stop`, else 0; repeats averaged within the item; b - a paired by item; 95% interval from 10,000 item resamples,
+seed 5. Three pass sets are shown side by side: passes 1-2 (the frozen protocol's result, sections 1 to 9),
+passes 3-4 alone, and all four. **The four-pass reading is an extension decided after the two-pass results were
+read.** `analysis/fourpass.py` recomputes every number of this section from `analysis/samples.csv`,
+`analysis/samples-reference.csv` and `analysis/samples-extension.csv` into `analysis/FOURPASS.json`.
+
+### Arms, four passes (960 requests each; 240 per length)
+
+| arm | score, all lengths | 4K | 16K | 64K | 127K | every field right, of 960 | unfinished, of 960 (at 127K, of 240) | finished replies only, 127K |
+|---|---|---|---|---|---|---|---|---|
+| anchor | 0.956 [0.944, 0.966] | 0.985 | 0.972 | 0.946 | 0.918 | 760 | 9 (7) | 0.945 |
+| hqa | 0.959 [0.945, 0.970] | 0.984 | 0.981 | 0.945 | 0.924 | 768 | 9 (5) | 0.944 |
+| compact | 0.946 [0.932, 0.958] | 0.981 | 0.972 | 0.942 | 0.887 | 739 | 18 (14) | 0.942 |
+| exlr8-k4 | 0.955 [0.940, 0.967] | 0.983 | 0.978 | 0.938 | 0.920 | 738 | 8 (4) | 0.936 |
+
+Score per pass, all lengths (passes 1, 2, 3, 4): `anchor` 0.943, 0.967, 0.953, 0.959; `hqa` 0.966, 0.944, 0.957,
+0.967; `compact` 0.943, 0.948, 0.944, 0.948; `exlr8-k4` 0.960, 0.962, 0.936, 0.960. At 127K: `anchor` 0.875,
+0.931, 0.923, 0.942; `hqa` 0.929, 0.896, 0.927, 0.946; `compact` 0.885, 0.894, 0.892, 0.877; `exlr8-k4` 0.929,
+0.940, 0.875, 0.938. A single pass of one arm moves by up to 0.03 over all lengths and 0.07 at 127K.
+
+### Paired differences, score, all lengths
+
+| b - a | passes 1-2 (frozen) | passes 3-4 alone | four passes |
+|---|---|---|---|
+| hqa - anchor | +0.000 [-0.012, +0.012] | +0.006 [-0.010, +0.021] | +0.003 [-0.005, +0.012] |
+| compact - anchor | -0.010 [-0.026, +0.006] | -0.010 [-0.029, +0.007] | -0.010 [-0.021, +0.002] |
+| hqa - compact | +0.010 [-0.005, +0.025] | +0.016 [-0.002, +0.036] | +0.013 [+0.002, +0.024] (excludes 0 only at four passes) |
+| exlr8-k4 - anchor | +0.006 [-0.007, +0.019] | -0.008 [-0.023, +0.005] | -0.001 [-0.012, +0.009] |
+| exlr8-k4 - hqa | +0.006 [-0.008, +0.019] | -0.014 [-0.028, -0.001] | -0.004 [-0.016, +0.007] |
+| exlr8-k4 - compact | +0.016 [+0.004, +0.029] | +0.002 [-0.017, +0.022] | +0.009 [-0.003, +0.021] |
+
+### Paired differences by length, four passes
+
+| b - a | 4K | 16K | 64K | 127K |
+|---|---|---|---|---|
+| hqa - anchor | -0.002 [-0.009, +0.006] | +0.009 [+0.001, +0.018] | -0.002 [-0.023, +0.019] | +0.007 [-0.019, +0.033] |
+| compact - anchor | -0.004 [-0.012, +0.005] | -0.001 [-0.013, +0.010] | -0.004 [-0.026, +0.017] | -0.031 [-0.070, +0.008] |
+| hqa - compact | +0.003 [-0.007, +0.011] | +0.009 [-0.002, +0.022] | +0.003 [-0.016, +0.022] | +0.037 [+0.004, +0.073] |
+| exlr8-k4 - anchor | -0.003 [-0.007, +0.002] | +0.005 [-0.005, +0.016] | -0.009 [-0.029, +0.010] | +0.003 [-0.030, +0.034] |
+| exlr8-k4 - hqa | -0.001 [-0.008, +0.006] | -0.004 [-0.016, +0.007] | -0.007 [-0.030, +0.013] | -0.004 [-0.035, +0.025] |
+| exlr8-k4 - compact | +0.002 [-0.007, +0.010] | +0.006 [-0.006, +0.019] | -0.005 [-0.023, +0.013] | +0.033 [-0.002, +0.069] |
+
+**How many intervals exclude 0.** Each pass set holds 102 intervals: 6 pairs x 17 (score at four lengths, all
+lengths and two length groups; every field right at four lengths, all lengths and 64K + 127K; `ledger` score at
+64K + 127K; score in each of three families). The number that exclude 0
+is 4 at passes 1-2, 13 at passes 3-4 and 6 at four passes. At a 95% level about 5 of 102 would exclude 0 with no
+difference anywhere, so a single interval of this table is not evidence on its own. The six at four passes:
+`hqa` - `compact` at all lengths, at 127K and in the `join` family (+0.028 [+0.009, +0.049]); `exlr8-k4` -
+`compact` in `join` (+0.027 [+0.010, +0.046]); `hqa` - `anchor` at 16K; `exlr8-k4` - `anchor` on every field right
+at 64K + 127K (-0.046 [-0.087, -0.004]). The four at passes 1-2 all involve `exlr8-k4`: its score against
+`compact` at 127K, at all lengths and at 64K + 127K, and against `anchor` in `join`. Of the 13 at passes 3-4, nine
+involve `exlr8-k4` (six of them against `hqa`), four are every field right at 4K and four are in `join`. No
+interval excludes 0 in both two-pass sets. The lists are in `SUMMARY.json` (`four_pass.intervals`).
+
+### Reading
+
+- **`hqa` against `anchor`: no difference measured, and the bound is tighter.** +0.003 [-0.005, +0.012]: the 95%
+  interval reaches down to -0.005. Basis: four passes, 60 items, 960 requests per arm; the same reading in both
+  pass sets.
+- **`compact` is the lowest arm in both pass sets, about one point below the others over four passes, and the
+  gap is at 127K.** It is below the next arm by 0.010 in passes 1-2 and by 0.002 in passes 3-4; over four passes
+  it scores 0.946 against 0.955 to 0.959. Up to 64K it is level with the others (differences from `anchor` of
+  -0.004, -0.001, -0.004). At 127K it scores 0.887 against 0.918 to 0.924, and its four single passes there
+  (0.877 to 0.894) vary least of the four configurations. Against
+  `hqa` the four-pass interval excludes 0 (all lengths and 127K); against `anchor` it does not (-0.010
+  [-0.021, +0.002]; at 127K -0.031 [-0.070, +0.008]). Strength: indicated, not established. It rests on the same
+  sign in both pass sets and on the single passes at 127K, not on one interval among 102: there `compact` is
+  below `hqa` in every pass (by 0.002 in the closest, pass 2) and below `anchor` in three of four (pass 1
+  reverses: 0.875 against 0.885).
+- **Where `compact`'s 127K gap comes from is not settled.** Pooled over four passes it matches the unfinished
+  replies: 14 of 240 at 127K against 7, 5 and 4, while replies that finished score level (0.942 against 0.936 to
+  0.945). The two pass sets do not agree on that split. In passes 1-2 `compact` had as many unfinished replies at
+  127K as `anchor` (5 and 5) and a lower finished-only score (0.928 against 0.942); in passes 3-4 it had 9
+  unfinished against 2, 2 and 3 and the highest finished-only score (0.956). Of its 18 unfinished replies, 15
+  reached the reply cap and 3 ended on repetition. By task family the pass sets disagree as well: over four
+  passes `hqa` - `compact` sits in `join` (+0.028 [+0.009, +0.049]; `ledger` +0.008, `trace` +0.003), but passes
+  1-2 put it in `ledger` (+0.024, `join` +0.009) and passes 3-4 in `join` (+0.048, `ledger` -0.008). The scoring
+  capture (section 10) reads other texts, long and given, in one launch per arm, and samples nothing. It shows no
+  deficit for `compact` at predicting text: its NLL minus `anchor`'s is -0.0055
+  [-0.0109, -0.0004] (lower is better), share of positions whose top token is the given one +0.0006
+  [-0.0019, +0.0032] (exploratory, one capture, 9,728 positions to 128K). The capture does not locate the gap. It
+  shows only that `compact` is not worse at next-token prediction on long given text; the gap was seen in
+  generated replies at 127K.
+- **The two-pass lead of `exlr8-k4` over `compact` (section 9) did not repeat.** Passes 3-4 alone give +0.002
+  [-0.017, +0.022] and the four-pass interval includes 0. At 127K the four-pass difference is +0.033
+  [-0.002, +0.069], the same size as `hqa`'s over `compact`.
+- **`exlr8-k4` sits with `anchor` and `hqa` on score** (-0.001 and -0.004, intervals within +/-0.016). It has
+  fewer replies fully right than those two in count: 738 of 960 against 760 and 768 (`compact` 739). Over all
+  lengths those two intervals include 0 (-0.023 [-0.054, +0.008] and -0.031 [-0.067, +0.002], as a share of
+  replies); at 64K + 127K pooled the one against `anchor` excludes 0 (-0.046 [-0.087, -0.004]), one of the six
+  listed above. On `ledger` at 64K + 127K it has 48 of 160 fully right against 68, 59 and 59 (`anchor`, `hqa`,
+  `compact`). In passes 3-4 alone `exlr8-k4` - `hqa` is -0.014 [-0.028, -0.001]; it is one of the 13 intervals
+  excluding 0 in that pass set and the sign is the opposite in passes 1-2 (+0.006). Whole-checkpoint difference;
+  not attributable to one component.
+- **The two-pass lean against the K6 core on running totals (sections 5 and 8) did not repeat.** On `ledger` at
+  64K + 127K, `compact` - `anchor` in field score was -0.062 [-0.128, +0.002] in passes 1-2, +0.011 [-0.055,
+  +0.072] in passes 3-4 and is -0.026 [-0.070, +0.019] over four; `hqa` - `compact` is +0.012 [-0.034, +0.059]
+  over four. Replies with every field right there: 33, 28 and 22 of 80 in passes 1-2, 35, 31 and 37 of 80 in
+  passes 3-4 (`anchor`, `hqa`, `compact`). Twenty items; every one of these intervals includes 0. Section 8 gives
+  the passes 1-2 interval as -0.062 [-0.127, +0.002]: the same requests, resampled with another seed.
+- **Accuracy still falls with length in every arm**: 0.98 at 4K to 0.89-0.92 at 127K over four passes, a fall of
+  0.067, 0.060, 0.094 and 0.063 (`anchor`, `hqa`, `compact`, `exlr8-k4`; differences of the figures as shown). About 0.06 of it is common to the four,
+  the BF16-core `anchor` included, so that part does not come from the settings that differ between them;
+  `compact`'s further 0.03 is its 127K gap above. The four
+  share the model family, the engine, the sampling settings, the reply cap and the tasks themselves, whose
+  distractor text grows with length. No unquantized model and no other engine ran these tasks, so this run does
+  not say where the common fall comes from.
+- **Precision gained.** The amendment stated in advance that four passes would narrow paired intervals to about
+  0.71 of their two-pass half-width and arm means by 10 to 20%. Measured: 0.71, 0.71 and 0.75 for the three probe
+  pairs, 0.79 to 0.90 for pairs with `exlr8-k4`; arm means 0.82 to 0.94 for the probe arms and 1.05 for
+  `exlr8-k4` (its third pass was its lowest).
+
+Descriptive, four passes, median per stream under the mixed concurrency-8 load (not an arm comparison under the
+protocol): decode tok/s at 4K / 16K / 64K / 127K `anchor` 38.7 / 38.3 / 36.9 / 39.5, `hqa` 34.3 / 32.5 / 33.1 /
+35.0, `compact` 36.1 / 33.2 / 33.6 / 37.2, `exlr8-k4` 32.0 / 30.6 / 31.4 / 32.8; first token at 127K 21.8, 25.1,
+25.4 and 34.2 s. Of 960 item-length-pass cells, all four arms had every field right in 533 and none did in 42.
+
+## 12. Distance from the BF16 model (added 2026-11-12)
+
+Sections 1 to 11 score tasks, and section 10 compares the arms with each other. Neither says how far a
+configuration is from the unquantized model. This stage measures that on two reference sets that hold BF16
+outputs. Its plan (`bf16ref/ADDENDUM-BF16REF.md`, hashes in `bf16ref/FROZEN.json`) was written 2026-11-11 17:54,
+before its first request and after the two-pass task results were read. Status: descriptive; no gate and no
+ranking rule; every interval computed is listed.
+
+Ran 2026-11-12 04:06 to 05:28, one engine at a time, every step exit 0. The engine scores fixed token ids on its
+prefill path, so no sampling, seeds or thinking setting are involved. Sources: `bf16ref/BF16REF.json`, which carries the numbers of the stage's score files.
+
+Engine build `v5.0.0-1-g092f2168b`: the v5.0.0 tag plus one local commit, which holds this host's configuration
+files and the launcher guard that passes `--device=/dev/infiniband` to the coordinator container only when the
+device exists; the coordinator image is the release image, pinned by digest.
+
+| | Fidelity set | Teacher panel |
+|---|---|---|
+| Source | the engine author's published fidelity set, config `glm5_flash-v2_20261005_bf16root` | published BF16 teacher logits for GLM 5.3 Flash |
+| Size | 64 windows, 512 scored positions each; 15,104 generated positions in 53 windows | 25 windows of 2,048 tokens; 51,175 scored rows |
+| Measure | KL over the reference's top 1,024 tokens plus the rest (the author's rule), ratio of sums over generated positions | KL over the full vocabulary, mean over rows |
+| Context length | to 14.4K; buckets 0-2K, 2-8K, 8-16K | 2K |
+| Interval | window bootstrap, 5,000 draws | window bootstrap, 20,000 draws |
+
+The two sets use different measures and are not comparable with each other. **Neither reaches past 14.4K: the 64K
+and 127K lengths of the task runs have no BF16 reference here.**
+
+### KL from BF16 (nats; 0 is identical, lower is closer)
+
+| Row | Fidelity set, generated positions | 0-2K | 2-8K | 8-16K | Teacher panel |
+|---|---|---|---|---|---|
+| Official FP8 release (baseline recorded by the engine author in the fidelity set's manifest; quoted, not recomputed here) | 0.0216 | | | | |
+| `hqa` | 0.0302 [0.0255, 0.0344] | 0.0287 | 0.0219 | 0.0350 | 0.0316 [0.0238, 0.0410] |
+| `compact` | 0.0314 [0.0263, 0.0359] | 0.0310 | 0.0230 | 0.0356 | 0.0297 [0.0236, 0.0364] |
+| `anchor` | 0.0328 [0.0275, 0.0377] | 0.0335 | 0.0215 | 0.0378 | 0.0320 [0.0241, 0.0419] |
+| `exlr8-k4` | 0.0360 [0.0300, 0.0416] | 0.0351 | 0.0245 | 0.0419 | 0.0305 [0.0244, 0.0374] |
+| K3.25 checkpoint on this engine (measured 2026-10-26 on an earlier engine release; same sets and measures) | 0.0484 | | | | 0.0476 |
+
+| arm | top-1 agreement with BF16 (fidelity set / teacher panel) | NLL above BF16, nats | top-1 where BF16 is confident |
+|---|---|---|---|
+| anchor | 0.9472 / 0.9464 | +0.0226 / +0.0035 | 0.9738 / 0.9903 |
+| hqa | 0.9517 / 0.9461 | +0.0178 / +0.0036 | 0.9777 / 0.9906 |
+| compact | 0.9499 / 0.9467 | +0.0179 / +0.0055 | 0.9751 / 0.9908 |
+| exlr8-k4 | 0.9452 / 0.9444 | +0.0263 / +0.0074 | 0.9728 / 0.9903 |
+
+All four pass the engine CLI's own fidelity gate on this set (KL at most 0.05, top-1 at least 0.93).
+
+**Repeat.** A second launch of each arm reproduced the fidelity-set result exactly: KL difference 0.0 and the same
+argmax on 15,104 of 15,104 generated positions, in all four arms. The float64 port used for the intervals and
+the engine CLI agree on 32,768 of 32,768 records per arm and launch (largest KL difference 0.0).
+
+### Differences between arms on the same rows (KL, b - a; negative means b is closer to BF16)
+
+| b - a | fidelity set, overall | 0-2K | 2-8K | 8-16K | teacher panel |
+|---|---|---|---|---|---|
+| hqa - anchor | -0.0026 [-0.0042, -0.0011] | -0.0047 [-0.0078, -0.0019] | +0.0004 [-0.0010, +0.0019] | -0.0029 [-0.0054, -0.0008] | -0.0004 [-0.0014, +0.0006] |
+| compact - anchor | -0.0014 [-0.0028, +0.0001] | -0.0025 [-0.0045, -0.0004] | +0.0016 [-0.0002, +0.0039] | -0.0023 [-0.0044, -0.0001] | -0.0023 [-0.0065, +0.0006] |
+| compact - hqa | +0.0012 [-0.0002, +0.0026] | +0.0023 [-0.0003, +0.0053] | +0.0012 [-0.0014, +0.0040] | +0.0006 [-0.0013, +0.0025] | -0.0019 [-0.0057, +0.0009] |
+| exlr8-k4 - anchor | +0.0032 [+0.0008, +0.0054] | +0.0017 [-0.0022, +0.0058] | +0.0031 [+0.0001, +0.0060] | +0.0041 [+0.0001, +0.0076] | -0.0015 [-0.0056, +0.0018] |
+| exlr8-k4 - hqa | +0.0058 [+0.0038, +0.0081] | +0.0064 [+0.0011, +0.0128] | +0.0027 [-0.0003, +0.0059] | +0.0070 [+0.0045, +0.0094] | -0.0011 [-0.0048, +0.0022] |
+| exlr8-k4 - compact | +0.0046 [+0.0023, +0.0069] | +0.0042 [-0.0009, +0.0097] | +0.0015 [-0.0011, +0.0034] | +0.0064 [+0.0027, +0.0096] | +0.0008 [-0.0011, +0.0026] |
+
+Thirty intervals are listed (24 on the fidelity set, 6 on the teacher panel); 13 exclude 0, all on the fidelity
+set. None was selected.
+
+The two rows from other measurements. The FP8 row is the baseline the engine author recorded in the fidelity
+set's manifest (`calibration.baseline_metrics`, prefill path; 0.0216 in both of its repeats): the checkpoint
+`zai-org/GLM-5.3-Flash` against the same BF16 root, with this set's measure, on the author's engine build and
+hardware. It is quoted, not recomputed here. The K3.25 row was measured here on 2026-10-26 on an earlier engine
+release: the fidelity set over the same generated positions with the same measure, the teacher panel over the
+full vocabulary.
+
+### Reading
+
+- **All four configurations sit in one band, between the FP8 release and K3.25.** 0.030 to 0.036 on the fidelity
+  set: 1.4 to 1.7 times the FP8 baseline and 0.62 to 0.74 of the K3.25 figure.
+- **What differs between the three probe arms is a small part of that distance.** They share their K4 experts.
+  `hqa` and `compact` differ in `ATTENTION_MODE` alone, and between those two the distance does not move
+  measurably (`compact` - `hqa` +0.0012 [-0.0002, +0.0026] on the fidelity set, -0.0019 [-0.0057, +0.0009] on the
+  teacher panel). `anchor` differs from them in the rest of the core and in the output head: it is launched with
+  the engine's three FP8 conversion settings off, which keeps both at BF16 (FP8 settings as logged: section 13,
+  terms). Between the three the distance moves by at most 0.003, under a tenth of the total;
+  the rest is common to the three. The plan stated before the first request that `anchor`'s distance would not be zero
+  (quantized experts and the engine's numerics; the two are not separated here). `anchor` is also not the closest:
+  `hqa` is 0.0026 closer on the fidelity set (interval excludes 0) and level on the teacher panel; `compact` -
+  `anchor` is -0.0014 [-0.0028, +0.0001] on the fidelity set, interval includes 0. `anchor` is also a locally
+  derived checkpoint; why it measures slightly farther than `hqa` on one set is an open question.
+- **`exlr8-k4` is 0.003 to 0.006 farther than each probe arm on the fidelity set and level with them on the
+  teacher panel.** The two sets place it differently, and this stage does not say which is nearer. Each set has
+  its own provenance. The fidelity set is the engine author's; its relation to the calibration data of either
+  checkpoint is not known. The teacher panel is drawn from the corpus the producer of the K4 experts published and
+  can favour the experts the three probe arms carry (stated in the plan before the first request); a tilt of that
+  kind would run toward the probe arms on that panel, which is the set where the four are level; it does not bear
+  on the fidelity set, where `exlr8-k4` is farther. Whole-checkpoint difference.
+- **In every arm the 8-16K bucket is the farthest and 2-8K the closest.** The buckets hold different texts (8-16K
+  is long code reading), so this is not a length trend on its own.
+- **Where both kinds of measurement exist, both show small differences.** Up to 16K the task scores of the three
+  probe arms are within 0.01 of one another (section 11) and their distances from BF16 within 0.003. The one
+  task difference indicated on this page,
+  `compact` at 127K, lies beyond the reach of either reference set, so this stage neither supports nor
+  contradicts it.
+
+Limits: one engine build; one checkpoint revision per arm; prefill path only; contexts to 14.4K; the FP8 and
+K3.25 rows come from other measurements; the teacher panel can favour K4 experts.
+
+## 13. What each configuration trades (summary of sections 1 to 12, added 2026-11-12)
+
+`anchor` is the reference of the probe, not a recommendation. The table puts cost and measured quality side by
+side; every figure is from a section above or, for the memory rows, from the launch logs (`SUMMARY.json`:
+`trade_offs`, `launch`, `reference.launch`).
+
+What can be obtained: `hqa` and `compact` are two settings of one checkpoint, K4-Core-K6-HQA. That repository is
+no longer available on the hub (checked 2026-11-11); these runs used a local copy downloaded on 2026-11-10. The
+`anchor` checkpoint is derived locally and was never a hub release. `exlr8-k4` is a published checkpoint
+(section 9).
+
+| | `anchor` | `hqa` | `compact` | `exlr8-k4` |
+|---|---|---|---|---|
+| Outside the experts | BF16 core and head | BF16 `q_b_proj` and `o_proj`, rest K6 | K6 core and head | its own checkpoint (section 9) |
+| Weights outside the experts, both GPUs, MiB | 15,138 | 10,872 | 8,304 | 7,496 |
+| Resident weights, both GPUs, MiB | 166,026 | 161,758 | 159,190 | 162,081 |
+| KL from BF16, fidelity set, to 14.4K | 0.0328 | 0.0302 | 0.0314 | 0.0360 |
+| KL from BF16, teacher panel, 2K | 0.0320 | 0.0316 | 0.0297 | 0.0305 |
+| Task score, four passes, all lengths | 0.956 | 0.959 | 0.946 | 0.955 |
+| Task score at 127K | 0.918 | 0.924 | 0.887 | 0.920 |
+| Every field right, of 960 | 760 | 768 | 739 | 738 |
+| Unfinished replies, of 960 | 9 | 9 | 18 | 8 |
+| Decode tok/s per stream at 127K, median (descriptive) | 39.5 | 35.0 | 37.2 | 32.8 |
+| First token at 127K, s, median (descriptive) | 21.8 | 25.1 | 25.4 | 34.2 |
+
+Terms. Probe arms: `anchor`, `hqa` and `compact`, which share their K4 experts; the four configurations are those
+three and `exlr8-k4`. Reference is used for three things: `anchor` is the reference arm of the probe, the all-BF16
+core the other arms are read against; `exlr8-k4` is a reference checkpoint in another quantisation format; the
+BF16 model is the unquantized model that distance is measured from. `anchor` is not the BF16 model: its experts
+are K4. Experts: the model's mixture-of-experts feed-forward weights, most of its size; K4 in the three probe
+arms. Core: the attention and other layer weights outside the experts. Head: the output matrix that turns the
+last hidden state into token scores. K4 and K6: quantized formats at about 4 and 6 bits per weight (BF16 holds
+16). K3.25: a checkpoint of the same model in the same family of formats at about 3.25 bits per weight, with an
+FP8 core, measured here on 2026-10-26 on an earlier engine release (CuteAFD v3.0.1); a row for scale, not part of
+this comparison. FP8 settings: the engine has three FP8 conversion settings (`GLM5_FLASH_KDA_FP8`,
+`GLM5_FLASH_FP8_HEAD`, `GLM5_FLASH_FP8_PREFILL`). `anchor` is launched with all three off, which keeps its BF16
+core matrices and head at BF16. As logged at load, KDA FP8 reads Off in all nine serving launches of the three
+probe arms; the FP8 prefill setting reads none in `anchor` and `[Mla, Ffn]` in `hqa` and `compact`; the head reads
+BF16 in `anchor` and K6 in the other two. Switching the prefill setting off on `hqa` left every recorded
+distribution bit-identical in a check before the graded runs. Passes and pass sets: a pass is one run of an arm's
+240 requests (60 items at four lengths); passes 1-2 are the frozen two-pass result, passes 3-4 were added under
+amendment 1, and "four passes" pools them. Task score (field score): the share of a reply's eight answer fields that are right, 0 for a reply that did
+not finish; higher is better, and one point is 0.01. Every field right: the stricter count of replies with all
+eight right. Weights outside the experts: what the engine's startup plan places on the two GPUs outside the
+experts, that is the 45 layers' weights (one copy on each GPU; the load line's "coordinator weights", section 7),
+the output head and the token embedding table (each on one GPU). In the three probe arms those parts add up to
+the plan's figure; in `exlr8-k4` the plan's figure is 505 MiB more than they add up to, and the logs do not
+itemize that remainder. The count of 45 layers is the engine's load line; the HQA checkpoint holds 46
+BF16 `o_proj` matrices (layer indices 0 to 45) and 12 `q_b_proj`. Both counts are as read, from different sources.
+Resident weights: everything held as weights on
+the two GPUs after load, experts included. The rest of the resident weights is the same in the three probe arms
+(150,888, 150,886 and 150,886 MiB) and 154,585 MiB in `exlr8-k4`, which brings its own experts; that is why its
+resident total is not the smallest although its weights outside the experts are. Left under the memory cap: the
+engine's per-GPU memory cap minus weights, workspaces, reserve and KV pool. Workspaces and reserve: two items of
+the engine's admission line beside weights and KV pool, per GPU; read from each launch's log, not measured here.
+KV pool: the tokens of attention cache the engine admits for all simultaneous requests together. KL: how far a
+configuration's next-token probabilities are from the BF16 model's at the same position; the fidelity set
+computes it over the reference's top 1,024 tokens plus one term for the rest, the teacher panel over the full
+vocabulary. Generated positions: the scored positions the fidelity set marks as generated text (15,104), as
+opposed to context; its figures here are over those. Where BF16 is confident: positions where the BF16 model gives
+its most likely token a probability of at least 0.5.
+
+- **BF16 core to `hqa`: 4,266 MiB of weights back over the two GPUs, no quality cost measured.** Task score +0.003
+  [-0.005, +0.012] over four passes; distance from BF16 not larger on either set. Strength: the best-supported
+  reading here (960 requests per arm, both pass sets, two reference sets). The step changes two things together:
+  the core outside the two projection groups and the output head, both BF16 in `anchor` and K6 in `hqa` (FP8
+  settings as logged: terms above). It does not separate the two.
+- **`hqa` to `compact`: a further 2,568 MiB back; a cost of about one point over all lengths is indicated, and it
+  sits at 127K.** The two differ in `ATTENTION_MODE` alone. Over all lengths `hqa` - `compact` is +0.013 [+0.002,
+  +0.024] and `compact` - `anchor` -0.010 [-0.021, +0.002]. Up to 64K `compact`'s task score is level with the
+  other two, and its overall distance from BF16 is level with theirs on both reference sets (intervals include
+  0). At 127K it scores 0.887 against 0.924 (`hqa` -
+  `compact` +0.037 [+0.004, +0.073]); against `anchor` the interval includes 0 (-0.031 [-0.070, +0.008]). The
+  scoring capture (section 10), on other long given texts, shows no deficit for `compact` at next-token
+  prediction; it does not locate the gap, which was seen in generated replies at 127K. Pooled over four passes the
+  gap matches unfinished replies: 14 of 240 at 127K against 7, 5 and 4, with finished replies level (0.942 against
+  0.936-0.945). The two pass sets do not agree on that split or on the task family, so where the gap comes from is
+  not settled. Strength: indicated, not established (section 11).
+- **What the memory buys on this hardware.** Of the first step, 3,510 MiB is in the 45 layers (1,755 MiB on each
+  GPU) and 756 MiB is the output head (1,210 MiB in BF16 against 454 MiB in K6), which `ATTENTION_MODE` does not
+  select; the second step is all in the layers (1,284 MiB on each GPU). Resident weights fall by the same amounts
+  to within 2 MiB (4,268 and 2,568 MiB). Not all of it arrives as free memory: `hqa` and `compact` hold larger
+  workspaces (1,221 and 1,331 MiB more than `anchor` over both GPUs), so the memory left under the engine's cap
+  after weights, workspaces, reserve and KV pool rises by 3,096 MiB from `anchor` to `hqa` (which also holds 49
+  MiB less reserve) and by a further 2,458 MiB to `compact`. The cap is per GPU (about 97,250 MiB, of which the KV
+  pool holds 7,603 MiB); the smaller of the two per-GPU figures is 1,201, 2,753 and 3,982 MiB (`anchor`, `hqa`,
+  `compact`).
+  In the serving launches, with eight requests at once, every arm was admitted the maximum KV pool (2,097,152
+  tokens), so there the saving stayed as unused memory, not as pool size (section 7). It was seen to convert
+  once: in the
+  exploratory scoring launches, with 16 requests at once, `anchor` was admitted 1,318,400 tokens and `hqa` and
+  `compact` the maximum. No launch here showed `compact` admitted a larger pool than `hqa`. That is one launch
+  setting read from logs; pool and batch size were not varied as a measurement.
+- **Speed is not an arm comparison under the protocol.** As run, `anchor` had the highest median decode speed and
+  the shortest first-token time at 127K in both pass sets, and `exlr8-k4` the longest first-token time. These are
+  medians under one mixed load; the protocol did not isolate speed and no cause is claimed.
+- **`exlr8-k4`: task score level with `anchor` and `hqa`; fewer replies fully right in count (over all lengths
+  those intervals include 0); 0.003 to 0.006 farther from BF16 on one set and level on the other.** It differs in
+  the whole checkpoint, so none of this is attributable to one component.
+- **The larger differences are outside this comparison.** Between these four, distance from BF16 moves by 0.006
+  at most. The K3.25 checkpoint, measured on an earlier release of this engine, sits 0.012 to 0.018 farther than they do and the FP8 release 0.009 to 0.014
+  closer (section 12; rows from other measurements). Task accuracy falls with length in every arm, `anchor`
+  included, by 0.06 to 0.09 from 4K to 127K (`compact`'s is the largest, section 11); the largest difference
+  between two arms at one length is 0.037. The
+  tasks and the engine are shared too, and no unquantized model ran these tasks, so the run does not say where
+  the common fall comes from.
+
+Limits: one model family; one engine release; synthetic tasks; 60 items per length; K4-class checkpoints only;
+BF16 reference to 14.4K only.

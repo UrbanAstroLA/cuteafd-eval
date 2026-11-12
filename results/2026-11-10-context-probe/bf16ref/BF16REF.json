@@ -1,0 +1,1834 @@
+{
+ "about": "Distance of each of the four configurations from the unquantized BF16 model, on two reference sets that hold BF16 outputs (RESULTS.md section 12). KL in nats; 0 is identical, lower is closer. Descriptive: no gate and no ranking rule; every interval computed is listed and none was selected. The two sets use different measures and are not comparable with each other. Neither reaches past 14.4K: the 64K and 127K lengths of the task runs have no BF16 reference here. Differences b - a: negative means b is closer to BF16. The three probe arms share their K4 experts, so a difference between two of them reflects the tensors outside the experts. exlr8-k4 is a different checkpoint from the three probe arms, not a setting of the same one. Any difference from a probe arm is a whole-checkpoint difference and is not attributable to one component. anchor is the reference of the probe, not a recommendation.",
+ "plan": {
+  "file": "bf16ref/ADDENDUM-BF16REF.md",
+  "hashes": "bf16ref/FROZEN.json",
+  "frozen_at": "2026-11-11T17:54:32-08:00",
+  "written": "2026-11-11 17:54, before the first request of this stage and after the two-pass task results were read",
+  "status": "descriptive; no gate and no ranking rule; every interval computed is listed"
+ },
+ "ran": "2026-11-12 04:06 to 05:28, one engine at a time, every step exit 0",
+ "path": "the engine scores fixed token ids on its prefill path: no sampling, seeds or thinking setting are involved; the decode path is not captured in this stage",
+ "engine_source": "v5.0.0-1-g092f2168b",
+ "engine_source_note": "the v5.0.0 tag plus one local commit, which holds this host's configuration files and the launcher guard that passes --device=/dev/infiniband to the coordinator container only when the device exists (README, Launcher defaults that matter); the coordinator image is the release image, pinned by digest",
+ "arms_measured": [
+  "anchor",
+  "hqa",
+  "compact",
+  "exlr8-k4"
+ ],
+ "sets": {
+  "fidelity_set": {
+   "label": "P-B",
+   "source": "the engine author's (tpurtell's) published fidelity set",
+   "config": "glm5_flash-v2_20261005_bf16root",
+   "revision": "a7e7d1b4d82329acebe54ca88dc71d47d0d2056d",
+   "set_sha256": "2016a76addaed594bc1ce23cbdfc71e80e6c93856ca123a2a7f7fb5ab09d37b9",
+   "manifest_sha256": "6dfe3b54f09a6c22bdb1b8e6046aee02cdf36c076ff1a2875a64dab48d11b1e6",
+   "windows": 64,
+   "scored_positions_per_window": 512,
+   "generated_positions": 15104,
+   "windows_with_generated_positions": 53,
+   "last_generated_position": 14402,
+   "context_length": "to 14.4K; buckets 0-2K, 2-8K, 8-16K",
+   "buckets": {
+    "0-2K": {
+     "windows": 19,
+     "positions": 4035
+    },
+    "2-8K": {
+     "windows": 16,
+     "positions": 3547
+    },
+    "8-16K": {
+     "windows": 18,
+     "positions": 7522
+    }
+   },
+   "blocks": {
+    "A": {
+     "windows": 26,
+     "positions": 4174
+    },
+    "B": {
+     "windows": 12,
+     "positions": 6144
+    },
+    "D": {
+     "windows": 6,
+     "positions": 1134
+    },
+    "E": {
+     "windows": 9,
+     "positions": 3652
+    }
+   },
+   "estimator": "coarse KL, the engine author's rule (not full-vocabulary): per position, KL(BF16 reference || engine) in float64 over the reference's top 1,024 token ids plus one term for the rest of the vocabulary. Statistic: ratio of sums over generated positions (sum of per-position KL / number of positions). 95% interval: window-block bootstrap, 5,000 replicates, SplitMix64 seed 20260829; in each replicate one window is drawn per window, with replacement, in window order; 2.5th and 97.5th percentiles with linear interpolation. Unit: the window (53 with generated positions)",
+   "estimator_paired": "b - a on the same positions: (sum of per-position KL of b - that of a) / number of positions, with the same bootstrap and the same drawn windows for both arms",
+   "recompute": "fidelity_set_windows holds, per window, its positions and each arm's mean KL; positions x mean is the window's sum. Every fidelity-set value and interval of this file follows from that table with the estimator above (tools/verify.py does this for the findings that cite it)"
+  },
+  "teacher_panel": {
+   "label": "P-A",
+   "source": "published BF16 teacher logits for GLM 5.3 Flash",
+   "teacher": "zai-org/GLM-5.3-Flash-BF16 @ a6c167b62691b2bac901344b65cb651a70f53e43",
+   "dataset_manifest_sha256": "1c6cba530a60af71ff62e5c2180f2edd26090d8d5845747c85f2e0b53aafc736",
+   "windows": 25,
+   "tokens_per_window": 2048,
+   "scored_rows": 51175,
+   "context_length": "2K",
+   "estimator": "full-vocabulary KL(BF16 teacher || engine) per row in float64, mean over rows. 95% interval: window bootstrap, 20,000 replicates, numpy default_rng(20260929), percentile. Unit: the window (25)",
+   "estimator_paired": "b - a per row on the same rows, mean over rows, same bootstrap",
+   "recompute": "teacher_panel_windows holds, per window, its rows and each arm's mean KL; the overall value is the row-weighted mean. The interval needs numpy's generator (repro/stage0/scorers/score_pa.py)",
+   "note": "drawn from the corpus the K4 producer published and can favour the K4 experts the three probe arms carry"
+  }
+ },
+ "arms": {
+  "anchor": {
+   "fidelity_set": {
+    "kl": [
+     0.032816759,
+     0.027497969,
+     0.037718898
+    ],
+    "by_bucket": {
+     "0-2K": {
+      "kl": [
+       0.033458175,
+       0.023341655,
+       0.042245448
+      ],
+      "positions": 4035,
+      "windows": 19
+     },
+     "2-8K": {
+      "kl": [
+       0.021474711,
+       0.011479232,
+       0.031814037
+      ],
+      "positions": 3547,
+      "windows": 16
+     },
+     "8-16K": {
+      "kl": [
+       0.037821032,
+       0.031608861,
+       0.043499598
+      ],
+      "positions": 7522,
+      "windows": 18
+     }
+    },
+    "by_block": {
+     "A": {
+      "kl": [
+       0.014257468,
+       0.01074049,
+       0.017956534
+      ],
+      "positions": 4174,
+      "windows": 26
+     },
+     "B": {
+      "kl": [
+       0.042440241,
+       0.037490378,
+       0.047846508
+      ],
+      "positions": 6144,
+      "windows": 12
+     },
+     "D": {
+      "kl": [
+       0.019152547,
+       0.014718323,
+       0.026830634
+      ],
+      "positions": 1134,
+      "windows": 6
+     },
+     "E": {
+      "kl": [
+       0.042081553,
+       0.03490988,
+       0.049163133
+      ],
+      "positions": 3652,
+      "windows": 9
+     }
+    },
+    "top1": 0.947232521,
+    "nll_above_bf16": 0.022556589,
+    "confident_top1": 0.97383826,
+    "fidelity_gate": {
+     "pass": true,
+     "kl_max": 0.05,
+     "top1_min": 0.93,
+     "confident_top1_min": 0.96,
+     "top3_min": 0.97,
+     "top3": 0.997550318
+    }
+   },
+   "teacher_panel": {
+    "kl": [
+     0.032047934,
+     0.024112207,
+     0.041850976
+    ],
+    "top1": 0.94641915,
+    "nll_above_bf16": 0.003487273,
+    "confident_top1": 0.990289353
+   }
+  },
+  "hqa": {
+   "fidelity_set": {
+    "kl": [
+     0.030226181,
+     0.025497097,
+     0.034352905
+    ],
+    "by_bucket": {
+     "0-2K": {
+      "kl": [
+       0.028727697,
+       0.02036251,
+       0.035515828
+      ],
+      "positions": 4035,
+      "windows": 19
+     },
+     "2-8K": {
+      "kl": [
+       0.021885327,
+       0.010999967,
+       0.03278259
+      ],
+      "positions": 3547,
+      "windows": 16
+     },
+     "8-16K": {
+      "kl": [
+       0.034963139,
+       0.02978781,
+       0.039214679
+      ],
+      "positions": 7522,
+      "windows": 18
+     }
+    },
+    "by_block": {
+     "A": {
+      "kl": [
+       0.013938915,
+       0.010341126,
+       0.017794866
+      ],
+      "positions": 4174,
+      "windows": 26
+     },
+     "B": {
+      "kl": [
+       0.039068445,
+       0.035354083,
+       0.042679187
+      ],
+      "positions": 6144,
+      "windows": 12
+     },
+     "D": {
+      "kl": [
+       0.01735722,
+       0.011782704,
+       0.024979487
+      ],
+      "positions": 1134,
+      "windows": 6
+     },
+     "E": {
+      "kl": [
+       0.037961555,
+       0.031161287,
+       0.043571827
+      ],
+      "positions": 3652,
+      "windows": 9
+     }
+    },
+    "top1": 0.951668432,
+    "nll_above_bf16": 0.017795198,
+    "confident_top1": 0.97774084,
+    "fidelity_gate": {
+     "pass": true,
+     "kl_max": 0.05,
+     "top1_min": 0.93,
+     "confident_top1_min": 0.96,
+     "top3_min": 0.97,
+     "top3": 0.997881356
+    }
+   },
+   "teacher_panel": {
+    "kl": [
+     0.031620155,
+     0.02380132,
+     0.041028997
+    ],
+    "top1": 0.946067416,
+    "nll_above_bf16": 0.003575072,
+    "confident_top1": 0.990608944
+   }
+  },
+  "compact": {
+   "fidelity_set": {
+    "kl": [
+     0.031399445,
+     0.026316321,
+     0.035880283
+    ],
+    "by_bucket": {
+     "0-2K": {
+      "kl": [
+       0.030988334,
+       0.021577951,
+       0.038681814
+      ],
+      "positions": 4035,
+      "windows": 19
+     },
+     "2-8K": {
+      "kl": [
+       0.023039046,
+       0.011965454,
+       0.035201216
+      ],
+      "positions": 3547,
+      "windows": 16
+     },
+     "8-16K": {
+      "kl": [
+       0.035562323,
+       0.030145192,
+       0.039941374
+      ],
+      "positions": 7522,
+      "windows": 18
+     }
+    },
+    "by_block": {
+     "A": {
+      "kl": [
+       0.014482792,
+       0.01073226,
+       0.018484331
+      ],
+      "positions": 4174,
+      "windows": 26
+     },
+     "B": {
+      "kl": [
+       0.039801099,
+       0.035719308,
+       0.04400334
+      ],
+      "positions": 6144,
+      "windows": 12
+     },
+     "D": {
+      "kl": [
+       0.018053041,
+       0.012821143,
+       0.025707934
+      ],
+      "positions": 1134,
+      "windows": 6
+     },
+     "E": {
+      "kl": [
+       0.040743687,
+       0.033106557,
+       0.047942935
+      ],
+      "positions": 3652,
+      "windows": 9
+     }
+    },
+    "top1": 0.949947034,
+    "nll_above_bf16": 0.017890435,
+    "confident_top1": 0.97506685,
+    "fidelity_gate": {
+     "pass": true,
+     "kl_max": 0.05,
+     "top1_min": 0.93,
+     "confident_top1_min": 0.96,
+     "top3_min": 0.97,
+     "top3": 0.997550318
+    }
+   },
+   "teacher_panel": {
+    "kl": [
+     0.029699118,
+     0.023590257,
+     0.036408059
+    ],
+    "top1": 0.946653639,
+    "nll_above_bf16": 0.005452701,
+    "confident_top1": 0.990781031
+   }
+  },
+  "exlr8-k4": {
+   "fidelity_set": {
+    "kl": [
+     0.036034492,
+     0.03003981,
+     0.041613023
+    ],
+    "by_bucket": {
+     "0-2K": {
+      "kl": [
+       0.035149275,
+       0.022522737,
+       0.047137851
+      ],
+      "positions": 4035,
+      "windows": 19
+     },
+     "2-8K": {
+      "kl": [
+       0.024548829,
+       0.012389717,
+       0.037547088
+      ],
+      "positions": 3547,
+      "windows": 16
+     },
+     "8-16K": {
+      "kl": [
+       0.041925411,
+       0.035648387,
+       0.047210486
+      ],
+      "positions": 7522,
+      "windows": 18
+     }
+    },
+    "by_block": {
+     "A": {
+      "kl": [
+       0.016305487,
+       0.012485236,
+       0.020365139
+      ],
+      "positions": 4174,
+      "windows": 26
+     },
+     "B": {
+      "kl": [
+       0.046413556,
+       0.041314187,
+       0.051352406
+      ],
+      "positions": 6144,
+      "windows": 12
+     },
+     "D": {
+      "kl": [
+       0.020523103,
+       0.010375875,
+       0.032259257
+      ],
+      "positions": 1134,
+      "windows": 6
+     },
+     "E": {
+      "kl": [
+       0.045938602,
+       0.034747773,
+       0.05684301
+      ],
+      "positions": 3652,
+      "windows": 9
+     }
+    },
+    "top1": 0.945246292,
+    "nll_above_bf16": 0.026342374,
+    "confident_top1": 0.97275421,
+    "fidelity_gate": {
+     "pass": true,
+     "kl_max": 0.05,
+     "top1_min": 0.93,
+     "confident_top1_min": 0.96,
+     "top3_min": 0.97,
+     "top3": 0.996755826
+    }
+   },
+   "teacher_panel": {
+    "kl": [
+     0.030506658,
+     0.02436394,
+     0.037372209
+    ],
+    "top1": 0.94444553,
+    "nll_above_bf16": 0.007421235,
+    "confident_top1": 0.990313937
+   }
+  }
+ },
+ "differences": {
+  "hqa - anchor": {
+   "fidelity_set": {
+    "overall": [
+     -0.002590578,
+     -0.0042175,
+     -0.001128893
+    ],
+    "0-2K": [
+     -0.004730478,
+     -0.007809059,
+     -0.001856292
+    ],
+    "2-8K": [
+     0.000410616,
+     -0.001027347,
+     0.001947094
+    ],
+    "8-16K": [
+     -0.002857893,
+     -0.005362942,
+     -0.000779711
+    ]
+   },
+   "teacher_panel": [
+    -0.000427778,
+    -0.001371201,
+    0.000596819
+   ]
+  },
+  "compact - anchor": {
+   "fidelity_set": {
+    "overall": [
+     -0.001417315,
+     -0.002826051,
+     7.1658e-05
+    ],
+    "0-2K": [
+     -0.002469841,
+     -0.004488329,
+     -0.000447609
+    ],
+    "2-8K": [
+     0.001564335,
+     -0.000243282,
+     0.003904071
+    ],
+    "8-16K": [
+     -0.002258709,
+     -0.004415888,
+     -8.0091e-05
+    ]
+   },
+   "teacher_panel": [
+    -0.002348815,
+    -0.006490638,
+    0.000608165
+   ]
+  },
+  "compact - hqa": {
+   "fidelity_set": {
+    "overall": [
+     0.001173264,
+     -0.000187835,
+     0.002634852
+    ],
+    "0-2K": [
+     0.002260637,
+     -0.000333063,
+     0.005337849
+    ],
+    "2-8K": [
+     0.001153718,
+     -0.001357561,
+     0.004026187
+    ],
+    "8-16K": [
+     0.000599184,
+     -0.001324061,
+     0.002537357
+    ]
+   },
+   "teacher_panel": [
+    -0.001921037,
+    -0.005677442,
+    0.000861826
+   ]
+  },
+  "exlr8-k4 - anchor": {
+   "fidelity_set": {
+    "overall": [
+     0.003217732,
+     0.000848523,
+     0.005391184
+    ],
+    "0-2K": [
+     0.0016911,
+     -0.002217148,
+     0.005791689
+    ],
+    "2-8K": [
+     0.003074118,
+     0.000140702,
+     0.005993444
+    ],
+    "8-16K": [
+     0.004104379,
+     7.0968e-05,
+     0.007610851
+    ]
+   },
+   "teacher_panel": [
+    -0.001541276,
+    -0.005564741,
+    0.001815194
+   ]
+  },
+  "exlr8-k4 - hqa": {
+   "fidelity_set": {
+    "overall": [
+     0.00580831,
+     0.00375005,
+     0.008055948
+    ],
+    "0-2K": [
+     0.006421578,
+     0.001142933,
+     0.012798732
+    ],
+    "2-8K": [
+     0.002663502,
+     -0.000284008,
+     0.005886762
+    ],
+    "8-16K": [
+     0.006962272,
+     0.004471596,
+     0.00938415
+    ]
+   },
+   "teacher_panel": [
+    -0.001113497,
+    -0.004829104,
+    0.002198407
+   ]
+  },
+  "exlr8-k4 - compact": {
+   "fidelity_set": {
+    "overall": [
+     0.004635047,
+     0.002251654,
+     0.006931331
+    ],
+    "0-2K": [
+     0.004160941,
+     -0.000858345,
+     0.009717374
+    ],
+    "2-8K": [
+     0.001509784,
+     -0.001058299,
+     0.003418343
+    ],
+    "8-16K": [
+     0.006363088,
+     0.002716471,
+     0.009598459
+    ]
+   },
+   "teacher_panel": [
+    0.00080754,
+    -0.001133572,
+    0.002628248
+   ]
+  }
+ },
+ "intervals": {
+  "listed": 30,
+  "fidelity_set": 24,
+  "teacher_panel": 6,
+  "excluding_zero": [
+   {
+    "pair": "hqa - anchor",
+    "set": "fidelity set",
+    "positions": "overall",
+    "value": [
+     -0.002590578,
+     -0.0042175,
+     -0.001128893
+    ]
+   },
+   {
+    "pair": "hqa - anchor",
+    "set": "fidelity set",
+    "positions": "0-2K",
+    "value": [
+     -0.004730478,
+     -0.007809059,
+     -0.001856292
+    ]
+   },
+   {
+    "pair": "hqa - anchor",
+    "set": "fidelity set",
+    "positions": "8-16K",
+    "value": [
+     -0.002857893,
+     -0.005362942,
+     -0.000779711
+    ]
+   },
+   {
+    "pair": "compact - anchor",
+    "set": "fidelity set",
+    "positions": "0-2K",
+    "value": [
+     -0.002469841,
+     -0.004488329,
+     -0.000447609
+    ]
+   },
+   {
+    "pair": "compact - anchor",
+    "set": "fidelity set",
+    "positions": "8-16K",
+    "value": [
+     -0.002258709,
+     -0.004415888,
+     -8.0091e-05
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - anchor",
+    "set": "fidelity set",
+    "positions": "overall",
+    "value": [
+     0.003217732,
+     0.000848523,
+     0.005391184
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - anchor",
+    "set": "fidelity set",
+    "positions": "2-8K",
+    "value": [
+     0.003074118,
+     0.000140702,
+     0.005993444
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - anchor",
+    "set": "fidelity set",
+    "positions": "8-16K",
+    "value": [
+     0.004104379,
+     7.0968e-05,
+     0.007610851
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - hqa",
+    "set": "fidelity set",
+    "positions": "overall",
+    "value": [
+     0.00580831,
+     0.00375005,
+     0.008055948
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - hqa",
+    "set": "fidelity set",
+    "positions": "0-2K",
+    "value": [
+     0.006421578,
+     0.001142933,
+     0.012798732
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - hqa",
+    "set": "fidelity set",
+    "positions": "8-16K",
+    "value": [
+     0.006962272,
+     0.004471596,
+     0.00938415
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - compact",
+    "set": "fidelity set",
+    "positions": "overall",
+    "value": [
+     0.004635047,
+     0.002251654,
+     0.006931331
+    ]
+   },
+   {
+    "pair": "exlr8-k4 - compact",
+    "set": "fidelity set",
+    "positions": "8-16K",
+    "value": [
+     0.006363088,
+     0.002716471,
+     0.009598459
+    ]
+   }
+  ],
+  "selected": "none",
+  "note": "six pairs x (fidelity set overall and three buckets, teacher panel); no correction for the number of intervals"
+ },
+ "repeat": {
+  "about": "a second launch of each arm, fidelity set, same scorer",
+  "by_arm": {
+   "anchor": {
+    "kl_difference": 0.0,
+    "same_argmax_generated_positions": [
+     15104,
+     15104
+    ]
+   },
+   "hqa": {
+    "kl_difference": 0.0,
+    "same_argmax_generated_positions": [
+     15104,
+     15104
+    ]
+   },
+   "compact": {
+    "kl_difference": 0.0,
+    "same_argmax_generated_positions": [
+     15104,
+     15104
+    ]
+   },
+   "exlr8-k4": {
+    "kl_difference": 0.0,
+    "same_argmax_generated_positions": [
+     15104,
+     15104
+    ]
+   }
+  }
+ },
+ "port_against_cli": {
+  "about": "the float64 port used for the intervals against the engine CLI's own per-record output, record by record, per arm and launch",
+  "by_arm": {
+   "anchor": {
+    "r0": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    },
+    "r1": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    }
+   },
+   "hqa": {
+    "r0": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    },
+    "r1": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    }
+   },
+   "compact": {
+    "r0": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    },
+    "r1": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    }
+   },
+   "exlr8-k4": {
+    "r0": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    },
+    "r1": {
+     "records_agreeing": [
+      32768,
+      32768
+     ],
+     "largest_kl_difference": 0.0
+    }
+   }
+  }
+ },
+ "fidelity_gate": "all four pass the engine CLI's own fidelity gate on the fidelity set (KL at most 0.05, top-1 at least 0.93)",
+ "yardsticks": {
+  "about": "Rows from other measurements, for scale. Not measured in this stage.",
+  "official_fp8_release": {
+   "fidelity_set_kl": 0.0216,
+   "source": "the baseline the engine author (tpurtell) recorded in the fidelity set's manifest (calibration.baseline_metrics, prefill path; the same figure in both of its repeats) for the checkpoint zai-org/GLM-5.3-Flash against the same BF16 root, on the author's engine build and hardware; also quoted in results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md; quoted, not recomputed in this repository"
+  },
+  "k3.25_on_cuteafd": {
+   "fidelity_set_kl": 0.048444655,
+   "teacher_panel_kl": 0.047556257,
+   "source": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-C1.json (summary.gen.overall.kl) and q/pa/pa-C1.json (overall.kl): the K3.25 Core-FP8 checkpoint on CuteAFD v3.0.1, measured 2026-10-26 on an earlier engine release; same sets and measures (same set_sha256)"
+  }
+ },
+ "reading": {
+  "band_fidelity_set": [
+   0.0302,
+   0.036
+  ],
+  "times_the_fp8_figure": [
+   1.4,
+   1.67
+  ],
+  "share_of_the_k3.25_figure": [
+   0.62,
+   0.74
+  ],
+  "largest_difference_between_probe_arms": 0.0026,
+  "largest_difference_between_the_four": 0.0058,
+  "exlr8_k4_farther_than_each_probe_arm": [
+   0.0032,
+   0.0058
+  ],
+  "k3.25_farther_than_the_four": [
+   0.0124,
+   0.0182
+  ],
+  "fp8_closer_than_the_four": [
+   0.0086,
+   0.0144
+  ],
+  "farthest_bucket_in_every_arm": "8-16K",
+  "closest_bucket_in_every_arm": "2-8K"
+ },
+ "limits": [
+  "one engine build",
+  "one checkpoint revision per arm",
+  "prefill path only",
+  "contexts to 14.4K",
+  "the FP8 and K3.25 rows come from other measurements",
+  "the teacher panel can favour K4 experts"
+ ],
+ "fidelity_set_windows": [
+  {
+   "window": "a00",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 36,
+   "kl_mean": {
+    "anchor": 0.012015906744219802,
+    "hqa": 0.004812771849899914,
+    "compact": 0.010341909838670059,
+    "exlr8-k4": 0.010377087035152367
+   }
+  },
+  {
+   "window": "a01",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 27,
+   "kl_mean": {
+    "anchor": 0.012206860707541544,
+    "hqa": 0.007110148556723987,
+    "compact": 0.013346946706794458,
+    "exlr8-k4": 0.0063402094363014675
+   }
+  },
+  {
+   "window": "a02",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 28,
+   "kl_mean": {
+    "anchor": 0.009060936416288454,
+    "hqa": 0.010068353475296414,
+    "compact": 0.0025251906515593686,
+    "exlr8-k4": 0.007412982071830103
+   }
+  },
+  {
+   "window": "a03",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 44,
+   "kl_mean": {
+    "anchor": 0.011444759559069375,
+    "hqa": 0.02009867251549647,
+    "compact": 0.021499871518017126,
+    "exlr8-k4": 0.008972942331989663
+   }
+  },
+  {
+   "window": "a04",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 169,
+   "kl_mean": {
+    "anchor": 0.014100547288682182,
+    "hqa": 0.013381421190577053,
+    "compact": 0.011916414779227221,
+    "exlr8-k4": 0.019068582658483265
+   }
+  },
+  {
+   "window": "a05",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 46,
+   "kl_mean": {
+    "anchor": 0.018253089266146747,
+    "hqa": 0.013759802263717905,
+    "compact": 0.015758370270096748,
+    "exlr8-k4": 0.018330898510777075
+   }
+  },
+  {
+   "window": "a06",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 54,
+   "kl_mean": {
+    "anchor": 0.008788584510131465,
+    "hqa": 0.01607938222191982,
+    "compact": 0.012915313747729988,
+    "exlr8-k4": 0.024619002649628338
+   }
+  },
+  {
+   "window": "a07",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 62,
+   "kl_mean": {
+    "anchor": 0.022426387587774186,
+    "hqa": 0.011149058200538164,
+    "compact": 0.022813662862894966,
+    "exlr8-k4": 0.018967913491357107
+   }
+  },
+  {
+   "window": "a08",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.005788357506736112,
+    "hqa": 0.0047658173793053244,
+    "compact": 0.005029461826124957,
+    "exlr8-k4": 0.007153915491881516
+   }
+  },
+  {
+   "window": "a09",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 15,
+   "kl_mean": {
+    "anchor": 0.0017648409446437163,
+    "hqa": 0.000589675749632555,
+    "compact": 6.601598209450164e-05,
+    "exlr8-k4": 0.0008112776235370194
+   }
+  },
+  {
+   "window": "a10",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 248,
+   "kl_mean": {
+    "anchor": 0.025560595143922112,
+    "hqa": 0.02902229498705925,
+    "compact": 0.02744889731838774,
+    "exlr8-k4": 0.022886143701613643
+   }
+  },
+  {
+   "window": "a11",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 6,
+   "kl_mean": {
+    "anchor": 0.009727855565317328,
+    "hqa": 0.0024811287759625585,
+    "compact": 0.0023493135893097507,
+    "exlr8-k4": 0.005050914251416427
+   }
+  },
+  {
+   "window": "a12",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 382,
+   "kl_mean": {
+    "anchor": 0.008898359745935504,
+    "hqa": 0.010781940586240914,
+    "compact": 0.011199409487472538,
+    "exlr8-k4": 0.011089649753790719
+   }
+  },
+  {
+   "window": "a13",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 55,
+   "kl_mean": {
+    "anchor": 0.0039151269531358494,
+    "hqa": 0.006045102645412267,
+    "compact": 0.008638089994337628,
+    "exlr8-k4": 0.01783763794105996
+   }
+  },
+  {
+   "window": "a14",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 218,
+   "kl_mean": {
+    "anchor": 0.01570132504199517,
+    "hqa": 0.014955051528715064,
+    "compact": 0.01907919488347624,
+    "exlr8-k4": 0.016154728143120686
+   }
+  },
+  {
+   "window": "a15",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 197,
+   "kl_mean": {
+    "anchor": 0.010068326481537035,
+    "hqa": 0.008831093997507495,
+    "compact": 0.013482489053195766,
+    "exlr8-k4": 0.006461638552173435
+   }
+  },
+  {
+   "window": "a16",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 33,
+   "kl_mean": {
+    "anchor": 0.0144521696859843,
+    "hqa": 0.015713081320788778,
+    "compact": 0.021920906402340276,
+    "exlr8-k4": 0.007766974605087689
+   }
+  },
+  {
+   "window": "a17",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 6,
+   "kl_mean": {
+    "anchor": 0.010079554717018074,
+    "hqa": 0.013903827811151855,
+    "compact": 0.0004999638120617819,
+    "exlr8-k4": 5.192310088107615e-05
+   }
+  },
+  {
+   "window": "a18",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.01284854116904074,
+    "hqa": 0.012019646003422256,
+    "compact": 0.011569977531348261,
+    "exlr8-k4": 0.01381449549826604
+   }
+  },
+  {
+   "window": "a19",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 146,
+   "kl_mean": {
+    "anchor": 0.02494803560990632,
+    "hqa": 0.023088473053698936,
+    "compact": 0.0224179478784439,
+    "exlr8-k4": 0.023424593228011974
+   }
+  },
+  {
+   "window": "a20",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 294,
+   "kl_mean": {
+    "anchor": 0.010951950745785012,
+    "hqa": 0.012811336542058746,
+    "compact": 0.01026326100806221,
+    "exlr8-k4": 0.0167256507961119
+   }
+  },
+  {
+   "window": "a21",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 120,
+   "kl_mean": {
+    "anchor": 0.013555355759014457,
+    "hqa": 0.012720930942696678,
+    "compact": 0.013551386883712139,
+    "exlr8-k4": 0.02429519949837092
+   }
+  },
+  {
+   "window": "a22",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.022991915783799832,
+    "hqa": 0.0237846992293695,
+    "compact": 0.025091953678343163,
+    "exlr8-k4": 0.028256035717817075
+   }
+  },
+  {
+   "window": "a23",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 40,
+   "kl_mean": {
+    "anchor": 0.006517368076093164,
+    "hqa": 0.010029725061315399,
+    "compact": 0.007290425535152472,
+    "exlr8-k4": 0.008903193747863185
+   }
+  },
+  {
+   "window": "a24",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 224,
+   "kl_mean": {
+    "anchor": 0.023365672179782106,
+    "hqa": 0.014373898509912992,
+    "compact": 0.017141539191724498,
+    "exlr8-k4": 0.022510253113342798
+   }
+  },
+  {
+   "window": "a25",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 188,
+   "kl_mean": {
+    "anchor": 0.008638171543387856,
+    "hqa": 0.009917288384919808,
+    "compact": 0.007126997895189358,
+    "exlr8-k4": 0.013296661384175198
+   }
+  },
+  {
+   "window": "b00",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.055690428535560714,
+    "hqa": 0.05078155426815889,
+    "compact": 0.04534467140266793,
+    "exlr8-k4": 0.05901626549609908
+   }
+  },
+  {
+   "window": "b01",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.050457134513495455,
+    "hqa": 0.04669880098412224,
+    "compact": 0.04825470557727234,
+    "exlr8-k4": 0.06148921292735181
+   }
+  },
+  {
+   "window": "b02",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.03434753451841659,
+    "hqa": 0.03554005764344844,
+    "compact": 0.03566428729131066,
+    "exlr8-k4": 0.049175593145469876
+   }
+  },
+  {
+   "window": "b03",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.04494609652895967,
+    "hqa": 0.03613696893530946,
+    "compact": 0.0380077545676845,
+    "exlr8-k4": 0.04734905368015598
+   }
+  },
+  {
+   "window": "b04",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.06104695512650807,
+    "hqa": 0.045572168942686106,
+    "compact": 0.05430864597248696,
+    "exlr8-k4": 0.044902655245128056
+   }
+  },
+  {
+   "window": "b05",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.03799040477527763,
+    "hqa": 0.038591319958302374,
+    "compact": 0.04165362325619357,
+    "exlr8-k4": 0.0513690899190749
+   }
+  },
+  {
+   "window": "b06",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.03905851657906736,
+    "hqa": 0.03689945044233546,
+    "compact": 0.03250401755085403,
+    "exlr8-k4": 0.04102067383031545
+   }
+  },
+  {
+   "window": "b07",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.0370166614345625,
+    "hqa": 0.03878722592132912,
+    "compact": 0.033330390935745816,
+    "exlr8-k4": 0.04734412774492136
+   }
+  },
+  {
+   "window": "b08",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.037861645631579156,
+    "hqa": 0.034740119897835466,
+    "compact": 0.03528024629759549,
+    "exlr8-k4": 0.034295988433922314
+   }
+  },
+  {
+   "window": "b09",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.047419868376641285,
+    "hqa": 0.04481818901563842,
+    "compact": 0.045372784637396496,
+    "exlr8-k4": 0.0532338514807477
+   }
+  },
+  {
+   "window": "b10",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.034450815017626944,
+    "hqa": 0.03469649457122115,
+    "compact": 0.04010369131215925,
+    "exlr8-k4": 0.03526680063179078
+   }
+  },
+  {
+   "window": "b11",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.028996831657852523,
+    "hqa": 0.025558992736947606,
+    "compact": 0.027788365596465334,
+    "exlr8-k4": 0.03249936258738125
+   }
+  },
+  {
+   "window": "d00",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 372,
+   "kl_mean": {
+    "anchor": 0.026044213378763864,
+    "hqa": 0.026885165433754098,
+    "compact": 0.02661915371480852,
+    "exlr8-k4": 0.0338492395092254
+   }
+  },
+  {
+   "window": "d01",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.014623200432822506,
+    "hqa": 0.012855710578945327,
+    "compact": 0.01254172397083429,
+    "exlr8-k4": 0.009705332870946137
+   }
+  },
+  {
+   "window": "d02",
+   "bucket": "2-8K",
+   "block": "D",
+   "positions": 168,
+   "kl_mean": {
+    "anchor": 0.013878881023707516,
+    "hqa": 0.013163085076044493,
+    "compact": 0.01573085956598799,
+    "exlr8-k4": 0.024839609518414695
+   }
+  },
+  {
+   "window": "d03",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 32,
+   "kl_mean": {
+    "anchor": 0.027177675066625318,
+    "hqa": 0.006940293578324367,
+    "compact": 0.0098517113361803,
+    "exlr8-k4": 0.024999332982673764
+   }
+  },
+  {
+   "window": "d04",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 25,
+   "kl_mean": {
+    "anchor": 0.015205911283507394,
+    "hqa": 0.014667877733619678,
+    "compact": 0.015201987187059873,
+    "exlr8-k4": 0.009129543390461027
+   }
+  },
+  {
+   "window": "d05",
+   "bucket": "2-8K",
+   "block": "D",
+   "positions": 25,
+   "kl_mean": {
+    "anchor": 0.03847908297101581,
+    "hqa": 0.011979891715345525,
+    "compact": 0.032414884668876785,
+    "exlr8-k4": 0.020435166012311882
+   }
+  },
+  {
+   "window": "e00",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.03906928735931676,
+    "hqa": 0.03907165503934187,
+    "compact": 0.03573767652890273,
+    "exlr8-k4": 0.039065183335271945
+   }
+  },
+  {
+   "window": "e01",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.02408987403991096,
+    "hqa": 0.020213420383789562,
+    "compact": 0.021194505085423577,
+    "exlr8-k4": 0.019272825404120744
+   }
+  },
+  {
+   "window": "e02",
+   "bucket": "2-8K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.047014638774950025,
+    "hqa": 0.04674343135134644,
+    "compact": 0.05468380762238585,
+    "exlr8-k4": 0.05853756779062792
+   }
+  },
+  {
+   "window": "e03",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.056860680661523735,
+    "hqa": 0.044100610455519204,
+    "compact": 0.04908495203463777,
+    "exlr8-k4": 0.06799407781100393
+   }
+  },
+  {
+   "window": "e04",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.0479137169465688,
+    "hqa": 0.04218590315170364,
+    "compact": 0.04382759022871353,
+    "exlr8-k4": 0.055173053573828644
+   }
+  },
+  {
+   "window": "e05",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 38,
+   "kl_mean": {
+    "anchor": 0.06968438052583488,
+    "hqa": 0.04247105556230621,
+    "compact": 0.07275414386097749,
+    "exlr8-k4": 0.05161236625312293
+   }
+  },
+  {
+   "window": "e06",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.0389910808158546,
+    "hqa": 0.03080444604807875,
+    "compact": 0.041409456131717516,
+    "exlr8-k4": 0.036803701335373695
+   }
+  },
+  {
+   "window": "e07",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 30,
+   "kl_mean": {
+    "anchor": 0.04592886343265306,
+    "hqa": 0.02800685756320931,
+    "compact": 0.024404261125196596,
+    "exlr8-k4": 0.05947596234106101
+   }
+  },
+  {
+   "window": "e08",
+   "bucket": "2-8K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "anchor": 0.038357520038467215,
+    "hqa": 0.04286000981757582,
+    "compact": 0.03784943237858202,
+    "exlr8-k4": 0.043509497011137814
+   }
+  }
+ ],
+ "teacher_panel_windows": [
+  {
+   "window": "final-0000",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.031066674870280534,
+    "hqa": 0.03154515974814345,
+    "compact": 0.028663287026709054,
+    "exlr8-k4": 0.028795839177660296
+   }
+  },
+  {
+   "window": "final-0001",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.05605876799482244,
+    "hqa": 0.05698548828214753,
+    "compact": 0.05976055022980504,
+    "exlr8-k4": 0.047914948181453726
+   }
+  },
+  {
+   "window": "final-0002",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.03164257637481212,
+    "hqa": 0.03200375454805491,
+    "compact": 0.030714375867738924,
+    "exlr8-k4": 0.03756887333196501
+   }
+  },
+  {
+   "window": "final-0003",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.02447308824049047,
+    "hqa": 0.031071544589908837,
+    "compact": 0.024280523468192535,
+    "exlr8-k4": 0.02556352717334817
+   }
+  },
+  {
+   "window": "final-0004",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.11185112660078587,
+    "hqa": 0.10799852564773865,
+    "compact": 0.07083236017627546,
+    "exlr8-k4": 0.07681659871733783
+   }
+  },
+  {
+   "window": "final-0005",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.06768961248604952,
+    "hqa": 0.06348429508311827,
+    "compact": 0.04699851776180754,
+    "exlr8-k4": 0.04521536397425104
+   }
+  },
+  {
+   "window": "final-0006",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.02781617624954895,
+    "hqa": 0.029964338159900242,
+    "compact": 0.029949173390751035,
+    "exlr8-k4": 0.03252657458554942
+   }
+  },
+  {
+   "window": "final-0007",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.014863614075636782,
+    "hqa": 0.013255654890258152,
+    "compact": 0.012228525923134306,
+    "exlr8-k4": 0.012401152348959357
+   }
+  },
+  {
+   "window": "final-0008",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.010005363172658351,
+    "hqa": 0.00886314645831238,
+    "compact": 0.008365629044210458,
+    "exlr8-k4": 0.011479290918171774
+   }
+  },
+  {
+   "window": "final-0009",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.023608719331168523,
+    "hqa": 0.022931438941636666,
+    "compact": 0.02524946576999818,
+    "exlr8-k4": 0.022924350566426107
+   }
+  },
+  {
+   "window": "final-0010",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.021876066005478114,
+    "hqa": 0.0207491753736145,
+    "compact": 0.021627633910508353,
+    "exlr8-k4": 0.026686676061976302
+   }
+  },
+  {
+   "window": "final-0011",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.0282574532001072,
+    "hqa": 0.02440499649352233,
+    "compact": 0.02788134781678747,
+    "exlr8-k4": 0.025363552374533773
+   }
+  },
+  {
+   "window": "final-0012",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.019558785815902757,
+    "hqa": 0.01587797690601495,
+    "compact": 0.019933420087503647,
+    "exlr8-k4": 0.01741844515820452
+   }
+  },
+  {
+   "window": "final-0013",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.03061309699316225,
+    "hqa": 0.031182529198655315,
+    "compact": 0.03073447922615966,
+    "exlr8-k4": 0.03056184640827526
+   }
+  },
+  {
+   "window": "final-0014",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.007400035025929353,
+    "hqa": 0.007057375469802034,
+    "compact": 0.007275793948393826,
+    "exlr8-k4": 0.008868254673328536
+   }
+  },
+  {
+   "window": "final-0015",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.031531125500182014,
+    "hqa": 0.02825709083350582,
+    "compact": 0.02745789618022103,
+    "exlr8-k4": 0.037053413260542345
+   }
+  },
+  {
+   "window": "final-0016",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.009406988064920309,
+    "hqa": 0.008464816563131123,
+    "compact": 0.008648056854794344,
+    "exlr8-k4": 0.009254629137880785
+   }
+  },
+  {
+   "window": "final-0017",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.031191000120666484,
+    "hqa": 0.030193106490750358,
+    "compact": 0.032162078311049405,
+    "exlr8-k4": 0.033479921289662797
+   }
+  },
+  {
+   "window": "final-0018",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.02231047077687352,
+    "hqa": 0.02369824482754711,
+    "compact": 0.02132917235140251,
+    "exlr8-k4": 0.022221264556926017
+   }
+  },
+  {
+   "window": "final-0019",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.030792464015544457,
+    "hqa": 0.02781806128192077,
+    "compact": 0.03828136671586696,
+    "exlr8-k4": 0.04462348509236108
+   }
+  },
+  {
+   "window": "final-0020",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.03322021806404512,
+    "hqa": 0.03474656633345155,
+    "compact": 0.03465514001005606,
+    "exlr8-k4": 0.042128539751108536
+   }
+  },
+  {
+   "window": "final-0021",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.07193539767850009,
+    "hqa": 0.07039879108450801,
+    "compact": 0.0659952317885638,
+    "exlr8-k4": 0.0665835476350823
+   }
+  },
+  {
+   "window": "final-0022",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.02927368663749848,
+    "hqa": 0.031402474909123464,
+    "compact": 0.03137480198820979,
+    "exlr8-k4": 0.022877621123081834
+   }
+  },
+  {
+   "window": "final-0023",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.027048900979781312,
+    "hqa": 0.030849723621307314,
+    "compact": 0.031051826049004607,
+    "exlr8-k4": 0.025982391897018026
+   }
+  },
+  {
+   "window": "final-0024",
+   "rows": 2047,
+   "kl_mean": {
+    "anchor": 0.007706932704002932,
+    "hqa": 0.007299609613230951,
+    "compact": 0.007027303998999163,
+    "exlr8-k4": 0.008356340510203966
+   }
+  }
+ ],
+ "not_published": "the stage's score files, per-row tables and dumps (they hold local paths or model output positions by the gigabyte), its launcher script, and the engine author's capture script"
+}

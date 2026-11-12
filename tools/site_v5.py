@@ -3,7 +3,9 @@
 
 Reads results/2026-11-10-context-probe/SUMMARY.json. Same grammar as tools/site_v4.py, whose cell builders it reuses:
 plain HTML/CSS, a bar for a level, a centred bar for a difference (solid when its 95% interval excludes 0, dashed
-when it does not) and a word badge. Arms are named in text, never coloured.
+when it does not) and a word badge. Arms are named in text, never coloured. Page order: what each configuration
+trades, distance from the BF16 model, four passes (all added 2026-11-12), then the frozen two-pass result as published
+on 2026-11-11 with dated pointers.
 """
 import importlib.util, json
 from decimal import Decimal, ROUND_HALF_UP
@@ -46,6 +48,638 @@ def iv3(v): return f"{s3(v[0])} [{s3(v[1])}, {s3(v[2])}]"
 def span(vals, fmt):
     lo, hi = fmt(min(vals)), fmt(max(vals))
     return lo if lo == hi else f"{lo} to {hi}"
+
+
+SC = V4.SC
+
+
+def f4(x): return f"{x:.4f}"
+def s4(x): return "0.0000" if round(x, 4) == 0 else f"{x:+.4f}".replace("-", MINUS)
+def iv4(v): return f"{s4(v[0])} [{s4(v[1])}, {s4(v[2])}]"
+def lvl(v, f=f3): return f'{f(v[0])} <span class="ci">[{f(v[1])}, {f(v[2])}]</span>'
+def dcell4(v, span): return diverge(v[0], span, excl(v), label=s4(v[0])) + f' <span class="ci">[{s4(v[1])}, {s4(v[2])}]</span>'
+def stale(what): raise SystemExit(f"v5 page: {what} no longer match the reading written for them")
+
+
+def extension_sections(S, h2, gh):
+    """Added 2026-11-12, after the frozen two-pass result: what each configuration trades, the distance of each from the BF16
+    model, and the four-pass reading (RESULTS.md sections 13, 12 and 11). Returns the page's lede, the three sections and the
+    data line. Sentences that state a reading check the numbers they rest on, so the text cannot outlive a change in the data."""
+    FP, BD, TO, AM = S["four_pass"], S["bf16_distance"], S["trade_offs"], S["amendment_1"]
+    code = lambda a: f"<code>{a}</code>"
+    LAB = {"all": "all lengths", "4k": "4K", "16k": "16K", "64k": "64K", "128k": "127K", "4k+16k": "4K and 16K pooled", "64k+128k": "64K and 127K pooled"}
+    SETS = (("p12", "Passes 1-2"), ("p34", "Passes 3-4"), ("p1234", "All four passes"))
+
+    # ================================================================ four passes
+    BL, PD, IV, AP = FP["by_length"], FP["paired"], FP["intervals"], FP["added_passes"]
+    def sc(a, k, ps="p1234"): return BL[a][ps][k]["score"]
+    def d(p, k="all", ps="p1234", m="score"): return PD[p][ps][m][k]
+    if AP["errors"] or AP["seeds_reused_within_an_arm"] or len(set(AP["prompt_tokens_equal_to_anchor_first_pass"])) != 1:
+        stale("the added passes' request counts")
+    fp_intro = (f'<p>{gh(f"{RD}/{AM["file"]}", "Amendment 1")} was written after the two-pass results '
+                '(<a href="#frozen">further down this page</a>) were read and before the first request of the passes it adds: '
+                "single-message passes 3 and 4 for all four configurations, with the same items, lengths, reply cap, concurrency and "
+                "sampling settings and new seed blocks. The total of four passes per configuration was fixed before the first request of "
+                f"pass 3, so the stopping point does not depend on what the added passes show. They ran {E(AP['ran'])}: "
+                f"{n0(AP['requests'])} requests, {AP['errors']} errors, no seed reused within an arm, prompt tokens equal to "
+                f"<code>anchor</code>'s first pass on {n0(AP['prompt_tokens_equal_to_anchor_first_pass'][0])} of "
+                f"{n0(AP['prompt_tokens_equal_to_anchor_first_pass'][1])} requests.</p>"
+                "<p>The rule is the frozen one applied to more passes: request score = fields right / fields if the reply finished on its "
+                "own, else 0; repeats averaged within the item; differences paired by item; 95% interval from 10,000 resamples of the 60 "
+                "items (seed 5). Three pass sets are shown side by side: passes 1-2 (the frozen protocol's result), passes 3-4 alone, and "
+                "all four. <b>The four-pass reading is an extension decided after the two-pass results were read.</b> "
+                f"{code(REF)} differs from the three probe arms as a whole checkpoint, so no difference from one of them is attributable "
+                "to one component.</p>")
+
+    def cell(a, k):
+        c = BL[a]["p1234"][k]
+        return bar(c["score"][0], 1.0, f3(c["score"][0]), sub=f'all 8 right {c["right"]} of {c["n"]}')
+    rows = [[arm(a)] + [cell(a, k) for k, _ in LENS] +
+            [lvl(sc(a, "all")), f'{BL[a]["p1234"]["all"]["right"]} of {BL[a]["p1234"]["all"]["n"]}',
+             f'{BL[a]["p1234"]["all"]["unfinished"]} <span class="ci">({BL[a]["p1234"]["128k"]["unfinished"]} at 127K)</span>',
+             f3(BL[a]["p1234"]["128k"]["score_finished_only"])] for a in ARMS4]
+    def passes(k): return "; ".join(f"{code(a)} " + ", ".join(f3(x) for x in BL[a]["score_by_pass"][k]) for a in ARMS4)
+    SP = FP["single_pass_spread"]
+    t_arms = rich("Share of answer fields right, four passes", f"Single message, four passes pooled: {FP['requests_per_arm']} requests per "
+                  "configuration, 240 per length. Unfinished replies score 0. Second figure: replies with every field right. Interval: "
+                  "95% over items",
+                  ["Configuration"] + [n for _, n in LENS] + ["All lengths", "Every field right", "Unfinished replies", "Finished replies only, 127K"], rows,
+                  foot=f"Score per pass, all lengths (passes 1, 2, 3, 4): {passes('all')}. At 127K: {passes('128k')}. A single pass of one "
+                       f"configuration moves by up to {SP['all_lengths']:.2f} over all lengths and {SP['at_127k']:.2f} at 127K.")
+
+    def state(p):
+        e = [excl(d(p, "all", ps)) for ps, _ in SETS]
+        if e == [False, False, True]: return badge(True, "excludes 0 only at four passes")
+        if e[2]: return badge(True, "excludes 0")
+        if e[0] and not e[1]: return badge(False, no="includes 0") + "<small>excluded 0 at passes 1-2 only</small>"
+        if e == [False, True, False]: return badge(False, no="includes 0") + "<small>excluded 0 at passes 3-4 only</small>"
+        return badge(False, no="includes 0")
+    if [excl(d("hqa - compact", "all", ps)) for ps, _ in SETS] != [False, False, True]: stale("the hqa - compact intervals by pass set")
+    if [excl(d(f"{REF} - compact", "all", ps)) for ps, _ in SETS] != [True, False, False]: stale(f"the {REF} - compact intervals by pass set")
+    rows = [[pair4(p)] + [dcell(d(p, "all", ps), 0.08) for ps, _ in SETS] + [state(p)] for p in PD]
+    t_sets = rich("Paired difference in field score, all lengths: three pass sets", "Right of the line: the first-named configuration scored "
+                  "higher. Paired by item, 95% interval over the 60 items; solid bar: the interval excludes 0; bar edge = 0.08",
+                  ["Difference", "Passes 1-2 (frozen protocol)", "Passes 3-4 alone", "All four passes", "Four-pass interval"], rows,
+                  foot="Passes 3-4 alone and the four-pass column are the extension; passes 1-2 are the frozen comparison and the post hoc "
+                       f"reading of {code(REF)} as published on 2026-11-11.")
+    rows = [[pair4(p)] + [dcell(d(p, k), 0.08) for k, _ in LENS] for p in PD]
+    t_len = rich("Paired difference in field score by length, four passes", "Same reading as the table above; bar edge = 0.08",
+                 ["Difference"] + [n for _, n in LENS], rows)
+
+    EX = IV["excluding_zero"]
+    MEAS = {"score": "field score", "every field right": "every field right"}
+    def meas(x):
+        m, _, fam = x["measure"].partition(", ")
+        return MEAS[m] + (f" in <code>{fam}</code>" if fam else "") + f", {LAB[x['lengths']]}"
+    six = "; ".join(f"{pair4(x['pair'])} on {meas(x)} ({iv3(x['value'])})" for x in IV["excluding_zero_at_four_passes"])
+    if len(IV["excluding_zero_at_four_passes"]) != EX["p1234"]["count"] or IV["per_pass_set"] != 102: stale("the interval counts")
+    P12, P34 = IV["excluding_zero_at_passes_1_2"], IV["excluding_zero_at_passes_3_4"]
+    def cnt(xs, f): return sum(1 for x in xs if f(x))
+    P34C = [cnt(P34, lambda x: x["pair"].startswith(REF)), cnt(P34, lambda x: x["pair"] == f"{REF} - hqa"),
+            cnt(P34, lambda x: x["measure"] == "every field right" and x["lengths"] == "4k"), cnt(P34, lambda x: x["measure"].endswith(", join"))]
+    if (len(P12) != EX["p12"]["count"] or len(P34) != EX["p34"]["count"] or IV["excluding_zero_in_both_two_pass_sets"]
+            or cnt(P12, lambda x: x["pair"].startswith(REF)) != len(P12) or min(P34C) < 1):
+        stale("the intervals excluding 0 in the two-pass sets")
+    twelve = "; ".join(f"{pair4(x['pair'])} on {meas(x)}" for x in P12)
+    counts = (f"<p><b>How many intervals exclude 0.</b> Each pass set holds {IV['per_pass_set']} intervals: six pairs × 17 (field score at "
+              "four lengths, all lengths and two length groups; every field right at four lengths, all lengths and 64K + 127K; "
+              "<code>ledger</code> field score at 64K + 127K; field score in each of three task families), with no correction for "
+              f"their number. {EX['p12']['count']} exclude 0 at passes 1-2, {EX['p34']['count']} at passes 3-4 and {EX['p1234']['count']} "
+              f"at four passes. At a 95% level about 5 of {IV['per_pass_set']} would exclude 0 with no difference anywhere, so a single "
+              f"interval of these tables is not evidence on its own. The {EX['p1234']['count']} at four passes: {six}. The "
+              f"{EX['p12']['count']} at passes 1-2 all involve {code(REF)}: {twelve}. Of the {EX['p34']['count']} at passes 3-4, {P34C[0]} "
+              f"involve {code(REF)} ({P34C[1]} of them against <code>hqa</code>), {P34C[2]} are every field right at 4K and {P34C[3]} are "
+              "in <code>join</code> (the three groups overlap). <b>No interval excludes 0 in both two-pass sets.</b> The lists are in <code>SUMMARY.json</code> "
+              "(<code>four_pass.intervals</code>).</p>")
+
+    ha, ca, hc, ra, rh, rc = (d(p) for p in PD)
+    if list(PD) != ["hqa - anchor", "compact - anchor", "hqa - compact"] + [f"{REF} - {a}" for a in ARMS]: stale("the pair names")
+    if any(excl(d("hqa - anchor", "all", ps)) for ps, _ in SETS) or excl(ca) or excl(d("compact - anchor", "128k")) or excl(ra) or excl(rh) or excl(rc):
+        stale("the four-pass intervals")
+    if not excl(d("hqa - compact", "128k")) or excl(d(f"{REF} - compact", "128k")): stale("the 127K intervals")
+    others = [a for a in ARMS4 if a != "compact"]
+    for ps in ("p12", "p34"):
+        if sc("compact", "all", ps)[0] >= min(sc(a, "all", ps)[0] for a in others): stale("compact's place in each pass set")
+        if d("compact - anchor", "all", ps)[0] >= 0 or d("hqa - compact", "all", ps)[0] <= 0: stale("the sign of compact's gap in each pass set")
+    bp = {a: BL[a]["score_by_pass"]["128k"] for a in ARMS4}
+    rng = {a: max(bp[a]) - min(bp[a]) for a in ARMS4}
+    if any(h <= c_ for h, c_ in zip(bp["hqa"], bp["compact"])) or min(rng, key=rng.get) != "compact": stale("the per-pass scores at 127K")
+    hmar = [h - c_ for h, c_ in zip(bp["hqa"], bp["compact"])]
+    if [a_ < c_ for a_, c_ in zip(bp["anchor"], bp["compact"])] != [True, False, False, False]: stale("anchor and compact pass by pass at 127K")
+    short = [d("compact - anchor", k) for k in ("4k", "16k", "64k")]
+    if any(excl(v) for v in short): stale("compact's differences up to 64K")
+    A7 = FP["at_127k"]
+    CAPC, CAPR = S["capture"]["against_text"]["prefill"]["arms"]["compact"], S["capture"]["between_arms"]["prefill"]["rows"]
+    if CAPC["nll_minus_ref"][0] > 0 or CAPC["top1_minus_ref"][1] > 0 or CAPC["top1_minus_ref"][2] < 0: stale("the capture figures for compact")
+    def a7(ps, key, arms=ARMS4, f=str): return [f(A7[ps][a][key]) for a in arms]
+    fo = {ps: {a: A7[ps][a]["score_finished_only"] for a in ARMS4} for ps, _ in SETS}
+    if (A7["p12"]["compact"]["unfinished"] != A7["p12"]["anchor"]["unfinished"] or fo["p12"]["compact"] >= fo["p12"]["anchor"]
+            or max(fo["p34"], key=fo["p34"].get) != "compact" or A7["p34"]["compact"]["unfinished"] <= max(A7["p34"][a]["unfinished"] for a in others)):
+        stale("the unfinished and finished-only figures at 127K by pass set")
+    CU, LE, HW = FP["compact_unfinished_all_lengths"], FP["ledger_every_field_right_64k_128k"], FP["half_width_ratio_four_over_two_passes"]
+    r34, r127, h127 = d(f"{REF} - compact", "all", "p34"), d(f"{REF} - compact", "128k"), d("hqa - compact", "128k")
+    if abs(r127[0] - h127[0]) > 0.01: stale("the two 127K differences over compact")
+    bound = max(abs(x) for v in (ra, rh) for x in v[1:3])
+    right = {a: BL[a]["p1234"]["all"]["right"] for a in ARMS4}
+    if right[REF] >= min(right["anchor"], right["hqa"]) or LE[REF][0] >= min(LE[a][0] for a in ARMS): stale("the every-field-right counts")
+    if BL[REF]["score_by_pass"]["all"].index(min(BL[REF]["score_by_pass"]["all"])) != 2: stale("the reference checkpoint's per-pass scores")
+    era, erh = (PD[f"{REF} - {a}"]["p1234"]["every_field_right"] for a in ("anchor", "hqa"))
+    if excl(era["all"]) or excl(erh["all"]) or not excl(era["64k+128k"]) or right[REF] > right["compact"]: stale("the every-field-right intervals")
+    lg = {ps: PD["compact - anchor"][ps]["ledger_64k+128k_score"] for ps, _ in SETS}
+    ph12 = S["post_hoc_long_context"]["64k+128k"]["compact - anchor"]["ledger"]["score"]["single"]
+    if abs(ph12[0] - lg["p12"][0]) > 0.0006 or max(abs(ph12[i] - lg["p12"][i]) for i in (1, 2)) > 0.003: stale("the two resamplings of the passes 1-2 ledger interval")
+    lgh = PD["hqa - compact"]["p1234"]["ledger_64k+128k_score"]
+    FAM = FP["by_family"]
+    def lcount(ps): return [sum(FAM[a]["ledger"][k][ps]["right"] for k in ("64k", "128k")) for a in ARMS]
+    def lnum(ps): return sum(FAM["anchor"]["ledger"][k][ps]["n"] for k in ("64k", "128k"))
+    if (lg["p12"][0] >= 0 or lg["p34"][0] <= 0 or any(excl(v) for v in lg.values()) or excl(lgh) or lcount("p12")[2] >= lcount("p12")[1]
+            or lcount("p34")[2] < max(lcount("p34")[:2]) or [a_ + b_ for a_, b_ in zip(lcount("p12"), lcount("p34"))] != [LE[a][0] for a in ARMS]):
+        stale("the ledger slice by pass set")
+    s4k, s127 = [sc(a, "4k")[0] for a in ARMS4], [sc(a, "128k")[0] for a in ARMS4]
+    hp, hr_, hm = [HW["paired_score_all"][p] for p in PAIRS], [HW["paired_score_all"][f"{REF} - {a}"] for a in ARMS], HW["arm_mean_all"]
+    f2 = lambda x: f"{x:.2f}"
+    o127 = [sc(a, "128k")[0] for a in others]
+    def fam(ps, f): return PD["hqa - compact"][ps]["by_family_all_lengths"][f]
+    def top_fam(ps): return max(("join", "ledger", "trace"), key=lambda f: fam(ps, f)[0])
+    FALL = {a: round(round(FP["by_length"][a]["p1234"]["4k"]["score"][0], 3) - round(FP["by_length"][a]["p1234"]["128k"]["score"][0], 3), 3)
+            for a in ARMS4}                                   # differences of the figures as shown in the table above
+    fall_rest = sorted(FALL[a] for a in ARMS4 if a != "compact")
+    fall_extra = FALL["compact"] - fall_rest[1]
+    if ([top_fam(ps) for ps, _ in SETS] != ["ledger", "join", "join"] or max(FALL, key=FALL.get) != "compact"
+            or f"{min(FALL.values()):.2f}" != "0.06" or f"{fall_extra:.2f}" != "0.03"):
+        stale("the family split of hqa - compact or the falls with length")
+    fp_reading = ("<ul>"
+                  f"<li><b><code>hqa</code> against <code>anchor</code>: no difference measured, and the bound is tighter.</b> {iv3(ha)}: the "
+                  f"95% interval reaches down to {s3(ha[1])}. Basis: four passes, 60 items, {FP['requests_per_arm']} requests per "
+                  "configuration; the same reading in both pass sets.</li>"
+                  "<li><b><code>compact</code> is the lowest configuration in both pass sets, by about one point over four passes, and the "
+                  f"gap is at 127K.</b> Up to 64K it is level with the others (differences from <code>anchor</code> of "
+                  f"{', '.join(s3(v[0]) for v in short)}). At 127K it scores {f3(sc('compact', '128k')[0])} against "
+                  f"{span(o127, f3)}, and its four single passes there ({span(bp['compact'], f3)}) are the steadiest of the four configurations. "
+                  f"Against <code>hqa</code> the four-pass interval excludes 0 ({iv3(hc)} over all lengths, {iv3(h127)} at 127K); against "
+                  f"<code>anchor</code> it does not ({iv3(ca)}; at 127K {iv3(d('compact - anchor', '128k'))}). Strength: indicated, not "
+                  "established. It rests on the same sign in both pass sets and on the single passes at 127K, not on one interval among "
+                  f"{IV['per_pass_set']}: there <code>compact</code> is below <code>hqa</code> in every pass (by {f3(min(hmar))} in the "
+                  f"closest, pass {hmar.index(min(hmar)) + 1}) and below <code>anchor</code> in three of four (pass 1 reverses: "
+                  f"{f3(bp['anchor'][0])} against {f3(bp['compact'][0])}).</li>"
+                  "<li><b>Where <code>compact</code>'s 127K gap comes from is not settled.</b> Pooled over four passes it matches the "
+                  f"unfinished replies: {A7['p1234']['compact']['unfinished']} of {A7['p1234']['compact']['n']} at 127K against "
+                  f"{', '.join(a7('p1234', 'unfinished', others)[:-1])} and {a7('p1234', 'unfinished', others)[-1]}, while replies that "
+                  f"finished score level ({f3(fo['p1234']['compact'])} against {span([fo['p1234'][a] for a in others], f3)}). The two pass "
+                  f"sets do not agree on that split. In passes 1-2 <code>compact</code> had as many unfinished replies at 127K as "
+                  f"<code>anchor</code> ({A7['p12']['compact']['unfinished']} and {A7['p12']['anchor']['unfinished']}) and a lower "
+                  f"finished-only score ({f3(fo['p12']['compact'])} against {f3(fo['p12']['anchor'])}); in passes 3-4 it had "
+                  f"{A7['p34']['compact']['unfinished']} unfinished against {', '.join(a7('p34', 'unfinished', others)[:-1])} and "
+                  f"{a7('p34', 'unfinished', others)[-1]} and the highest finished-only score ({f3(fo['p34']['compact'])}). Of its "
+                  f"{CU['unfinished']} unfinished replies over all lengths, {CU['reply_cap']} reached the reply cap and {CU['repetition']} "
+                  "ended on the repetition abort. By task family the pass sets disagree as well: over four passes "
+                  f"<code>hqa</code> {MINUS} <code>compact</code> sits in <code>join</code> ({iv3(fam('p1234', 'join'))}; "
+                  f"<code>ledger</code> {s3(fam('p1234', 'ledger')[0])}, <code>trace</code> {s3(fam('p1234', 'trace')[0])}), but passes "
+                  f"1-2 put it in <code>ledger</code> ({s3(fam('p12', 'ledger')[0])}, <code>join</code> {s3(fam('p12', 'join')[0])}) and "
+                  f"passes 3-4 in <code>join</code> ({s3(fam('p34', 'join')[0])}, <code>ledger</code> {s3(fam('p34', 'ledger')[0])}). "
+                  'The <a href="#capture">scoring capture</a> reads other texts, long and given, in one launch per configuration, and '
+                  f"samples nothing. It shows no deficit for <code>compact</code> at predicting text: its NLL minus <code>anchor</code>'s is "
+                  f"{iv4(CAPC['nll_minus_ref'])} (lower is better), share of positions whose top token is the given one "
+                  f"{iv4(CAPC['top1_minus_ref'])} (exploratory, one capture, {n0(CAPR)} positions to 128K). The capture does not locate "
+                  "the gap. It shows only that <code>compact</code> is not worse at next-token prediction on long given text; the gap "
+                  "was seen in generated replies at 127K.</li>"
+                  f'<li><b>The two-pass lead of {code(REF)} over <code>compact</code> (<a href="#reference">reference checkpoint</a>) did '
+                  f"not repeat.</b> Passes 3-4 alone give {iv3(r34)} and the four-pass interval includes 0 ({iv3(rc)}). At 127K the "
+                  f"four-pass difference is {iv3(r127)}, the same size as <code>hqa</code>'s over <code>compact</code>.</li>"
+                  f"<li><b>{code(REF)} sits with <code>anchor</code> and <code>hqa</code> on score</b> ({s3(ra[0])} and {s3(rh[0])}, "
+                  f"intervals within ±{bound:.3f}). It has fewer replies fully right than those two in count: {right[REF]} of "
+                  f"{FP['requests_per_arm']} against {right['anchor']} and {right['hqa']} (<code>compact</code> {right['compact']}). "
+                  f"Over all lengths those two intervals include 0 ({iv3(era['all'])} and {iv3(erh['all'])}, as a share of replies); "
+                  f"at 64K + 127K pooled the one against <code>anchor</code> excludes 0 ({iv3(era['64k+128k'])}), one of the "
+                  f"{EX['p1234']['count']} listed above. On <code>ledger</code> at 64K + 127K it has {LE[REF][0]} of {LE[REF][1]} fully "
+                  f"right against {', '.join(str(LE[a][0]) for a in ARMS[:-1])} and {LE[ARMS[-1]][0]} (<code>anchor</code>, "
+                  "<code>hqa</code>, <code>compact</code>). Whole-checkpoint difference; not attributable to one component.</li>"
+                  '<li><b>The two-pass lean against the K6 core on running totals (<a href="#ledger">further down</a>) did not '
+                  f"repeat.</b> On <code>ledger</code> at 64K + 127K, <code>compact</code> {MINUS} <code>anchor</code> in field score was "
+                  f"{iv3(lg['p12'])} in passes 1-2, {iv3(lg['p34'])} in passes 3-4 and is {iv3(lg['p1234'])} over four; "
+                  f"<code>hqa</code> {MINUS} <code>compact</code> is {iv3(lgh)} over four. Replies with every field right there: "
+                  f"{', '.join(str(x) for x in lcount('p12')[:-1])} and {lcount('p12')[-1]} of {lnum('p12')} in passes 1-2, "
+                  f"{', '.join(str(x) for x in lcount('p34')[:-1])} and {lcount('p34')[-1]} of {lnum('p34')} in passes 3-4 "
+                  "(<code>anchor</code>, <code>hqa</code>, <code>compact</code>). Twenty items; every one of these intervals includes "
+                  f"0. The two-pass section further down gives the passes 1-2 interval as {iv3(ph12)}: the same requests, resampled "
+                  "with another seed.</li>"
+                  f"<li><b>Accuracy still falls with length in every configuration</b>: {span(s4k, f3)} at 4K to {span(s127, f3)} at 127K "
+                  f"over four passes, a fall of {', '.join(f3(FALL[a]) for a in ARMS4[:-1])} and {f3(FALL[ARMS4[-1]])} "
+                  f"({', '.join(code(a) for a in ARMS4)}). About {min(FALL.values()):.2f} of it is common to the four, the BF16-core "
+                  "<code>anchor</code> included, so that part does not come from the settings that differ between them; "
+                  f"<code>compact</code>'s further {fall_extra:.2f} is its 127K gap above. The four share the model family, the "
+                  "engine, the sampling settings, the reply cap and the tasks themselves, whose distractor text grows with length. No "
+                  "unquantized model and no other engine ran these tasks, so this run does not say where the common fall comes "
+                  "from.</li>"
+                  f"<li><b>Precision gained.</b> The amendment stated in advance that four passes would narrow paired intervals to "
+                  f"{E(HW['stated_before_the_data']['paired'])} of their two-pass half-width and arm means to "
+                  f"{E(HW['stated_before_the_data']['arm_mean'])} of theirs. Measured: {', '.join(f2(x) for x in hp[:-1])} and {f2(hp[-1])} "
+                  f"for the three probe pairs, {span(hr_, f2)} for pairs with {code(REF)}; arm means {span([hm[a] for a in ARMS], f2)} for "
+                  f"the probe arms and {f2(hm[REF])} for {code(REF)} (its third pass was its lowest).</li></ul>")
+    SPD, AG = FP["descriptive_speed"]["by_pass_set"], FP["agreement"]
+    fp_desc = ("<p>Descriptive, four passes, median per stream under the mixed load of eight requests (not an arm comparison under the "
+               "protocol): decode tokens/s at 4K / 16K / 64K / 127K " +
+               ", ".join(f"{code(a)} " + " / ".join(f"{SPD['p1234'][a]['decode_tok_s_median'][k]:.1f}" for k, _ in LENS) for a in ARMS4) +
+               "; first token at 127K " + ", ".join(f"{SPD['p1234'][a]['first_token_s_median_127k']:.1f}" for a in ARMS4) +
+               f" s (same order). Of {AG['of']} item, length and pass cells, all four configurations had every field right in "
+               f"{AG['all_four_arms_right']} and none did in {AG['no_arm_right']}.</p>")
+
+    # ================================================================ distance from the BF16 model
+    FS, TP, AR, DF, RD_, YS = BD["sets"]["fidelity_set"], BD["sets"]["teacher_panel"], BD["arms"], BD["differences"], BD["reading"], BD["yardsticks"]
+    fp8, k325 = YS["official_fp8_release"], YS["k3.25_on_cuteafd"]
+    kl = {a: AR[a]["fidelity_set"]["kl"] for a in ARMS4}
+    kt = {a: AR[a]["teacher_panel"]["kl"] for a in ARMS4}
+    order = sorted(ARMS4, key=lambda a: kl[a][0])
+    BK = list(FS["buckets"])
+    reach = f"{FS['last_generated_position'] / 1000:.1f}K"
+    Q = "results/2026-10-26-cuteafd-vs-vllm/q"
+    if (reach != "14.4K" or BK != ["0-2K", "2-8K", "8-16K"] or not fp8["fidelity_set_kl"] < kl[order[0]][0]
+            or not kl[order[-1]][0] < k325["fidelity_set_kl"] or not max(kt.values(), key=lambda v: v[0])[0] < k325["teacher_panel_kl"]):
+        stale("the reach of the reference sets or the place of the two figures for scale")
+    bf_intro = ("<p>The graded tasks compare the configurations with each other, and the "
+                '<a href="#capture">scoring capture</a> further down reads them against given text. Neither says how far a configuration '
+                "is from the unquantized model. This stage measures that on two reference sets that hold BF16 outputs. Its plan "
+                f'({gh(f"{RD}/{BD["plan"]["file"]}", "<code>ADDENDUM-BF16REF.md</code>")}, hashes in '
+                f'{gh(f"{RD}/{BD["plan"]["hashes"]}", "<code>FROZEN.json</code>")}) was written {E(BD["plan"]["written"])}. Status: '
+                f'{E(BD["plan"]["status"])}. Ran {E(BD["ran"])}. The engine scores fixed token ids on its prefill path, so no sampling, '
+                "seeds or thinking setting are involved. "
+                f"Engine build <code>{E(BD['engine_source'])}</code>: {E(BD['engine_source_note'])}.</p>"
+                "<p><b>The two sets use different measures and are not comparable with each other. Neither reaches past "
+                f"{reach}: the 64K and 127K lengths of the task runs have no BF16 reference here.</b></p>")
+    def lv(v): return bar(v[0], 0.05, f4(v[0])) + f' <span class="ci">[{f4(v[1])}, {f4(v[2])}]</span>'
+    def pt(x): return bar(x, 0.05, f4(x))
+    rows = [["Official FP8 model<small>baseline recorded in the fidelity set's manifest, on the engine author's build and hardware; quoted, not recomputed here</small>", pt(fp8["fidelity_set_kl"]), "", "", "", ""]]
+    rows += [[arm(a), lv(kl[a])] + [f4(AR[a]["fidelity_set"]["by_bucket"][b]["kl"][0]) for b in BK] + [lv(kt[a])] for a in order]
+    rows += [["K3.25 checkpoint on this engine<small>measured 2026-10-26 on an earlier release; same sets and measures</small>",
+              pt(k325["fidelity_set_kl"]), "", "", "", pt(k325["teacher_panel_kl"])]]
+    t_kl = rich("KL from the BF16 model", f"Nats; 0 is identical, lower is closer. Fidelity set: generated positions, contexts to {reach}. "
+                "Teacher panel: 2K contexts. 95% interval over windows. Ordered by the fidelity-set figure; bar edge = 0.05",
+                ["Configuration", "Fidelity set, generated positions"] + BK + ["Teacher panel"], rows,
+                foot="The first and last rows are for scale and come from other measurements. Official FP8 model: the baseline the "
+                     "engine author (tpurtell) recorded in the fidelity set's manifest (<code>calibration.baseline_metrics</code>, prefill "
+                     f"path; {f4(fp8['fidelity_set_kl'])} in both of its repeats) for the checkpoint <code>zai-org/GLM-5.3-Flash</code> "
+                     "against the same BF16 root, with this set's measure, on the author's engine build and hardware. It is quoted, not "
+                     f'recomputed here (it is also quoted in {gh(f"{Q}/RESULTS-Q.md", "<code>RESULTS-Q.md</code>")} of the 2026-10-26 '
+                     "run). K3.25 checkpoint: measured here on 2026-10-26 on an earlier engine release, the K3.25 Core-FP8 checkpoint on "
+                     "CuteAFD v3.0.1 "
+                     f'({gh(f"{Q}/pb/pb-C1.json", "<code>pb-C1.json</code>")}, {gh(f"{Q}/pa/pa-C1.json", "<code>pa-C1.json</code>")}). '
+                     "The bucket columns hold this stage's generated positions and are left empty for those two rows. "
+                     f"{E(BD['fidelity_gate'][:1].upper() + BD['fidelity_gate'][1:])}.")
+    rows = [["Source", f'the engine author\'s published fidelity set, config <code>{E(FS["config"])}</code>', "published BF16 teacher logits for GLM 5.3 Flash"],
+            ["Size", f'{FS["windows"]} windows, {FS["scored_positions_per_window"]} scored positions each; {n0(FS["generated_positions"])} generated '
+                     f'positions in {FS["windows_with_generated_positions"]} windows', f'{TP["windows"]} windows of {n0(TP["tokens_per_window"])} tokens; {n0(TP["scored_rows"])} scored rows'],
+            ["Measure", "KL over the reference's top 1,024 tokens plus one term for the rest (the author's rule), ratio of sums over generated positions",
+             "KL over the full vocabulary, mean over rows"],
+            ["Context length", f"to {reach}; buckets " + ", ".join(BK), E(TP["context_length"])],
+            ["Interval", "window bootstrap, 5,000 draws", "window bootstrap, 20,000 draws"]]
+    t_refsets = rich("The two reference sets", "", ["", "Fidelity set", "Teacher panel"], rows)
+    def two(a, key, f): return f"{f(AR[a]['fidelity_set'][key])} / {f(AR[a]['teacher_panel'][key])}"
+    rows = [[arm(a), two(a, "top1", f4), two(a, "nll_above_bf16", s4), two(a, "confident_top1", f4)] for a in ARMS4]
+    t_other = rich("Other measures against BF16", "Fidelity set / teacher panel",
+                   ["Configuration", "Most likely token same as BF16's", "NLL above BF16, nats", "Same, where BF16 is confident"], rows)
+    RP, PC = BD["repeat"]["by_arm"], BD["port_against_cli"]["by_arm"]
+    same = {tuple(RP[a]["same_argmax_generated_positions"]) for a in ARMS4}
+    recs = {tuple(x["records_agreeing"]) for a in ARMS4 for x in PC[a].values()}
+    if (len(same) != 1 or len(recs) != 1 or any(RP[a]["kl_difference"] for a in ARMS4) or any(x["largest_kl_difference"] for a in ARMS4 for x in PC[a].values())
+            or len({*next(iter(same))}) != 1 or len({*next(iter(recs))}) != 1):
+        stale("the repeat launch and the port check")
+    g, r = next(iter(same))[0], next(iter(recs))[0]
+    repeat = (f"<p><b>Repeat.</b> A second launch of each configuration reproduced the fidelity-set result exactly: KL difference 0.0 and "
+              f"the same most likely token on {n0(g)} of {n0(g)} generated positions, in all four. The float64 port used for the intervals "
+              f"and the engine CLI agree on {n0(r)} of {n0(r)} records per configuration and launch (largest KL difference 0.0).</p>")
+
+    if max(kl[a][1] for a in ARMS4) >= min(kl[a][2] for a in ARMS4): stale("the overlap of the four fidelity-set intervals")
+    NAME = {"anchor": "anchor: BF16 core (reference)", "hqa": "hqa: BF16 q_b_proj + o_proj, rest K6", "compact": "compact: K6 core", REF: f"{REF}: EXLR8 K4 checkpoint"}
+    panel = ([("Official FP8 model (recorded baseline)", fp8["fidelity_set_kl"], "r")] + [(NAME[a], kl[a][0], "c") for a in order] +
+             [("K3.25 checkpoint (measured 2026-10-26)", k325["fidelity_set_kl"], "c")])
+    svg = SC.bars([("KL from the BF16 model · fidelity set, generated positions", panel)], label_w=270,
+                  aria="KL from the BF16 model on the fidelity set: the four configurations between the official FP8 model and the K3.25 checkpoint")
+    trows = [[E(lab), f4(v), "baseline recorded in the set's manifest; quoted, not recomputed here" if k == "r" else ("measured 2026-10-26 on CuteAFD v3.0.1" if "K3.25" in lab else
+              f"[{f4(kl[lab.split(':')[0]][1])}, {f4(kl[lab.split(':')[0]][2])}]")] for lab, v, k in panel]
+    fig = SC.figure("bf16-scale", "Distance from the BF16 model, with two figures for scale",
+                    f"KL from the BF16 model on the fidelity set (generated positions, contexts to {reach}), one bar per configuration, between "
+                    "the baseline recorded for the official FP8 model in the set's manifest and the K3.25 checkpoint measured on this engine on 2026-10-26. The "
+                    "bars carry no interval; the table above and the table view give them.",
+                    [(svg, None, None)],
+                    "The four middle bars sit close together and their own 95% intervals overlap. That overlap does not decide any "
+                    "pair; the paired differences table below, computed on the same rows, does. The first and last bars come from "
+                    f"other measurements. Nothing here reaches past {reach}.",
+                    rich("", "", ["Row", "KL, nats", "95% interval or source"], trows),
+                    legend_items=[("bc", "CuteAFD: the four configurations, and the K3.25 checkpoint on an earlier release"),
+                                  ("br", "official FP8 model: baseline recorded in the set's manifest, not recomputed here")])
+
+    if list(DF) != ["hqa - anchor", "compact - anchor", "compact - hqa"] + [f"{REF} - {a}" for a in ARMS]: stale("the pair names of the BF16 differences")
+    rows = [[pair4(p), dcell4(DF[p]["fidelity_set"]["overall"], 0.01)] + [dcell4(DF[p]["fidelity_set"][b], 0.01) for b in BK] +
+            [dcell4(DF[p]["teacher_panel"], 0.01)] for p in DF]
+    BI = BD["intervals"]
+    if any(x["set"] != "fidelity set" for x in BI["excluding_zero"]) or BI["selected"] != "none": stale("the list of BF16 intervals excluding 0")
+    t_diff = rich("Differences between configurations on the same rows", "KL of the first-named minus KL of the second, nats. Left of the "
+                  "line: the first-named is closer to BF16. Solid bar: the 95% interval excludes 0. Bar edge = 0.01",
+                  ["Difference", "Fidelity set, generated positions"] + BK + ["Teacher panel"], rows,
+                  foot="The three probe arms share their K4 experts, so a difference between two of them reflects what differs outside "
+                       "the experts: <code>ATTENTION_MODE</code> alone between <code>hqa</code> and <code>compact</code>; the rest of the "
+                       'core and the output head between <code>anchor</code> and either (FP8 settings as logged: '
+                       '<a href="#trade-terms">terms</a>). '
+                       f"A difference involving {code(REF)} is a whole-checkpoint difference and is not attributable to one "
+                       f"component. {BI['listed']} intervals are listed ({BI['fidelity_set']} on the fidelity set, {BI['teacher_panel']} on "
+                       f"the teacher panel) with no correction for their number; {len(BI['excluding_zero'])} exclude 0, all on the fidelity "
+                       "set. None was selected.")
+
+    dha, dca, dch = DF["hqa - anchor"], DF["compact - anchor"], DF["compact - hqa"]
+    dr = [DF[f"{REF} - {a}"] for a in ARMS]
+    far, close = RD_["farthest_bucket_in_every_arm"], RD_["closest_bucket_in_every_arm"]
+    for a in ARMS4:
+        b = {x: AR[a]["fidelity_set"]["by_bucket"][x]["kl"][0] for x in BK}
+        if max(b, key=b.get) != far or min(b, key=b.get) != close: stale("the buckets' order")
+    probe_gap = RD_["largest_difference_between_probe_arms"]
+    if (not excl(dha["fidelity_set"]["overall"]) or dha["fidelity_set"]["overall"][0] >= 0 or excl(dha["teacher_panel"])
+            or probe_gap / min(kl[a][0] for a in ARMS) >= 0.1 or order[0] != "hqa" or order[-1] != REF
+            or any(not excl(v["fidelity_set"]["overall"]) or v["fidelity_set"]["overall"][0] <= 0 or excl(v["teacher_panel"]) for v in dr)
+            or excl(dca["fidelity_set"]["overall"]) or excl(dch["fidelity_set"]["overall"]) or excl(dca["teacher_panel"]) or excl(dch["teacher_panel"])):
+        stale("the BF16 distances")
+    f3_ = lambda x: f"{x:.3f}"
+    short_task = max(abs(d(p, k)[0]) for p in PAIRS for k in ("4k", "16k"))
+    x1, x2 = RD_["exlr8_k4_farther_than_each_probe_arm"]
+    bf_reading = ("<ul>"
+                  "<li><b>All four configurations sit in one band, between the official FP8 model and K3.25.</b> "
+                  f"{f3_(RD_['band_fidelity_set'][0])} to {f3_(RD_['band_fidelity_set'][1])} on the fidelity set: "
+                  f"{RD_['times_the_fp8_figure'][0]:.1f} to {RD_['times_the_fp8_figure'][1]:.1f} times the FP8 baseline and "
+                  f"{RD_['share_of_the_k3.25_figure'][0]:.2f} to {RD_['share_of_the_k3.25_figure'][1]:.2f} of the K3.25 figure.</li>"
+                  "<li><b>What differs between the three probe arms is a small part of that distance.</b> They share their K4 "
+                  "experts. <code>hqa</code> and <code>compact</code> differ in <code>ATTENTION_MODE</code> alone, and between those two "
+                  f"the distance does not move measurably (<code>compact</code> {MINUS} <code>hqa</code> "
+                  f"{iv4(dch['fidelity_set']['overall'])} on the fidelity set, {iv4(dch['teacher_panel'])} on the teacher panel). "
+                  "<code>anchor</code> differs from them in the rest of the core and in the output head: it is launched with the "
+                  "engine's three FP8 conversion settings off, which keeps both at BF16 "
+                  '(<a href="#trade-terms">FP8 settings as logged</a>). '
+                  f"Between the three the distance moves by at most {f3_(probe_gap)}, under a tenth of the total; the rest is "
+                  "common to the three. The plan stated before the first request that <code>anchor</code>'s "
+                  "distance would not be zero (quantized experts and the engine's numerics; the two are not separated here). "
+                  f"<code>anchor</code> is also not the closest: <code>hqa</code> is {f4(abs(dha['fidelity_set']['overall'][0]))} "
+                  f"closer on the fidelity set ({iv4(dha['fidelity_set']['overall'])}, interval excludes 0) and level on the teacher "
+                  f"panel ({iv4(dha['teacher_panel'])}); <code>compact</code> {MINUS} <code>anchor</code> is "
+                  f"{iv4(dca['fidelity_set']['overall'])} on the fidelity set, interval includes 0. <code>anchor</code> is also a "
+                  "locally derived checkpoint; why it measures slightly farther than <code>hqa</code> on one set is an "
+                  '<a href="#open">open question</a>.</li>'
+                  f"<li><b>{code(REF)} is {f3_(x1)} to {f3_(x2)} farther than each probe arm on the fidelity set and level with them on the "
+                  "teacher panel.</b> The two sets place it differently, and this stage does not say which is nearer. Each set has its "
+                  "own provenance. The fidelity set is the engine author's; its relation to the calibration data of either checkpoint "
+                  "is not known. The teacher panel is drawn from the corpus the producer of the K4 experts published and can favour "
+                  "the experts the three probe arms carry (stated in the plan before the first request); a tilt of that kind would "
+                  "run toward the probe arms on that panel, which is the set where the four are level; it does not bear on the "
+                  f"fidelity set, where {code(REF)} is farther. Whole-checkpoint difference.</li>"
+                  f"<li><b>In every configuration the {far} bucket is the farthest and {close} the closest.</b> The buckets hold different "
+                  f"texts ({far} is long code reading), so this is not a length trend on its own.</li>"
+                  "<li><b>Where both kinds of measurement exist, both show small differences.</b> Up to 16K the task scores of the three probe arms are "
+                  f"within {short_task:.2f} of each other over four passes, and their distances from BF16 within {f3_(probe_gap)}. The one "
+                  "task difference indicated on this page, <code>compact</code> at 127K, lies beyond the reach of either reference set, so "
+                  "this stage neither supports nor contradicts it.</li></ul>")
+    bf_limits = "<p>Limits: " + "; ".join(E(x) for x in BD["limits"]) + ".</p>"
+
+    # ================================================================ what each configuration trades
+    CO, WB = TO["columns"], TO["weights_outside_experts_mib_back"]
+    def row(label, key, f): return [label] + [f(CO[a][key]) for a in ARMS4]
+    def outside(a):
+        t = CO[a]["outside_the_experts"]
+        return E(t) if a != REF else E(t.replace(" (section 9)", "")) + ' (<a href="#reference">reference checkpoint</a>)'
+    if not CO[REF]["outside_the_experts"].endswith(" (section 9)") or CO[REF]["weights_outside_experts_mib_both_gpus"] is None: stale("the trade-off table's cells")
+    rows = [("grp", "What is loaded"),
+            ["Outside the experts"] + [outside(a) for a in ARMS4],
+            row("Weights outside the experts, both GPUs, MiB", "weights_outside_experts_mib_both_gpus", n0),
+            row("Resident weights, both GPUs, MiB", "resident_weights_mib_both_gpus", n0),
+            ("grp", f"Distance from the BF16 model: KL in nats, lower is closer; contexts to {reach} only"),
+            row(f"Fidelity set, to {reach}", "kl_from_bf16_fidelity_set", f4),
+            row("Teacher panel, 2K", "kl_from_bf16_teacher_panel", f4),
+            ("grp", f"Graded tasks, four passes: {FP['requests_per_arm']} requests per configuration"),
+            row("Field score, all lengths", "score_four_passes_all_lengths", f3),
+            row("Field score at 127K", "score_four_passes_127k", f3),
+            row(f"Every field right, of {FP['requests_per_arm']}", "every_field_right_of_960", str),
+            row(f"Unfinished replies, of {FP['requests_per_arm']}", "unfinished_of_960", str),
+            ("grp", "Speed as run: median per stream under a mixed load of eight requests; descriptive, not an arm comparison"),
+            row("Decode tokens/s at 127K", "decode_tok_s_127k_median", lambda x: f"{x:.1f}"),
+            row("First token at 127K, s", "first_token_s_127k_median", lambda x: f"{x:.1f}")]
+    t_trade = rich("Cost and measured quality, side by side", "One column per configuration; every figure is from a section below or, for the "
+                   "two memory rows, from the launch logs. Intervals are in those sections",
+                   [""] + [code(a) for a in ARMS4], rows,
+                   foot=f"{code(REF)} is another checkpoint, not a setting of the same one. The two distance rows use different measures and "
+                        "are not comparable with each other.")
+    sp = {ps: SPD[ps] for ps in ("p12", "p34")}
+    for ps in sp:
+        tok = {a: sp[ps][a]["decode_tok_s_median"]["128k"] for a in ARMS4}; ft = {a: sp[ps][a]["first_token_s_median_127k"] for a in ARMS4}
+        if max(tok, key=tok.get) != "anchor" or min(ft, key=ft.get) != "anchor" or max(ft, key=ft.get) != REF: stale("the speeds as run")
+    if (round(kl[order[-1]][0] - kl[order[0]][0], 4) != RD_["largest_difference_between_the_four"]
+            or dha["fidelity_set"]["overall"][0] > 0 or dha["teacher_panel"][0] > 0):
+        stale("the distances behind the trade-off bullets")
+    kf, ff, fall = RD_["k3.25_farther_than_the_four"], RD_["fp8_closer_than_the_four"], FP["fall_4k_to_127k"]
+    RB, SCL = TO["resident_weights_mib_back"], S["launch"]["kv_pool_tokens_scoring_launches"]
+    AP_, HP_, FB, WM, RL = (TO["anchor_to_hqa_parts"], TO["hqa_to_compact_parts"], TO["left_under_memory_cap_mib_back"],
+                            TO["workspaces_mib_more_than_anchor"], TO["resident_less_weights_outside_experts_mib"])
+    HD = AP_["head_mib"]
+    if (AP_["sum_mib"] != WB["anchor_to_hqa"] or 2 * AP_["layers_mib_per_gpu"] + AP_["head_difference_mib"] != WB["anchor_to_hqa"]
+            or HD["anchor"] - HD["hqa"] != AP_["head_difference_mib"] or 2 * HP_["layers_mib_per_gpu"] != WB["hqa_to_compact"]
+            or any(abs(RB[k] - WB[k]) > 2 for k in WB) or max(RL[a] for a in ARMS) - min(RL[a] for a in ARMS) > 2 or RL[REF] <= RL["anchor"]
+            or any(FB[k] >= WB[k] for k in WB) or min(WM.values()) <= 0
+            or SCL["anchor"][0] >= SCL["hqa"][0] or {SCL["hqa"][0], SCL["compact"][0]} != {TO["kv_pool_tokens_every_serving_launch"]}):
+        stale("the memory figures or the scoring-launch pools")
+    SV = S["launch"]["serving"]
+    def left(g): return g["cap_mib"] - g["weights_mib"] - g["workspaces_mib"] - g["reserve_mib"] - g["kv_pool_mib"]
+    per_gpu = {a: {tuple(left(x["gpus"][g]) for g in ("rtx0", "rtx1")) for x in SV[a]} for a in ARMS}
+    if any(len(v) != 1 or sum(next(iter(v))) != TO["left_under_memory_cap_mib_both_gpus"][a] for a, v in per_gpu.items()):
+        stale("the per-GPU memory left under the cap")
+    left_min = {a: min(next(iter(v))) for a, v in per_gpu.items()}
+    caps = {x["gpus"][g]["cap_mib"] for a in ARMS for x in SV[a] for g in ("rtx0", "rtx1")}
+    pools = {x["gpus"][g]["kv_pool_mib"] for a in ARMS for x in SV[a] for g in ("rtx0", "rtx1")}
+    if max(caps) - min(caps) > 5 or len(pools) != 1 or not left_min["anchor"] < left_min["hqa"] < left_min["compact"]:
+        stale("the per-GPU cap and pool figures")
+    cap_gpu, pool_gpu = max(caps), next(iter(pools))
+    fp8log = {a: {(x["kda_fp8"], x["fp8_prefill"], x["head"]) for x in SV[a]} for a in ARMS}
+    if fp8log != {"anchor": {("Off", "[None]", "BF16")}, "hqa": {("Off", "[Mla, Ffn]", "K6")}, "compact": {("Off", "[Mla, Ffn]", "K6")}}:
+        stale("the FP8 settings as logged")
+    n_serv = sum(len(SV[a]) for a in ARMS)
+    def beyond(x): return (sum(g["weights_outside_experts_mib"] for g in x["gpus"].values()) - 2 * x["coordinator_weights_gib"] * 1024
+                           - x["head_mib"] - x["token_embedding_mib"])
+    rest_ref = {round(beyond(x)) for x in S["reference"]["launch"]["serving"]}
+    if any(abs(beyond(x)) > 2 for a in ARMS for x in SV[a]) or len(rest_ref) != 1 or min(rest_ref) < 100:
+        stale("what the weights outside the experts add up to")
+    rest_ref = next(iter(rest_ref))
+    trade_reading = ("<ul>"
+                     f"<li><b>BF16 core to <code>hqa</code>: {n0(WB['anchor_to_hqa'])} MiB of weights back over the two GPUs, no quality cost "
+                     f"measured.</b> Task score {iv3(ha)} over four passes; distance from BF16 not larger on either set. Strength: the "
+                     f"best-supported reading here ({FP['requests_per_arm']} requests per configuration, both pass sets, two reference "
+                     "sets). The step changes two things together: the core outside the two projection groups and the output head, "
+                     'both BF16 in <code>anchor</code> and K6 in <code>hqa</code> (<a href="#trade-terms">FP8 settings as logged</a>). '
+                     "It does not separate the two.</li>"
+                     f"<li><b><code>hqa</code> to <code>compact</code>: a further {n0(WB['hqa_to_compact'])} MiB back; a cost of about one "
+                     "point over all lengths is indicated, and it sits at 127K.</b> The two differ in <code>ATTENTION_MODE</code> alone. "
+                     f"Over all lengths <code>hqa</code> {MINUS} <code>compact</code> is {iv3(hc)} and <code>compact</code> {MINUS} "
+                     f"<code>anchor</code> {iv3(ca)}. "
+                     "Up to 64K <code>compact</code>'s task score is level with the other two, and its overall distance from BF16 is "
+                     "level with theirs on both reference sets (intervals include 0). At 127K it "
+                     f"scores {f3(sc('compact', '128k')[0])} against {f3(sc('hqa', '128k')[0])} (<code>hqa</code> {MINUS} "
+                     f"<code>compact</code> {iv3(h127)}); against <code>anchor</code> the interval includes 0 "
+                     f"({iv3(d('compact - anchor', '128k'))}). The "
+                     '<a href="#capture">scoring capture</a>, on other long given texts, shows no deficit for <code>compact</code> at '
+                     "next-token prediction; it does not locate the gap, which was seen in generated replies at 127K. Pooled over "
+                     f"four passes the gap matches unfinished replies: {A7['p1234']['compact']['unfinished']} of "
+                     f"{A7['p1234']['compact']['n']} at 127K against {', '.join(a7('p1234', 'unfinished', others)[:-1])} and "
+                     f"{a7('p1234', 'unfinished', others)[-1]}, with finished replies level ({f3(fo['p1234']['compact'])} against "
+                     f"{span([fo['p1234'][a] for a in others], f3)}). The two pass sets do not agree on that split or on the task "
+                     "family, so where the gap comes from is not settled. Strength: "
+                     "indicated, not established "
+                     '(<a href="#four-pass">four passes</a>).</li>'
+                     f"<li><b>What the memory buys on this hardware.</b> Of the first step, {n0(2 * AP_['layers_mib_per_gpu'])} MiB is "
+                     f"in the 45 layers ({n0(AP_['layers_mib_per_gpu'])} MiB on each GPU) and {n0(AP_['head_difference_mib'])} MiB is the "
+                     f"output head ({n0(HD['anchor'])} MiB in BF16 against {n0(HD['hqa'])} MiB in K6), which <code>ATTENTION_MODE</code> "
+                     f"does not select; the second step is all in the layers ({n0(HP_['layers_mib_per_gpu'])} MiB on each GPU). "
+                     f"Resident weights fall by the same amounts to within 2 MiB ({n0(RB['anchor_to_hqa'])} and "
+                     f"{n0(RB['hqa_to_compact'])} MiB). Not all of it arrives as free memory: <code>hqa</code> and <code>compact</code> "
+                     f"hold larger workspaces ({n0(WM['hqa'])} and {n0(WM['compact'])} MiB more than <code>anchor</code> over both GPUs), "
+                     "so the memory left under the engine's cap after weights, workspaces, reserve and KV pool rises by "
+                     f"{n0(FB['anchor_to_hqa'])} MiB from <code>anchor</code> to <code>hqa</code> (which also holds "
+                     f"{TO['reserve_mib_less_than_anchor']['hqa']} MiB less reserve) and by a further "
+                     f"{n0(FB['hqa_to_compact'])} MiB to <code>compact</code>. The cap is per GPU (about {n0(cap_gpu)} MiB, of which "
+                     f"the KV pool holds {n0(pool_gpu)} MiB); the smaller of the two per-GPU figures is {n0(left_min['anchor'])}, "
+                     f"{n0(left_min['hqa'])} and {n0(left_min['compact'])} MiB (<code>anchor</code>, <code>hqa</code>, "
+                     "<code>compact</code>). In the serving launches, with eight requests at once, "
+                     f"every configuration was admitted the maximum KV pool ({n0(TO['kv_pool_tokens_every_serving_launch'])} tokens), so "
+                     "there the saving stayed as unused memory, not as pool size. It was seen to convert once: in the scoring launches "
+                     'of the exploratory depth profile (<a href="#checks">checks before the graded runs</a>), with 16 requests at once, '
+                     f"<code>anchor</code> was admitted {n0(SCL['anchor'][0])} tokens and <code>hqa</code> and "
+                     '<code>compact</code> the maximum (<a href="#memory">launch figures</a>). No launch here showed '
+                     "<code>compact</code> admitted a larger pool than <code>hqa</code>. That is one launch setting read from "
+                     "logs; pool and batch size were not varied as a measurement.</li>"
+                     "<li><b>Speed is not an arm comparison under the protocol.</b> As run, <code>anchor</code> had the highest median "
+                     f"decode speed and the shortest first-token time at 127K in both pass sets, and {code(REF)} the longest first-token "
+                     "time. These are medians under one mixed load; the protocol did not isolate speed and no cause is claimed.</li>"
+                     f"<li><b>{code(REF)}: task score level with <code>anchor</code> and <code>hqa</code>; fewer replies fully right in count "
+                     "(over all lengths those intervals include 0); "
+                     f"{f3_(x1)} to {f3_(x2)} farther from BF16 on one set and level on the other.</b> It differs in the whole checkpoint, "
+                     "so none of this is attributable to one component.</li>"
+                     "<li><b>The larger differences are outside this comparison.</b> Between these four, distance from BF16 moves by "
+                     f"{f3_(RD_['largest_difference_between_the_four'])} at most. The K3.25 checkpoint, measured on an earlier "
+                     f"release of this engine, sits {f3_(kf[0])} to {f3_(kf[1])} "
+                     f"farther than they do and the official FP8 model {f3_(ff[0])} to {f3_(ff[1])} closer "
+                     '(<a href="#bf16">rows from other measurements</a>). Task accuracy falls with length in every configuration, '
+                     f"<code>anchor</code> included, by {span(list(fall.values()), f2)} from 4K to 127K (<code>compact</code>'s is the largest, "
+                     '<a href="#four-pass">Four passes</a>); the largest difference between two '
+                     f"configurations at one length is {f3(FP['largest_difference_at_one_length'])}. The tasks and the engine are shared "
+                     "too, and no unquantized model ran these tasks, so the run does not say where the common fall comes from.</li></ul>")
+    trade_intro = ("<p><code>anchor</code> is the reference of the probe, not a recommendation. The table puts cost and measured quality "
+                   'side by side, and the reading under it says what each step gives and costs. Added 2026-11-12. The terms are '
+                   'defined <a href="#trade-terms">under the reading</a>; the configurations and the tasks are set out under '
+                   '<a href="#arms">What was tested</a>.</p>'
+                   "<p>What can be obtained: <code>hqa</code> and <code>compact</code> are two settings of one checkpoint, "
+                   f"K4-Core-K6-HQA. {E(S['hqa_checkpoint']['availability'])} {code(REF)} is a published checkpoint "
+                   '(<a href="#reference">reference checkpoint</a>).</p>')
+    terms = [
+        ("Probe arms and configurations", "the three probe arms are <code>anchor</code>, <code>hqa</code> and <code>compact</code>, which "
+                    f"share their K4 experts; the four configurations are those three and {code(REF)}."),
+        ("Reference", "used for three things on this page. <code>anchor</code> is the reference arm of the probe, the all-BF16 core "
+                    f"the other arms are read against. {code(REF)} is a reference checkpoint in another quantisation format. The BF16 "
+                    "model is the unquantized model that distance is measured from. <code>anchor</code> is not the BF16 model: its "
+                    "experts are K4."),
+        ("Experts", "the model's mixture-of-experts feed-forward weights, most of its size; K4 in the three probe arms "
+                    "(<code>anchor</code>, <code>hqa</code>, <code>compact</code>)."),
+        ("Core", "the attention and other layer weights outside the experts."),
+        ("Head", "the output matrix that turns the last hidden state into token scores."),
+        ("K4 and K6", "quantized formats at about 4 and 6 bits per weight (BF16 holds 16)."),
+        ("K3.25", "a checkpoint of the same model in the same family of formats at about 3.25 bits per weight, with an FP8 core, "
+                  "measured here on 2026-10-26 on an earlier engine release (CuteAFD v3.0.1); a row for scale, not part of this "
+                  "comparison."),
+        ("FP8 settings", "the engine has three FP8 conversion settings (<code>GLM5_FLASH_KDA_FP8</code>, "
+                  "<code>GLM5_FLASH_FP8_HEAD</code>, <code>GLM5_FLASH_FP8_PREFILL</code>). <code>anchor</code> is launched with all "
+                  "three off, which keeps its BF16 core matrices and head at BF16. As logged at load, KDA FP8 reads Off in all "
+                  f"{n_serv} serving launches of the three probe arms; the FP8 prefill setting reads none in <code>anchor</code> and "
+                  "<code>[Mla, Ffn]</code> in <code>hqa</code> and <code>compact</code>; the head reads BF16 in <code>anchor</code> "
+                  "and K6 in the other two. Switching the prefill setting off on <code>hqa</code> left every recorded distribution "
+                  'bit-identical in a <a href="#checks">check before the graded runs</a>.'),
+        ("Passes and pass sets", f"a pass is one run of a configuration's {FP['requests_per_arm'] // 4} requests (60 items at four "
+                  "lengths). Passes 1-2 are the frozen two-pass result, passes 3-4 were added under amendment 1, and \"four passes\" "
+                  "pools them."),
+        ("HQA", "the checkpoint that carries BF16 copies of two attention projections (<code>q_b_proj</code>, <code>o_proj</code>) "
+                "beside its K6 core; <code>ATTENTION_MODE</code> selects which copies run."),
+        ("Field score (task score, the partial-credit score)", "the share of a reply's eight answer fields that are right, 0 for a "
+                "reply that did not finish; higher is better, and one point is 0.01."),
+        ("Every field right (the strict measure)", "the count of replies with all eight right."),
+        ("Weights outside the experts", "what the engine's startup plan places on the two GPUs outside the experts: the 45 layers' "
+                "weights (one copy on each GPU; the load line's \"coordinator weights\"), the output head and the token embedding "
+                "table (each on one GPU). In the three probe arms those parts add up to the plan's figure; in "
+                f"{code(REF)} the plan's figure is {n0(rest_ref)} MiB more than they add up to, and the logs do not itemize that "
+                "remainder. The count of 45 layers is the engine's load line; the HQA checkpoint holds 46 BF16 "
+                "<code>o_proj</code> matrices (layer indices 0 to 45) and 12 <code>q_b_proj</code>. Both counts are as read, from "
+                "different sources."),
+        ("Resident weights", "everything held as weights on the two GPUs after load, experts included. The part that is not "
+                "weights outside the experts is the same in the three probe arms "
+                f"({', '.join(n0(RL[a]) for a in ARMS[:-1])} and {n0(RL[ARMS[-1]])} MiB) and {n0(RL[REF])} MiB in {code(REF)}, which "
+                "brings its own experts; that is why its resident total is not the smallest although its weights outside the "
+                "experts are."),
+        ("Left under the memory cap", "the engine's per-GPU memory cap minus weights, workspaces, reserve and KV pool."),
+        ("Workspaces and reserve", "two items of the engine's admission line beside weights and KV pool, per GPU; read from each "
+                "launch's log, not measured here."),
+        ("KV pool", "the tokens of attention cache the engine admits for all simultaneous requests together."),
+        ("Depth profile and scoring capture", "two exploratory readings of given text, scored position by position with nothing "
+                "sampled; the first ran before the graded runs, the second after them with the reference checkpoint. Their launches "
+                "are the scoring launches."),
+        ("KL", "how far a configuration's next-token probabilities are from the BF16 model's at the same position; the fidelity "
+               "set computes it over the reference's top 1,024 tokens plus one term for the rest, the teacher panel over the full "
+               "vocabulary."),
+        ("Generated positions", f"the scored positions the fidelity set marks as generated text ({n0(FS['generated_positions'])}), as "
+               "opposed to context; its figures here are over those."),
+        ("Where BF16 is confident", "positions where the BF16 model gives its most likely token a probability of at least 0.5.")]
+    trade_terms = ('<p id="trade-terms"><b>Terms used above.</b></p><dl class="gl">'
+                   + "".join(f"<div><dt>{k}</dt><dd>{v}</dd></div>" for k, v in terms) + "</dl>")
+    trade_limits = "<p>Limits: " + "; ".join(E(x) for x in TO["limits"]) + ".</p>"
+
+    lede = ("<p>CuteAFD v5.0.0 adds <code>ATTENTION_MODE</code>, which selects the precision at which two groups of attention "
+            "projections of the HQA checkpoint of GLM 5.3 Flash run. It has three values; the graded runs here cover two, "
+            "<code>hqa</code> (BF16 copies) and <code>compact</code> (K6 copies), and the third, <code>fp8-compact</code>, appears only "
+            'in an <a href="#checks">exploratory check</a>. A locally derived all-BF16 core (<code>anchor</code>) is the reference here, not a '
+            f"recommendation, and {code(REF)} is a reference checkpoint in another quantisation format. Updated 2026-11-12 with two "
+            "additions to the frozen two-pass result: four graded passes per configuration, and the distance of each configuration from "
+            "the unquantized BF16 model.</p>"
+            f"<p><b>Distance from BF16</b> (two reference sets, contexts to {reach}): all four sit in one band, KL "
+            f"{f3_(RD_['band_fidelity_set'][0])} to {f3_(RD_['band_fidelity_set'][1])} on the fidelity set, between the recorded baseline "
+            f"for the official FP8 model ({f4(fp8['fidelity_set_kl'])}) and a K3.25 checkpoint measured earlier on this engine "
+            f"({f4(k325['fidelity_set_kl'])}); the three probe arms are within {f3_(probe_gap)} of each other. <b>Graded tasks</b>, 4K to 127K, "
+            f"four passes: <code>hqa</code> {MINUS} <code>anchor</code> {iv3(ha)}, no difference measured; <code>compact</code> is the "
+            f"lowest in both pass sets, with the gap at 127K ({f3(sc('compact', '128k')[0])} against {span(o127, f3)}): indicated, not "
+            f"established, and where it comes from is not settled; {code(REF)} {MINUS} <code>anchor</code> {iv3(ra)}. That 127K difference "
+            f"lies beyond the {reach} reach of both reference sets. Accuracy falls with length in every configuration, "
+            '<code>anchor</code> included. <a href="#trades">What each configuration trades</a> puts cost and measured quality side by '
+            "side.</p>")
+    body = (h2("trades", "What each configuration trades") + trade_intro + t_trade + trade_reading + trade_terms + trade_limits +
+            h2("bf16", "Distance from the BF16 model") + bf_intro + t_kl + fig + t_refsets + t_other + repeat + t_diff + bf_reading + bf_limits +
+            h2("four-pass", "Four passes") + fp_intro + t_arms + t_sets + t_len + counts + fp_reading + fp_desc)
+    data = (f'<p class="sign">Added 2026-11-12. Four passes: {gh(f"{RD}/analysis/samples-extension.csv", "<code>samples-extension.csv</code>")} '
+            f'(one row per request of passes 3 and 4, no text) and {gh(f"{RD}/analysis/fourpass.py", "<code>fourpass.py</code>")}, which '
+            f'recomputes the four-pass tables from the three CSVs into {gh(f"{RD}/analysis/FOURPASS.json", "<code>FOURPASS.json</code>")} '
+            f'(standard library only). Distance from BF16: {gh(f"{RD}/bf16ref/BF16REF.json", "<code>BF16REF.json</code>")}, with the '
+            "per-window figures every fidelity-set value and interval follows from; the stage's score files, per-row tables and dumps are "
+            "not published.</p>")
+    four = '<a href="#four-pass">Four passes</a>'
+    notes = {
+        "hc": f"2026-11-12: over four passes this interval excludes 0 ({iv3(hc)}); indicated, not established ({four}).",
+        "ledger": f"2026-11-12: the gap did not repeat in passes 3 and 4 ({four}).",
+        "fall": f"2026-11-12, four passes: a fall of about {min(FALL.values()):.2f} is common to all four configurations, {code(REF)} "
+                f"included, and <code>compact</code>'s is about {fall_extra:.2f} larger ({four}).",
+        "open": [f"Dated 2026-11-12, on the first question: over four passes a fall of about {min(FALL.values()):.2f} from 4K to 127K "
+                 f"is common to the four configurations, {code(REF)} included. No unquantized model and no other engine ran these "
+                 "tasks, so where it comes from is still open.",
+                 "Dated 2026-11-12, on the second question: the nominal gap did not repeat. On <code>ledger</code> at 64K + 127K, "
+                 f"<code>compact</code> {MINUS} <code>anchor</code> was {iv3(lg['p12'])} in passes 1-2, {iv3(lg['p34'])} in passes 3-4 "
+                 f"and is {iv3(lg['p1234'])} over four ({four}).",
+                 "Added 2026-11-12: is <code>compact</code>'s lower score at 127K real, and does it come from replies that do not "
+                 "finish, from wrong fields in replies that do, or from one task family? Over four passes it is indicated, not "
+                 f"established, and the two pass sets disagree on each of those splits ({four}).",
+                 "Added 2026-11-12: why does <code>anchor</code>, with a BF16 core and head, measure slightly farther from the "
+                 f"BF16 model than <code>hqa</code> on the fidelity set (<code>hqa</code> {MINUS} <code>anchor</code> "
+                 f"{iv4(dha['fidelity_set']['overall'])}) and level with it on the teacher panel ({iv4(dha['teacher_panel'])})? "
+                 "The two share their experts, and <code>anchor</code> is a locally derived checkpoint "
+                 '(<a href="#bf16">distance from the BF16 model</a>).'],
+        "limits": f"Added 2026-11-12: with the reference checkpoint {code(REF)} the experts are no longer the same in every "
+                  "configuration; all four are K4-class checkpoints. The additions at the top of the page carry two further limits: "
+                  f"one engine release, and a BF16 reference that reaches {reach} only."}
+    return lede, body, data, notes
 
 
 def reference_sections(S, h2, gh):
@@ -128,9 +762,10 @@ def reference_sections(S, h2, gh):
                    f"{iv3(rh)} pooled. Basis: two passes, 60 items, 480 requests per arm.</li>"
                    f"<li><b>{code} against <code>compact</code>: higher field score, post hoc</b>, {iv3(rc)} pooled and {iv3(rc_long)} at "
                    f"64K and 127K; at 4K and 16K {iv3(rc_short)}. The arm was added after the results were read and this is one of "
-                   f"{IV['computed']} intervals, so it is a lead and not a finding. It is on the partial-credit score only: on every field "
+                   f"{IV['computed']} intervals, so it is a lead and not a finding. It is on the field score (partial credit) only: on every field "
                    f"right the pair does not separate ({iv3(rc_strict)}). Being a whole-checkpoint difference, it does not say which "
-                   "component carries it.</li>"
+                   "component carries it. 2026-11-12: the lead did not repeat in passes 3 and 4, and the four-pass interval includes 0 "
+                   '(<a href="#four-pass">Four passes</a>).</li>'
                    f"<li><b>Accuracy falls with length in the reference checkpoint as in the probe arms</b> ({f3(sc(REF, '4k')[0])} at 4K to "
                    f"{f3(sc(REF, '128k')[0])} at 127K; finished replies only at 127K {f3(BL[REF]['128k']['score_finished_only'])}, "
                    f"<code>anchor</code> {f3(BL['anchor']['128k']['score_finished_only'])}).</li></ul>")
@@ -192,10 +827,12 @@ def reference_sections(S, h2, gh):
                  "items), assistant frame, on the prefill path and on the decode path, read beside the same capture of the three probe arms. "
                  "Exploratory: one capture per arm, no correction for the number of comparisons. The whole-checkpoint statement above "
                  "applies.</p>"
-                 "<p><b>Distance from the unquantized BF16 model is not measured for these four configurations in this run.</b> All four "
+                 "<p><b>This capture does not measure distance from the unquantized BF16 model.</b> All four "
                  "are quantized: <code>anchor</code> has a BF16 core and K4 experts, so a difference from <code>anchor</code> is a "
                  'difference from another quantization. The <a href="precision.html">BF16-referenced panels</a> of this repository (texts '
-                 "to 14.4K tokens) cover other checkpoints. What this capture references to something fixed is the given text.</p>"
+                 "to 14.4K tokens) cover other checkpoints. What this capture references to something fixed is the given text. "
+                 'Added 2026-11-12: that distance was measured afterwards for these four configurations, on two reference sets that reach '
+                 '14.4K (<a href="#bf16">Distance from the BF16 model</a>).</p>'
                  "<p>The dumps and per-position files are not published; the numbers are in "
                  f'{gh(f"{RD}/exploratory/capture_abs.json", "<code>capture_abs.json</code>")} and '
                  f'{gh(f"{RD}/exploratory/capture_pairs.json", "<code>capture_pairs.json</code>")}.</p>')
@@ -224,22 +861,27 @@ def reference_sections(S, h2, gh):
     amend = (f"<p>{am_link} (written {E(AM['written'])}; sha256 <code>{AM['sha256']}</code>) was written after {E(AM['written_after'])} "
              f"and before {E(AM['written_before'])}. It adds {E(AM['adds'])}. Reading rule: {E(AM['rule'])}. No eight-turn pass and no "
              "items are added. The protocol file is unchanged and its hash still holds.</p>")
-    rows = [[arm(a), badge(False, "done", "pending"), badge(False, "done", "pending")] for a in ARMS4]
-    t_am = rich("Passes added by amendment 1", "In progress. No number from these passes is on this page",
+    if AM["status"] != "complete" or AM["pending"]:
+        raise SystemExit("v5 page: amendment 1 is not complete; the page is written for the finished passes")
+    amend += (f'<p>Added 2026-11-12: both passes are complete for all four configurations ({E(AM["ran"])}). Their numbers are under '
+              '<a href="#four-pass">Four passes</a>; the tables of this part of the page hold passes 1 and 2 only.</p>')
+    rows = [[arm(a), badge(True, "done", "pending"), badge(True, "done", "pending")] for a in ARMS4]
+    t_am = rich("Passes added by amendment 1", "Complete 2026-11-12",
                 ["Arm", "Single message, pass 3", "Single message, pass 4"], rows)
 
     lede = (f"<p>Added after these results were read: a reference checkpoint in another quantisation format, {code}, on the same items "
             f"(two single-message passes). No difference from <code>anchor</code> ({iv3(ra)}) or from <code>hqa</code> ({iv3(rh)}) is "
             "measured; it differs from the arms as a whole checkpoint, so no difference from an arm is attributable to one component "
-            '(<a href="#reference">reference checkpoint</a>). Two further single-message passes per arm are in progress under '
-            '<a href="#amendment">amendment 1</a>; none of their numbers is on this page.</p>')
+            '(<a href="#reference">reference checkpoint</a>). Added 2026-11-12: two further single-message passes per arm, added under '
+            '<a href="#amendment">amendment 1</a>, are complete and are read under <a href="#four-pass">Four passes</a>.</p>')
     bullet = (f"<li><b>Reference checkpoint {code}, added after the results were read: no difference from <code>anchor</code> or "
               f"<code>hqa</code> measured</b> ({iv3(ra)} and {iv3(rh)} pooled). Against <code>compact</code> its field score is higher post "
-              f"hoc ({iv3(rc)}), on the partial-credit score only: a lead, not a finding. Each is a whole-checkpoint difference "
-              '(<a href="#reference">details</a>).</li>')
+              f"hoc ({iv3(rc)}), on the field score (partial credit) only: a lead, not a finding. Each is a whole-checkpoint difference "
+              '(<a href="#reference">details</a>). Added 2026-11-12: the lead over <code>compact</code> did not repeat in passes 3 and 4, '
+              'and the four-pass interval includes 0 (<a href="#four-pass">Four passes</a>).</li>')
     body = (h2("reference", "Reference checkpoint: EXLR8 K4") + intro + ref_reading + t_score + t_cls + t_pair + t_agree + t_cost +
             h2("capture", "Scoring capture on the reference checkpoint") + cap_intro + cap_reading + t_abs + t_band + t_heavy + cap_between +
-            h2("amendment", "Amendment 1: passes 3 and 4, in progress") + amend + t_am)
+            h2("amendment", "Amendment 1: passes 3 and 4") + amend + t_am)
     data = (f'<p class="sign">Reference checkpoint: {gh(f"{RD}/analysis/samples-reference.csv", "<code>samples-reference.csv</code>")} '
             f'(one row per request, no text) and {gh(f"{RD}/analysis/reference.py", "<code>reference.py</code>")}, which recomputes its '
             f'tables from the two CSVs into {gh(f"{RD}/analysis/REFERENCE.json", "<code>REFERENCE.json</code>")} (standard library only).</p>')
@@ -305,6 +947,8 @@ def page_v5(S, page, h2, gh, details):
                       f"that did not finish: among finished replies the single-message score at 127K is {fin127} "
                       "(<code>anchor</code> / <code>hqa</code> / <code>compact</code>). The arms share the model, the K4 experts, the "
                       "engine, the drafter, the sampling settings and the reply cap, so the loss sits somewhere among those. "
+                      "Added 2026-11-12: the tasks are shared as well, and their distractor text grows with length; no unquantized "
+                      "model and no other engine ran them, so the run does not locate the fall. "
                       f"Unfinished replies at the other lengths, same arm order: none at 4K; 16K single 0 / 0 / 0, eight turns {unf('turns-p8', '16k')}; "
                       f"64K single {unf('single', '64k')}, eight turns {unf('turns-p8', '64k')}.")
 
@@ -374,10 +1018,19 @@ def page_v5(S, page, h2, gh, details):
                   f"over the two lengths, [{s3(lh[1])}, {s3(lh[2])}], and every one of its intervals includes 0. <code>compact</code> is nominally "
                   f"{abs(LD['compact - anchor']['64k'][0]):.2f} lower at 64K and {abs(LD['compact - anchor']['128k'][0]):.2f} at 127K with intervals "
                   f"that include 0; pooled over the two lengths the field-score gap is {s3(lc['score']['single'][0])} "
-                  f"[{s3(lc['score']['single'][1])}, {s3(lc['score']['single'][2])}], and only the strict measure excludes 0. Twenty items "
+                  f"[{s3(lc['score']['single'][1])}, {s3(lc['score']['single'][2])}], and only the strict measure (every field right) excludes 0. Twenty items "
                   f"cannot tell \"the K6 core costs nothing on running totals at long context\" from \"it costs about {abs(lc['score']['single'][1]):.2f} in field score\". An "
                   f'extension with more <code>ledger</code> items was written down before the data and is held, not run '
                   f'({gh(f"{RD}/notes/ledger-extension-hold.md", "note")}).</p>')
+    if "four_pass" in S:
+        l4 = {ps: S["four_pass"]["paired"]["compact - anchor"][ps]["ledger_64k+128k_score"] for ps in ("p12", "p34", "p1234")}
+        if l4["p34"][0] < 0 or any(v[1] > 0 or v[2] < 0 for v in l4.values()): stale("the dated note on running totals at four passes")
+        ledger_txt += ('<p>Added 2026-11-12: two more passes were run after this section was written. Over four passes the '
+                       f"lean did not repeat: <code>compact</code> &minus; <code>anchor</code> in <code>ledger</code> field score at 64K + 127K was "
+                       f"{s3(l4['p12'][0])} [{s3(l4['p12'][1])}, {s3(l4['p12'][2])}] in passes 1&ndash;2 (resampled separately from the interval "
+                       f"above, same data), {s3(l4['p34'][0])} [{s3(l4['p34'][1])}, {s3(l4['p34'][2])}] in passes 3&ndash;4 and is "
+                       f"{s3(l4['p1234'][0])} [{s3(l4['p1234'][1])}, {s3(l4['p1234'][2])}] over four. "
+                       '<a href="#four-pass">Four passes</a> gives the counts. The tables in this section are the two-pass data as read at the time.</p>')
 
     # ---- turns
     TM, MW, IC = T["turns_minus_single"], T["model_written_share"], T["intermediate_caps"]
@@ -403,14 +1056,22 @@ def page_v5(S, page, h2, gh, details):
     for a in ARMS:
         L = LA["serving"][a][0]; g0, g1 = L["gpus"]["rtx0"], L["gpus"]["rtx1"]
         free = [g["cap_mib"] - g["weights_mib"] - g["workspaces_mib"] - g["reserve_mib"] - g["kv_pool_mib"] for g in (g0, g1)]
-        rows.append([arm(a), bar(L["coordinator_weights_gib"], 7, f'{L["coordinator_weights_gib"]:.2f} GiB'), E(L["head"]),
+        rows.append([arm(a), bar(L["coordinator_weights_gib"], 7, f'{L["coordinator_weights_gib"]:.2f} GiB'),
+                     f'{E(L["head"])}<small>{n0(L["head_mib"])} MiB</small>',
+                     f'{n0(g0["weights_outside_experts_mib"])} / {n0(g1["weights_outside_experts_mib"])}',
                      f'{n0(g0["weights_mib"])} / {n0(g1["weights_mib"])}', f'{n0(g0["workspaces_mib"])} / {n0(g1["workspaces_mib"])}',
                      n0(L["kv_pool_tokens"]), f"{n0(free[0])} / {n0(free[1])}"])
     sc = LA["kv_pool_tokens_scoring_launches"]
     mem = rich("What each arm loads and is admitted", "From each serving launch's log; the three launches of an arm report the same figures. MiB per GPU: first / second",
-               ["Arm", "Coordinator weights", "Head", "Resident weights, MiB", "Workspaces, MiB", "KV pool, tokens", "Left under the cap, MiB"], rows,
+               ["Arm", "Layer weights outside the experts, per GPU", "Head", "Weights outside the experts, MiB", "Resident weights, MiB",
+                "Workspaces, MiB", "KV pool, tokens", "Left under the memory cap, MiB"], rows,
                foot=f"Every arm was admitted the configured maximum KV pool ({n0(kv['anchor'])} tokens) in all nine serving launches, so on "
-                    "this hardware the cheaper settings buy memory headroom, not context room. A smaller pool for <code>anchor</code> "
+                    "this hardware the memory the cheaper settings save stayed unused under the cap in these launches and did not enlarge "
+                    "the pool. Layer weights outside the experts: the load line's \"coordinator weights\", one copy on each GPU. Weights "
+                    "outside the experts add the output head and the token embedding table "
+                    f"({n0(LA['serving']['anchor'][0]['token_embedding_mib'])} MiB in every arm), each on one GPU. Left under the memory "
+                    "cap: cap minus resident weights, workspaces, reserve and KV pool. The column labels and this note were revised "
+                    "2026-11-12 and the fourth column added. A smaller pool for <code>anchor</code> "
                     f"({n0(sc['anchor'][0])} tokens) was seen only in the scoring launches of the exploratory depth profile (16 requests at once). "
                     "Corrected 2026-11-11: the results text first carried that scoring-launch figure into the graded-run table.")
 
@@ -449,16 +1110,32 @@ def page_v5(S, page, h2, gh, details):
                "strength: moderate (one model family, synthetic tasks).</li>"
                f"<li><b><code>compact</code> against the reference: no difference measured</b>, {s3(ca[0])} [{s3(ca[1])}, {s3(ca[2])}] pooled. "
                f"Its largest nominal gap is <code>ledger</code> at 64K and 127K ({s3(lc['score']['single'][0])} "
-               f"[{s3(lc['score']['single'][1])}, {s3(lc['score']['single'][2])}]); that is open, not shown.</li>"
-               f"<li><b><code>hqa</code> against <code>compact</code>: no difference measured</b>, {s3(hc[0])} [{s3(hc[1])}, {s3(hc[2])}] pooled.</li>"
+               f"[{s3(lc['score']['single'][1])}, {s3(lc['score']['single'][2])}]); that is open, not shown.<!--note:ledger--></li>"
+               f"<li><b><code>hqa</code> against <code>compact</code>: no difference measured</b>, {s3(hc[0])} [{s3(hc[1])}, {s3(hc[2])}] pooled.<!--note:hc--></li>"
                "<li><b>The long-context loss is shared.</b> The reference loses about as much as the other arms, so core precision does not "
-               "produce it; a third to a half of it is replies that did not finish.</li>"
+               "produce it; a third to a half of it is replies that did not finish.<!--note:fall--></li>"
                "<li><b>Split delivery shows no accuracy cost</b> within intervals of about 0.07; whether model-written history does is untested here.</li></ul>")
     ref_lede, ref_bullet, ref_body, ref_data = reference_sections(S, h2, gh) if "reference" in S else ("", "", "", "")
     lede += ref_lede
     reading = reading[:-len("</ul>")] + ref_bullet + "</ul>"
-    openq = "<ul>" + "".join(f"<li>{E(q)}</li>" for q in S["open_questions"]) + "</ul>"
-    limits = "<p>" + (lambda t: t[:1].upper() + t[1:])("; ".join(E(x) for x in S["limits"])) + ".</p>"
+    ext_lede, ext_body, ext_data, ext_notes = extension_sections(S, h2, gh) if "four_pass" in S else ("", "", "", {})
+    for k in ("hc", "ledger", "fall"):
+        mark = f"<!--note:{k}-->"
+        if reading.count(mark) != 1: stale(f"the place of the dated note '{k}'")
+        reading = reading.replace(mark, " " + ext_notes[k] if ext_notes else "")
+    if ext_body:
+        frozen = (h2("frozen", "The frozen two-pass result, as published 2026-11-11") +
+                  "<p><b>Everything from here down is the result of the frozen protocol: two single-message passes and one eight-turn pass "
+                  "per arm, as published on 2026-11-11.</b> It is unchanged apart from pointers dated 2026-11-12. Where a four-pass figure "
+                  'exists for the same quantity it is under <a href="#four-pass">Four passes</a>, and the two are not interchangeable: the '
+                  "two-pass tables are the frozen comparison, the four-pass tables an extension decided after these results were read. "
+                  "The summary published with it:</p>" + lede)
+        lede = ext_lede
+    else:
+        frozen = ""
+    openq = "<ul>" + "".join(f"<li>{E(q)}</li>" for q in S["open_questions"]) + "".join(f"<li>{q}</li>" for q in ext_notes.get("open", [])) + "</ul>"
+    limits = ("<p>" + (lambda t: t[:1].upper() + t[1:])("; ".join(E(x) for x in S["limits"])) + ".</p>"
+              + (f"<p>{ext_notes['limits']}</p>" if ext_notes else ""))
     data = (f'<p class="sign">Numbers: {gh(f"{RD}/SUMMARY.json", "<code>SUMMARY.json</code>")}. Result as read, with dated corrections: '
             f'{gh(f"{RD}/RESULTS.md", "<code>RESULTS.md</code>")}. One row per request, no text: '
             f'{gh(f"{RD}/analysis/samples.csv", "<code>samples.csv</code>")}; {gh(f"{RD}/analysis/posthoc.py", "<code>posthoc.py</code>")} '
@@ -469,7 +1146,10 @@ def page_v5(S, page, h2, gh, details):
              f'<li><b>Recompute.</b> In {gh(RD, "the results folder")}, <code>python3 analysis/posthoc.py</code> (standard library only) '
              "rebuilds the scores, differences and intervals on this page from <code>samples.csv</code> and writes <code>POSTHOC.json</code>; "
              "<code>python3 tools/verify.py</code> at the repository root checks <code>docs/findings.json</code> against the same table. "
-             "Run from a clean copy of the published folder on 2026-11-11: same output.</li>"
+             "Run from a clean copy of the published folder on 2026-11-11: same output. Added 2026-11-12: <code>python3 analysis/fourpass.py</code> "
+             "rebuilds the four-pass tables from the three CSVs and writes <code>FOURPASS.json</code>, and <code>tools/verify.py</code> "
+             "recomputes the fidelity-set figures and intervals of the BF16 stage from the per-window figures in "
+             "<code>bf16ref/BF16REF.json</code>.</li>"
              "<li><b>Rebuild the inputs.</b> <code>drivers/gen_tasks.py --items 20 --first 100</code> regenerates the 240 rendered items "
              "from their seeds; it needs the <code>tokenizers</code> package and the model's <code>tokenizer.json</code> (set the path at "
              "the top of the script; its SHA-256 is checked). <code>items/measured/index.json</code> lists the SHA-256 of every rendered item. Regenerated from the published script on "
@@ -479,7 +1159,8 @@ def page_v5(S, page, h2, gh, details):
              "<code>hqa</code> and <code>compact</code> cannot be re-measured without a copy of it; <code>anchor</code>'s checkpoint is "
              "assembled locally, with every core matrix taken from the original BF16 weights, and was never a release. The items and "
              "the scoring do not depend on the engine.</li></ul>")
-    body = (h2("reading", "What the results show") + reading +
+    body = (ext_body + frozen +
+            h2("reading", "What the two-pass results show" if ext_body else "What the results show") + reading +
             h2("arms", "What was tested") + setup +
             h2("by-length", "Score by length") + bylen +
             h2("differences", "Differences between arms") + diffs + flips +
@@ -491,7 +1172,7 @@ def page_v5(S, page, h2, gh, details):
             h2("checks", "Checks before the graded runs") + checks + ref_body +
             h2("open", "Open questions") + openq +
             h2("limits", "Limits") + limits +
-            h2("reproduce", "Reproducing this") + repro + data + ref_data)
+            h2("reproduce", "Reproducing this") + repro + data + ref_data + ext_data)
     page("v5.html", "CuteAFD v5.0.0: core precision at long context", lede, body)
 
 

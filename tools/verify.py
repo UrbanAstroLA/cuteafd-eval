@@ -173,7 +173,8 @@ def check_runs():
 
 def check_findings():
     """docs/findings.json: every pointer resolves to the recorded value, every file and page anchor exists, and the
-    entries that carry 'recompute' match a recomputation from the published per-reply tables."""
+    entries that carry 'recompute' match a recomputation from the published per-reply tables (or, for the kind
+    window_ratio_bootstrap, from a published per-window table)."""
     import csv, math, statistics
     fp = ROOT / "docs" / "findings.json"
     if not fp.exists(): fails.append("docs/findings.json missing"); return 0
@@ -257,6 +258,31 @@ def check_findings():
             fr = f["result"][rc["result"]] if "result" in rc else f["result"]        # an entry with several results names the one recomputed
             got = [round(x, 4) for x in got]; want = [fr["value"]] + list(fr["ci95"])
             if got != want or n != fr["items"]: fails.append(f"findings {fid}: recomputed {got} over {n} items, findings.json says {want} over {fr['items']}")
+            continue
+        elif rc["kind"] == "window_ratio_bootstrap":
+            # Ratio of sums over windows with a window-block bootstrap (SplitMix64, linear-interpolation percentiles), from a
+            # published per-window table: positions x mean = the window's sum. One check per published [value, 2.5%, 97.5%].
+            W = sorted(at(rc["data"], rc["windows"]), key=lambda w: w["window"]); M = (1 << 64) - 1; bt = rc["bootstrap"]
+            for c in rc["checks"]:
+                sel = [w for w in W if c.get("bucket") in (None, w["bucket"])]
+                num = [w["positions"] * (w["kl_mean"][c["b"]] - (w["kl_mean"][c["a"]] if c.get("a") else 0.0)) for w in sel]
+                den = [w["positions"] for w in sel]; G = len(sel); s = bt["seed"] & M; lim = ((1 << 64) - G) % G; reps = []
+                for _ in range(bt["replicates"]):
+                    n_ = d_ = 0.0
+                    for _ in range(G):
+                        while True:
+                            s = (s + 0x9E3779B97F4A7C15) & M; z = s
+                            z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & M; z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & M; z ^= z >> 31
+                            if z >= lim: break
+                        n_ += num[z % G]; d_ += den[z % G]
+                    reps.append(n_ / d_)
+                reps.sort()
+                def q(p):
+                    h = (len(reps) - 1) * p; i = int(h)
+                    return reps[i] if i + 1 >= len(reps) else reps[i] + (reps[i + 1] - reps[i]) * (h - i)
+                got = [sum(num) / sum(den), q(0.025), q(0.975)]; want = at(rc["data"], c["pointer"])
+                if len(want) != 3 or any(abs(g - w) > 2e-9 for g, w in zip(got, want)):
+                    fails.append(f"findings {fid}: {c['pointer']} recomputed {[round(g, 9) for g in got]} from the per-window table, {rc['data']} says {want}")
             continue
         else:
             fails.append(f"findings {fid}: unknown recompute kind {rc['kind']}"); continue

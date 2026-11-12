@@ -915,7 +915,68 @@ def V5_LATEST(lk):
     lo4 = min(SL[a]["single"]["4k"]["score"] for a in SL); hi4 = max(SL[a]["single"]["4k"]["score"] for a in SL)
     kv = S["launch"]["kv_pool_tokens_serving"]["anchor"]
     v5 = lk("CuteAFD v5", "v5.html", "results/2026-11-10-context-probe/")
-    ref = ""
+    ref = ref4 = ext = bf = tr = led4 = kv4 = len4 = ""; two = "frozen rule"; dates = "2026-11-10/11"
+    if "four_pass" in S:                    # amendment 1 (four passes) and the BF16 stage, added 2026-11-12; beside the frozen two-pass result
+        Q = S["four_pass"]; B = S["bf16_distance"]; two = "frozen rule, two passes"; dates = "2026-11-10/12"
+        fmt = lambda v: "%s [%s, %s]" % tuple(("0.000" if round(x, 3) == 0 else f"{x:+.3f}").replace("-", "−") for x in v[:3])
+        q = lambda pair, k="all", ps="p1234": Q["paired"][pair][ps]["score"][k]
+        out0 = lambda v: v[1] > 0 or v[2] < 0
+        A4 = ("anchor", "hqa", "compact", "exlr8-k4"); s127 = {a: Q["by_length"][a]["p1234"]["128k"]["score"][0] for a in A4}
+        kl = {a: B["arms"][a]["fidelity_set"]["kl"][0] for a in A4}; Y = B["yardsticks"]; RD_ = B["reading"]; A7 = Q["at_127k"]
+        fo = lambda ps: max(A4, key=lambda a: A7[ps][a]["score_finished_only"])
+        if (out0(q("hqa - anchor")) or out0(q("compact - anchor")) or out0(q("compact - anchor", "128k")) or not out0(q("hqa - compact"))
+                or not out0(q("hqa - compact", "128k")) or out0(q("hqa - compact", ps="p12")) or out0(q("hqa - compact", ps="p34"))
+                or out0(q("exlr8-k4 - compact")) or min(s127, key=s127.get) != "compact" or min(kl, key=kl.get) == "anchor"
+                or not Y["official_fp8_release"]["fidelity_set_kl"] < min(kl.values()) or not max(kl.values()) < Y["k3.25_on_cuteafd"]["fidelity_set_kl"]
+                or RD_["largest_difference_between_probe_arms"] >= 0.003 or fo("p34") != "compact" or fo("p12") == "compact"
+                or any(Q["by_length"]["compact"][ps]["all"]["score"][0] >= min(Q["by_length"][a][ps]["all"]["score"][0] for a in A4 if a != "compact")
+                       for ps in ("p12", "p34"))):
+            raise SystemExit("README: the four-pass and BF16-distance numbers no longer match the summary written for them")
+        oth = [s127[a] for a in A4 if a != "compact"]
+        ext = (f"- **Four passes (added 2026-11-12; an extension written after the two-pass results were read, before the added requests):**\n"
+               f"  `hqa` − `anchor` {fmt(q('hqa - anchor'))}, no difference measured (the 95% interval reaches down to {fmt(q('hqa - anchor')).split('[')[1].split(',')[0]}).\n"
+               f"  For `compact` a cost at 127K is indicated, not established: {s127['compact']:.3f} there against {min(oth):.3f} to {max(oth):.3f}, the\n"
+               f"  lowest arm in both pass sets; `hqa` − `compact` {fmt(q('hqa - compact', '128k'))} at 127K and {fmt(q('hqa - compact'))} over all lengths\n"
+               f"  (excludes 0 only at four passes), while `compact` − `anchor` {fmt(q('compact - anchor'))} includes 0. Pooled, the gap matches\n"
+               f"  unfinished replies, but the two pass sets do not agree on that split, so where it comes from is not settled.\n")
+        bf = (f"- **Distance from the BF16 model (added 2026-11-12): all four configurations sit in one band.** Coarse KL on tpurtell's\n"
+              f"  fidelity set, contexts to 14.4K: " + ", ".join(f"`{a}` {kl[a]:.4f}" for a in sorted(A4, key=kl.get)) + ",\n"
+              f"  between the official FP8 model ({Y['official_fp8_release']['fidelity_set_kl']:.4f}, the baseline tpurtell recorded in the set's manifest) and K3.25 on\n"
+              f"  CuteAFD v3.0.1 ({Y['k3.25_on_cuteafd']['fidelity_set_kl']:.4f}); both rows are from other measurements, quoted for scale.\n"
+              f"  What differs between the three probe arms moves the distance by under 0.003. `anchor` is not the closest on this set; it\n"
+              f"  differs from `hqa` in its output head as well as its core (both BF16 in `anchor`), and why it measures slightly farther is\n"
+              f"  an open question.\n"
+              f"  Neither reference set reaches past 14.4K, so the 127K task difference lies beyond both.\n")
+        TO = S["trade_offs"]; WB, FB, AP = TO["weights_outside_experts_mib_back"], TO["left_under_memory_cap_mib_back"], TO["anchor_to_hqa_parts"]
+        HDM = AP["head_difference_mib"]
+        if (WB, FB, HDM) != ({"anchor_to_hqa": 4266, "hqa_to_compact": 2568}, {"anchor_to_hqa": 3096, "hqa_to_compact": 2458}, 756):
+            raise SystemExit("README: the memory figures no longer match the trade-off line written for them")
+        if kv != 2097152 or any(S["launch"]["kv_pool_tokens_serving"][a] != kv for a in ("anchor", "hqa", "compact")):
+            raise SystemExit("README: the KV pool of the serving launches no longer matches the trade-off line")
+        RB = S["trade_offs"]["resident_weights_mib_back"]; SC = S["launch"]["kv_pool_tokens_scoring_launches"]
+        LG = {ps: Q["paired"]["compact - anchor"][ps]["ledger_64k+128k_score"] for ps in ("p12", "p34", "p1234")}
+        if set(SC["hqa"] + SC["compact"]) != {kv} or len(SC["anchor"]) != 1 or SC["anchor"][0] >= kv or any(out0(v) for v in LG.values()) or LG["p34"][0] < 0:
+            raise SystemExit("README: the scoring-launch pools or the four-pass ledger intervals no longer match the lines written for them")
+        led4 = (f" Added 2026-11-12: over four passes the lean did not repeat\n  (`compact` − `anchor` on that slice {fmt(LG['p12'])} in passes 1-2, "
+                f"{fmt(LG['p34'])} in passes 3-4,\n  {fmt(LG['p1234'])} over four).")
+        kv4 = (f" Added 2026-11-12: resident weights over both GPUs fall by\n  {RB['anchor_to_hqa']:,} MiB from `anchor` to `hqa` and a further "
+               f"{RB['hqa_to_compact']:,} MiB to `compact`. In exploratory scoring launches with 16\n  requests at once `anchor` was admitted a smaller "
+               f"pool ({SC['anchor'][0]:,} tokens); one launch setting read from logs, not a measurement.")
+        f4k = lambda a: round(Q["by_length"][a]["p1234"]["4k"]["score"][0], 3) - round(Q["by_length"][a]["p1234"]["128k"]["score"][0], 3)
+        if not all(0.055 < f4k(a) < 0.07 for a in A4 if a != "compact") or not 0.09 <= f4k("compact") < 0.1:
+            raise SystemExit("README: the four-pass falls with length no longer match the line written for them")
+        len4 = (" Added 2026-11-12, four passes: the fall from 4K to 127K is about 0.06 in\n  every configuration, `exlr8-k4` included, and about 0.09 in `compact` "
+                "(its 127K gap above). The tasks are shared too and no unquantized model ran\n  them, so the run does not say where the common fall comes from.")
+        tr = (f"- **What each configuration trades (added 2026-11-12).** Against `anchor`, `hqa` holds {WB['anchor_to_hqa']:,} MiB less in weights\n"
+              f"  outside the experts over the two GPUs ({HDM} MiB of it is the output head, which `ATTENTION_MODE` does not change), with no\n"
+              f"  quality cost measured, on task score or on distance from BF16. `compact` holds a further {WB['hqa_to_compact']:,} MiB less, with a cost of\n"
+              f"  about one point over all lengths indicated (`hqa` − `compact` {fmt(q('hqa - compact'))}, `compact` − `anchor`\n"
+              f"  {fmt(q('compact - anchor'))}), not established, and located at 127K. In these launches every configuration was\n"
+              f"  admitted the same KV pool ({kv:,} tokens), so the saving stayed unused under the engine's memory cap ({FB['anchor_to_hqa']:,} and a further\n"
+              f"  {FB['hqa_to_compact']:,} MiB more left there; the workspaces of `hqa` and `compact` are larger than `anchor`'s).\n"
+              f"  Cost and measured quality side by side: section 13 of `RESULTS.md` in the run folder, and the first table of the v5 page.\n")
+        ref4 = (f" Added 2026-11-12: over four\n  passes the lead over `compact` did not repeat ({fmt(q('exlr8-k4 - compact'))}); `exlr8-k4` − `anchor` "
+                f"{fmt(q('exlr8-k4 - anchor'))}.")
     if "reference" in S:                    # reference checkpoint added after the results were read; outside the frozen comparison
         P = S["reference"]["paired"]
         def r(pair, k="all"):
@@ -924,26 +985,41 @@ def V5_LATEST(lk):
                f"  measured from `anchor` or `hqa`:** field score `exlr8-k4` − `anchor` {r('exlr8-k4 - anchor')}, − `hqa` {r('exlr8-k4 - hqa')} (two\n"
                f"  single-message passes, post hoc). Against `compact` {r('exlr8-k4 - compact')}, on the partial-credit score only and one of\n"
                f"  {S['reference']['intervals']['computed']} intervals: a lead, not a finding. It is a different checkpoint, not a setting of the same one, so no\n"
-               f"  difference from an arm is attributable to one component. Two further single-message passes per arm are in progress\n"
-               f"  (amendment 1); none of their numbers is published.\n")
-    return f"""**Latest: CuteAFD v5.0.0, core precision at long context (2026-11-10/11).** v5.0.0 adds `ATTENTION_MODE`: the core of
+               f"  difference from an arm is attributable to one component." + ref4 + "\n")
+    return f"""**Latest: CuteAFD v5.0.0, core precision at long context ({dates}).** v5.0.0 adds `ATTENTION_MODE`: the core of
 the K4-Core-K6-HQA checkpoint runs with two attention projection groups in BF16 (`hqa`, the default) or all K6
 (`compact`). Both were set against a BF16 core (`anchor`, a locally derived checkpoint, the reference) on 60 graded
 tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm; the arms differ in the precision of the core (and, for `anchor`, the output head).
 
-- **Neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` {d("hqa - anchor")},
-  `compact` − `anchor` {d("compact - anchor")}, pooled over lengths (95% interval over items; frozen rule).
-- **Accuracy falls with length in every probe arm, `anchor` included** ({lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
-  that loss is not produced by core precision. A third to a half of it is replies that did not finish.
-- **One slice leans against the K6 core:** running totals at 64K and 127K, where `compact` is nominally lower. Twenty
-  items do not decide it; a post hoc lead, not a finding.
-- **Every arm was admitted the same KV pool** ({kv:,} tokens) in the graded runs: on two RTX the cheaper settings buy
-  memory headroom, not context room.
+{tr}- **{"Frozen rule, two passes: neither" if ext else "Neither"} cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` {d("hqa - anchor")},
+  `compact` − `anchor` {d("compact - anchor")}, pooled over lengths (95% interval over items{"" if ext else "; " + two}).
+{ext}{bf}- **Accuracy falls with length in every probe arm, `anchor` included** ({"two passes: " if ext else ""}{lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
+  that loss is not produced by core precision. A third to a half of it is replies that did not finish.{len4}
+- **One slice leaned against the K6 core{" at two passes" if ext else ""}:** running totals at 64K and 127K, where `compact` was nominally lower. Twenty
+  items do not decide it; a post hoc lead, not a finding.{led4}
+- **Every arm was admitted the same KV pool** ({kv:,} tokens) in the graded runs (eight requests at once): there the cheaper
+  settings left more memory unused under the engine's cap; they did not admit more context.{kv4}
 - **The eight-turn pass tested split delivery, not model-written history** (under 1% of a long prompt was written by
   the model); its design is to be revised.
 {ref}- The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. {v5}
 
 """
+
+
+def v5_bars():
+    """One more panel for the scale chart: the four configurations of the CuteAFD v5.0.0 context probe against BF16
+    (results/2026-11-10-context-probe/SUMMARY.json, bf16_distance). Its own panel: another engine release and other
+    checkpoints than the K3.25 panels, on the same fidelity set and measure."""
+    p = ROOT / "results/2026-11-10-context-probe/SUMMARY.json"
+    if not p.exists() or "bf16_distance" not in load(p):
+        return []
+    B = load(p)["bf16_distance"]; kl = lambda a: B["arms"][a]["fidelity_set"]["kl"][0]
+    if abs(B["yardsticks"]["official_fp8_release"]["fidelity_set_kl"] - FP8_PB) > 1e-12:
+        raise SystemExit("README: the FP8 baseline of the context probe differs from FP8_PB")
+    return [("CuteAFD v5.0.0, four K4-class configurations · fidelity set (P-B), to 14.4K · coarse KL",
+             [("Official FP8 model (tpurtell's baseline)", FP8_PB, "r"), ("anchor (BF16 core; the reference)", kl("anchor"), "c"),
+              ("hqa (BF16 q_b_proj, o_proj; rest K6)", kl("hqa"), "c"), ("compact (K6 core)", kl("compact"), "c"),
+              ("exlr8-k4 (EXLR8 K4 checkpoint)", kl("exlr8-k4"), "c")])]
 
 
 def V4_LATEST(lk):
@@ -1009,10 +1085,11 @@ and machine:
 
 The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in three quantized checkpoints: **K3.25**
 (tpurtell's mixed 3.25-bit EXL3 experts), **K4** (brandonmusic's 4-bit EXL3 experts, Local Inference Lab) and
-**K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The questions: how close each engine stays to
+**K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The CuteAFD v5 probe adds **K4-Core-K6-HQA**
+(tpurtell's; two attention projection groups also carried in BF16) and, as a reference, kindlingai's **EXLR8 K4**. The questions: how close each engine stays to
 the original BF16 model, how fast it is, and how to set it up.
 
-Results as of 2026-11-11; versions tested: CuteAFD v5.0.0 (core precision only), v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA)."""
+Results as of 2026-11-12; versions tested: CuteAFD v5.0.0 (core precision only), v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA)."""
     needle_txt = ""
     if nd:
         needle_txt = (f" Needles in prompts of 256K to 1M tokens (K3.25): {'all found' if nd['all_ok'] else 'not all found'} on both "
@@ -1056,6 +1133,7 @@ Results as of 2026-11-11; versions tested: CuteAFD v5.0.0 (core precision only),
         ("K3.25 and K4 · BF16 teacher panel (P-A; can favour K4) · top-20 KL (KL20)",
          [("K3.25, vLLM fork", kpa["v25"], "v"), ("K3.25, CuteAFD", kpa["c25"], "c"), ("K4, vLLM fork", kpa["v"], "v"),
           ("K4, CuteAFD", kpa["c"], "c")])]
+    P["bars"] += v5_bars()
     P["bars_table"] = table(["Panel and measure", "Row", "KL from BF16"],
                             [[p if i == 0 else "", lab, f"{v:.4f}"] for p, rows in P["bars"] for i, (lab, v, _) in enumerate(rows)])
     P["matters"] = f"""KL is how far an engine's next-token probabilities are from the BF16 model's on the same text (0 is

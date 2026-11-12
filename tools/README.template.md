@@ -6,7 +6,7 @@ Maintained by Michael M: [UrbanAstroLA](https://github.com/UrbanAstroLA) on GitH
 
 > This README and the results site in `docs/` are generated from the files under `results/` by `tools/build_readme.py`
 > and `tools/build_site.py`. Each section below has a page of its own on the site.
-> For agents and scripts: [`docs/findings.json`](docs/findings.json) lists the Thinking length claims with their status,
+> For agents and scripts: [`docs/findings.json`](docs/findings.json) lists the Thinking length and CuteAFD v5 claims with their status,
 > value, interval and a JSON pointer into the file each comes from; [`docs/llms.txt`](docs/llms.txt) is a plain-text
 > orientation. `tools/verify.py` re-resolves every pointer and recomputes the code-study ratios from the per-reply tables.
 

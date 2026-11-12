@@ -2,11 +2,12 @@
 """Machine-readable entry points for agents and scripts: docs/findings.json and docs/llms.txt.
 
 findings.json lists the claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), one entry per claim: the question, the answer as
-the page states it, its status (frozen measurement, post hoc, exploratory, source reading, in progress), the value with
+the page states it, its status (frozen measurement, extension, planned descriptive, post hoc, exploratory, source reading), the value with
 its interval, and where it comes from: a file and a JSON pointer (RFC 6901) into it, plus the per-reply data and the
 script that recompute it. Every value is read from the results at build time, never typed here. tools/verify.py
 re-resolves every pointer and recomputes the code-study ratios and the context-probe differences from the published
-per-reply tables.
+per-reply tables, and the context probe's distances from the BF16 model on the fidelity set from the published per-window
+figures.
 
 llms.txt is a plain-text orientation for language-model agents: what the repository is, how to read it, where the
 machine-readable data lives, and how to validate it.
@@ -439,6 +440,9 @@ def cp_findings():
                 or hv["median"] != 0 or hv["share_rows_arm_better"] >= 0.5):
             raise SystemExit("findings: the scoring capture's numbers no longer match the answer written for them")
         rng = lambda d, ps, f: f"{f(min(d[p] for p in ps))} to {f(max(d[p] for p in ps))}"
+        bf16_line = ("; that distance was measured afterwards for these four configurations, on two reference sets that reach 14.4K "
+                     "(CP-bf16-distance, added 2026-11-12)." if "bf16_distance" in json.loads((ROOT / S).read_text()) else
+                     " for these four configurations; the repository's BF16-referenced panels (texts to 14.4K tokens) cover other checkpoints.")
         k4 = lambda x: f"{x:.4f}"; pc = lambda x: f"{100 * x:.2f}%"
         out.append(finding(
             "CP-reference-capture",
@@ -448,8 +452,7 @@ def cp_findings():
             f"published without intervals. Its mean NLL is lower than anchor's ({nd[0]:+.4f} [{nd[1]:+.4f}, {nd[2]:+.4f}] nats, prefill path), which "
             f"is not read as an improvement: {hv['rows_over_1_nat']} of {nrows:,} positions carry {hv['sum_of_those']:+.2f} of the {hv['sum']:+.2f} nat "
             f"({100 * hv['sum_of_those'] / hv['sum']:.0f}% of the sum), the median per-position difference is 0 and the arm is ahead on fewer than "
-            "half of the positions. Distance from the unquantized BF16 model is not measured for these four configurations in this run; the "
-            "repository's BF16-referenced panels (texts to 14.4K tokens) cover other checkpoints. Between arms, which is not a distance from the BF16 "
+            "half of the positions. This capture does not measure distance from the unquantized BF16 model" + bf16_line + " Between arms, which is not a distance from the BF16 "
             f"model: the three probe arms share their experts, so the distance between two of them reflects the settings outside the experts alone, the core and for anchor the output head (prefill path, "
             f"median KL {rng(km, prbp, k4)}, most likely token different on {rng(td, prbp, pc)} of positions); exlr8-k4 has its own experts, so its "
             f"distance to any probe arm ({rng(km, refp, k4)}; {rng(td, refp, pc)}) includes both expert quantizations and does not rank it against "
@@ -476,15 +479,333 @@ def cp_findings():
                  "All four configurations are quantized: anchor has a BF16 core and K4 experts, so a difference from anchor is a difference from "
                  "another quantization. Full tables: section 10 of RESULTS.md in the run folder."))
 
+    if "four_pass" in json.loads((ROOT / S).read_text()):
+        REFA, FJ, BJ = "exlr8-k4", f"{CPD}/analysis/FOURPASS.json", f"{CPD}/bf16ref/BF16REF.json"
+        whole = at(S, "/reference/whole_checkpoint")
+        A4 = CP_ARMS + (REFA,)
+        fdata = data + [f"{CPD}/analysis/samples-reference.csv", f"{CPD}/analysis/samples-extension.csv"]
+        four = single + ["single-rep2", "single-rep3"]
+        def out0(v): return v[1] > 0 or v[2] < 0
+        def fp(pair, k="all", ps="p1234", m="score"): return f"/four_pass/paired/{esc(pair)}/{ps}/{m}/{k}"
+        def fv(pair, k="all", ps="p1234", m="score"): return at(S, fp(pair, k, ps, m))
+        def fres(pair, k="all", ps="p1234"):
+            what = f"field score, {pair}, single message, " + ("four lengths" if k == "all" else "127K") + ", " + {"p12": "passes 1-2", "p34": "passes 3-4", "p1234": "four passes"}[ps]
+            return res(fp(pair, k, ps), what)
+        def rec4(a, b, lengths=("4k", "16k", "64k", "128k"), result=None):
+            r = {"kind": "item_paired_difference", "estimator": "frozen", "data": fdata, "a": a, "b": b, "passes": four,
+                 "lengths": list(lengths), "script": f"{CPD}/analysis/fourpass.py",
+                 "bootstrap": {"draws": 10000, "seed": 5, "unit": "item", "rng": "Python random.Random", "indices": [250, 9749],
+                               "definition": "definitions.context_probe.item_paired_difference_frozen"}}
+            if result: r["result"] = result
+            return r
+        def sc4(a, k="all", ps="p1234"): return at(S, f"/four_pass/by_length/{a}/{ps}/{k}/score")
+        def rg(vals, f=lambda x: f"{x:.3f}"): return f"{f(min(vals))} to {f(max(vals))}"
+        ext_note = ("Extension, not the frozen comparison: amendment 1 (protocol/AMENDMENT-2026-11-11.md) was written after the two-pass results were "
+                    "read and before the first request of passes 3 and 4, and fixed the total at four single-message passes per arm. Estimator: "
+                    "the frozen rule's (definitions.context_probe.item_paired_difference_frozen) over passes single-rep0 to single-rep3; request "
+                    "score = fields correct / fields if the reply finished with stop, else 0; repeats averaged within the item; the item is the "
+                    "unit (60); 95% interval from 10,000 item resamples, random.Random(5). anchor is the reference of the probe, not a "
+                    "recommendation.")
+        IVS = "/four_pass/intervals"
+        n102, n6 = at(S, f"{IVS}/per_pass_set"), at(S, f"{IVS}/excluding_zero/p1234/count")
+        ha, ca, hc = fv("hqa - anchor"), fv("compact - anchor"), fv("hqa - compact")
+        ha12, ha34 = fv("hqa - anchor", ps="p12"), fv("hqa - anchor", ps="p34")
+        hc127, ca127 = fv("hqa - compact", "128k"), fv("compact - anchor", "128k")
+        ra, rh, rc = (fv(f"{REFA} - {a}") for a in CP_ARMS)
+        rc12, rc34, rc127 = fv(f"{REFA} - compact", ps="p12"), fv(f"{REFA} - compact", ps="p34"), fv(f"{REFA} - compact", "128k")
+        A7 = at(S, "/four_pass/at_127k"); others = [a for a in A4 if a != "compact"]
+        CAPP = "/capture/against_text/prefill/arms/compact"; capn, capt = at(S, f"{CAPP}/nll_minus_ref"), at(S, f"{CAPP}/top1_minus_ref")
+        if capn[0] > 0 or out0(capt): raise SystemExit("findings: the scoring capture no longer matches the sentence written for it")
+        bp = {a: at(S, f"/four_pass/by_length/{a}/score_by_pass/128k") for a in A4}
+        right = {a: at(S, f"/four_pass/by_length/{a}/p1234/all/right") for a in A4}
+        if (any(out0(x) for x in (ha, ha12, ha34, ca, ca127, ra, rh, rc, rc34, rc127)) or not out0(hc) or not out0(hc127) or not out0(rc12)
+                or out0(fv("hqa - compact", ps="p12")) or out0(fv("hqa - compact", ps="p34"))
+                or any(sc4("compact", "all", ps)[0] >= min(sc4(a, "all", ps)[0] for a in others) for ps in ("p12", "p34"))
+                or any(fv("compact - anchor", ps=ps)[0] >= 0 or fv("hqa - compact", ps=ps)[0] <= 0 for ps in ("p12", "p34"))
+                or any(h <= c for h, c in zip(bp["hqa"], bp["compact"]))
+                or [a < c for a, c in zip(bp["anchor"], bp["compact"])] != [True, False, False, False]
+                or A7["p12"]["compact"]["unfinished"] != A7["p12"]["anchor"]["unfinished"]
+                or A7["p12"]["compact"]["score_finished_only"] >= A7["p12"]["anchor"]["score_finished_only"]
+                or max(others + ["compact"], key=lambda a: A7["p34"][a]["score_finished_only"]) != "compact"
+                or A7["p34"]["compact"]["unfinished"] <= max(A7["p34"][a]["unfinished"] for a in others)
+                or right[REFA] >= min(right["anchor"], right["hqa"]) or (n102, n6) != (102, 6)):
+            raise SystemExit("findings: the four-pass numbers no longer match the answers written for them")
+
+        r, e = fres("hqa - anchor")
+        e += [ev(S, fp("hqa - anchor", ps="p12"), "the same difference at passes 1-2 (the frozen protocol's result)"),
+              ev(S, fp("hqa - anchor", ps="p34"), "the same difference at passes 3-4 alone"),
+              ev(S, "/four_pass/requests_per_arm", "requests per arm over four passes"),
+              ev(S, "/four_pass/added_passes/errors", "errors in the added passes"),
+              ev(FJ, f"/paired/{esc('hqa - anchor')}/p1234/score/all", "the same interval in the analysis output")]
+        out.append(finding(
+            "CP-fourpass-hqa-vs-anchor",
+            "Over four single-message passes, does the default HQA core (BF16 q_b_proj and o_proj, rest K6) score lower than a BF16 core on graded tasks from 4K to 127K tokens?",
+            f"No difference measured, and the bound is tighter than at two passes: {iv(ha)} in field score over four lengths (interval includes "
+            f"0); the 95% interval reaches down to {s3(ha[1])}. The same reading in both pass sets: {iv(ha12)} at passes 1-2 and "
+            f"{iv(ha34)} at passes 3-4 alone. Basis: four passes, 60 items, {at(S, '/four_pass/requests_per_arm')} requests per arm, 0 errors; "
+            "strength: the best-supported reading of this run (both pass sets; distance from BF16 not larger on either reference set, "
+            "CP-bf16-distance); limits: one model family, one engine release, synthetic tasks.",
+            "measurement: extension", r, e, CUTEAFD5, CPD, f"{page}#four-pass", fdata + [FJ], rec4("anchor", "hqa"),
+            "above 0 = hqa scored higher than anchor", note=ext_note))
+
+        results, evs = {}, []
+        for key, pair, k in (("hqa - compact, 127K", "hqa - compact", "128k"), ("compact - anchor, 127K", "compact - anchor", "128k"),
+                             ("hqa - compact, all lengths", "hqa - compact", "all"), ("compact - anchor, all lengths", "compact - anchor", "all")):
+            r, e = fres(pair, k); results[key] = r; evs += e
+        evs += ([ev(S, f"/four_pass/by_length/{a}/p1234/128k/score", f"{a}: field score at 127K, four passes [estimate, 2.5%, 97.5%, items]") for a in A4] +
+                [ev(S, f"/four_pass/by_length/{a}/score_by_pass/128k", f"{a}: field score at 127K in passes 1, 2, 3, 4") for a in ("anchor", "hqa", "compact")] +
+                [ev(S, fp(p, "all", ps), f"field score, {p}, four lengths, {lab}") for p in ("hqa - compact", "compact - anchor")
+                 for ps, lab in (("p12", "passes 1-2"), ("p34", "passes 3-4"))] +
+                [ev(S, f"/four_pass/at_127k/{ps}/{a}/{key}", f"{a} at 127K, {lab}: {what}") for ps, lab in (("p12", "passes 1-2"), ("p34", "passes 3-4"), ("p1234", "four passes"))
+                 for a in A4 for key, what in (("unfinished", "unfinished replies"), ("score_finished_only", "field score of finished replies"))] +
+                [ev(S, "/four_pass/compact_unfinished_all_lengths", "compact's unfinished replies over all lengths, by finish class"),
+                 ev(S, f"{IVS}/per_pass_set", "intervals per pass set"), ev(S, f"{IVS}/excluding_zero/p1234/count", "intervals excluding 0 at four passes"),
+                 ev(S, f"{IVS}/excluding_zero/p12/count", "at passes 1-2"), ev(S, f"{IVS}/excluding_zero/p34/count", "at passes 3-4"),
+                 ev(S, "/bf16_distance/sets/fidelity_set/last_generated_position", "last generated position of the fidelity set (tokens)"),
+                 ev(S, f"{CAPP}/nll_minus_ref", "scoring capture, given texts to 128K: compact's NLL minus anchor's [estimate, 2.5%, 97.5%]"),
+                 ev(S, f"{CAPP}/top1_minus_ref", "the same capture: share of positions whose top token is the given one, compact minus anchor")])
+        CU = at(S, "/four_pass/compact_unfinished_all_lengths")
+        u = lambda ps, arms: ", ".join(str(A7[ps][a]["unfinished"]) for a in arms)
+        fo = lambda ps, a: f"{A7[ps][a]['score_finished_only']:.3f}"
+        out.append(finding(
+            "CP-fourpass-compact-127k",
+            "Over four single-message passes, does the K6 core (ATTENTION_MODE=compact) cost accuracy, and where?",
+            f"Indicated, not established. compact is the lowest arm in both pass sets (four lengths, four passes: {sc4('compact')[0]:.3f} against "
+            f"{rg([sc4(a)[0] for a in others])}), and the gap is at 127K: {sc4('compact', '128k')[0]:.3f} against "
+            f"{rg([sc4(a, '128k')[0] for a in others])}; up to 64K it is level with the others. hqa - compact: {iv(hc127)} at 127K and {iv(hc)} over "
+            "four lengths (both exclude 0; over four lengths the interval excludes 0 only at four passes, in neither pass set alone). "
+            f"compact - anchor: {iv(ca127)} at 127K and {iv(ca)} over four lengths (both include 0), so hqa and compact separate from each other "
+            "while neither separates from anchor. Basis of the strength: the same sign in both pass sets and, at 127K, in every pass against hqa "
+            f"(hqa {', '.join(f'{x:.3f}' for x in bp['hqa'])}; compact {', '.join(f'{x:.3f}' for x in bp['compact'])}) and in three of four "
+            f"against anchor ({', '.join(f'{x:.3f}' for x in bp['anchor'])}; pass 1 reverses); not one interval among "
+            f"{n102}, of which {n6} exclude 0 at four passes where about 5 would with no difference anywhere. Where the gap comes from is not "
+            f"settled. Pooled over four passes it matches the unfinished replies ({A7['p1234']['compact']['unfinished']} of "
+            f"{A7['p1234']['compact']['n']} at 127K against {u('p1234', others)}; finished replies score {fo('p1234', 'compact')} against "
+            f"{rg([A7['p1234'][a]['score_finished_only'] for a in others])}), but the two pass sets do not agree on that split: in passes 1-2 "
+            f"compact had as many unfinished replies at 127K as anchor ({A7['p12']['compact']['unfinished']} and "
+            f"{A7['p12']['anchor']['unfinished']}) and a lower finished-only score ({fo('p12', 'compact')} against {fo('p12', 'anchor')}); in "
+            f"passes 3-4 it had {A7['p34']['compact']['unfinished']} unfinished against {u('p34', others)} and the highest finished-only score "
+            f"({fo('p34', 'compact')}). Of its {CU['unfinished']} unfinished replies over all lengths, {CU['reply_cap']} reached the reply cap and "
+            f"{CU['repetition']} ended on the repetition abort. A scoring capture on given texts to 128K, which samples nothing, shows no "
+            f"deficit for compact at predicting text (NLL minus anchor's {capn[0]:+.4f} [{capn[1]:+.4f}, {capn[2]:+.4f}], lower is better; "
+            "exploratory, one capture). The capture scores given text and does not locate the gap, which was seen in generated replies at 127K. The 127K length lies beyond the 14.4K reach of both BF16 reference sets, so the "
+            "BF16 stage (CP-bf16-distance) neither supports nor contradicts this.",
+            "measurement: extension", results, evs, CUTEAFD5, CPD, f"{page}#four-pass", fdata + [FJ],
+            rec4("compact", "hqa", ("128k",), "hqa - compact, 127K"),
+            "b - a: above 0 = the first-named arm scored higher", note=ext_note))
+
+        results, evs = {}, []
+        for a in reversed(CP_ARMS):
+            r, e = fres(f"{REFA} - {a}"); results[f"{REFA} - {a}"] = r; evs += e
+        evs += [ev(S, fp(f"{REFA} - compact", ps="p12"), "exlr8-k4 - compact at passes 1-2 (the lead published 2026-11-11)"),
+                ev(S, fp(f"{REFA} - compact", ps="p34"), "exlr8-k4 - compact at passes 3-4 alone"),
+                ev(S, fp(f"{REFA} - compact", "128k"), "exlr8-k4 - compact at 127K, four passes")] + \
+               [ev(S, f"/four_pass/by_length/{a}/p1234/all/right", f"{a}: replies with every field right, of 960") for a in A4] + \
+               [ev(S, f"/four_pass/ledger_every_field_right_64k_128k/{a}", f"{a}: ledger replies with every field right at 64K and 127K [count, of]") for a in A4]
+        LE = at(S, "/four_pass/ledger_every_field_right_64k_128k")
+        era, erh = (at(S, fp(f"{REFA} - {a}", m="every_field_right")) for a in ("anchor", "hqa"))
+        era_long = at(S, fp(f"{REFA} - anchor", "64k+128k", m="every_field_right"))
+        if out0(era) or out0(erh) or not out0(era_long) or era_long[0] > 0:
+            raise SystemExit("findings: exlr8-k4's every-field-right intervals no longer match the answer written for them")
+        evs += [ev(S, fp(f"{REFA} - {a}", m="every_field_right"), f"exlr8-k4 - {a}: share of replies with every field right, four lengths") for a in ("anchor", "hqa")] + \
+               [ev(S, fp(f"{REFA} - anchor", "64k+128k", m="every_field_right"), "exlr8-k4 - anchor: the same share at 64K and 127K pooled")]
+        out.append(finding(
+            "CP-fourpass-exlr8-k4",
+            "Did the two-pass lead of the EXLR8 K4 reference checkpoint over compact repeat, and where does that checkpoint sit over four passes?",
+            f"The lead did not repeat. exlr8-k4 - compact was {iv(rc12)} at passes 1-2 (interval excluded 0, post hoc); passes 3-4 alone give "
+            f"{iv(rc34)} and the four-pass interval includes 0 ({iv(rc)}). At 127K the four-pass difference is {iv(rc127)}, the same size as "
+            f"hqa's over compact ({iv(hc127)}). On score exlr8-k4 sits with anchor and hqa ({iv(ra)} and {iv(rh)}). It has fewer replies fully "
+            f"right than those two in count: {right[REFA]} of 960 against {right['anchor']} and {right['hqa']} (compact {right['compact']}). Over "
+            f"four lengths those two intervals include 0 ({iv(era)} and {iv(erh)}, as a share of replies); at 64K and 127K pooled the one "
+            f"against anchor excludes 0 ({iv(era_long)}), one of the {n6} among {n102}. On ledger at 64K and 127K it has {LE[REFA][0]} of "
+            f"{LE[REFA][1]} fully right against {', '.join(str(LE[a][0]) for a in CP_ARMS)} (anchor, hqa, compact). {whole}",
+            "measurement: extension", results, evs, CUTEAFD5, CPD, f"{page}#four-pass", fdata + [FJ],
+            rec4("compact", REFA, result=f"{REFA} - compact"),
+            "b - a with the reference checkpoint as b: above 0 = exlr8-k4 scored higher",
+            note=ext_note + " The reference checkpoint was added after the three-arm results were read; every interval with it is post hoc."))
+
+        B = "/bf16_distance"; FS, TPN = f"{B}/sets/fidelity_set", f"{B}/sets/teacher_panel"
+        kl = {a: at(S, f"{B}/arms/{a}/fidelity_set/kl") for a in A4}; kt = {a: at(S, f"{B}/arms/{a}/teacher_panel/kl") for a in A4}
+        RDG = at(S, f"{B}/reading"); fp8 = at(S, f"{B}/yardsticks/official_fp8_release/fidelity_set_kl")
+        k325 = at(S, f"{B}/yardsticks/k3.25_on_cuteafd"); dfs = at(S, f"{B}/differences"); BI = at(S, f"{B}/intervals")
+        order = sorted(A4, key=lambda a: kl[a][0]); dha = dfs["hqa - anchor"]; reach = at(S, f"{FS}/last_generated_position")
+        pairs_b = list(dfs)
+        if (not fp8 < kl[order[0]][0] or not kl[order[-1]][0] < k325["fidelity_set_kl"] or order[0] != "hqa" or order[-1] != REFA
+                or not out0(dha["fidelity_set"]["overall"]) or dha["fidelity_set"]["overall"][0] >= 0 or out0(dha["teacher_panel"])
+                or RDG["largest_difference_between_probe_arms"] >= 0.003 or any(x["set"] != "fidelity set" for x in BI["excluding_zero"])
+                or any(not out0(dfs[f"{REFA} - {a}"]["fidelity_set"]["overall"]) or out0(dfs[f"{REFA} - {a}"]["teacher_panel"]) for a in CP_ARMS)
+                or f"{reach / 1000:.1f}K" != "14.4K" or order == sorted(A4, key=lambda a: kt[a][0])):
+            raise SystemExit("findings: the BF16-distance numbers no longer match the answer written for them")
+        k4 = lambda x: f"{x:.4f}"; s4 = lambda x: f"{x:+.4f}"; iv4 = lambda v: f"{s4(v[0])} [{s4(v[1])}, {s4(v[2])}]"; lv4 = lambda v: f"{k4(v[0])} [{k4(v[1])}, {k4(v[2])}]"
+        boot = {"replicates": 5000, "seed": 20260829, "rng": "SplitMix64", "unit": "window", "percentiles": [2.5, 97.5], "interpolation": "linear",
+                "draw": "windows sorted by id; each replicate draws one window index per window, with replacement (rejection sampling "
+                        "on the 64-bit output, then modulo), and takes sum of window sums / sum of window positions; the same stream "
+                        "serves a difference b - a, whose window sum is positions x (mean KL of b - mean KL of a)",
+                "definition": "definitions.context_probe.fidelity_set_coarse_kl"}
+        out.append(finding(
+            "CP-bf16-distance",
+            "How far are the four configurations from the unquantized BF16 model, and how much of that distance lies in what differs between the probe arms?",
+            "All four sit in one band. Fidelity set (coarse KL from BF16, generated positions, contexts to 14.4K): "
+            + ", ".join(f"{a} {lv4(kl[a])}" for a in order) + f"; that is {RDG['times_the_fp8_figure'][0]:.1f} to {RDG['times_the_fp8_figure'][1]:.1f} "
+            f"times the baseline the engine author recorded in the fidelity set's manifest for the official FP8 model ({k4(fp8)}; quoted, not recomputed here) and {RDG['share_of_the_k3.25_figure'][0]:.2f} to "
+            f"{RDG['share_of_the_k3.25_figure'][1]:.2f} of a K3.25 Core-FP8 checkpoint measured on CuteAFD v3.0.1 on 2026-10-26 "
+            f"({k4(k325['fidelity_set_kl'])}; teacher panel {k4(k325['teacher_panel_kl'])}); both are rows from other measurements, for scale. "
+            "Teacher panel (full-vocabulary KL, 2K contexts): " + ", ".join(f"{a} {lv4(kt[a])}" for a in A4) + ". The two sets use different "
+            "measures and are not comparable with each other. What differs between the three probe arms is a small part of the distance: they share "
+            f"their K4 experts and differ by at most {RDG['largest_difference_between_probe_arms']:.4f} on the fidelity set, under a tenth of "
+            "the total. The plan stated in advance that anchor's distance would not be zero (quantized experts and the engine's numerics; "
+            "the two are not separated here). anchor is also not the closest: hqa - anchor is "
+            f"{iv4(dha['fidelity_set']['overall'])} on the fidelity set (interval excludes 0; hqa closer) and {iv4(dha['teacher_panel'])} on "
+            "the teacher panel (includes 0). anchor differs from hqa in its output head as well as its core (both BF16 in anchor, which is launched with "
+            "the engine's three FP8 conversion settings off; as logged, KDA FP8 reads Off in every serving launch of the three probe arms and the "
+            "FP8 prefill setting reads none in anchor and [Mla, Ffn] in hqa and compact) and is a locally derived "
+            "checkpoint; why it measures slightly farther than hqa on one set is an open question (added 2026-11-12). exlr8-k4 is "
+            f"{RDG['exlr8_k4_farther_than_each_probe_arm'][0]:.3f} to {RDG['exlr8_k4_farther_than_each_probe_arm'][1]:.3f} farther than each "
+            "probe arm on the fidelity set (intervals exclude 0) and level with them on the teacher panel. The two sets place it differently "
+            "and this stage does not say which is nearer. The fidelity set is the engine author's; its relation to the calibration data of "
+            "either checkpoint is not known. The teacher panel is drawn from the corpus the producer of the K4 experts published and can "
+            "favour the experts the three probe arms carry (stated in the plan before the first request); a tilt of that kind would run "
+            f"toward the probe arms. {whole} {BI['listed']} intervals are listed "
+            f"({BI['fidelity_set']} fidelity set, {BI['teacher_panel']} teacher panel), {len(BI['excluding_zero'])} exclude 0, all on the "
+            "fidelity set; none was selected. Neither set reaches past 14.4K: the 64K and 127K lengths of the task runs have no BF16 reference "
+            "here, so the one task difference indicated in this run (CP-fourpass-compact-127k) lies beyond both sets. Basis: one launch per arm "
+            "plus an exact repeat (CP-bf16-repeat), two reference sets. Limits: one engine build, one checkpoint revision per arm, prefill path "
+            "only, contexts to 14.4K; descriptive, with no gate and no ranking rule, and the two sets do not order the four configurations "
+            "the same way.",
+            "measurement: planned descriptive",
+            {"name": "KL from the BF16 model, fidelity set, generated positions [estimate, 2.5%, 97.5%] per configuration",
+             "value": {a: kl[a][0] for a in A4}, "ci95": {a: kl[a][1:] for a in A4}, "ci_over": "windows",
+             "teacher_panel": {a: kt[a] for a in A4},
+             "for_scale_not_measured_in_this_stage": {"official_fp8_model_fidelity_set": fp8, "k3.25_on_cuteafd_v3.0.1_fidelity_set": k325["fidelity_set_kl"],
+                                                      "k3.25_on_cuteafd_v3.0.1_teacher_panel": k325["teacher_panel_kl"]}},
+            [ev(S, f"{B}/arms/{a}/fidelity_set/kl", f"{a}: fidelity set, coarse KL from BF16 [estimate, 2.5%, 97.5%]") for a in A4] +
+            [ev(S, f"{B}/arms/{a}/teacher_panel/kl", f"{a}: teacher panel, full-vocabulary KL from BF16 [estimate, 2.5%, 97.5%]") for a in A4] +
+            [ev(S, f"{B}/differences/{esc(p)}/fidelity_set/overall", f"{p}: fidelity set, difference in KL [estimate, 2.5%, 97.5%]") for p in pairs_b] +
+            [ev(S, f"{B}/differences/{esc(p)}/teacher_panel", f"{p}: teacher panel, difference in KL [estimate, 2.5%, 97.5%]") for p in pairs_b] +
+            [ev(S, f"{B}/yardsticks/official_fp8_release/fidelity_set_kl", "official FP8 model: the baseline recorded in the fidelity set's manifest by the engine author; quoted, not recomputed in this repository"),
+             ev(S, f"{B}/yardsticks/k3.25_on_cuteafd/fidelity_set_kl", "K3.25 Core-FP8 checkpoint on CuteAFD v3.0.1, fidelity set (2026-10-26 run)"),
+             ev(S, f"{B}/yardsticks/k3.25_on_cuteafd/teacher_panel_kl", "the same checkpoint on the teacher panel"),
+             ev("results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-C1.json", "/summary/gen/overall/kl", "the K3.25 fidelity-set figure at its source"),
+             ev(S, f"{B}/reading", "band, ratios and largest differences as read"), ev(S, f"{B}/intervals/listed", "intervals listed"),
+             ev(S, f"{FS}/last_generated_position", "last generated position of the fidelity set (tokens)"),
+             ev(S, f"{FS}/generated_positions", "generated positions scored"), ev(S, f"{FS}/windows_with_generated_positions", "windows holding them"),
+             ev(S, f"{FS}/estimator", "fidelity-set estimator"), ev(S, f"{TPN}/estimator", "teacher-panel estimator"),
+             ev(S, f"{B}/plan/written", "when the plan was written"), ev(f"{CPD}/bf16ref/FROZEN.json", "/sha256/ADDENDUM-BF16REF.md", "sha256 of the plan")] +
+            [ev(BJ, f"/arms/{order[0]}/fidelity_set/kl", "the same figure in the stage's published file")],
+            CUTEAFD5, CPD, f"{page}#bf16", [BJ, f"{CPD}/bf16ref/ADDENDUM-BF16REF.md"],
+            {"kind": "window_ratio_bootstrap", "data": BJ, "windows": "/fidelity_set_windows", "bootstrap": boot,
+             "checks": [{"b": a, "pointer": f"/arms/{a}/fidelity_set/kl"} for a in A4] +
+                       [{"b": p.split(" - ")[0], "a": p.split(" - ")[1], "pointer": f"/differences/{esc(p)}/fidelity_set/overall"} for p in pairs_b]},
+            "KL(BF16 || configuration) in nats: 0 is identical, lower is closer; differences are b - a (below 0 = b is closer to BF16)",
+            note="Estimators. Fidelity set: coarse KL by the engine author's rule (not full-vocabulary): per position, KL over the reference's top "
+                 "1,024 token ids plus one term for the rest of the vocabulary; statistic = sum of per-position KL / number of generated positions "
+                 "(ratio of sums; 15,104 positions in 53 windows); 95% interval from a window bootstrap, 5,000 replicates, SplitMix64 seed "
+                 "20260829, linear-interpolation percentiles. Teacher panel: full-vocabulary KL per row in float64, mean over 51,175 rows of 25 "
+                 "windows; window bootstrap, 20,000 replicates (numpy generator, so tools/verify.py recomputes the fidelity-set intervals only). "
+                 "The stage's plan (bf16ref/ADDENDUM-BF16REF.md) was written before its first request and after the two-pass task results were "
+                 "read; it is descriptive, with no gate and no ranking rule. The stage's score files, per-row tables and dumps are not "
+                 "published; bf16ref/BF16REF.json carries their numbers and the per-window figures. anchor is the reference of the probe, not "
+                 "a recommendation."))
+
+        RP, PC = at(S, f"{B}/repeat/by_arm"), at(S, f"{B}/port_against_cli/by_arm")
+        same = {tuple(RP[a]["same_argmax_generated_positions"]) for a in A4}; recs = {tuple(x["records_agreeing"]) for a in A4 for x in PC[a].values()}
+        gate = {a: at(S, f"{B}/arms/{a}/fidelity_set/fidelity_gate/pass") for a in A4}
+        if (len(same) != 1 or len(recs) != 1 or any(RP[a]["kl_difference"] for a in A4) or any(x["largest_kl_difference"] for a in A4 for x in PC[a].values())
+                or len(set(next(iter(same)))) != 1 or len(set(next(iter(recs)))) != 1 or not all(gate.values())):
+            raise SystemExit("findings: the BF16 stage's repeat and port check no longer match the answer written for them")
+        g, rn = next(iter(same))[0], next(iter(recs))[0]
+        out.append(finding(
+            "CP-bf16-repeat",
+            "Does a second launch reproduce the BF16-distance result, and does the float64 port used for the intervals agree with the engine's own scorer?",
+            f"Yes, exactly. A second launch of each of the four configurations gave a KL difference of 0.0 on the fidelity set and the same most "
+            f"likely token on {g:,} of {g:,} generated positions. The float64 port agrees with the engine CLI's own per-record output on "
+            f"{rn:,} of {rn:,} records per configuration and launch (largest KL difference 0.0). All four pass the engine CLI's own fidelity gate "
+            "on the fidelity set (KL at most 0.05, top-1 at least 0.93). The overall fidelity-set values and intervals of CP-bf16-distance are "
+            "recomputed by tools/verify.py from the published per-window figures. Limits: one engine build, prefill path only.",
+            "measurement: planned descriptive",
+            {"name": "generated positions with the same most likely token in the second launch, per configuration", "value": g, "of": g,
+             "kl_difference_between_launches": 0.0, "port_records_agreeing": [rn, rn]},
+            [ev(S, f"{B}/repeat/by_arm/{a}/same_argmax_generated_positions", f"{a}: positions with the same most likely token, second launch [count, of]") for a in A4] +
+            [ev(S, f"{B}/repeat/by_arm/{a}/kl_difference", f"{a}: KL difference between the two launches") for a in A4] +
+            [ev(S, f"{B}/port_against_cli/by_arm/{a}/{k}/records_agreeing", f"{a}, launch {k}: records where the port and the CLI agree [count, of]")
+             for a in A4 for k in PC[a]] +
+            [ev(S, f"{B}/arms/{a}/fidelity_set/fidelity_gate/pass", f"{a}: the engine CLI's fidelity gate") for a in A4],
+            CUTEAFD5, CPD, f"{page}#bf16", [BJ]))
+
+        AM = at(S, "/amendment_1"); HW = at(S, "/four_pass/half_width_ratio_four_over_two_passes/paired_score_all")
+        if AM["status"] != "complete" or AM["pending"]:
+            raise SystemExit("findings: amendment 1 is not complete")
         out.append(finding(
             "CP-extension-pending", "Do two further single-message passes per arm change the reading?",
-            f"Not known: {at(S, '/amendment_1/status')}. Amendment 1 (written {at(S, '/amendment_1/written')}, before the first request of the added "
-            "passes) adds single-message passes 3 and 4 for the three arms and the reference checkpoint under the frozen comparison rule. No number "
-            "from them is published.",
-            "in progress", {"name": "none published"},
+            f"In part. The passes are complete (ran {AM['ran']}; {at(S, '/four_pass/added_passes/requests'):,} added requests, 0 errors); this entry keeps its id "
+            "from the time they were pending. hqa against anchor: unchanged, with a tighter bound (CP-fourpass-hqa-vs-anchor). "
+            "compact: a cost at 127K is indicated, not established, and hqa - compact excludes 0 at four passes while neither separates from "
+            "anchor (CP-fourpass-compact-127k). The two-pass lead of exlr8-k4 over compact did not repeat (CP-fourpass-exlr8-k4). Paired "
+            f"intervals narrowed to {min(HW[f'{b} - {a}'] for a, b in (('anchor', 'hqa'), ('anchor', 'compact'), ('compact', 'hqa'))):.2f} to "
+            f"{max(HW[f'{b} - {a}'] for a, b in (('anchor', 'hqa'), ('anchor', 'compact'), ('compact', 'hqa'))):.2f} of their two-pass half-width "
+            f"for the three probe pairs and {min(HW[f'{REFA} - {a}'] for a in CP_ARMS):.2f} to {max(HW[f'{REFA} - {a}'] for a in CP_ARMS):.2f} for "
+            f"pairs with exlr8-k4. Intervals excluding 0 of {n102} per pass set: {at(S, f'{IVS}/excluding_zero/p12/count')} at passes 1-2, "
+            f"{at(S, f'{IVS}/excluding_zero/p34/count')} at passes 3-4 alone, {n6} at four passes; about 5 would with no difference anywhere, and "
+            "no correction is applied.",
+            "measurement: extension", {"name": "intervals excluding 0 at four passes", "value": n6, "of": n102},
             [ev(S, "/amendment_1/status", "status"), ev(S, "/amendment_1/sha256", "sha256 of the amendment file"),
-             ev(S, "/amendment_1/pending", "passes pending"), {"file": f"{CPD}/protocol/AMENDMENT-2026-11-11.md", "what": "the amendment"}],
-            CUTEAFD5, CPD, f"{page}#amendment"))
+             ev(S, "/amendment_1/written", "when the amendment was written"), ev(S, "/amendment_1/ran", "when the added passes ran"),
+             ev(S, "/amendment_1/pending", "passes pending"), ev(S, "/four_pass/added_passes/requests", "added requests"),
+             ev(S, "/four_pass/added_passes/errors", "errors in the added passes"),
+             ev(S, "/four_pass/added_passes/seeds_reused_within_an_arm", "seeds reused within an arm"),
+             ev(S, f"{IVS}/excluding_zero/p1234/count", "intervals excluding 0 at four passes"), ev(S, f"{IVS}/per_pass_set", "intervals per pass set"),
+             ev(S, "/four_pass/half_width_ratio_four_over_two_passes/paired_score_all", "half-width of the four-pass interval over the two-pass one, by pair"),
+             {"file": f"{CPD}/protocol/AMENDMENT-2026-11-11.md", "what": "the amendment"}],
+            CUTEAFD5, CPD, f"{page}#amendment", fdata + [FJ], note=ext_note))
+
+        lg4 = {ps: at(S, f"/four_pass/paired/{esc('compact - anchor')}/{ps}/{esc('ledger_64k+128k_score')}") for ps in ("p12", "p34", "p1234")}
+        rb4, scl4 = at(S, "/trade_offs/resident_weights_mib_back"), at(S, "/launch/kv_pool_tokens_scoring_launches")
+        if any(out0(v) for v in lg4.values()) or lg4["p12"][0] > 0 or lg4["p34"][0] < 0 or set(scl4["hqa"] + scl4["compact"]) != {2097152}:
+            raise SystemExit("findings: the dated notes on running totals and the KV pool no longer match the numbers")
+        TO4 = at(S, "/trade_offs"); wb4, fb4 = TO4["weights_outside_experts_mib_back"], TO4["left_under_memory_cap_mib_back"]
+        hd4 = TO4["anchor_to_hqa_parts"]["head_difference_mib"]
+        rl4 = TO4["reserve_mib_less_than_anchor"]["hqa"]
+        fall4 = {a: round(round(at(S, f"/four_pass/by_length/{a}/p1234/4k/score")[0], 3) - round(at(S, f"/four_pass/by_length/{a}/p1234/128k/score")[0], 3), 3) for a in A4}    # differences of the figures as shown on the page
+        if (wb4["anchor_to_hqa"], wb4["hqa_to_compact"], hd4, rl4, TO4["reserve_mib_less_than_anchor"]["compact"]) != (4266, 2568, 756, 49, 49) \
+                or not all(0.055 <= fall4[a] <= 0.07 for a in A4 if a != "compact") or not 0.085 <= fall4["compact"] <= 0.1:
+            raise SystemExit("findings: the memory figures or the falls with length no longer match the dated notes")
+        dated = {
+            "CP-hqa-vs-anchor": f"Added 2026-11-12: over four passes the same reading with a tighter bound, {iv(ha)} (CP-fourpass-hqa-vs-anchor). "
+                                "This entry stays as the frozen protocol's two-pass result.",
+            "CP-compact-vs-anchor": f"Added 2026-11-12: over four passes {iv(ca)} over four lengths and {iv(ca127)} at 127K; both intervals include 0. "
+                                    "A cost at 127K is indicated, not established (CP-fourpass-compact-127k). This entry stays as the frozen "
+                                    "protocol's two-pass result.",
+            "CP-hqa-vs-compact": f"Added 2026-11-12: over four passes the interval excludes 0 ({iv(hc)} over four lengths, {iv(hc127)} at 127K); over "
+                                 "four lengths it does so in neither pass set alone, and neither arm separates from anchor "
+                                 "(CP-fourpass-compact-127k). This entry stays as the frozen protocol's two-pass result.",
+            "CP-reference-exlr8-k4": f"Added 2026-11-12: the lead over compact did not repeat. Passes 3-4 alone give {iv(rc34)} and the four-pass "
+                                     f"interval includes 0, {iv(rc)} (CP-fourpass-exlr8-k4).",
+            "CP-reference-capture": "Added 2026-11-12: distance from the BF16 model was measured afterwards for the four configurations "
+                                    "(CP-bf16-distance).",
+            "CP-ledger-long-context": f"Added 2026-11-12: over four passes the lean did not repeat. compact - anchor in ledger field score at 64K "
+                                      f"and 127K pooled was {iv(lg4['p12'])} at passes 1-2 (the item-paired estimator of the four-pass analysis; "
+                                      f"same data as above, resampled separately), {iv(lg4['p34'])} at passes 3-4 alone and is {iv(lg4['p1234'])} "
+                                      f"over four; replies with every field right there, of {LE['anchor'][1]}: "
+                                      + ", ".join(f"{a} {LE[a][0]}" for a in CP_ARMS) + ". Every one of these intervals includes 0 "
+                                      "(four_pass.paired in SUMMARY.json). This entry stays as the two-pass post hoc reading.",
+            "CP-length-effect": "Added 2026-11-12: the arms share the tasks as well, and the tasks' distractor text grows with length; no "
+                                "unquantized model and no other engine ran these tasks, so the run does not say where the fall comes from. "
+                                f"Over four passes the field score falls from 4K to 127K by {', '.join(f'{a} {fall4[a]:.3f}' for a in A4)}: about "
+                                "0.06 in every configuration, and compact's further 0.03 is its 127K gap (CP-fourpass-compact-127k).",
+            "CP-kv-pool": f"Added 2026-11-12: the saving in resident weights over both GPUs is {rb4['anchor_to_hqa']:,} MiB from anchor to hqa "
+                          f"and a further {rb4['hqa_to_compact']:,} MiB to compact (trade_offs.resident_weights_mib_back in SUMMARY.json). "
+                          f"Weights outside the experts account for it: {wb4['anchor_to_hqa']:,} MiB less from anchor to hqa, of which {hd4} MiB is "
+                          f"the output head (BF16 in anchor, K6 in hqa and compact; ATTENTION_MODE does not change it), and {wb4['hqa_to_compact']:,} "
+                          f"MiB less from hqa to compact. With the same pool in every serving launch, the memory left under the engine's cap rose by "
+                          f"{fb4['anchor_to_hqa']:,} MiB and a further {fb4['hqa_to_compact']:,} MiB; hqa and compact hold larger workspaces than "
+                          f"anchor and {rl4} MiB less reserve (trade_offs in SUMMARY.json). In the "
+                          f"scoring launches, with 16 requests at once, anchor was admitted {scl4['anchor'][0]:,} tokens and hqa and compact "
+                          "the maximum: one launch setting read from logs; pool and batch size were not varied as a measurement."}
+        for f in out:
+            if f["id"] in dated:
+                f["note"] = (f["note"] + " " if f.get("note") else "") + dated.pop(f["id"])
+        if dated:
+            raise SystemExit(f"findings: no entry to carry the dated note for {sorted(dated)}")
     return out
 
 
@@ -494,7 +815,8 @@ STATUS = {"measurement: frozen rule": "protocol and decision rule frozen (hashes
           "exploratory": "run kind exploratory: useful evidence, not a frozen comparison",
           "source reading": "read in source code and logs, no measurement",
           "judgement: source and measurements": "a conclusion drawn from source reading and published measurements together; not isolated by a run of its own",
-          "in progress": "running; no result published"}
+          "measurement: extension": "passes added by a dated amendment, written after the frozen result was read and before the first added request; the frozen rule applied to more passes; not the frozen comparison",
+          "measurement: planned descriptive": "plan and file hashes written before the first request of the stage, after earlier results were read; descriptive, with no gate and no decision rule"}
 
 
 def runs():
@@ -524,7 +846,10 @@ def llms_txt(fs):
         "  checkpoints), SUMMARY.json (every number its page shows), MANIFEST.json (sha256 of every file), README.md.",
         "- results/*/analysis/samples.csv: one row per reply (arm, prompt, seed, finish, reasoning tokens, decode speed, tests).",
         "  The context probe's table has one row per request (arm, pass, item, family, length, seed, finish class, fields, correct);",
-        "  its reference checkpoint's rows are in analysis/samples-reference.csv (same columns), recomputed by analysis/reference.py.",
+        "  its reference checkpoint's rows are in analysis/samples-reference.csv (same columns), recomputed by analysis/reference.py;",
+        "  passes 3 and 4 of all four configurations are in analysis/samples-extension.csv (same columns), recomputed by analysis/fourpass.py.",
+        "- results/2026-11-10-context-probe/bf16ref/BF16REF.json: distance from the BF16 model of the four configurations, with the",
+        "  per-window figures its fidelity-set values and intervals are recomputed from.",
         f"- {REPO_URL}/blob/main/protocol/README.md: the frozen protocol; protocol/HASHES.json binds published files to it.",
         "",
         "## How to read the results",
@@ -544,10 +869,20 @@ def llms_txt(fs):
         "  and named \"b - a\" (above 0 = b higher). Data length label 128k is the 127K-token rendering. The K4-Core-K6-HQA repository",
         "  is no longer available on the hub (checked 2026-11-11); the runs used a local copy.",
         "- Reference checkpoint exlr8-k4 (CP-reference-*): added after the three-arm results were read; two single-message passes and one",
-        "  scoring capture. It is a different checkpoint from the three arms, not a setting of the same one: any difference from an arm is",
+        "  scoring capture, then passes 3 and 4 under amendment 1. It is a different checkpoint from the three arms, not a setting of",
+        "  the same one: any difference from an arm is",
         "  a whole-checkpoint difference and is not attributable to one component. Its intervals are post hoc.",
-        "- Amendment 1 to the context probe (protocol/AMENDMENT-2026-11-11.md in the run folder) adds single-message passes 3 and 4 per arm;",
-        "  they are in progress and no number from them is published (CP-extension-pending).",
+        "- Amendment 1 to the context probe (protocol/AMENDMENT-2026-11-11.md in the run folder) added single-message passes 3 and 4 per",
+        "  configuration; complete 2026-11-12 (CP-fourpass-*, CP-extension-pending). It was written after the two-pass results were read and",
+        "  before the first added request: the frozen rule applied to four passes, an extension, not the frozen comparison. The two-pass",
+        "  entries stay as the frozen protocol's result; the three pair entries and the two reference entries carry a dated note. Pass",
+        "  sets: p12 = passes 1-2, p34 = passes 3-4 alone, p1234 = all four. No correction for the number of intervals: one interval is",
+        "  not evidence on its own.",
+        "- Distance from the BF16 model (CP-bf16-*): the four configurations scored against the unquantized BF16 model on two reference",
+        "  sets that reach 14.4K tokens, so the 64K and 127K task lengths have no BF16 reference. Fidelity set: coarse KL (the reference's",
+        "  top 1,024 token ids plus the rest), ratio of sums over generated positions, window bootstrap. Teacher panel: full-vocabulary KL,",
+        "  mean over rows. The two measures are not comparable with each other. The official FP8 model and K3.25 figures quoted beside",
+        "  them come from other measurements and were not measured in that stage.",
         "- Thinking-length ratios put K4-Core-K6, or the part under test, first: above 1 = it thought longer. Each finding states",
         "  its own direction.",
         "- Numbers from different model families or tokenizers are not comparable; NLL is per tokenizer.",
@@ -557,7 +892,8 @@ def llms_txt(fs):
         "",
         "## Validate",
         "- `python3 tools/verify.py` checks every manifest hash, every site link and anchor, every findings.json pointer, and",
-        "  recomputes the code-study ratios and test counts and the context-probe differences from the per-reply tables.",
+        "  recomputes the code-study ratios and test counts and the context-probe differences from the per-reply tables, and the",
+        "  context probe's fidelity-set distances from BF16 (values and intervals) from the per-window figures.",
         "- Each run folder's code/ and analysis/ hold the scripts that produced its numbers; repro/REPRODUCE.md covers re-running.",
         "",
         "## Status vocabulary in findings.json",
@@ -571,7 +907,7 @@ def llms_txt(fs):
     pages = [("index.html", "overview"), ("checkpoints.html", "K3.25, K4 and K4-Core-K6 against each other"),
              ("thinking.html", "thinking length and the 6-bit core (the investigation findings.json covers)"),
              ("precision.html", "closeness to the BF16 model by context"), ("speed.html", "decode and prefill speed"),
-             ("v5.html", "CuteAFD v5.0.0: three core precisions at 4K to 127K, and an EXLR8 K4 reference checkpoint added later (CP-* in findings.json)"), ("v4.html", "CuteAFD v4.0.0 rerun"), ("tools.html", "multi-turn tool calling"), ("method.html", "method"),
+             ("v5.html", "CuteAFD v5.0.0: three core precisions and an EXLR8 K4 reference checkpoint at 4K to 127K over four passes, and their distance from the BF16 model (CP-* in findings.json)"), ("v4.html", "CuteAFD v4.0.0 rerun"), ("tools.html", "multi-turn tool calling"), ("method.html", "method"),
              ("reproduce.html", "how to reproduce"), ("audit.html", "independent audit"), ("ledger.html", "every run")]
     lines += [f"- {SITE_URL}/{p}: {d}" for p, d in pages if (ROOT / "docs" / p).exists()]
     lines += ["", "## Runs (results/<id>/RUN.json)"] + [f"- {i} ({k}): {t}" for i, k, t in runs()]
@@ -583,9 +919,9 @@ def main():
     fs = findings()
     doc = {"about": "Claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), generated from the results by tools/build_findings.py. Each evidence "
                     "entry names a repository file and an RFC 6901 JSON pointer; 'value' is what the pointer resolved to at build time. "
-                    "tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables.",
+                    "tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables (CP-bf16-distance: from the per-window figures).",
            "repository": REPO_URL, "site": SITE_URL, "status_vocabulary": STATUS,
-           "conventions": {"interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py",
+           "conventions": {"interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py; CP-bf16-* entries use window bootstraps (fidelity set: 5,000 replicates, SplitMix64 seed 20260829, linear-interpolation percentiles; teacher panel: 20,000 replicates, numpy generator seed 20260929)",
                            "detected": "interval excludes the null (1 for ratios, 0 for differences)",
                            "paths": "relative to the repository root",
                            "pointers": "RFC 6901: split on '/', then replace '~1' with '/' and '~0' with '~' (keys such as 'C-K6x/V-BF16' contain a slash)"},
@@ -605,7 +941,7 @@ def main():
                "context_probe": {
                    "applies_to": "CP-* entries (results/2026-11-10-context-probe); the definitions above apply to TL-* entries",
                    "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0); "
-                                "for the reference checkpoint, the same rows of analysis/samples-reference.csv beside them",
+                                "for the reference checkpoint, the same rows of analysis/samples-reference.csv beside them; for passes 3 and 4 (CP-fourpass-*), the same rows of analysis/samples-extension.csv beside both",
                    "request_score": "correct / fields if finish_class == 'stop' and fields > 0, else 0 (a reply that hit the cap or was ended by the loop abort scores 0)",
                    "every_field_right": "request_score == 1",
                    "item_paired_difference_frozen": "for each item, over the (pass, length) cells in recompute.passes x recompute.lengths where both arms have a row: "
@@ -617,14 +953,18 @@ def main():
                                                     "rng = random.Random(seed); 10,000 draws, each sum of n values d[rng.randrange(n)] / n; sorted draws at indices 250 and 9750",
                    "sign": "'b - a': above 0 = arm b scored higher",
                    "lengths": {"4k": "4K tokens", "16k": "16K", "64k": "64K", "128k": "127K (the 128k label is the 127K-token rendering)"},
-                   "passes": {"single-rep0": "single message, pass 1", "single-rep1": "single message, pass 2 (distinct seeds)", "turns-p8-rep0": "the same records delivered over eight turns, then the question"},
+                   "passes": {"single-rep0": "single message, pass 1", "single-rep1": "single message, pass 2 (distinct seeds)", "single-rep2": "single message, pass 3 (amendment 1; new seed block)", "single-rep3": "single message, pass 4 (amendment 1; new seed block)", "turns-p8-rep0": "the same records delivered over eight turns, then the question"},
                    "arms": {"anchor": "BF16 core and BF16 output head, FP8 conversions off; locally derived checkpoint, not a producer release; the reference, not a recommendation",
                             "hqa": "K4-Core-K6-HQA checkpoint, default mode: BF16 q_b_proj (12 matrices) and o_proj (46), rest of the core and the output head K6",
                             "compact": "the same checkpoint with ATTENTION_MODE=compact: K6 core and output head"},
                    "reference_checkpoint": {"exlr8-k4": "native EXLR8 K4 checkpoint (revision in the run's RUN.json), added after the three-arm results were read; two "
-                                                        "single-message passes, no eight-turn pass. A different checkpoint from the three arms, not a setting of the same "
+                                                        "single-message passes, then passes 3 and 4 under amendment 1; no eight-turn pass. A different checkpoint from the three arms, not a setting of the same "
                                                         "one: a difference from an arm is a whole-checkpoint difference, not attributable to one component"},
-                   "amendment_1": "protocol/AMENDMENT-2026-11-11.md adds single-message passes 3 and 4 per arm (single-rep2, single-rep3); in progress, no number published",
+                   "amendment_1": "protocol/AMENDMENT-2026-11-11.md adds single-message passes 3 and 4 per configuration (single-rep2, single-rep3), written after the two-pass results were read and before the first added request; complete 2026-11-12; the frozen rule (item_paired_difference_frozen) over four passes, reported as an extension beside the frozen two-pass result",
+                   "pass_sets": {"p12": "passes 1-2 (the frozen protocol's result)", "p34": "passes 3-4 alone", "p1234": "all four passes"},
+                   "fidelity_set_coarse_kl": "CP-bf16-* entries, fidelity set (the engine author's published set; 64 windows, 512 scored positions each, 15,104 generated positions in 53 windows, contexts to 14.4K): per position, KL(BF16 reference || configuration) in float64 over the reference's top 1,024 token ids plus one term for the rest of the vocabulary (coarse, not full-vocabulary). Statistic: sum of per-position KL over generated positions / number of generated positions (ratio of sums). Interval: window bootstrap, 5,000 replicates, SplitMix64 seed 20260829; windows in sorted order, one window drawn per window with replacement in each replicate; 2.5th and 97.5th percentiles with linear interpolation. A difference b - a uses the same rows and the same stream. Unit: the window",
+                   "teacher_panel_kl": "CP-bf16-* entries, teacher panel (published BF16 teacher logits; 25 windows of 2,048 tokens, 51,175 scored rows, 2K contexts): full-vocabulary KL(BF16 teacher || configuration) per row in float64, mean over rows. Interval: window bootstrap, 20,000 replicates, numpy default_rng(20260929), percentile. Unit: the window. Not comparable with fidelity_set_coarse_kl (different measure, different texts)",
+                   "bf16_yardsticks": "the official FP8 model figure (the baseline the engine author recorded in the fidelity set's manifest; quoted, not recomputed in this repository) and the K3.25 Core-FP8 figures (CuteAFD v3.0.1, run 2026-10-26-cuteafd-vs-vllm) are rows from other measurements, quoted for scale on the same sets and measures; neither was measured in the BF16 stage of the context probe",
                    "checkpoint_availability": "the K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy downloaded on 2026-11-10"},
                "arms": {"C-K6": "CuteAFD, native 6-bit core", "C-K6x": "CuteAFD, BF16 core converted to FP8 at load (with FP8 KDA projections, head, prefill activations)",
                         "V-K6": "vLLM fork, 6-bit core rebuilt to BF16 at load", "V-BF16": "vLLM fork, original BF16 core",

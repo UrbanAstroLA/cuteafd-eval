@@ -13,40 +13,69 @@ and machine:
 
 The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in three quantized checkpoints: **K3.25**
 (tpurtell's mixed 3.25-bit EXL3 experts), **K4** (brandonmusic's 4-bit EXL3 experts, Local Inference Lab) and
-**K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The questions: how close each engine stays to
+**K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The CuteAFD v5 probe adds **K4-Core-K6-HQA**
+(tpurtell's; two attention projection groups also carried in BF16) and, as a reference, kindlingai's **EXLR8 K4**. The questions: how close each engine stays to
 the original BF16 model, how fast it is, and how to set it up.
 
-Results as of 2026-11-11; versions tested: CuteAFD v5.0.0 (core precision only), v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA).
+Results as of 2026-11-12; versions tested: CuteAFD v5.0.0 (core precision only), v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA).
 
 > This README and the results site in `docs/` are generated from the files under `results/` by `tools/build_readme.py`
 > and `tools/build_site.py`. Each section below has a page of its own on the site.
-> For agents and scripts: [`docs/findings.json`](docs/findings.json) lists the Thinking length claims with their status,
+> For agents and scripts: [`docs/findings.json`](docs/findings.json) lists the Thinking length and CuteAFD v5 claims with their status,
 > value, interval and a JSON pointer into the file each comes from; [`docs/llms.txt`](docs/llms.txt) is a plain-text
 > orientation. `tools/verify.py` re-resolves every pointer and recomputes the code-study ratios from the per-reply tables.
 
 ## Findings
 
-**Latest: CuteAFD v5.0.0, core precision at long context (2026-11-10/11).** v5.0.0 adds `ATTENTION_MODE`: the core of
+**Latest: CuteAFD v5.0.0, core precision at long context (2026-11-10/12).** v5.0.0 adds `ATTENTION_MODE`: the core of
 the K4-Core-K6-HQA checkpoint runs with two attention projection groups in BF16 (`hqa`, the default) or all K6
 (`compact`). Both were set against a BF16 core (`anchor`, a locally derived checkpoint, the reference) on 60 graded
 tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm; the arms differ in the precision of the core (and, for `anchor`, the output head).
 
-- **Neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` 0.000 [−0.012, +0.012],
-  `compact` − `anchor` −0.010 [−0.026, +0.006], pooled over lengths (95% interval over items; frozen rule).
-- **Accuracy falls with length in every probe arm, `anchor` included** (0.98 at 4K, 0.89 to 0.91 at 127K), so
-  that loss is not produced by core precision. A third to a half of it is replies that did not finish.
-- **One slice leans against the K6 core:** running totals at 64K and 127K, where `compact` is nominally lower. Twenty
-  items do not decide it; a post hoc lead, not a finding.
-- **Every arm was admitted the same KV pool** (2,097,152 tokens) in the graded runs: on two RTX the cheaper settings buy
-  memory headroom, not context room.
+- **What each configuration trades (added 2026-11-12).** Against `anchor`, `hqa` holds 4,266 MiB less in weights
+  outside the experts over the two GPUs (756 MiB of it is the output head, which `ATTENTION_MODE` does not change), with no
+  quality cost measured, on task score or on distance from BF16. `compact` holds a further 2,568 MiB less, with a cost of
+  about one point over all lengths indicated (`hqa` − `compact` +0.013 [+0.002, +0.024], `compact` − `anchor`
+  −0.010 [−0.021, +0.002]), not established, and located at 127K. In these launches every configuration was
+  admitted the same KV pool (2,097,152 tokens), so the saving stayed unused under the engine's memory cap (3,096 and a further
+  2,458 MiB more left there; the workspaces of `hqa` and `compact` are larger than `anchor`'s).
+  Cost and measured quality side by side: section 13 of `RESULTS.md` in the run folder, and the first table of the v5 page.
+- **Frozen rule, two passes: neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` 0.000 [−0.012, +0.012],
+  `compact` − `anchor` −0.010 [−0.026, +0.006], pooled over lengths (95% interval over items).
+- **Four passes (added 2026-11-12; an extension written after the two-pass results were read, before the added requests):**
+  `hqa` − `anchor` +0.003 [−0.005, +0.012], no difference measured (the 95% interval reaches down to −0.005).
+  For `compact` a cost at 127K is indicated, not established: 0.887 there against 0.918 to 0.924, the
+  lowest arm in both pass sets; `hqa` − `compact` +0.037 [+0.004, +0.073] at 127K and +0.013 [+0.002, +0.024] over all lengths
+  (excludes 0 only at four passes), while `compact` − `anchor` −0.010 [−0.021, +0.002] includes 0. Pooled, the gap matches
+  unfinished replies, but the two pass sets do not agree on that split, so where it comes from is not settled.
+- **Distance from the BF16 model (added 2026-11-12): all four configurations sit in one band.** Coarse KL on tpurtell's
+  fidelity set, contexts to 14.4K: `hqa` 0.0302, `compact` 0.0314, `anchor` 0.0328, `exlr8-k4` 0.0360,
+  between the official FP8 model (0.0216, the baseline tpurtell recorded in the set's manifest) and K3.25 on
+  CuteAFD v3.0.1 (0.0484); both rows are from other measurements, quoted for scale.
+  What differs between the three probe arms moves the distance by under 0.003. `anchor` is not the closest on this set; it
+  differs from `hqa` in its output head as well as its core (both BF16 in `anchor`), and why it measures slightly farther is
+  an open question.
+  Neither reference set reaches past 14.4K, so the 127K task difference lies beyond both.
+- **Accuracy falls with length in every probe arm, `anchor` included** (two passes: 0.98 at 4K, 0.89 to 0.91 at 127K), so
+  that loss is not produced by core precision. A third to a half of it is replies that did not finish. Added 2026-11-12, four passes: the fall from 4K to 127K is about 0.06 in
+  every configuration, `exlr8-k4` included, and about 0.09 in `compact` (its 127K gap above). The tasks are shared too and no unquantized model ran
+  them, so the run does not say where the common fall comes from.
+- **One slice leaned against the K6 core at two passes:** running totals at 64K and 127K, where `compact` was nominally lower. Twenty
+  items do not decide it; a post hoc lead, not a finding. Added 2026-11-12: over four passes the lean did not repeat
+  (`compact` − `anchor` on that slice −0.062 [−0.128, +0.002] in passes 1-2, +0.011 [−0.055, +0.072] in passes 3-4,
+  −0.026 [−0.070, +0.019] over four).
+- **Every arm was admitted the same KV pool** (2,097,152 tokens) in the graded runs (eight requests at once): there the cheaper
+  settings left more memory unused under the engine's cap; they did not admit more context. Added 2026-11-12: resident weights over both GPUs fall by
+  4,268 MiB from `anchor` to `hqa` and a further 2,568 MiB to `compact`. In exploratory scoring launches with 16
+  requests at once `anchor` was admitted a smaller pool (1,318,400 tokens); one launch setting read from logs, not a measurement.
 - **The eight-turn pass tested split delivery, not model-written history** (under 1% of a long prompt was written by
   the model); its design is to be revised.
 - **Added after the results were read: a reference checkpoint in another quantisation format (`exlr8-k4`), no difference
   measured from `anchor` or `hqa`:** field score `exlr8-k4` − `anchor` +0.006 [−0.007, +0.019], − `hqa` +0.006 [−0.008, +0.019] (two
   single-message passes, post hoc). Against `compact` +0.016 [+0.004, +0.029], on the partial-credit score only and one of
   84 intervals: a lead, not a finding. It is a different checkpoint, not a setting of the same one, so no
-  difference from an arm is attributable to one component. Two further single-message passes per arm are in progress
-  (amendment 1); none of their numbers is published.
+  difference from an arm is attributable to one component. Added 2026-11-12: over four
+  passes the lead over `compact` did not repeat (+0.009 [−0.003, +0.021]); `exlr8-k4` − `anchor` −0.001 [−0.012, +0.009].
 - The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. [CuteAFD v5](results/2026-11-10-context-probe/)
 
 **CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
@@ -104,6 +133,11 @@ Distance from the BF16 model, lower is closer. Each panel is one measure on one 
 |  | K3.25, CuteAFD | 0.0380 |
 |  | K4, vLLM fork | 0.0192 |
 |  | K4, CuteAFD | 0.0219 |
+| CuteAFD v5.0.0, four K4-class configurations · fidelity set (P-B), to 14.4K · coarse KL | Official FP8 model (tpurtell's baseline) | 0.0216 |
+|  | anchor (BF16 core; the reference) | 0.0328 |
+|  | hqa (BF16 q_b_proj, o_proj; rest K6) | 0.0302 |
+|  | compact (K6 core) | 0.0314 |
+|  | exlr8-k4 (EXLR8 K4 checkpoint) | 0.0360 |
 
 KL is how far an engine's next-token probabilities are from the BF16 model's on the same text (0 is
 identical, lower is closer; units: nats).

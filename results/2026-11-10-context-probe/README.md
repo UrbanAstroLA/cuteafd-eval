@@ -25,8 +25,15 @@ A scoring capture on it (exploratory, one capture) is read beside the same captu
 of `RESULTS.md`.
 
 **Amendment 1 (2026-11-11 16:46).** `protocol/AMENDMENT-2026-11-11.md` (sha256 c3487e41a0194ed57ba968bda809ab8b160d810a02a19b106ec26fe86101d9f8), written after the two-pass results were
-read and before the first request of the passes it adds, adds single-message passes 3 and 4 for the four arms. They are in
-progress; no number from them is published here.
+read and before the first request of the passes it adds, adds single-message passes 3 and 4 for the four arms. They ran
+2026-11-11 17:02 to 2026-11-12 03:59: 1,920 requests, 0 errors. Section 11 of `RESULTS.md` reads all four passes with the frozen
+comparison rule; the two-pass tables stay as the result of the frozen protocol.
+
+**Distance from the BF16 model (2026-11-12).** A separate stage scored each of the four configurations against BF16 outputs on
+two reference sets: the engine author's published fidelity set (contexts to 14.4K; coarse KL) and a panel of published BF16
+teacher logits (2K windows; full-vocabulary KL). Its plan, `bf16ref/ADDENDUM-BF16REF.md`, was written before its first request
+and is descriptive: no gate, no ranking rule, every interval listed. Neither set reaches the 64K and 127K lengths of the task
+runs. Section 12 of `RESULTS.md`; section 13 puts cost and measured quality side by side.
 
 - `RESULTS.md`: the result as read, with its corrections dated. `SUMMARY.json`: the numbers of the page's tables, the launch facts
   (weights, memory admission, KV pool) and the estimators in words; the figures of the exploratory checks are in the protocol text.
@@ -43,7 +50,16 @@ progress; no number from them is published here.
   (`python3 analysis/posthoc.py`, standard library only). Launch figures come from the launch logs and the left-out counts from
   reply values; neither is in the CSV. For the reference checkpoint: `samples-reference.csv` (480 rows, the same columns),
   `make_samples_reference.py`, and `reference.py`, which recomputes section 9 of `RESULTS.md` from the two CSVs into
-  `REFERENCE.json` (`python3 analysis/reference.py`, standard library only).
+  `REFERENCE.json` (`python3 analysis/reference.py`, standard library only). For amendment 1: `samples-extension.csv` (1,920
+  rows, passes 3 and 4 of the four arms, the same columns), `make_samples_extension.py`, and `fourpass.py`, which recomputes
+  section 11 of `RESULTS.md` from the three CSVs into `FOURPASS.json` (`python3 analysis/fourpass.py`, standard library only).
+- `bf16ref/`: `ADDENDUM-BF16REF.md`, the plan of the BF16-reference stage, and `FROZEN.json`, its hashes at the freeze. The
+  hashes are of the files as they were on the measuring machine: the published plan differs from the hashed one by a few
+  wording edits (file locations, the machine's usual serving setup), and the scorers it names are published, with path
+  placeholders, under `repro/stage0/scorers/`. The stage's launcher script, the two capture plans and the engine author's
+  capture script are hashed there and not published. `BF16REF.json`: the numbers of section 12 of `RESULTS.md` (per
+  configuration and per pair, both sets, with the estimators in words, the repeat and the port-against-CLI check), and per
+  window the positions and each configuration's mean KL, from which every fidelity-set value and interval can be recomputed.
 - `tasks/`: the frozen analysis output (`drivers/analyze_tasks.py summary|compare`): one summary per arm and one comparison
   per pair.
 - `exploratory/`: wrong `ledger` fields by kind of arithmetic slip (a heuristic reading); `capture_pairs.json` and
@@ -60,7 +76,10 @@ progress; no number from them is published here.
 1. **Recompute.** `python3 analysis/posthoc.py` (standard library only) rebuilds the scores, differences and intervals from
    `analysis/samples.csv` and writes `analysis/POSTHOC.json`; `python3 tools/verify.py` at the repository root checks
    `docs/findings.json` against the same table. Run from a clean copy of this folder on 2026-11-11: same output.
-   `python3 analysis/reference.py` does the same for the reference checkpoint, from the two CSVs into `analysis/REFERENCE.json`.
+   `python3 analysis/reference.py` does the same for the reference checkpoint, from the two CSVs into `analysis/REFERENCE.json`,
+   and `python3 analysis/fourpass.py` for the four-pass reading, from the three CSVs into `analysis/FOURPASS.json` (the export
+   reruns it on the published copies and requires the published file). The fidelity-set figures of `bf16ref/BF16REF.json`
+   follow from its per-window table; `tools/verify.py` recomputes the ones `docs/findings.json` cites.
 2. **Rebuild the inputs.** `python3 drivers/gen_tasks.py --out <dir> --items 20 --first 100` regenerates the 240 rendered
    items from their seeds. It needs the `tokenizers` package and the model's `tokenizer.json` (set `TOKENIZER` at the top of the
    script; its SHA-256 is checked). Compare `content_sha256` and `file_sha256` with `items/measured/index.json`. Regenerated
@@ -72,4 +91,5 @@ progress; no number from them is published here.
    The items and the scoring do not depend on the engine.
 
 Not published: reply and reasoning texts and the values replies gave (model output), per-request receipts, launch logs, and
-the full-vocabulary dumps and receipts of the exploratory checks and of the scoring capture.
+the full-vocabulary dumps and receipts of the exploratory checks and of the scoring capture. Of the BF16-reference stage:
+its dumps, per-row tables and score files (their numbers are in `bf16ref/BF16REF.json`), and its launcher script.

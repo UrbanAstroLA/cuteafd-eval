@@ -2,7 +2,7 @@
  "id": "2026-11-10-context-probe",
  "kind": "measurement",
  "title": "CuteAFD v5.0.0 core precision at long context: BF16 reference, HQA and K6 core on graded tasks from 4K to 127K tokens",
- "protocol": "frozen 2026-11-10 before the first measured request (protocol/FROZEN.json); sections 10 to 13 of the protocol report exploratory checks. Added 2026-11-11 after the results were read: a reference checkpoint (two single-message passes, post hoc), a scoring capture on it (exploratory), and amendment 1 (protocol/AMENDMENT-2026-11-11.md), whose two further single-message passes per arm are in progress",
+ "protocol": "frozen 2026-11-10 before the first measured request (protocol/FROZEN.json); sections 10 to 13 of the protocol report exploratory checks. Added 2026-11-11 after the results were read: a reference checkpoint (two single-message passes, post hoc), a scoring capture on it (exploratory), and amendment 1 (protocol/AMENDMENT-2026-11-11.md), whose two further single-message passes per arm completed 2026-11-12. A BF16-reference stage (descriptive; plan bf16ref/ADDENDUM-BF16REF.md written 2026-11-11 17:54 before its first request) measured the distance of the four configurations from the BF16 model on 2026-11-12",
  "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local",
  "engine": "tpurtell/cuteafd v5.0.0 (coordinator image sha256:6194637e...), unmodified launcher",
  "checkpoints": {
@@ -68,8 +68,23 @@
    ]
   },
   "ext": {
-   "title": "amendment 1: single-message passes 3 and 4, four arms",
-   "status": "pending"
+   "title": "amendment 1: single-message passes 3 and 4, four arms (4 arms x 2 passes x 240 item-lengths)",
+   "status": "done",
+   "files": [
+    "analysis/samples-extension.csv",
+    "analysis/make_samples_extension.py",
+    "analysis/fourpass.py",
+    "analysis/FOURPASS.json"
+   ]
+  },
+  "bf16": {
+   "title": "BF16-reference stage: distance of the four configurations from the BF16 model on two reference sets (descriptive)",
+   "status": "done",
+   "files": [
+    "bf16ref/ADDENDUM-BF16REF.md",
+    "bf16ref/FROZEN.json",
+    "bf16ref/BF16REF.json"
+   ]
   }
  }
 }
