@@ -174,7 +174,8 @@ def check_runs():
 def check_findings():
     """docs/findings.json: every pointer resolves to the recorded value, every file and page anchor exists, and the
     entries that carry 'recompute' match a recomputation from the published per-reply tables (or, for the kind
-    window_ratio_bootstrap, from a published per-window table)."""
+    window_ratio_bootstrap, from a published per-window table, joined by window id with the tables named in
+    recompute.windows_with)."""
     import csv, math, statistics
     fp = ROOT / "docs" / "findings.json"
     if not fp.exists(): fails.append("docs/findings.json missing"); return 0
@@ -265,6 +266,12 @@ def check_findings():
             # Ratio of sums over windows with a window-block bootstrap (SplitMix64, linear-interpolation percentiles), from a
             # published per-window table: positions x mean = the window's sum. One check per published [value, 2.5%, 97.5%].
             W = sorted(at(rc["data"], rc["windows"]), key=lambda w: w["window"]); M = (1 << 64) - 1; bt = rc["bootstrap"]
+            for x in rc.get("windows_with", []):        # the same windows in another stage's table, joined by window id
+                more = {w["window"]: w for w in at(x["data"], x["windows"])}
+                if any(w["window"] not in more or more[w["window"]]["positions"] != w["positions"] for w in W):
+                    fails.append(f"findings {fid}: the windows of {x['data']} do not match those of {rc['data']}"); W = []; break
+                W = [dict(w, kl_mean={**more[w["window"]]["kl_mean"], **w["kl_mean"]}) for w in W]
+            if not W: continue
             for c in rc["checks"]:
                 sel = [w for w in W if c.get("bucket") in (None, w["bucket"])]
                 num = [w["positions"] * (w["kl_mean"][c["b"]] - (w["kl_mean"][c["a"]] if c.get("a") else 0.0)) for w in sel]

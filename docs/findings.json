@@ -1,5 +1,5 @@
 {
- "about": "Claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), generated from the results by tools/build_findings.py. Each evidence entry names a repository file and an RFC 6901 JSON pointer; 'value' is what the pointer resolved to at build time. tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables (CP-bf16-distance: from the per-window figures).",
+ "about": "Claims of the Thinking length investigation (TL-*) and of the CuteAFD v5 context probe (CP-*), generated from the results by tools/build_findings.py. Each evidence entry names a repository file and an RFC 6901 JSON pointer; 'value' is what the pointer resolved to at build time. tools/verify.py re-resolves every pointer and recomputes entries that carry 'recompute' from the per-reply tables (CP-bf16-distance and CP-k325-bf16-distance: from the per-window figures).",
  "repository": "https://github.com/UrbanAstroLA/cuteafd-eval",
  "site": "https://urbanastrola.github.io/cuteafd-eval",
  "status_vocabulary": {
@@ -9,12 +9,12 @@
   "exploratory": "run kind exploratory: useful evidence, not a frozen comparison",
   "source reading": "read in source code and logs, no measurement",
   "judgement: source and measurements": "a conclusion drawn from source reading and published measurements together; not isolated by a run of its own",
-  "measurement: extension": "passes added by a dated amendment, written after the frozen result was read and before the first added request; the frozen rule applied to more passes; not the frozen comparison",
+  "measurement: extension": "passes added by a dated amendment, written after the frozen result was read and before the first added request; the frozen rule applied to more passes (amendment 1) or to an added configuration (amendment 2); not the frozen comparison",
   "measurement: planned descriptive": "plan and file hashes written before the first request of the stage, after earlier results were read; descriptive, with no gate and no decision rule",
   "accounting: checkpoint files": "counted from the headers of the checkpoint files; no model is run and nothing is compared by a rule"
  },
  "conventions": {
-  "interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule, and the post hoc share-of-unfinished intervals of CP-fourpass-endings), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py; CP-bf16-* entries use window bootstraps (fidelity set: 5,000 replicates, SplitMix64 seed 20260829, linear-interpolation percentiles; teacher panel: 20,000 replicates, numpy generator seed 20260929)",
+  "interval": "95% bootstrap over the unit in ci_over (percentile); 4,000 draws for TL-* entries, 10,000 for CP-* entries; TL-* seeds are in each run's protocol; CP-* entries use seed 5 with percentile indices 250 and 9749 (frozen rule, and the post hoc share-of-unfinished intervals of CP-fourpass-endings and CP-k325-endings), and seed 7 or 20261111 with indices 250 and 9750 (post hoc and by-family readings), stated per entry in recompute.bootstrap and in analysis/posthoc.py; CP-bf16-* entries and CP-k325-bf16-distance use window bootstraps (fidelity set: 5,000 replicates, SplitMix64 seed 20260829, linear-interpolation percentiles; teacher panel: 20,000 replicates, numpy generator seed 20260929)",
   "detected": "interval excludes the null (1 for ratios, 0 for differences)",
   "paths": "relative to the repository root",
   "pointers": "RFC 6901: split on '/', then replace '~1' with '/' and '~0' with '~' (keys such as 'C-K6x/V-BF16' contain a slash)"
@@ -30,7 +30,7 @@
   "median_reasoning_tokens": "median over finished replies",
   "context_probe": {
    "applies_to": "CP-* entries (results/2026-11-10-context-probe); the definitions above apply to TL-* entries",
-   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0); for the reference checkpoint, the same rows of analysis/samples-reference.csv beside them; for passes 3 and 4 (CP-fourpass-*), the same rows of analysis/samples-extension.csv beside both",
+   "rows_used": "analysis/samples.csv rows with final == 1 and status == ok (one per request; delivery turns of the eight-turn pass have final == 0); for the reference checkpoint, the same rows of analysis/samples-reference.csv beside them; for passes 3 and 4 (CP-fourpass-*), the same rows of analysis/samples-extension.csv beside both; for the fifth configuration (CP-k325-*), the same rows of analysis/samples-amend2.csv beside all three",
    "request_score": "correct / fields if finish_class == 'stop' and fields > 0, else 0 (a reply that hit the cap or was ended by the loop abort scores 0)",
    "every_field_right": "request_score == 1",
    "item_paired_difference_frozen": "for each item, over the (pass, length) cells in recompute.passes x recompute.lengths where both arms have a row: request_score(b) - request_score(a); mean within the item (statistics.fmean); estimate = mean over items, rounded to 4 places. Interval: items in sorted order, rng = random.Random(5); 10,000 draws, each the fmean of n values vals[rng.randrange(n)]; sorted draws at indices 250 and 9749",
@@ -58,7 +58,7 @@
    "reference_checkpoint": {
     "exlr8-k4": "native EXLR8 K4 checkpoint (revision in the run's RUN.json), added after the three-arm results were read; two single-message passes, then passes 3 and 4 under amendment 1; no eight-turn pass. A different checkpoint from the three arms, not a setting of the same one: a difference from an arm is a whole-checkpoint difference, not attributable to one component"
    },
-   "amendment_2": "protocol/AMENDMENT-2026-11-12.md adds a fifth configuration, k325-fp8 (the K3.25-Core-FP8 checkpoint, revision in SUMMARY.json /bits_per_weight/k325-fp8): four single-message passes and the BF16-reference capture; written before its first request; running when this file was built, so no entry holds a measured figure for it and CP-bits-per-weight holds its file accounting only. A different checkpoint from the others: any difference is a whole-checkpoint difference",
+   "amendment_2": "protocol/AMENDMENT-2026-11-12.md adds a fifth configuration, k325-fp8 (the K3.25-Core-FP8 checkpoint, revision in SUMMARY.json /bits_per_weight/k325-fp8): four single-message passes and the BF16-reference capture; written before its first request, with no direction predicted; complete 2026-11-12 (CP-k325-tasks, CP-k325-endings, CP-k325-bf16-distance; file accounting in CP-bits-per-weight). A different checkpoint from the others: any difference is a whole-checkpoint difference; its passes ran after the other configurations' and were not interleaved with them; no eight-turn pass",
    "amendment_1": "protocol/AMENDMENT-2026-11-11.md adds single-message passes 3 and 4 per configuration (single-rep2, single-rep3), written after the two-pass results were read and before the first added request; complete 2026-11-12; the frozen rule (item_paired_difference_frozen) over four passes, reported as an extension beside the frozen two-pass result",
    "pass_sets": {
     "p12": "passes 1-2 (the frozen protocol's result)",
@@ -67,7 +67,7 @@
    },
    "fidelity_set_coarse_kl": "CP-bf16-* entries, fidelity set (the engine author's published set; 64 windows, 512 scored positions each, 15,104 generated positions in 53 windows, contexts to 14.4K): per position, KL(BF16 reference || configuration) in float64 over the reference's top 1,024 token ids plus one term for the rest of the vocabulary (coarse, not full-vocabulary). Statistic: sum of per-position KL over generated positions / number of generated positions (ratio of sums). Interval: window bootstrap, 5,000 replicates, SplitMix64 seed 20260829; windows in sorted order, one window drawn per window with replacement in each replicate; 2.5th and 97.5th percentiles with linear interpolation. A difference b - a uses the same rows and the same stream. Unit: the window",
    "teacher_panel_kl": "CP-bf16-* entries, teacher panel (published BF16 teacher logits; 25 windows of 2,048 tokens, 51,175 scored rows, 2K contexts): full-vocabulary KL(BF16 teacher || configuration) per row in float64, mean over rows. Interval: window bootstrap, 20,000 replicates, numpy default_rng(20260929), percentile. Unit: the window. Not comparable with fidelity_set_coarse_kl (different measure, different texts)",
-   "bf16_yardsticks": "the official FP8 model figure (the baseline the engine author recorded in the fidelity set's manifest; quoted, not recomputed in this repository) and the K3.25 Core-FP8 figures (CuteAFD v3.0.1, run 2026-10-26-cuteafd-vs-vllm) are rows from other measurements, quoted for scale on the same sets and measures; neither was measured in the BF16 stage of the context probe",
+   "bf16_yardsticks": "the official FP8 model figure (the baseline the engine author recorded in the fidelity set's manifest; quoted, not recomputed in this repository) and the K3.25 Core-FP8 figures (CuteAFD v3.0.1, run 2026-10-26-cuteafd-vs-vllm) are rows from other measurements, quoted for scale on the same sets and measures; neither was measured in the BF16 stage of the context probe as first run, and the K3.25 Core-FP8 checkpoint was measured on this release afterwards, under amendment 2 (CP-k325-bf16-distance)",
    "checkpoint_availability": "the K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy downloaded on 2026-11-10"
   },
   "arms": {
@@ -1598,6 +1598,9 @@
      ],
      "hqa-bf16pre": [
       2097152
+     ],
+     "k325-fp8": [
+      2097152
      ]
     }
    },
@@ -2655,7 +2658,7 @@
     },
     "result": "hqa - compact, 127K"
    },
-   "note": "Extension, not the frozen comparison: amendment 1 (protocol/AMENDMENT-2026-11-11.md) was written after the two-pass results were read and before the first request of passes 3 and 4, and fixed the total at four single-message passes per arm. Estimator: the frozen rule's (definitions.context_probe.item_paired_difference_frozen) over passes single-rep0 to single-rep3; request score = fields correct / fields if the reply finished with stop, else 0; repeats averaged within the item; the item is the unit (60); 95% interval from 10,000 item resamples, random.Random(5). anchor is the reference of the probe, not a recommendation."
+   "note": "Extension, not the frozen comparison: amendment 1 (protocol/AMENDMENT-2026-11-11.md) was written after the two-pass results were read and before the first request of passes 3 and 4, and fixed the total at four single-message passes per arm. Estimator: the frozen rule's (definitions.context_probe.item_paired_difference_frozen) over passes single-rep0 to single-rep3; request score = fields correct / fields if the reply finished with stop, else 0; repeats averaged within the item; the item is the unit (60); 95% interval from 10,000 item resamples, random.Random(5). anchor is the reference of the probe, not a recommendation. Added later on 2026-11-12: a fifth configuration, k325-fp8, scores 0.867 at 127K, lower in count than compact and not separated from it (-0.020 [-0.059, +0.020]; CP-k325-tasks)."
   },
   {
    "id": "CP-fourpass-exlr8-k4",
@@ -3369,7 +3372,7 @@
      }
     ]
    },
-   "note": "Estimators. Fidelity set: coarse KL by the engine author's rule (not full-vocabulary): per position, KL over the reference's top 1,024 token ids plus one term for the rest of the vocabulary; statistic = sum of per-position KL / number of generated positions (ratio of sums; 15,104 positions in 53 windows); 95% interval from a window bootstrap, 5,000 replicates, SplitMix64 seed 20260829, linear-interpolation percentiles. Teacher panel: full-vocabulary KL per row in float64, mean over 51,175 rows of 25 windows; window bootstrap, 20,000 replicates (numpy generator, so tools/verify.py recomputes the fidelity-set intervals only). The stage's plan (bf16ref/ADDENDUM-BF16REF.md) was written before its first request and after the two-pass task results were read; it is descriptive, with no gate and no ranking rule. The stage's score files, per-row tables and dumps are not published; bf16ref/BF16REF.json carries their numbers and the per-window figures. anchor is the reference of the probe, not a recommendation."
+   "note": "Estimators. Fidelity set: coarse KL by the engine author's rule (not full-vocabulary): per position, KL over the reference's top 1,024 token ids plus one term for the rest of the vocabulary; statistic = sum of per-position KL / number of generated positions (ratio of sums; 15,104 positions in 53 windows); 95% interval from a window bootstrap, 5,000 replicates, SplitMix64 seed 20260829, linear-interpolation percentiles. Teacher panel: full-vocabulary KL per row in float64, mean over 51,175 rows of 25 windows; window bootstrap, 20,000 replicates (numpy generator, so tools/verify.py recomputes the fidelity-set intervals only). The stage's plan (bf16ref/ADDENDUM-BF16REF.md) was written before its first request and after the two-pass task results were read; it is descriptive, with no gate and no ranking rule. The stage's score files, per-row tables and dumps are not published; bf16ref/BF16REF.json carries their numbers and the per-window figures. anchor is the reference of the probe, not a recommendation. Added later on 2026-11-12: the K3.25 Core-FP8 checkpoint quoted here for scale was then measured on this release as a fifth configuration, 0.0485 on the fidelity set and 0.0476 on the teacher panel (CP-k325-bf16-distance). Its task difference at 127K (CP-k325-tasks) is a second one that lies beyond both sets."
   },
   {
    "id": "CP-bf16-repeat",
@@ -4235,12 +4238,12 @@
      "definition": "definitions.context_probe.item_paired_unfinished_share"
     }
    },
-   "note": "Definitions and estimators. Unfinished: finish class other than stop (the reply reached the 32,768-token reply cap, or the engine's repetition abort ended it). Step line: a line of the reasoning that carries the record following, in the prompt, the record of the previous such line. Copy share: characters on step lines / characters of the reasoning; copying: copy share of at least 0.5. Copy run: 20 or more consecutive step lines. Share of unfinished replies: per item, the share of its replies in the cell that did not finish; the difference b - a is taken per item (20 join items) and the 95% interval is the 2.5th and 97.5th percentile (sorted-draw indices 250 and 9,749) of 10,000 item resamples, Python random.Random(5). Difference in score by family: each family's mean request score x its share of the requests (one third), so the families sum to the difference over all families up to rounding. Post hoc: SUMMARY.json lists 60 such share intervals (5 pairs, 3 pass sets, 4 cells), of which 9 exclude 0, on top of the intervals of the four-pass tables; none was selected by a rule and no correction is applied. The data are the frozen run's two passes and the two added by amendment 1. analysis/endings.py recomputes analysis/ENDINGS.json from the three per-request tables and analysis/endings.csv; the per-reply counts in endings.csv were derived from reply text that is not published, so they cannot be re-derived from this repository."
+   "note": "Definitions and estimators. Unfinished: finish class other than stop (the reply reached the 32,768-token reply cap, or the engine's repetition abort ended it). Step line: a line of the reasoning that carries the record following, in the prompt, the record of the previous such line. Copy share: characters on step lines / characters of the reasoning; copying: copy share of at least 0.5. Copy run: 20 or more consecutive step lines. Share of unfinished replies: per item, the share of its replies in the cell that did not finish; the difference b - a is taken per item (20 join items) and the 95% interval is the 2.5th and 97.5th percentile (sorted-draw indices 250 and 9,749) of 10,000 item resamples, Python random.Random(5). Difference in score by family: each family's mean request score x its share of the requests (one third), so the families sum to the difference over all families up to rounding. Post hoc: SUMMARY.json lists 60 such share intervals (5 pairs, 3 pass sets, 4 cells), of which 9 exclude 0, on top of the intervals of the four-pass tables; none was selected by a rule and no correction is applied. The data are the frozen run's two passes and the two added by amendment 1. analysis/endings.py recomputes analysis/ENDINGS.json from the three per-request tables and analysis/endings.csv; the per-reply counts in endings.csv were derived from reply text that is not published, so they cannot be re-derived from this repository. Added later on 2026-11-12: a fifth configuration, k325-fp8, shows the same join ending at about compact's rate (11 of 80 unfinished at 127K against compact's 10), in another checkpoint whose o_proj and q_b_proj are stored as BF16 and FP8, not K6 (CP-k325-endings). The reading above, within the one checkpoint of hqa and compact, is unchanged."
   },
   {
    "id": "CP-bits-per-weight",
    "question": "In one unit, how large is each configuration's checkpoint compared with the unquantized BF16 model, and where do the configurations differ?",
-   "answer": "Bits per weight (stored bits / weights; BF16 = 16), language model as stored: anchor 4.35 (27.2% of BF16, 162.3 GiB); hqa 4.17 (26.1% of BF16, 155.8 GiB); compact 4.10 (25.6% of BF16, 153.2 GiB); exlr8-k4 4.08 (25.5% of BF16, 152.2 GiB); k325-fp8 3.55 (22.2% of BF16, 132.7 GiB). At BF16 the same weights are 597.5 GiB. The routed experts are 94.9% of the weights and sit at 4.00 to 4.01 bits in the four configurations with K4 experts, so their whole-model figures lie close together; k325-fp8 is the one that changes the experts (3.26 bits, three quarters of the expert matrices at 3 bits and one quarter at 4). Outside the routed experts the figures spread: anchor 16.00, hqa 9.66, compact 7.25, exlr8-k4 6.55, k325-fp8 13.65 (exlr8-k4 is lowest there: 4-bit trellis on o_proj, q_b_proj, the shared experts and the dense feed-forward, FP8 on the embedding, the head and the other attention projections). hqa to compact moves 0.67% of the weights (o_proj and q_b_proj of the main layers) from 16 bits to 6, 2.6 GiB of files, 0.1 GiB of it the same two projections in the multi-token-prediction block; anchor to compact moves 2.4%, 9.1 GiB. hqa and compact are one checkpoint that stores those two projections twice; each configuration counts the copy its setting loads. Bits per weight is a size, not a quality score: among the four measured configurations neither distance from BF16 (CP-bf16-distance) nor task score follows it. As stored is not as run: under the engine's defaults the load line of k325-fp8 reports its attention group held as FP8, converted at load, and an FP8 output head, so part of what its files hold at BF16 runs at FP8; an as-run figure is not computed because the logs do not itemize the conversion by matrix. k325-fp8 is a fifth configuration added on 2026-11-12 (protocol/AMENDMENT-2026-11-12.md); this entry holds its file accounting only, and its task passes and BF16-reference capture were running when this was written. Limits: file accounting, not memory in use and not arithmetic precision at run time; the vision tower is not counted (every configuration ran with vision off); whether the engine uses the multi-token-prediction block when serving was not checked.",
+   "answer": "Bits per weight (stored bits / weights; BF16 = 16), language model as stored: anchor 4.35 (27.2% of BF16, 162.3 GiB); hqa 4.17 (26.1% of BF16, 155.8 GiB); compact 4.10 (25.6% of BF16, 153.2 GiB); exlr8-k4 4.08 (25.5% of BF16, 152.2 GiB); k325-fp8 3.55 (22.2% of BF16, 132.7 GiB). At BF16 the same weights are 597.5 GiB. The routed experts are 94.9% of the weights and sit at 4.00 to 4.01 bits in the four configurations with K4 experts, so their whole-model figures lie close together; k325-fp8 is the one that changes the experts (3.26 bits, three quarters of the expert matrices at 3 bits and one quarter at 4). Outside the routed experts the figures spread: anchor 16.00, hqa 9.66, compact 7.25, exlr8-k4 6.55, k325-fp8 13.65 (exlr8-k4 is lowest there: 4-bit trellis on o_proj, q_b_proj, the shared experts and the dense feed-forward, FP8 on the embedding, the head and the other attention projections). hqa to compact moves 0.67% of the weights (o_proj and q_b_proj of the main layers) from 16 bits to 6, 2.6 GiB of files, 0.1 GiB of it the same two projections in the multi-token-prediction block; anchor to compact moves 2.4%, 9.1 GiB. hqa and compact are one checkpoint that stores those two projections twice; each configuration counts the copy its setting loads. Bits per weight is a size, not a quality score: among the four configurations with 4-bit experts neither distance from BF16 (CP-bf16-distance) nor task score follows it; k325-fp8, the smallest, is farther from BF16 and scores lower at 127K (CP-k325-bf16-distance, CP-k325-tasks), a step that changes the experts and the core together and so does not show what either costs alone. As stored is not as run: under the engine's defaults the load line of k325-fp8 reports the projections of the attention layers it calls KDA held as FP8, converted at load, and an FP8 output head, so part of what its files hold at BF16 runs at FP8; an as-run figure is not computed because the logs do not itemize the conversion by matrix. k325-fp8 is a fifth configuration added on 2026-11-12 (protocol/AMENDMENT-2026-11-12.md); this entry holds its file accounting, and its measured results are in CP-k325-tasks, CP-k325-endings and CP-k325-bf16-distance. Limits: file accounting, not memory in use and not arithmetic precision at run time; the vision tower is not counted (every configuration ran with vision off); whether the engine uses the multi-token-prediction block when serving was not checked.",
    "status": "accounting: checkpoint files",
    "result": {
     "name": "bits per weight of the language model as stored, per configuration",
@@ -4719,13 +4722,13 @@
      "file": "results/2026-11-10-context-probe/SUMMARY.json",
      "pointer": "/bits_per_weight/as_run/k325-fp8",
      "what": "as stored against as run",
-     "value": "under the engine's defaults the load line reports the attention group it calls KDA held as FP8, converted at load (kda_fp8=Row128, 0 MiB as BF16), and an FP8 output head; part of what the file stores at BF16 is run at FP8. An as-run bits-per-weight figure is not computed, because the logs do not itemize the conversion by matrix"
+     "value": "under the engine's defaults the load line reports the projections of the attention layers it calls KDA held as FP8, converted at load (kda_fp8=Row128, 0 MiB as BF16), and an FP8 output head; part of what the file stores at BF16 is run at FP8. An as-run bits-per-weight figure is not computed, because the logs do not itemize the conversion by matrix"
     },
     {
      "file": "results/2026-11-10-context-probe/SUMMARY.json",
      "pointer": "/bits_per_weight/k325-fp8/status",
      "what": "state of the fifth configuration's measured passes",
-     "value": "running"
+     "value": "measured (amendment_2)"
     },
     {
      "file": "results/2026-11-10-context-probe/SUMMARY.json",
@@ -4750,6 +4753,2053 @@
     "results/2026-11-10-context-probe/protocol/AMENDMENT-2026-11-12.md"
    ],
    "note": "Estimator. Counted from the headers of the checkpoint files (analysis/bpw.py, standard library only): for each matrix, the stored bits of its payload and of its scale and sign vectors, against rows x columns of the matrix they stand for; bits per weight = stored bits / weights, summed over the language model (vision tower and container bookkeeping left out); relative = bits per weight / 16. Outside the routed experts: the same ratio over the main layers' other matrices (the multi-token-prediction block is left out of that figure and counted in the whole-model one). The share of the weights moved from anchor to compact is the sum, over components outside the routed experts, of the component's share of the weights x the part of it compact does not store as BF16. No model is run. The HQA checkpoint is no longer on the hub and anchor's is derived locally, so the script can be rerun by a reader on exlr8-k4 and k325-fp8 only."
+  },
+  {
+   "id": "CP-k325-tasks",
+   "question": "How does k325-fp8 (K3.25 routed experts with an FP8 core, the smallest checkpoint of the five) score on the graded tasks next to the four configurations with 4-bit experts?",
+   "answer": "Level to 16K, lower at 127K. Four single-message passes, 960 requests, read by the frozen rule. Pooled over 4K and 16K the differences from the four are +0.001 to +0.007 and every interval includes 0; at 64K they are -0.010 to -0.002, lower in count, and every interval includes 0. At 127K its field score is 0.867 against anchor 0.918, hqa 0.924, compact 0.887, exlr8-k4 0.920: k325-fp8 - anchor -0.051 [-0.086, -0.017]; k325-fp8 - hqa -0.058 [-0.095, -0.023]; k325-fp8 - compact -0.020 [-0.059, +0.020]; k325-fp8 - exlr8-k4 -0.054 [-0.088, -0.020]. The intervals against anchor, hqa and exlr8-k4 exclude 0; the one against compact includes it. Over all lengths: k325-fp8 - anchor -0.013 [-0.025, -0.001]; k325-fp8 - hqa -0.016 [-0.030, -0.003]; k325-fp8 - compact -0.003 [-0.017, +0.010]; k325-fp8 - exlr8-k4 -0.012 [-0.023, -0.001]. Every field right, of 960: 747 against anchor 760, hqa 768, compact 739, exlr8-k4 738. Strength: the largest four-pass score difference between two configurations at one length in this run, with the same sign against three configurations; its four passes at 127K are 0.840 to 0.879 and 10 of the 12 single passes of those three are above its highest (their lowest is 0.875). Against that: the difference is a whole checkpoint's (K3.25 experts and its own tensors outside them, changed together), so it does not show what either costs alone; its passes ran after the other configurations' and were not interleaved with them, so a session effect cannot be excluded by design; and 76 intervals are listed for it, of which 23 exclude 0 (21 with k325-fp8 lower, 2 with it higher), with no correction and none selected by a rule. The amendment, written before its first request, predicted no direction: a level result and a lower one were both called plausible. Most of the 127K difference is replies that did not finish (CP-k325-endings). Its distance from BF16 is in CP-k325-bf16-distance and its size in CP-bits-per-weight. Limits: a whole-checkpoint difference; passes not interleaved with the other arms'; one checkpoint revision; the engine's default settings for this checkpoint, under which part of what the file stores at BF16 runs as FP8; synthetic tasks; 60 items per length and 20 per family; no eight-turn pass; BF16 reference to 14.4K only; the ending definitions were chosen post hoc on the first four arms; 116 intervals in the section and no correction; a larger reply cap was not tried.",
+   "status": "measurement: extension",
+   "result": {
+    "name": "field score at 127K, k325-fp8 - each of the four, single message, four passes",
+    "value": {
+     "k325-fp8 - anchor": -0.051,
+     "k325-fp8 - hqa": -0.0578,
+     "k325-fp8 - compact": -0.0203,
+     "k325-fp8 - exlr8-k4": -0.0536
+    },
+    "ci95": {
+     "k325-fp8 - anchor": [
+      -0.0865,
+      -0.0172
+     ],
+     "k325-fp8 - hqa": [
+      -0.0953,
+      -0.0229
+     ],
+     "k325-fp8 - compact": [
+      -0.0594,
+      0.0198
+     ],
+     "k325-fp8 - exlr8-k4": [
+      -0.088,
+      -0.0203
+     ]
+    },
+    "ci_over": "items",
+    "score_127k": {
+     "anchor": 0.9177,
+     "hqa": 0.9245,
+     "compact": 0.887,
+     "exlr8-k4": 0.9203,
+     "k325-fp8": 0.8667
+    },
+    "k325-fp8 - anchor": {
+     "name": "field score at 127K, k325-fp8 - anchor, four passes",
+     "value": -0.051,
+     "ci95": [
+      -0.0865,
+      -0.0172
+     ],
+     "items": 60,
+     "ci_over": "items",
+     "detected": true
+    }
+   },
+   "direction": "b - a with b = k325-fp8: below 0 = k325-fp8 scored lower",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#k325",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - anchor/score/128k",
+     "what": "k325-fp8 - anchor: field score at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      -0.051,
+      -0.0865,
+      -0.0172,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - hqa/score/128k",
+     "what": "k325-fp8 - hqa: field score at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      -0.0578,
+      -0.0953,
+      -0.0229,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - compact/score/128k",
+     "what": "k325-fp8 - compact: field score at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      -0.0203,
+      -0.0594,
+      0.0198,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/score/128k",
+     "what": "k325-fp8 - exlr8-k4: field score at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      -0.0536,
+      -0.088,
+      -0.0203,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - anchor/score/all",
+     "what": "k325-fp8 - anchor: field score over four lengths",
+     "value": [
+      -0.0129,
+      -0.0253,
+      -0.0009,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - hqa/score/all",
+     "what": "k325-fp8 - hqa: field score over four lengths",
+     "value": [
+      -0.016,
+      -0.0298,
+      -0.0025,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - compact/score/all",
+     "what": "k325-fp8 - compact: field score over four lengths",
+     "value": [
+      -0.003,
+      -0.0165,
+      0.0104,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/score/all",
+     "what": "k325-fp8 - exlr8-k4: field score over four lengths",
+     "value": [
+      -0.012,
+      -0.023,
+      -0.0007,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - anchor/score/4k+16k",
+     "what": "k325-fp8 - anchor: field score, 4K and 16K pooled",
+     "value": [
+      0.0049,
+      -0.0026,
+      0.0117,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - hqa/score/4k+16k",
+     "what": "k325-fp8 - hqa: field score, 4K and 16K pooled",
+     "value": [
+      0.0013,
+      -0.006,
+      0.0089,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - compact/score/4k+16k",
+     "what": "k325-fp8 - compact: field score, 4K and 16K pooled",
+     "value": [
+      0.0073,
+      -0.0003,
+      0.0151,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/score/4k+16k",
+     "what": "k325-fp8 - exlr8-k4: field score, 4K and 16K pooled",
+     "value": [
+      0.0036,
+      -0.0026,
+      0.0102,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - anchor/score/64k",
+     "what": "k325-fp8 - anchor: field score at 64K",
+     "value": [
+      -0.0104,
+      -0.0406,
+      0.0177,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - hqa/score/64k",
+     "what": "k325-fp8 - hqa: field score at 64K",
+     "value": [
+      -0.0089,
+      -0.0375,
+      0.0182,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - compact/score/64k",
+     "what": "k325-fp8 - compact: field score at 64K",
+     "value": [
+      -0.0063,
+      -0.0354,
+      0.0203,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/score/64k",
+     "what": "k325-fp8 - exlr8-k4: field score at 64K",
+     "value": [
+      -0.0016,
+      -0.0333,
+      0.0286,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/anchor/128k/score",
+     "what": "anchor: field score at 127K, four passes [mean, 2.5%, 97.5%, items]",
+     "value": [
+      0.9177,
+      0.8891,
+      0.9437,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/hqa/128k/score",
+     "what": "hqa: field score at 127K, four passes [mean, 2.5%, 97.5%, items]",
+     "value": [
+      0.9245,
+      0.8969,
+      0.9495,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/compact/128k/score",
+     "what": "compact: field score at 127K, four passes [mean, 2.5%, 97.5%, items]",
+     "value": [
+      0.887,
+      0.8505,
+      0.9193,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/exlr8-k4/128k/score",
+     "what": "exlr8-k4: field score at 127K, four passes [mean, 2.5%, 97.5%, items]",
+     "value": [
+      0.9203,
+      0.8896,
+      0.9469,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/k325-fp8/128k/score",
+     "what": "k325-fp8: field score at 127K, four passes [mean, 2.5%, 97.5%, items]",
+     "value": [
+      0.8667,
+      0.8292,
+      0.9016,
+      60
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/anchor/all/right",
+     "what": "anchor: requests with every field right, of 960",
+     "value": 760
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/hqa/all/right",
+     "what": "hqa: requests with every field right, of 960",
+     "value": 768
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/compact/all/right",
+     "what": "compact: requests with every field right, of 960",
+     "value": 739
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/exlr8-k4/all/right",
+     "what": "exlr8-k4: requests with every field right, of 960",
+     "value": 738
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/k325-fp8/all/right",
+     "what": "k325-fp8: requests with every field right, of 960",
+     "value": 747
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/score_by_pass/128k",
+     "what": "k325-fp8: field score at 127K by pass",
+     "value": [
+      0.8396,
+      0.8729,
+      0.875,
+      0.8792
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/four_pass/by_length/anchor/score_by_pass/128k",
+     "what": "anchor: field score at 127K by pass",
+     "value": [
+      0.875,
+      0.9313,
+      0.9229,
+      0.9417
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/four_pass/by_length/hqa/score_by_pass/128k",
+     "what": "hqa: field score at 127K by pass",
+     "value": [
+      0.9292,
+      0.8958,
+      0.9271,
+      0.9458
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/four_pass/by_length/compact/score_by_pass/128k",
+     "what": "compact: field score at 127K by pass",
+     "value": [
+      0.8854,
+      0.8938,
+      0.8917,
+      0.8771
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/four_pass/by_length/exlr8-k4/score_by_pass/128k",
+     "what": "exlr8-k4: field score at 127K by pass",
+     "value": [
+      0.9292,
+      0.9396,
+      0.875,
+      0.9375
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/intervals/listed",
+     "what": "intervals listed for the fifth configuration's task comparison",
+     "value": 76
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/intervals/excluding_zero",
+     "what": "those that exclude 0",
+     "value": [
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "score",
+       "scope": "128k",
+       "value": [
+        -0.051,
+        -0.0865,
+        -0.0172,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "score",
+       "scope": "all",
+       "value": [
+        -0.0129,
+        -0.0253,
+        -0.0009,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "score",
+       "scope": "64k+128k",
+       "value": [
+        -0.0307,
+        -0.0542,
+        -0.0078,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "every_field_right",
+       "scope": "16k",
+       "value": [
+        0.075,
+        0.0167,
+        0.1375,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "every_field_right",
+       "scope": "128k",
+       "value": [
+        -0.1083,
+        -0.1708,
+        -0.0458,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "every_field_right",
+       "scope": "64k+128k",
+       "value": [
+        -0.0625,
+        -0.1062,
+        -0.0208,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "by_family_all_lengths",
+       "scope": "join",
+       "value": [
+        -0.0297,
+        -0.0496,
+        -0.0121,
+        20
+       ]
+      },
+      {
+       "pair": "k325-fp8 - anchor",
+       "measure": "by_family_127k",
+       "scope": "join",
+       "value": [
+        -0.0953,
+        -0.1609,
+        -0.0375,
+        20
+       ]
+      },
+      {
+       "pair": "k325-fp8 - hqa",
+       "measure": "score",
+       "scope": "128k",
+       "value": [
+        -0.0578,
+        -0.0953,
+        -0.0229,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - hqa",
+       "measure": "score",
+       "scope": "all",
+       "value": [
+        -0.016,
+        -0.0298,
+        -0.0025,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - hqa",
+       "measure": "score",
+       "scope": "64k+128k",
+       "value": [
+        -0.0333,
+        -0.0586,
+        -0.0089,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - hqa",
+       "measure": "every_field_right",
+       "scope": "128k",
+       "value": [
+        -0.1167,
+        -0.1833,
+        -0.05,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - hqa",
+       "measure": "every_field_right",
+       "scope": "64k+128k",
+       "value": [
+        -0.0542,
+        -0.1021,
+        -0.0063,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - hqa",
+       "measure": "by_family_all_lengths",
+       "scope": "join",
+       "value": [
+        -0.0371,
+        -0.0598,
+        -0.0152,
+        20
+       ]
+      },
+      {
+       "pair": "k325-fp8 - hqa",
+       "measure": "by_family_127k",
+       "scope": "join",
+       "value": [
+        -0.1219,
+        -0.2031,
+        -0.0469,
+        20
+       ]
+      },
+      {
+       "pair": "k325-fp8 - compact",
+       "measure": "every_field_right",
+       "scope": "16k",
+       "value": [
+        0.0625,
+        0.0042,
+        0.1208,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - compact",
+       "measure": "every_field_right",
+       "scope": "128k",
+       "value": [
+        -0.0833,
+        -0.1542,
+        -0.0167,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - exlr8-k4",
+       "measure": "score",
+       "scope": "128k",
+       "value": [
+        -0.0536,
+        -0.088,
+        -0.0203,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - exlr8-k4",
+       "measure": "score",
+       "scope": "all",
+       "value": [
+        -0.012,
+        -0.023,
+        -0.0007,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - exlr8-k4",
+       "measure": "score",
+       "scope": "64k+128k",
+       "value": [
+        -0.0276,
+        -0.049,
+        -0.0063,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - exlr8-k4",
+       "measure": "every_field_right",
+       "scope": "128k",
+       "value": [
+        -0.0625,
+        -0.1208,
+        -0.0042,
+        60
+       ]
+      },
+      {
+       "pair": "k325-fp8 - exlr8-k4",
+       "measure": "by_family_all_lengths",
+       "scope": "join",
+       "value": [
+        -0.0363,
+        -0.0563,
+        -0.018,
+        20
+       ]
+      },
+      {
+       "pair": "k325-fp8 - exlr8-k4",
+       "measure": "by_family_127k",
+       "scope": "join",
+       "value": [
+        -0.1297,
+        -0.1938,
+        -0.0656,
+        20
+       ]
+      }
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/requests",
+     "what": "requests",
+     "value": 960
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/errors",
+     "what": "errors",
+     "value": 0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/checks",
+     "what": "same item, seed and prompt-token count as anchor's request",
+     "value": {
+      "requests": 960,
+      "prompt_tokens_equal_to_anchor": 960,
+      "seed_equal_to_anchor": 960,
+      "cached_tokens_nonzero": 0
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/checkpoint",
+     "what": "checkpoint and revision",
+     "value": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc921f1f098b4a56d37aaccb3cdef4096184"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/whole_checkpoint",
+     "what": "what differs",
+     "value": "k325-fp8 differs from every other arm in the whole checkpoint: K3.25 routed experts where the others' are 4-bit, and its own tensors outside them. No difference from another arm is attributable to one component. Its four passes ran alone on 2026-11-12, after the other arms' and not interleaved with them, so a session effect cannot be excluded by design."
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/ran",
+     "what": "when the passes ran",
+     "value": "2026-11-12 11:58 to 16:54, one launch per pass; not interleaved with the other arms; no eight-turn pass"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/amendment",
+     "what": "the amendment: file, hash, when written, what it stated before the data",
+     "value": {
+      "file": "protocol/AMENDMENT-2026-11-12.md",
+      "sha256_as_written": "9d90da18dede0283fff10c34277a59997f3d0effdb2564b362bb57db53521449",
+      "written": "2026-11-12 11:57:02 -0800",
+      "when": "after the four-pass results of sections 11 to 13 were read and published and the ending breakdown of section 14 had been computed; before the first request of the passes it adds",
+      "stated_before_the_data": "no direction was predicted for task score; a level result and a lower one were both called plausible. The total of four passes was fixed before the first request"
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/rule",
+     "what": "rule",
+     "value": "the frozen rule, as four_pass: request score = correct / fields if the reply finished with stop, otherwise 0; repeats averaged within the item; b - a paired by item; 95% interval from 10,000 item resamples, seed 5; [mean, low, high, items]"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/limits",
+     "what": "limits",
+     "value": [
+      "a whole-checkpoint difference",
+      "passes not interleaved with the other arms'",
+      "one checkpoint revision",
+      "the engine's default settings for this checkpoint, under which part of what the file stores at BF16 runs as FP8",
+      "synthetic tasks",
+      "60 items per length and 20 per family",
+      "no eight-turn pass",
+      "BF16 reference to 14.4K only",
+      "the ending definitions were chosen post hoc on the first four arms",
+      "116 intervals in the section and no correction",
+      "a larger reply cap was not tried"
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/analysis/AMEND2.json",
+     "pointer": "/paired/k325-fp8 - anchor/score/128k",
+     "what": "the same figure in the analysis's own file",
+     "value": [
+      -0.051,
+      -0.0865,
+      -0.0172,
+      60
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv",
+    "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+    "results/2026-11-10-context-probe/analysis/samples-extension.csv",
+    "results/2026-11-10-context-probe/analysis/samples-amend2.csv",
+    "results/2026-11-10-context-probe/analysis/AMEND2.json",
+    "results/2026-11-10-context-probe/analysis/amend2.py",
+    "results/2026-11-10-context-probe/protocol/AMENDMENT-2026-11-12.md"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv",
+     "results/2026-11-10-context-probe/analysis/samples-amend2.csv"
+    ],
+    "a": "anchor",
+    "b": "k325-fp8",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/amend2.py",
+    "result": "k325-fp8 - anchor",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_difference_frozen"
+    }
+   },
+   "note": "Estimator: definitions.context_probe.item_paired_difference_frozen over the four single-message passes, with k325-fp8's rows from analysis/samples-amend2.csv beside the other configurations' three tables; the same items, seeds and prompts as the other configurations' passes (checked per request against anchor). The frozen rule applied to a configuration added by a dated amendment, written after the four-pass results and the ending breakdown were read and before its first request: an extension, not the frozen comparison. The four earlier configurations' figures in amendment_2 are the published four-pass figures, recomputed by analysis/amend2.py, which stops if they differ. No eight-turn pass was run."
+  },
+  {
+   "id": "CP-k325-endings",
+   "question": "How did the replies of k325-fp8 end, and what is its lower score at 127K made of?",
+   "answer": "22 of its 960 replies did not finish (anchor 9, hqa 9, compact 18, exlr8-k4 8 for the four), none with answer text, so each scores 0 under the frozen rule. They sit in join at 127K (11 of 80, against anchor 4, hqa 2, compact 10, exlr8-k4 1), join at 64K (2; no other configuration has one there) and ledger at 64K and 127K (4 and 5; the others 3 to 4 at 127K). The 127K difference in score splits by family (arithmetic, no intervals): k325-fp8 - anchor -0.051 = join -0.032, ledger -0.020, trace +0.001; k325-fp8 - hqa -0.058 = join -0.041, ledger -0.019, trace +0.002; k325-fp8 - compact -0.020 = join -0.005, ledger -0.013, trace -0.002; k325-fp8 - exlr8-k4 -0.054 = join -0.043, ledger -0.016, trace +0.006. Its finished join replies at 127K score 0.986 against 0.989 to 0.997; its finished ledger replies 0.832 against 0.860 to 0.872, and no interval on ledger at 127K excludes 0. The join ending is the one CP-fourpass-endings describes: all 11 unfinished join replies at 127K have a copy run, and all eight of the item's correct identifiers (9 replies) or seven of them (2) occur in the reasoning before the run starts (a text match). Paired difference in the share of unfinished join replies at 127K: k325-fp8 - anchor +0.087 [+0.025, +0.150]; k325-fp8 - hqa +0.113 [+0.037, +0.200]; k325-fp8 - compact +0.013 [-0.100, +0.113]; k325-fp8 - exlr8-k4 +0.125 [+0.062, +0.188]. The intervals against anchor, hqa and exlr8-k4 exclude 0; the one against compact includes it. On this count the five configurations fall into two groups (a grouping read after the counts were seen, on intervals not corrected for their number): k325-fp8 and compact (11 and 10 of 80) and the other three (4, 2, 1). Neither the stored bits of o_proj and q_b_proj (anchor 16.0, hqa 16.0, compact 6.0, exlr8-k4 4.0, k325-fp8 12.2; as stored. As run, the load line of k325-fp8 reports the projections of the attention layers the engine calls KDA held as FP8, converted at load, without itemizing matrices, so its as-run width on these two is between 8 bits and the stored figure) nor distance from BF16 orders them that way. What k325-fp8 and compact share that the other three do not is not identified by these runs. Within the one checkpoint where those two projections are the only difference (hqa and compact), the reading of CP-fourpass-endings stands as written: indicated, not established. Not measured: whether a larger reply cap would let these replies finish. 20 share intervals are listed for k325-fp8, of which 9 exclude 0; no correction. Limits: post hoc; the ending definitions and thresholds were chosen on the first four configurations before these passes ran and are applied unchanged; 20 items per family; a whole-checkpoint difference; passes not interleaved with the other configurations'; reply text is not published, only the derived per-reply counts.",
+   "status": "measurement: post hoc",
+   "result": {
+    "name": "unfinished join replies at 127K, four passes, per configuration",
+    "value": {
+     "anchor": 4,
+     "hqa": 2,
+     "compact": 10,
+     "exlr8-k4": 1,
+     "k325-fp8": 11
+    },
+    "of": 80,
+    "by_pass": {
+     "anchor": [
+      3,
+      1,
+      0,
+      0
+     ],
+     "hqa": [
+      0,
+      2,
+      0,
+      0
+     ],
+     "compact": [
+      1,
+      2,
+      4,
+      3
+     ],
+     "exlr8-k4": [
+      0,
+      0,
+      1,
+      0
+     ],
+     "k325-fp8": [
+      4,
+      3,
+      2,
+      2
+     ]
+    },
+    "paired_share_difference": {
+     "k325-fp8 - anchor": 0.0875,
+     "k325-fp8 - hqa": 0.1125,
+     "k325-fp8 - compact": 0.0125,
+     "k325-fp8 - exlr8-k4": 0.125
+    },
+    "ci95": {
+     "k325-fp8 - anchor": [
+      0.025,
+      0.15
+     ],
+     "k325-fp8 - hqa": [
+      0.0375,
+      0.2
+     ],
+     "k325-fp8 - compact": [
+      -0.1,
+      0.1125
+     ],
+     "k325-fp8 - exlr8-k4": [
+      0.0625,
+      0.1875
+     ]
+    },
+    "ci_over": "items",
+    "score_gap_127k": {
+     "k325-fp8 - anchor": {
+      "all": -0.051,
+      "join": -0.0318,
+      "ledger": -0.0198,
+      "trace": 0.0005
+     },
+     "k325-fp8 - hqa": {
+      "all": -0.0578,
+      "join": -0.0406,
+      "ledger": -0.0188,
+      "trace": 0.0016
+     },
+     "k325-fp8 - compact": {
+      "all": -0.0203,
+      "join": -0.0052,
+      "ledger": -0.0135,
+      "trace": -0.0016
+     },
+     "k325-fp8 - exlr8-k4": {
+      "all": -0.0536,
+      "join": -0.0432,
+      "ledger": -0.0161,
+      "trace": 0.0057
+     }
+    },
+    "k325-fp8 - anchor": {
+     "name": "share of unfinished join replies at 127K, k325-fp8 - anchor, four passes",
+     "value": 0.0875,
+     "ci95": [
+      0.025,
+      0.15
+     ],
+     "items": 20,
+     "ci_over": "items"
+    }
+   },
+   "direction": "counts of unfinished replies: lower is fewer; share differences are b - a with b = k325-fp8 (above 0 = k325-fp8 left more replies unfinished)",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#k325",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/unfinished/total",
+     "what": "k325-fp8: unfinished replies, four passes",
+     "value": 22
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/unfinished/with_answer_text",
+     "what": "of which with any answer text",
+     "value": 0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/unfinished/by_family_length/k325-fp8",
+     "what": "k325-fp8: unfinished replies by task family and length",
+     "value": {
+      "join": {
+       "4k": 0,
+       "16k": 0,
+       "64k": 2,
+       "128k": 11
+      },
+      "ledger": {
+       "4k": 0,
+       "16k": 0,
+       "64k": 4,
+       "128k": 5
+      },
+      "trace": {
+       "4k": 0,
+       "16k": 0,
+       "64k": 0,
+       "128k": 0
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/unfinished/by_kind",
+     "what": "k325-fp8: unfinished replies by what the reasoning was doing and how the reply was ended",
+     "value": {
+      "copying, cap": 17,
+      "copying, loop abort": 0,
+      "other, cap": 4,
+      "other, loop abort": 1
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/anchor/all/unfinished",
+     "what": "anchor: unfinished replies of 960",
+     "value": 9
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/hqa/all/unfinished",
+     "what": "hqa: unfinished replies of 960",
+     "value": 9
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/compact/all/unfinished",
+     "what": "compact: unfinished replies of 960",
+     "value": 18
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/exlr8-k4/all/unfinished",
+     "what": "exlr8-k4: unfinished replies of 960",
+     "value": 8
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/by_length/k325-fp8/all/unfinished",
+     "what": "k325-fp8: unfinished replies of 960",
+     "value": 22
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k/anchor",
+     "what": "anchor: join at 127K, four passes (unfinished, copy runs, identifiers written before the run)",
+     "value": {
+      "requests": 80,
+      "unfinished": 4,
+      "with_copy_run": 8,
+      "copy_run_finished": 4,
+      "copy_run_unfinished": 4,
+      "unfinished_without_copy_run": 0,
+      "copy_run_unfinished_all_8_docks_before": 3,
+      "copy_run_unfinished_7_docks_before": 1,
+      "copy_run_finished_score": 1.0,
+      "no_copy_run_finished_score": 0.9948,
+      "items_with_unfinished": 4
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k/hqa",
+     "what": "hqa: join at 127K, four passes (unfinished, copy runs, identifiers written before the run)",
+     "value": {
+      "requests": 80,
+      "unfinished": 2,
+      "with_copy_run": 5,
+      "copy_run_finished": 3,
+      "copy_run_unfinished": 2,
+      "unfinished_without_copy_run": 0,
+      "copy_run_unfinished_all_8_docks_before": 0,
+      "copy_run_unfinished_7_docks_before": 2,
+      "copy_run_finished_score": 1.0,
+      "no_copy_run_finished_score": 0.9967,
+      "items_with_unfinished": 2
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k/compact",
+     "what": "compact: join at 127K, four passes (unfinished, copy runs, identifiers written before the run)",
+     "value": {
+      "requests": 80,
+      "unfinished": 10,
+      "with_copy_run": 11,
+      "copy_run_finished": 2,
+      "copy_run_unfinished": 9,
+      "unfinished_without_copy_run": 1,
+      "copy_run_unfinished_all_8_docks_before": 9,
+      "copy_run_unfinished_7_docks_before": 0,
+      "copy_run_finished_score": 1.0,
+      "no_copy_run_finished_score": 0.989,
+      "items_with_unfinished": 8
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k/exlr8-k4",
+     "what": "exlr8-k4: join at 127K, four passes (unfinished, copy runs, identifiers written before the run)",
+     "value": {
+      "requests": 80,
+      "unfinished": 1,
+      "with_copy_run": 4,
+      "copy_run_finished": 3,
+      "copy_run_unfinished": 1,
+      "unfinished_without_copy_run": 0,
+      "copy_run_unfinished_all_8_docks_before": 1,
+      "copy_run_unfinished_7_docks_before": 0,
+      "copy_run_finished_score": 0.9583,
+      "no_copy_run_finished_score": 0.9934,
+      "items_with_unfinished": 1
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k/k325-fp8",
+     "what": "k325-fp8: join at 127K, four passes (unfinished, copy runs, identifiers written before the run)",
+     "value": {
+      "requests": 80,
+      "unfinished": 11,
+      "with_copy_run": 15,
+      "copy_run_finished": 4,
+      "copy_run_unfinished": 11,
+      "unfinished_without_copy_run": 0,
+      "copy_run_unfinished_all_8_docks_before": 9,
+      "copy_run_unfinished_7_docks_before": 2,
+      "copy_run_finished_score": 0.9688,
+      "no_copy_run_finished_score": 0.9865,
+      "items_with_unfinished": 9
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k_unfinished_by_pass/anchor",
+     "what": "anchor: unfinished join replies at 127K by pass",
+     "value": [
+      3,
+      1,
+      0,
+      0
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k_unfinished_by_pass/hqa",
+     "what": "hqa: unfinished join replies at 127K by pass",
+     "value": [
+      0,
+      2,
+      0,
+      0
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k_unfinished_by_pass/compact",
+     "what": "compact: unfinished join replies at 127K by pass",
+     "value": [
+      1,
+      2,
+      4,
+      3
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k_unfinished_by_pass/exlr8-k4",
+     "what": "exlr8-k4: unfinished join replies at 127K by pass",
+     "value": [
+      0,
+      0,
+      1,
+      0
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/join_127k_unfinished_by_pass/k325-fp8",
+     "what": "k325-fp8: unfinished join replies at 127K by pass",
+     "value": [
+      4,
+      3,
+      2,
+      2
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/score_127k/anchor/by_family",
+     "what": "anchor: score at 127K by family, unfinished replies, and score of the finished replies alone",
+     "value": {
+      "join": {
+       "score": 0.9453,
+       "unfinished": 4,
+       "finished_only": 0.9951,
+       "requests": 80
+      },
+      "ledger": {
+       "score": 0.8391,
+       "unfinished": 3,
+       "finished_only": 0.8718,
+       "requests": 80
+      },
+      "trace": {
+       "score": 0.9688,
+       "unfinished": 0,
+       "finished_only": 0.9688,
+       "requests": 80
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/score_127k/hqa/by_family",
+     "what": "hqa: score at 127K by family, unfinished replies, and score of the finished replies alone",
+     "value": {
+      "join": {
+       "score": 0.9719,
+       "unfinished": 2,
+       "finished_only": 0.9968,
+       "requests": 80
+      },
+      "ledger": {
+       "score": 0.8359,
+       "unfinished": 3,
+       "finished_only": 0.8685,
+       "requests": 80
+      },
+      "trace": {
+       "score": 0.9656,
+       "unfinished": 0,
+       "finished_only": 0.9656,
+       "requests": 80
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/score_127k/compact/by_family",
+     "what": "compact: score at 127K by family, unfinished replies, and score of the finished replies alone",
+     "value": {
+      "join": {
+       "score": 0.8656,
+       "unfinished": 10,
+       "finished_only": 0.9893,
+       "requests": 80
+      },
+      "ledger": {
+       "score": 0.8203,
+       "unfinished": 4,
+       "finished_only": 0.8635,
+       "requests": 80
+      },
+      "trace": {
+       "score": 0.975,
+       "unfinished": 0,
+       "finished_only": 0.975,
+       "requests": 80
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/score_127k/exlr8-k4/by_family",
+     "what": "exlr8-k4: score at 127K by family, unfinished replies, and score of the finished replies alone",
+     "value": {
+      "join": {
+       "score": 0.9797,
+       "unfinished": 1,
+       "finished_only": 0.9921,
+       "requests": 80
+      },
+      "ledger": {
+       "score": 0.8281,
+       "unfinished": 3,
+       "finished_only": 0.8604,
+       "requests": 80
+      },
+      "trace": {
+       "score": 0.9531,
+       "unfinished": 0,
+       "finished_only": 0.9531,
+       "requests": 80
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/score_127k/k325-fp8/by_family",
+     "what": "k325-fp8: score at 127K by family, unfinished replies, and score of the finished replies alone",
+     "value": {
+      "join": {
+       "score": 0.85,
+       "unfinished": 11,
+       "finished_only": 0.9855,
+       "requests": 80
+      },
+      "ledger": {
+       "score": 0.7797,
+       "unfinished": 5,
+       "finished_only": 0.8317,
+       "requests": 80
+      },
+      "trace": {
+       "score": 0.9703,
+       "unfinished": 0,
+       "finished_only": 0.9703,
+       "requests": 80
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/gap_127k_by_family/k325-fp8 - anchor",
+     "what": "k325-fp8 - anchor: difference in score at 127K, all families and by family",
+     "value": {
+      "all": -0.051,
+      "join": -0.0318,
+      "ledger": -0.0198,
+      "trace": 0.0005
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/gap_127k_by_family/k325-fp8 - hqa",
+     "what": "k325-fp8 - hqa: difference in score at 127K, all families and by family",
+     "value": {
+      "all": -0.0578,
+      "join": -0.0406,
+      "ledger": -0.0188,
+      "trace": 0.0016
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/gap_127k_by_family/k325-fp8 - compact",
+     "what": "k325-fp8 - compact: difference in score at 127K, all families and by family",
+     "value": {
+      "all": -0.0203,
+      "join": -0.0052,
+      "ledger": -0.0135,
+      "trace": -0.0016
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/gap_127k_by_family/k325-fp8 - exlr8-k4",
+     "what": "k325-fp8 - exlr8-k4: difference in score at 127K, all families and by family",
+     "value": {
+      "all": -0.0536,
+      "join": -0.0432,
+      "ledger": -0.0161,
+      "trace": 0.0057
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - anchor/unfinished_127k_join",
+     "what": "k325-fp8 - anchor: paired difference in the share of unfinished join replies at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0875,
+      0.025,
+      0.15,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - hqa/unfinished_127k_join",
+     "what": "k325-fp8 - hqa: paired difference in the share of unfinished join replies at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.1125,
+      0.0375,
+      0.2,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - compact/unfinished_127k_join",
+     "what": "k325-fp8 - compact: paired difference in the share of unfinished join replies at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.0125,
+      -0.1,
+      0.1125,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - exlr8-k4/unfinished_127k_join",
+     "what": "k325-fp8 - exlr8-k4: paired difference in the share of unfinished join replies at 127K [estimate, 2.5%, 97.5%, items]",
+     "value": [
+      0.125,
+      0.0625,
+      0.1875,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - anchor/by_family_127k/ledger",
+     "what": "k325-fp8 - anchor: field score on ledger at 127K",
+     "value": [
+      -0.0594,
+      -0.1359,
+      0.0203,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - hqa/by_family_127k/ledger",
+     "what": "k325-fp8 - hqa: field score on ledger at 127K",
+     "value": [
+      -0.0563,
+      -0.1187,
+      0.0078,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - compact/by_family_127k/ledger",
+     "what": "k325-fp8 - compact: field score on ledger at 127K",
+     "value": [
+      -0.0406,
+      -0.0969,
+      0.0094,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/by_family_127k/ledger",
+     "what": "k325-fp8 - exlr8-k4: field score on ledger at 127K",
+     "value": [
+      -0.0484,
+      -0.1094,
+      0.0156,
+      20
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/anchor/by_component/attention: o_proj and q_b_proj/bits_per_weight",
+     "what": "anchor: stored bits per weight of o_proj and q_b_proj",
+     "value": 16.0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/hqa/by_component/attention: o_proj and q_b_proj/bits_per_weight",
+     "what": "hqa: stored bits per weight of o_proj and q_b_proj",
+     "value": 16.0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/compact/by_component/attention: o_proj and q_b_proj/bits_per_weight",
+     "what": "compact: stored bits per weight of o_proj and q_b_proj",
+     "value": 6.0062
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/exlr8-k4/by_component/attention: o_proj and q_b_proj/bits_per_weight",
+     "what": "exlr8-k4: stored bits per weight of o_proj and q_b_proj",
+     "value": 4.0062
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/k325-fp8/by_component/attention: o_proj and q_b_proj/bits_per_weight",
+     "what": "k325-fp8: stored bits per weight of o_proj and q_b_proj",
+     "value": 12.2344
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/as_run/k325-fp8",
+     "what": "k325-fp8: as stored against as run",
+     "value": "under the engine's defaults the load line reports the projections of the attention layers it calls KDA held as FP8, converted at load (kda_fp8=Row128, 0 MiB as BF16), and an FP8 output head; part of what the file stores at BF16 is run at FP8. An as-run bits-per-weight figure is not computed, because the logs do not itemize the conversion by matrix"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired_unfinished_share/intervals",
+     "what": "share intervals listed",
+     "value": 20
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/paired_unfinished_share/excluding_zero",
+     "what": "of which exclude 0",
+     "value": 9
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/endings/terms",
+     "what": "definitions, as written for the first four configurations",
+     "value": {
+      "unfinished": "finish class other than stop: cap (the reply reached the 32,768-token reply cap) or repetition (the engine's loop abort); scores 0 under the frozen rule",
+      "step line": "a line of the reasoning that carries the record following, in the prompt, the record of the previous such line",
+      "copy share": "characters on step lines / characters of the reasoning",
+      "copying": "copy share >= 0.5",
+      "copy run": "20 or more consecutive step lines",
+      "answers written before the run": "of the item's eight correct dock identifiers, how many occur in the reasoning before the copy run starts; a text match that does not check which courier each was attached to"
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/analysis/AMEND2.json",
+     "pointer": "/unfinished/total",
+     "what": "the same count in the analysis's own file",
+     "value": 22
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/analysis/samples.csv",
+    "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+    "results/2026-11-10-context-probe/analysis/samples-extension.csv",
+    "results/2026-11-10-context-probe/analysis/samples-amend2.csv",
+    "results/2026-11-10-context-probe/analysis/AMEND2.json",
+    "results/2026-11-10-context-probe/analysis/endings-amend2.csv",
+    "results/2026-11-10-context-probe/analysis/amend2.py"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv",
+     "results/2026-11-10-context-probe/analysis/samples-amend2.csv"
+    ],
+    "a": "anchor",
+    "b": "k325-fp8",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/amend2.py",
+    "result": "k325-fp8 - anchor",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_unfinished_share"
+    },
+    "value": "unfinished",
+    "family": "join"
+   },
+   "note": "Definitions as in CP-fourpass-endings (unfinished, step line, copy share, copy run), applied unchanged; share of unfinished replies by definitions.context_probe.item_paired_unfinished_share (20 join items; 10,000 item resamples, Python random.Random(5), sorted-draw indices 250 and 9,749). Difference in score by family: each family's mean request score x its share of the requests (one third). analysis/amend2.py recomputes analysis/AMEND2.json from the per-request tables and analysis/endings-amend2.csv, whose per-reply counts were derived from reply text that is not published."
+  },
+  {
+   "id": "CP-k325-bf16-distance",
+   "question": "How far is k325-fp8 from the unquantized BF16 model, next to the four configurations with 4-bit experts?",
+   "answer": "Farther than each of the four on both reference sets. Fidelity set (coarse KL from BF16, generated positions, contexts to 14.4K): 0.0485 [0.0411, 0.0547] against hqa 0.0302, compact 0.0314, anchor 0.0328, exlr8-k4 0.0360. Teacher panel (full-vocabulary KL, 2K contexts): 0.0476 [0.0364, 0.0605] against anchor 0.0320, hqa 0.0316, compact 0.0297, exlr8-k4 0.0305. Paired on the same rows, fidelity set: k325-fp8 - anchor +0.0157 [+0.0121, +0.0194]; k325-fp8 - hqa +0.0183 [+0.0149, +0.0216]; k325-fp8 - compact +0.0171 [+0.0136, +0.0208]; k325-fp8 - exlr8-k4 +0.0124 [+0.0097, +0.0153]; teacher panel: k325-fp8 - anchor +0.0155 [+0.0115, +0.0197]; k325-fp8 - hqa +0.0159 [+0.0118, +0.0203]; k325-fp8 - compact +0.0179 [+0.0122, +0.0246]; k325-fp8 - exlr8-k4 +0.0170 [+0.0111, +0.0238]. All 20 intervals computed (16 on the fidelity set, overall and in three context buckets, and 4 on the teacher panel) exclude 0; no correction. That is 2.24 times the baseline recorded for the official FP8 model in the fidelity set's manifest (0.0216; quoted, not recomputed here), where the four are 1.4 to 1.7 times. The same checkpoint measured 0.0484 and 0.0476 on CuteAFD v3.0.1 on 2026-10-26 (the K3.25 row quoted for scale in CP-bf16-distance): the teacher-panel figure is the same to the last digit recorded and the fidelity-set figure differs in the fourth decimal. It passes the engine CLI's own fidelity gate on the fidelity set, four thresholds on point estimates: KL 0.0485 against at most 0.05, same most likely token 0.9332 against at least 0.93, the same where BF16 is confident 0.9630 against at least 0.96, top-3 containment 0.9948 against at least 0.97; the upper end of the KL interval, 0.0547, is above that threshold. A second launch reproduced the fidelity-set result exactly (KL difference 0.0, the same most likely token on 15,104 of 15,104 generated positions). The two kinds of measurement separate k325-fp8 from the four at different lengths: distance from BF16 is measured to 14.4K, where its task score is level with theirs; its task difference is at 127K, where there is no BF16 reference (CP-k325-tasks). The difference is a whole checkpoint's: K3.25 experts and its own tensors outside them, so the distance is not attributable to one component. Limits: one engine build; one checkpoint revision; prefill path only; contexts to 14.4K; the teacher panel is drawn from the corpus the producer of the K4 experts published and can favour K4 experts.",
+   "status": "measurement: planned descriptive",
+   "result": {
+    "name": "KL from the BF16 model, fidelity set, generated positions, k325-fp8 [estimate, 2.5%, 97.5%]",
+    "value": 0.048479076,
+    "ci95": [
+     0.041145436,
+     0.054734572
+    ],
+    "ci_over": "windows",
+    "teacher_panel": [
+     0.047556257,
+     0.036409951,
+     0.060460366
+    ],
+    "difference_from_each_of_the_four_fidelity_set": {
+     "k325-fp8 - anchor": [
+      0.015662316,
+      0.01208763,
+      0.019443583
+     ],
+     "k325-fp8 - hqa": [
+      0.018252895,
+      0.014861374,
+      0.021620406
+     ],
+     "k325-fp8 - compact": [
+      0.017079631,
+      0.01362709,
+      0.020794126
+     ],
+     "k325-fp8 - exlr8-k4": [
+      0.012444584,
+      0.009736568,
+      0.015323282
+     ]
+    },
+    "difference_from_each_of_the_four_teacher_panel": {
+     "k325-fp8 - anchor": [
+      0.015508323,
+      0.011537581,
+      0.019693279
+     ],
+     "k325-fp8 - hqa": [
+      0.015936101,
+      0.011788964,
+      0.020337021
+     ],
+     "k325-fp8 - compact": [
+      0.017857138,
+      0.012221599,
+      0.024647255
+     ],
+     "k325-fp8 - exlr8-k4": [
+      0.017049599,
+      0.011088859,
+      0.023840753
+     ]
+    },
+    "the_four_fidelity_set": {
+     "anchor": 0.032816759,
+     "hqa": 0.030226181,
+     "compact": 0.031399445,
+     "exlr8-k4": 0.036034492
+    }
+   },
+   "direction": "KL(BF16 || configuration) in nats: 0 is identical, lower is closer; differences are b - a with b = k325-fp8 (above 0 = k325-fp8 is farther from BF16)",
+   "engine": "tpurtell/cuteafd v5.0.0, unmodified launcher",
+   "run": "results/2026-11-10-context-probe",
+   "page": "https://urbanastrola.github.io/cuteafd-eval/v5.html#k325",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/fidelity_set/kl",
+     "what": "k325-fp8: fidelity set, coarse KL from BF16 [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.048479076,
+      0.041145436,
+      0.054734572
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/teacher_panel/kl",
+     "what": "k325-fp8: teacher panel, full-vocabulary KL from BF16 [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.047556257,
+      0.036409951,
+      0.060460366
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/anchor/fidelity_set/kl",
+     "what": "anchor: fidelity set, coarse KL from BF16",
+     "value": [
+      0.032816759,
+      0.027497969,
+      0.037718898
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/hqa/fidelity_set/kl",
+     "what": "hqa: fidelity set, coarse KL from BF16",
+     "value": [
+      0.030226181,
+      0.025497097,
+      0.034352905
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/compact/fidelity_set/kl",
+     "what": "compact: fidelity set, coarse KL from BF16",
+     "value": [
+      0.031399445,
+      0.026316321,
+      0.035880283
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/exlr8-k4/fidelity_set/kl",
+     "what": "exlr8-k4: fidelity set, coarse KL from BF16",
+     "value": [
+      0.036034492,
+      0.03003981,
+      0.041613023
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/anchor/teacher_panel/kl",
+     "what": "anchor: teacher panel, full-vocabulary KL from BF16",
+     "value": [
+      0.032047934,
+      0.024112207,
+      0.041850976
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/hqa/teacher_panel/kl",
+     "what": "hqa: teacher panel, full-vocabulary KL from BF16",
+     "value": [
+      0.031620155,
+      0.02380132,
+      0.041028997
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/compact/teacher_panel/kl",
+     "what": "compact: teacher panel, full-vocabulary KL from BF16",
+     "value": [
+      0.029699118,
+      0.023590257,
+      0.036408059
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/arms/exlr8-k4/teacher_panel/kl",
+     "what": "exlr8-k4: teacher panel, full-vocabulary KL from BF16",
+     "value": [
+      0.030506658,
+      0.02436394,
+      0.037372209
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - anchor/fidelity_set/overall",
+     "what": "k325-fp8 - anchor: fidelity set, overall, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.015662316,
+      0.01208763,
+      0.019443583
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - anchor/fidelity_set/0-2K",
+     "what": "k325-fp8 - anchor: fidelity set, 0-2K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.01517345,
+      0.008584201,
+      0.025353109
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - anchor/fidelity_set/2-8K",
+     "what": "k325-fp8 - anchor: fidelity set, 2-8K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.011343036,
+      0.004975882,
+      0.017713303
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - anchor/fidelity_set/8-16K",
+     "what": "k325-fp8 - anchor: fidelity set, 8-16K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.017961314,
+      0.013476473,
+      0.022231313
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - hqa/fidelity_set/overall",
+     "what": "k325-fp8 - hqa: fidelity set, overall, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.018252895,
+      0.014861374,
+      0.021620406
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - hqa/fidelity_set/0-2K",
+     "what": "k325-fp8 - hqa: fidelity set, 0-2K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.019903928,
+      0.011917465,
+      0.02949565
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - hqa/fidelity_set/2-8K",
+     "what": "k325-fp8 - hqa: fidelity set, 2-8K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.01093242,
+      0.005462631,
+      0.016267874
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - hqa/fidelity_set/8-16K",
+     "what": "k325-fp8 - hqa: fidelity set, 8-16K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.020819207,
+      0.017519764,
+      0.0239498
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - compact/fidelity_set/overall",
+     "what": "k325-fp8 - compact: fidelity set, overall, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.017079631,
+      0.01362709,
+      0.020794126
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - compact/fidelity_set/0-2K",
+     "what": "k325-fp8 - compact: fidelity set, 0-2K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.017643291,
+      0.011077633,
+      0.026998981
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - compact/fidelity_set/2-8K",
+     "what": "k325-fp8 - compact: fidelity set, 2-8K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.009778702,
+      0.004155256,
+      0.016156559
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - compact/fidelity_set/8-16K",
+     "what": "k325-fp8 - compact: fidelity set, 8-16K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.020220023,
+      0.016184837,
+      0.024051835
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - exlr8-k4/fidelity_set/overall",
+     "what": "k325-fp8 - exlr8-k4: fidelity set, overall, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.012444584,
+      0.009736568,
+      0.015323282
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - exlr8-k4/fidelity_set/0-2K",
+     "what": "k325-fp8 - exlr8-k4: fidelity set, 0-2K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.01348235,
+      0.006795989,
+      0.022448403
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - exlr8-k4/fidelity_set/2-8K",
+     "what": "k325-fp8 - exlr8-k4: fidelity set, 2-8K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.008268918,
+      0.004039691,
+      0.013287764
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - exlr8-k4/fidelity_set/8-16K",
+     "what": "k325-fp8 - exlr8-k4: fidelity set, 8-16K, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.013856935,
+      0.011104746,
+      0.016375496
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - anchor/teacher_panel",
+     "what": "k325-fp8 - anchor: teacher panel, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.015508323,
+      0.011537581,
+      0.019693279
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - hqa/teacher_panel",
+     "what": "k325-fp8 - hqa: teacher panel, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.015936101,
+      0.011788964,
+      0.020337021
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - compact/teacher_panel",
+     "what": "k325-fp8 - compact: teacher panel, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.017857138,
+      0.012221599,
+      0.024647255
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - exlr8-k4/teacher_panel",
+     "what": "k325-fp8 - exlr8-k4: teacher panel, difference in KL [estimate, 2.5%, 97.5%]",
+     "value": [
+      0.017049599,
+      0.011088859,
+      0.023840753
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/intervals",
+     "what": "intervals listed and how many exclude 0",
+     "value": {
+      "listed": 20,
+      "fidelity_set": 16,
+      "teacher_panel": 4,
+      "excluding_zero": 20,
+      "selected": "none",
+      "note": "four pairs x (fidelity set overall and three buckets, teacher panel); all 20 exclude 0; no correction for the number of intervals"
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/times_the_fp8_figure",
+     "what": "times the recorded FP8 baseline",
+     "value": 2.24
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bf16_distance/yardsticks/official_fp8_release/fidelity_set_kl",
+     "what": "official FP8 model: the baseline recorded in the fidelity set's manifest; quoted, not recomputed in this repository",
+     "value": 0.0216
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/earlier_release",
+     "what": "the same checkpoint on CuteAFD v3.0.1 (2026-10-26 run)",
+     "value": {
+      "about": "the same checkpoint on CuteAFD v3.0.1, measured 2026-10-26; same sets and measures (bf16ref/BF16REF.json, yardsticks)",
+      "fidelity_set_kl": 0.048444655,
+      "teacher_panel_kl": 0.047556257
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/fidelity_set/fidelity_gate",
+     "what": "the engine CLI's fidelity gate",
+     "value": {
+      "pass": true,
+      "kl_max": 0.05,
+      "top1_min": 0.93,
+      "confident_top1_min": 0.96,
+      "top3_min": 0.97,
+      "top3": 0.994835805
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/fidelity_set/top1",
+     "what": "most likely token the same as BF16's",
+     "value": 0.933196504
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/fidelity_set/confident_top1",
+     "what": "most likely token the same where BF16 is confident",
+     "value": 0.96299776
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/repeat",
+     "what": "second launch",
+     "value": {
+      "about": "a second launch, fidelity set, same scorer",
+      "kl_difference": 0.0,
+      "same_argmax_generated_positions": [
+       15104,
+       15104
+      ]
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/port_against_cli",
+     "what": "float64 port against the engine CLI, per launch",
+     "value": {
+      "about": "the float64 port used for the intervals against the engine CLI's own per-record output, record by record, per launch",
+      "r0": {
+       "records_agreeing": [
+        32768,
+        32768
+       ],
+       "largest_kl_difference": 0.0
+      },
+      "r1": {
+       "records_agreeing": [
+        32768,
+        32768
+       ],
+       "largest_kl_difference": 0.0
+      }
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/ran",
+     "what": "when the capture ran",
+     "value": "2026-11-12 16:54 to 17:09, two launches, every step exit 0; the engine's fidelity CLI completed, so the stage's fallback capture was not used"
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/plan",
+     "what": "plan",
+     "value": {
+      "file": "bf16ref/ADDENDUM-BF16REF.md",
+      "amendment": "protocol/AMENDMENT-2026-11-12.md, section B5",
+      "status": "descriptive; every interval computed is listed"
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/amendment_2/bf16_distance/limits",
+     "what": "limits",
+     "value": [
+      "one engine build",
+      "one checkpoint revision",
+      "prefill path only",
+      "contexts to 14.4K",
+      "the teacher panel is drawn from the corpus the producer of the K4 experts published and can favour K4 experts"
+     ]
+    },
+    {
+     "file": "results/2026-11-10-context-probe/bf16ref/BF16REF-AMEND2.json",
+     "pointer": "/arms/k325-fp8/fidelity_set/kl",
+     "what": "the same figure in the stage's published file",
+     "value": [
+      0.048479076,
+      0.041145436,
+      0.054734572
+     ]
+    }
+   ],
+   "data": [
+    "results/2026-11-10-context-probe/bf16ref/BF16REF-AMEND2.json",
+    "results/2026-11-10-context-probe/bf16ref/BF16REF.json",
+    "results/2026-11-10-context-probe/bf16ref/ADDENDUM-BF16REF.md",
+    "results/2026-11-10-context-probe/protocol/AMENDMENT-2026-11-12.md"
+   ],
+   "recompute": {
+    "kind": "window_ratio_bootstrap",
+    "data": "results/2026-11-10-context-probe/bf16ref/BF16REF-AMEND2.json",
+    "windows": "/fidelity_set_windows",
+    "bootstrap": {
+     "replicates": 5000,
+     "seed": 20260829,
+     "rng": "SplitMix64",
+     "unit": "window",
+     "percentiles": [
+      2.5,
+      97.5
+     ],
+     "interpolation": "linear",
+     "draw": "windows sorted by id; each replicate draws one window index per window, with replacement (rejection sampling on the 64-bit output, then modulo), and takes sum of window sums / sum of window positions; the same stream serves a difference b - a, whose window sum is positions x (mean KL of b - mean KL of a)",
+     "definition": "definitions.context_probe.fidelity_set_coarse_kl"
+    },
+    "windows_with": [
+     {
+      "data": "results/2026-11-10-context-probe/bf16ref/BF16REF.json",
+      "windows": "/fidelity_set_windows"
+     }
+    ],
+    "checks": [
+     {
+      "b": "k325-fp8",
+      "pointer": "/arms/k325-fp8/fidelity_set/kl"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "anchor",
+      "pointer": "/differences/k325-fp8 - anchor/fidelity_set/overall"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "hqa",
+      "pointer": "/differences/k325-fp8 - hqa/fidelity_set/overall"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "compact",
+      "pointer": "/differences/k325-fp8 - compact/fidelity_set/overall"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "exlr8-k4",
+      "pointer": "/differences/k325-fp8 - exlr8-k4/fidelity_set/overall"
+     }
+    ]
+   },
+   "note": "Estimators as in CP-bf16-distance (definitions.context_probe.fidelity_set_coarse_kl and teacher_panel_kl), with the plan of that stage (bf16ref/ADDENDUM-BF16REF.md) applied to the fifth configuration by section B5 of amendment 2, written before its first request. bf16ref/BF16REF-AMEND2.json holds k325-fp8's per-window figures; tools/verify.py joins them with the four configurations' windows of bf16ref/BF16REF.json by window id (recompute.windows_with) and recomputes the fidelity-set value, its interval and the four overall differences. The capture ran on 2026-11-12 after the task passes, two launches. Score files, per-row tables and dumps are not published."
   }
  ]
 }

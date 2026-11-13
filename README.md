@@ -68,8 +68,18 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
   25.5% to 27.2% of the BF16 model. The routed experts are 94.9% of the weights and sit at 4 bits in all four, so
   in size the configurations differ only in the remaining few percent (16.00, 9.66, 7.25 and 6.55 bits there). A size, not a
   quality score. A fifth configuration, `k325-fp8` (K3.25 experts, run with an FP8 core; 3.55 bits as its files are stored, 22.2% of BF16), was
-  added by a dated amendment; its passes are running and it has no measured figures yet. The v5 page carries a short primer
+  added by a dated amendment and measured the same day (next line). The v5 page carries a short primer
   on the formats.
+- **A fifth configuration (added 2026-11-12, amendment 2): `k325-fp8`, K3.25 experts with an FP8 core, 3.55 bits per weight.**
+  Four single-message passes, 960 requests, read by the same rule. To 16K its field score is level with the other four. At
+  127K it is lower than `anchor`, `hqa` and `exlr8-k4` (0.867 against 0.918 to 0.924; paired −0.051 [−0.086, −0.017], −0.058 [−0.095, −0.023], −0.054 [−0.088, −0.020])
+  and not separated from `compact` (−0.020 [−0.059, +0.020]). Most of that gap is `join` replies that did not finish
+  (11 of 80 at 127K, against 10 for `compact` and 4, 2, 1 for the other three). It is farther from the BF16 model
+  than each of the four on both reference sets (fidelity set KL 0.0485 against 0.0302 to 0.0360; all 20 paired intervals
+  exclude 0). It holds 24,134 to 30,970 MiB less in resident weights; with the same KV pool admitted, that stayed
+  unused in these launches. The difference is a whole checkpoint's (experts and core together), its passes ran after the
+  other configurations' and were not interleaved with them, and no direction was predicted. Section 16 of `RESULTS.md` in the
+  run folder, and the v5 page.
 - **Accuracy falls with length in every probe arm, `anchor` included** (two passes: 0.98 at 4K, 0.89 to 0.91 at 127K), so
   that loss is not produced by core precision. A third to a half of it is replies that did not finish. Added 2026-11-12, four passes: the fall from 4K to 127K is about 0.06 in
   every configuration, `exlr8-k4` included, and about 0.09 in `compact` (its 127K gap above). The tasks are shared too and no unquantized model ran

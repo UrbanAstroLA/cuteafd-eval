@@ -915,7 +915,7 @@ def V5_LATEST(lk):
     lo4 = min(SL[a]["single"]["4k"]["score"] for a in SL); hi4 = max(SL[a]["single"]["4k"]["score"] for a in SL)
     kv = S["launch"]["kv_pool_tokens_serving"]["anchor"]
     v5 = lk("CuteAFD v5", "v5.html", "results/2026-11-10-context-probe/")
-    ref = ref4 = ext = bf = tr = led4 = kv4 = len4 = end = bits = ""; two = "frozen rule"; dates = "2026-11-10/11"
+    ref = ref4 = ext = bf = tr = led4 = kv4 = len4 = end = bits = k5 = ""; two = "frozen rule"; dates = "2026-11-10/11"
     if "four_pass" in S:                    # amendment 1 (four passes) and the BF16 stage, added 2026-11-12; beside the frozen two-pass result
         Q = S["four_pass"]; B = S["bf16_distance"]; two = "frozen rule, two passes"; dates = "2026-11-10/12"
         fmt = lambda v: "%s [%s, %s]" % tuple(("0.000" if round(x, 3) == 0 else f"{x:+.3f}").replace("-", "−") for x in v[:3])
@@ -955,7 +955,7 @@ def V5_LATEST(lk):
                    f"  Whether the K6 projections raise its rate is indicated, not established: the paired difference in the share of unfinished `join`\n"
                    f"  replies is {fmt(ch)} for `compact` − `hqa` and {fmt(ca)} for `compact` − `anchor`, with no excess in passes 1-2 alone. Post hoc.\n")
             BW = S["bits_per_weight"]; BA = BW["arms"]; b2 = lambda a: f"{BA[a]['bits_per_weight']:.2f}"; rl = [BA[a]["relative_to_bf16"] for a in A4]
-            if tuple(BA) != A4 + ("k325-fp8",) or BW["k325-fp8"]["status"] != "running" or BW["bf16_bits_per_weight"] != 16:
+            if tuple(BA) != A4 + ("k325-fp8",) or BW["k325-fp8"]["status"] != "measured (amendment_2)" or BW["bf16_bits_per_weight"] != 16:
                 raise SystemExit("README: the bits-per-weight block no longer matches the line written for it")
             bits = (f"- **Size in one unit (added 2026-11-12): bits per weight, BF16 = 16.** " + ", ".join(f"`{a}` {b2(a)}" for a in A4) + f":\n"
                     f"  {100 * min(rl):.1f}% to {100 * max(rl):.1f}% of the BF16 model. The routed experts are {100 * BW['share_of_weights']['routed experts']:.1f}% of the weights and sit at 4 bits in all four, so\n"
@@ -963,8 +963,28 @@ def V5_LATEST(lk):
                     f"{BA['hqa']['outside_routed_experts_bits_per_weight']:.2f}, {BA['compact']['outside_routed_experts_bits_per_weight']:.2f} and "
                     f"{BA['exlr8-k4']['outside_routed_experts_bits_per_weight']:.2f} bits there). A size, not a\n"
                     f"  quality score. A fifth configuration, `k325-fp8` (K3.25 experts, run with an FP8 core; {b2('k325-fp8')} bits as its files are stored, "
-                    f"{100 * BA['k325-fp8']['relative_to_bf16']:.1f}% of BF16), was\n  added by a dated amendment; its passes are running and it has no measured figures yet. "
+                    f"{100 * BA['k325-fp8']['relative_to_bf16']:.1f}% of BF16), was\n  added by a dated amendment and measured the same day (next line). "
                     f"The v5 page carries a short primer\n  on the formats.\n")
+            if "amendment_2" in S:                          # fifth configuration, amendment 2 (RESULTS.md section 16)
+                A2 = S["amendment_2"]; K = "k325-fp8"; P5 = A2["paired"]; J5 = A2["join_127k"]; B5 = A2["bf16_distance"]
+                d5 = {a: P5[f"{K} - {a}"]["score"]["128k"] for a in A4}; s5 = {a: A2["by_length"][a]["128k"]["score"][0] for a in A4 + (K,)}
+                lo5 = [P5[f"{K} - {a}"]["score"]["4k+16k"] for a in A4]; three = ("anchor", "hqa", "exlr8-k4")
+                kf = {a: S["bf16_distance"]["arms"][a]["fidelity_set"]["kl"][0] for a in A4}; less = A2["five_columns"]["resident_weights_mib_less_than_the_four"]
+                if (A2["requests"] != Q["requests_per_arm"] or A2["errors"] or any(not out0(d5[a]) or d5[a][0] >= 0 for a in three) or out0(d5["compact"])
+                        or any(out0(v) for v in lo5) or J5[K]["unfinished"] < 2 * max(J5[a]["unfinished"] for a in three)
+                        or B5["intervals"]["excluding_zero"] != B5["intervals"]["listed"] or any(v["fidelity_set"]["overall"][0] <= 0 for v in B5["differences"].values())):
+                    raise SystemExit("README: the fifth configuration no longer matches the line written for it")
+                k5 = (f"- **A fifth configuration (added 2026-11-12, amendment 2): `{K}`, K3.25 experts with an FP8 core, {b2(K)} bits per weight.**\n"
+                      f"  Four single-message passes, {A2['requests']} requests, read by the same rule. To 16K its field score is level with the other four. At\n"
+                      f"  127K it is lower than `anchor`, `hqa` and `exlr8-k4` ({s5[K]:.3f} against {min(s5[a] for a in three):.3f} to {max(s5[a] for a in three):.3f}; paired "
+                      + ", ".join(fmt(d5[a]) for a in three) + f")\n  and not separated from `compact` ({fmt(d5['compact'])}). Most of that gap is `join` replies that did not finish\n"
+                      f"  ({J5[K]['unfinished']} of {J5[K]['requests']} at 127K, against {J5['compact']['unfinished']} for `compact` and "
+                      + ", ".join(str(J5[a]["unfinished"]) for a in three) + f" for the other three). It is farther from the BF16 model\n"
+                      f"  than each of the four on both reference sets (fidelity set KL {B5['arms'][K]['fidelity_set']['kl'][0]:.4f} against {min(kf.values()):.4f} to {max(kf.values()):.4f}; all "
+                      f"{B5['intervals']['listed']} paired intervals\n  exclude 0). It holds {less[0]:,} to {less[1]:,} MiB less in resident weights; with the same KV pool admitted, that stayed\n"
+                      f"  unused in these launches. The difference is a whole checkpoint's (experts and core together), its passes ran after the\n"
+                      f"  other configurations' and were not interleaved with them, and no direction was predicted. Section 16 of `RESULTS.md` in the\n"
+                      f"  run folder, and the v5 page.\n")
         bf = (f"- **Distance from the BF16 model (added 2026-11-12): all four configurations sit in one band.** Coarse KL on tpurtell's\n"
               f"  fidelity set, contexts to 14.4K: " + ", ".join(f"`{a}` {kl[a]:.4f}" for a in sorted(A4, key=kl.get)) + ",\n"
               f"  between the official FP8 model ({Y['official_fp8_release']['fidelity_set_kl']:.4f}, the baseline tpurtell recorded in the set's manifest) and K3.25 on\n"
@@ -1019,7 +1039,7 @@ tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm;
 
 {tr}- **{"Frozen rule, two passes: neither" if ext else "Neither"} cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` {d("hqa - anchor")},
   `compact` − `anchor` {d("compact - anchor")}, pooled over lengths (95% interval over items{"" if ext else "; " + two}).
-{ext}{end}{bf}{bits}- **Accuracy falls with length in every probe arm, `anchor` included** ({"two passes: " if ext else ""}{lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
+{ext}{end}{bf}{bits}{k5}- **Accuracy falls with length in every probe arm, `anchor` included** ({"two passes: " if ext else ""}{lo4:.2f} at 4K, {lo:.2f} to {hi:.2f} at 127K), so
   that loss is not produced by core precision. A third to a half of it is replies that did not finish.{len4}
 - **One slice leaned against the K6 core{" at two passes" if ext else ""}:** running totals at 64K and 127K, where `compact` was nominally lower. Twenty
   items do not decide it; a post hoc lead, not a finding.{led4}

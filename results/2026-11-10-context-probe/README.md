@@ -43,11 +43,19 @@ established. The classification was written after the four-pass results were rea
 
 **Bits per weight, and a fifth configuration (2026-11-12).** Section 15 of `RESULTS.md` puts the checkpoints on one unit,
 bits per weight counted from the checkpoint files, whole model and by component, with a short primer on the formats. It
-includes `k325-fp8` (`wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc921f1f098b4a56d37aaccb3cdef4096184`: EXL3 routed experts at K3.25 with the official FP8 attention, dense and shared-expert blocks bundled in the same checkpoint; the checkpoint of the engine's own starting config for two RTX cards), which amendment 2 (`protocol/AMENDMENT-2026-11-12.md`, written
-2026-11-12 11:57:02 -0800 before its first request) adds as a fifth configuration with four single-message passes. Those passes were
-running when this was exported: this folder holds that checkpoint's file accounting and its launch config, and none of its
-measured figures. The published amendment differs from the file as written (sha256 9d90da18dede0283fff10c34277a59997f3d0effdb2564b362bb57db53521449) by a path placeholder;
-its stage script, like the BF16-reference stage's launcher, is not published.
+includes `k325-fp8` (`wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc921f1f098b4a56d37aaccb3cdef4096184`: EXL3 routed experts at K3.25 with, as the engine runs it by default, FP8 attention, dense and shared-expert blocks (as stored, the files hold part of the attention, the output head and the embedding at BF16); the checkpoint of the engine's own starting config for two RTX cards), which amendment 2 (`protocol/AMENDMENT-2026-11-12.md`, written
+2026-11-12 11:57:02 -0800 before its first request) adds as a fifth configuration with four single-message passes. The published amendment differs from the file as written
+(sha256 9d90da18dede0283fff10c34277a59997f3d0effdb2564b362bb57db53521449) by a path placeholder; its stage script, like the BF16-reference stage's launcher, is not published.
+
+**Amendment 2: `k325-fp8`, four passes and distance from BF16 (2026-11-12).** Section 16 of `RESULTS.md`. The four passes ran
+11:58 to 16:54, one launch per pass: 960 requests, 0 errors, prompt tokens and seeds equal to `anchor`'s on 960 of 960. Read by
+the frozen rule beside the other four, `k325-fp8` is level with them to 16K. At 127K it scores 0.867 against
+0.918, 0.924 and 0.920 for `anchor`, `hqa` and `exlr8-k4` (the three paired intervals exclude 0) and
+0.887 for `compact` (the interval includes 0). Most of that gap is `join` replies that did not finish (11 of 80), the
+ending section 14 describes. Against BF16 it is farther than each of the four on both reference sets (fidelity set
+0.0485 against 0.0302 to 0.0360; teacher panel 0.0476 against 0.0297 to 0.0320; contexts to 14.4K) and passes the
+engine's fidelity gate. Its files hold 3.55 bits per weight against 4.08 to 4.35. `k325-fp8` differs from every other arm in the whole checkpoint: K3.25 routed experts where the others' are 4-bit, and its own tensors outside them. No difference from another arm is attributable to one component. Its four passes ran alone on 2026-11-12, after the other arms' and not interleaved with them, so a session effect cannot be excluded by design. No
+direction was predicted. The four earlier arms' tables are unchanged.
 
 - `RESULTS.md`: the result as read, with its corrections dated. `SUMMARY.json`: the numbers of the page's tables, the launch facts
   (weights, memory admission, KV pool) and the estimators in words; the figures of the exploratory checks are in the protocol text.
@@ -73,7 +81,12 @@ its stage script, like the BF16-reference stage's launcher, is not published.
   so documents the computation without rerunning from this folder, and `endings.py`, which recomputes section 14 from the four
   CSVs into `ENDINGS.json` (`python3 analysis/endings.py`, standard library only). For section 15: `bpw.py`, which reads the
   headers of checkpoint files and writes `BPW.json` (`python3 analysis/bpw.py ARM=SNAPSHOT_DIR ...`, standard library only; it
-  needs a local copy of each checkpoint and loads no weight).
+  needs a local copy of each checkpoint and loads no weight). For section 16: `samples-amend2.csv` (960 rows, the four passes
+  of `k325-fp8`, the columns of `samples.csv`) and `endings-amend2.csv` (960 rows, the columns of `endings.csv`), the two
+  scripts that made them from the saved replies (`make_samples_amend2.py`, `make_endings_amend2.py`; they document the
+  computation and do not rerun from this folder), and `amend2.py`, which recomputes the task figures of section 16 from the
+  six CSVs into `AMEND2.json` and requires its figures for the four earlier arms to equal `FOURPASS.json` and `ENDINGS.json`
+  (`python3 analysis/amend2.py`, standard library only).
 - `bf16ref/`: `ADDENDUM-BF16REF.md`, the plan of the BF16-reference stage, and `FROZEN.json`, its hashes at the freeze. The
   hashes are of the files as they were on the measuring machine: the published plan differs from the hashed one by a few
   wording edits (file locations, the machine's usual serving setup), and the scorers it names are published, with path
@@ -81,6 +94,8 @@ its stage script, like the BF16-reference stage's launcher, is not published.
   capture script are hashed there and not published. `BF16REF.json`: the numbers of section 12 of `RESULTS.md` (per
   configuration and per pair, both sets, with the estimators in words, the repeat and the port-against-CLI check), and per
   window the positions and each configuration's mean KL, from which every fidelity-set value and interval can be recomputed.
+  `BF16REF-AMEND2.json`: the same for `k325-fp8` (section 16), measured later the same day under amendment 2 with the same
+  plans and scorers, with its per-window figures.
 - `tasks/`: the frozen analysis output (`drivers/analyze_tasks.py summary|compare`): one summary per arm and one comparison
   per pair.
 - `exploratory/`: wrong `ledger` fields by kind of arithmetic slip (a heuristic reading); `capture_pairs.json` and
@@ -101,7 +116,8 @@ its stage script, like the BF16-reference stage's launcher, is not published.
    `python3 analysis/reference.py` does the same for the reference checkpoint, from the two CSVs into `analysis/REFERENCE.json`,
    and `python3 analysis/fourpass.py` for the four-pass reading, from the three CSVs into `analysis/FOURPASS.json` (the export
    reruns it on the published copies and requires the published file), and `python3 analysis/endings.py` for section 14,
-   from the four CSVs into `analysis/ENDINGS.json` (rerun by the export in the same way). The fidelity-set figures of `bf16ref/BF16REF.json`
+   from the four CSVs into `analysis/ENDINGS.json` (rerun by the export in the same way), and `python3 analysis/amend2.py`
+   for the task figures of section 16, into `analysis/AMEND2.json` (rerun by the export in the same way). The fidelity-set figures of `bf16ref/BF16REF.json`
    follow from its per-window table; `tools/verify.py` recomputes the ones `docs/findings.json` cites.
 2. **Rebuild the inputs.** `python3 drivers/gen_tasks.py --out <dir> --items 20 --first 100` regenerates the 240 rendered
    items from their seeds. It needs the `tokenizers` package and the model's `tokenizer.json` (set `TOKENIZER` at the top of the

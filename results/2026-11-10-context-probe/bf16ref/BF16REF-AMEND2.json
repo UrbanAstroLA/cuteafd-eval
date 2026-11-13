@@ -1,0 +1,933 @@
+{
+ "about": "Amendment 2: distance of the fifth configuration, k325-fp8, from the unquantized BF16 model, on the two reference sets of bf16ref/BF16REF.json with the same plans, scorers and estimators (RESULTS.md section 16). KL in nats; 0 is identical, lower is closer. Differences b - a with b = k325-fp8: positive means k325-fp8 is farther from BF16. k325-fp8 differs from every other arm in the whole checkpoint: K3.25 routed experts where the others' are 4-bit, and its own tensors outside them. No difference from another arm is attributable to one component. Its four passes ran alone on 2026-11-12, after the other arms' and not interleaved with them, so a session effect cannot be excluded by design.",
+ "plan": {
+  "file": "bf16ref/ADDENDUM-BF16REF.md",
+  "amendment": "protocol/AMENDMENT-2026-11-12.md, section B5",
+  "status": "descriptive; every interval computed is listed"
+ },
+ "ran": "2026-11-12 16:54 to 17:09, two launches, every step exit 0; the engine's fidelity CLI completed, so the stage's fallback capture was not used",
+ "arm": "k325-fp8",
+ "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc921f1f098b4a56d37aaccb3cdef4096184",
+ "sets": "as bf16ref/BF16REF.json (sets): the same fidelity set (set_sha256 2016a76addaed594bc1ce23cbdfc71e80e6c93856ca123a2a7f7fb5ab09d37b9) and teacher panel, the same estimators",
+ "arms": {
+  "k325-fp8": {
+   "fidelity_set": {
+    "kl": [
+     0.048479076,
+     0.041145436,
+     0.054734572
+    ],
+    "by_bucket": {
+     "0-2K": {
+      "kl": [
+       0.048631625,
+       0.035506991,
+       0.060621671
+      ],
+      "positions": 4035,
+      "windows": 19
+     },
+     "2-8K": {
+      "kl": [
+       0.032817748,
+       0.017024344,
+       0.048674918
+      ],
+      "positions": 3547,
+      "windows": 16
+     },
+     "8-16K": {
+      "kl": [
+       0.055782346,
+       0.048439651,
+       0.061340925
+      ],
+      "positions": 7522,
+      "windows": 18
+     }
+    },
+    "by_block": {
+     "A": {
+      "kl": [
+       0.022292949,
+       0.016439027,
+       0.028440371
+      ],
+      "positions": 4174,
+      "windows": 26
+     },
+     "B": {
+      "kl": [
+       0.061733334,
+       0.056995319,
+       0.06556011
+      ],
+      "positions": 6144,
+      "windows": 12
+     },
+     "D": {
+      "kl": [
+       0.044181869,
+       0.021947181,
+       0.076249555
+      ],
+      "positions": 1134,
+      "windows": 6
+     },
+     "E": {
+      "kl": [
+       0.057443961,
+       0.047850139,
+       0.065914228
+      ],
+      "positions": 3652,
+      "windows": 9
+     }
+    },
+    "top1": 0.933196504,
+    "nll_above_bf16": 0.053960168,
+    "confident_top1": 0.96299776,
+    "fidelity_gate": {
+     "pass": true,
+     "kl_max": 0.05,
+     "top1_min": 0.93,
+     "confident_top1_min": 0.96,
+     "top3_min": 0.97,
+     "top3": 0.994835805
+    }
+   },
+   "teacher_panel": {
+    "kl": [
+     0.047556257,
+     0.036409951,
+     0.060460366
+    ],
+    "top1": 0.931529067,
+    "nll_above_bf16": 0.010318661,
+    "confident_top1": 0.984831723
+   }
+  }
+ },
+ "differences": {
+  "k325-fp8 - anchor": {
+   "fidelity_set": {
+    "overall": [
+     0.015662316,
+     0.01208763,
+     0.019443583
+    ],
+    "0-2K": [
+     0.01517345,
+     0.008584201,
+     0.025353109
+    ],
+    "2-8K": [
+     0.011343036,
+     0.004975882,
+     0.017713303
+    ],
+    "8-16K": [
+     0.017961314,
+     0.013476473,
+     0.022231313
+    ]
+   },
+   "teacher_panel": [
+    0.015508323,
+    0.011537581,
+    0.019693279
+   ]
+  },
+  "k325-fp8 - hqa": {
+   "fidelity_set": {
+    "overall": [
+     0.018252895,
+     0.014861374,
+     0.021620406
+    ],
+    "0-2K": [
+     0.019903928,
+     0.011917465,
+     0.02949565
+    ],
+    "2-8K": [
+     0.01093242,
+     0.005462631,
+     0.016267874
+    ],
+    "8-16K": [
+     0.020819207,
+     0.017519764,
+     0.0239498
+    ]
+   },
+   "teacher_panel": [
+    0.015936101,
+    0.011788964,
+    0.020337021
+   ]
+  },
+  "k325-fp8 - compact": {
+   "fidelity_set": {
+    "overall": [
+     0.017079631,
+     0.01362709,
+     0.020794126
+    ],
+    "0-2K": [
+     0.017643291,
+     0.011077633,
+     0.026998981
+    ],
+    "2-8K": [
+     0.009778702,
+     0.004155256,
+     0.016156559
+    ],
+    "8-16K": [
+     0.020220023,
+     0.016184837,
+     0.024051835
+    ]
+   },
+   "teacher_panel": [
+    0.017857138,
+    0.012221599,
+    0.024647255
+   ]
+  },
+  "k325-fp8 - exlr8-k4": {
+   "fidelity_set": {
+    "overall": [
+     0.012444584,
+     0.009736568,
+     0.015323282
+    ],
+    "0-2K": [
+     0.01348235,
+     0.006795989,
+     0.022448403
+    ],
+    "2-8K": [
+     0.008268918,
+     0.004039691,
+     0.013287764
+    ],
+    "8-16K": [
+     0.013856935,
+     0.011104746,
+     0.016375496
+    ]
+   },
+   "teacher_panel": [
+    0.017049599,
+    0.011088859,
+    0.023840753
+   ]
+  }
+ },
+ "intervals": {
+  "listed": 20,
+  "fidelity_set": 16,
+  "teacher_panel": 4,
+  "excluding_zero": 20,
+  "selected": "none",
+  "note": "four pairs x (fidelity set overall and three buckets, teacher panel); all 20 exclude 0; no correction for the number of intervals"
+ },
+ "repeat": {
+  "about": "a second launch, fidelity set, same scorer",
+  "kl_difference": 0.0,
+  "same_argmax_generated_positions": [
+   15104,
+   15104
+  ]
+ },
+ "port_against_cli": {
+  "about": "the float64 port used for the intervals against the engine CLI's own per-record output, record by record, per launch",
+  "r0": {
+   "records_agreeing": [
+    32768,
+    32768
+   ],
+   "largest_kl_difference": 0.0
+  },
+  "r1": {
+   "records_agreeing": [
+    32768,
+    32768
+   ],
+   "largest_kl_difference": 0.0
+  }
+ },
+ "fidelity_gate": "passes the engine CLI's own fidelity gate on the fidelity set, four thresholds on point estimates: KL 0.0485 (at most 0.05), top-1 0.9332 (at least 0.93), confident top-1 0.9630 (at least 0.96), top-3 containment 0.9948 (at least 0.97); the upper end of the KL interval, 0.0547, is above 0.05",
+ "earlier_release": {
+  "about": "the same checkpoint on CuteAFD v3.0.1, measured 2026-10-26; same sets and measures (bf16ref/BF16REF.json, yardsticks)",
+  "fidelity_set_kl": 0.048444655,
+  "teacher_panel_kl": 0.047556257
+ },
+ "times_the_fp8_figure": 2.24,
+ "recompute": "fidelity_set_windows holds, per window, its positions and this arm's mean KL; with the four arms' windows of bf16ref/BF16REF.json every fidelity-set value and interval of this file follows by the estimator stated there",
+ "limits": [
+  "one engine build",
+  "one checkpoint revision",
+  "prefill path only",
+  "contexts to 14.4K",
+  "the teacher panel is drawn from the corpus the producer of the K4 experts published and can favour K4 experts"
+ ],
+ "fidelity_set_windows": [
+  {
+   "window": "a00",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 36,
+   "kl_mean": {
+    "k325-fp8": 0.016228656886532328
+   }
+  },
+  {
+   "window": "a01",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 27,
+   "kl_mean": {
+    "k325-fp8": 0.020524852814551898
+   }
+  },
+  {
+   "window": "a02",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 28,
+   "kl_mean": {
+    "k325-fp8": 0.008912124044444083
+   }
+  },
+  {
+   "window": "a03",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 44,
+   "kl_mean": {
+    "k325-fp8": 0.03356788174836394
+   }
+  },
+  {
+   "window": "a04",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 169,
+   "kl_mean": {
+    "k325-fp8": 0.01915848723205985
+   }
+  },
+  {
+   "window": "a05",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 46,
+   "kl_mean": {
+    "k325-fp8": 0.01840963902221912
+   }
+  },
+  {
+   "window": "a06",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 54,
+   "kl_mean": {
+    "k325-fp8": 0.027318721144768156
+   }
+  },
+  {
+   "window": "a07",
+   "bucket": "0-2K",
+   "block": "A",
+   "positions": 62,
+   "kl_mean": {
+    "k325-fp8": 0.026195727581317992
+   }
+  },
+  {
+   "window": "a08",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.007197832759983564
+   }
+  },
+  {
+   "window": "a09",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 15,
+   "kl_mean": {
+    "k325-fp8": 0.0031420274146072786
+   }
+  },
+  {
+   "window": "a10",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 248,
+   "kl_mean": {
+    "k325-fp8": 0.03220043275170685
+   }
+  },
+  {
+   "window": "a11",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 6,
+   "kl_mean": {
+    "k325-fp8": 0.0079240586915916
+   }
+  },
+  {
+   "window": "a12",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 382,
+   "kl_mean": {
+    "k325-fp8": 0.01851045258003682
+   }
+  },
+  {
+   "window": "a13",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 55,
+   "kl_mean": {
+    "k325-fp8": 0.027908404410169934
+   }
+  },
+  {
+   "window": "a14",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 218,
+   "kl_mean": {
+    "k325-fp8": 0.020725245275523017
+   }
+  },
+  {
+   "window": "a15",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 197,
+   "kl_mean": {
+    "k325-fp8": 0.009633765427977536
+   }
+  },
+  {
+   "window": "a16",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 33,
+   "kl_mean": {
+    "k325-fp8": 0.01700400544041498
+   }
+  },
+  {
+   "window": "a17",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 6,
+   "kl_mean": {
+    "k325-fp8": 0.004784486724019969
+   }
+  },
+  {
+   "window": "a18",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.02103133985591582
+   }
+  },
+  {
+   "window": "a19",
+   "bucket": "2-8K",
+   "block": "A",
+   "positions": 146,
+   "kl_mean": {
+    "k325-fp8": 0.031172599939261
+   }
+  },
+  {
+   "window": "a20",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 294,
+   "kl_mean": {
+    "k325-fp8": 0.018567614445565175
+   }
+  },
+  {
+   "window": "a21",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 120,
+   "kl_mean": {
+    "k325-fp8": 0.022820711168001703
+   }
+  },
+  {
+   "window": "a22",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.04131583682493783
+   }
+  },
+  {
+   "window": "a23",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 40,
+   "kl_mean": {
+    "k325-fp8": 0.018326663344046812
+   }
+  },
+  {
+   "window": "a24",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 224,
+   "kl_mean": {
+    "k325-fp8": 0.0334370869594927
+   }
+  },
+  {
+   "window": "a25",
+   "bucket": "8-16K",
+   "block": "A",
+   "positions": 188,
+   "kl_mean": {
+    "k325-fp8": 0.014527410152905205
+   }
+  },
+  {
+   "window": "b00",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06664890780578682
+   }
+  },
+  {
+   "window": "b01",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.07152558097954774
+   }
+  },
+  {
+   "window": "b02",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06926520324084003
+   }
+  },
+  {
+   "window": "b03",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06257095709322458
+   }
+  },
+  {
+   "window": "b04",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06074786827348824
+   }
+  },
+  {
+   "window": "b05",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06728126502597341
+   }
+  },
+  {
+   "window": "b06",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.060444946602421015
+   }
+  },
+  {
+   "window": "b07",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06676127624675714
+   }
+  },
+  {
+   "window": "b08",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.05832345511026358
+   }
+  },
+  {
+   "window": "b09",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06323301148950587
+   }
+  },
+  {
+   "window": "b10",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.05132506137422875
+   }
+  },
+  {
+   "window": "b11",
+   "bucket": "8-16K",
+   "block": "B",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.042672480107815755
+   }
+  },
+  {
+   "window": "d00",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 372,
+   "kl_mean": {
+    "k325-fp8": 0.08382963448206826
+   }
+  },
+  {
+   "window": "d01",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.022241198229496308
+   }
+  },
+  {
+   "window": "d02",
+   "bucket": "2-8K",
+   "block": "D",
+   "positions": 168,
+   "kl_mean": {
+    "k325-fp8": 0.03375787481746005
+   }
+  },
+  {
+   "window": "d03",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 32,
+   "kl_mean": {
+    "k325-fp8": 0.03156241217704416
+   }
+  },
+  {
+   "window": "d04",
+   "bucket": "0-2K",
+   "block": "D",
+   "positions": 25,
+   "kl_mean": {
+    "k325-fp8": 0.02641299023662014
+   }
+  },
+  {
+   "window": "d05",
+   "bucket": "2-8K",
+   "block": "D",
+   "positions": 25,
+   "kl_mean": {
+    "k325-fp8": 0.00753906218641201
+   }
+  },
+  {
+   "window": "e00",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.045309446006769526
+   }
+  },
+  {
+   "window": "e01",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.03358797194261182
+   }
+  },
+  {
+   "window": "e02",
+   "bucket": "2-8K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06671691810853375
+   }
+  },
+  {
+   "window": "e03",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.07188740710357398
+   }
+  },
+  {
+   "window": "e04",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06120030617697761
+   }
+  },
+  {
+   "window": "e05",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 38,
+   "kl_mean": {
+    "k325-fp8": 0.0793275001994817
+   }
+  },
+  {
+   "window": "e06",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.056657336500474234
+   }
+  },
+  {
+   "window": "e07",
+   "bucket": "0-2K",
+   "block": "E",
+   "positions": 30,
+   "kl_mean": {
+    "k325-fp8": 0.045929151630523656
+   }
+  },
+  {
+   "window": "e08",
+   "bucket": "2-8K",
+   "block": "E",
+   "positions": 512,
+   "kl_mean": {
+    "k325-fp8": 0.06579887073475658
+   }
+  }
+ ],
+ "teacher_panel_windows": [
+  {
+   "window": "final-0000",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.04565947015834887
+   }
+  },
+  {
+   "window": "final-0001",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.08686400514460621
+   }
+  },
+  {
+   "window": "final-0002",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.051779443476750946
+   }
+  },
+  {
+   "window": "final-0003",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.03085820331673431
+   }
+  },
+  {
+   "window": "final-0004",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.1435640271898698
+   }
+  },
+  {
+   "window": "final-0005",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.08786005197426526
+   }
+  },
+  {
+   "window": "final-0006",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.04309694794022164
+   }
+  },
+  {
+   "window": "final-0007",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.017296571358636277
+   }
+  },
+  {
+   "window": "final-0008",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.017760554243587554
+   }
+  },
+  {
+   "window": "final-0009",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.04849652864499589
+   }
+  },
+  {
+   "window": "final-0010",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.03457464773853242
+   }
+  },
+  {
+   "window": "final-0011",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.03388378279493253
+   }
+  },
+  {
+   "window": "final-0012",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.024258020179735676
+   }
+  },
+  {
+   "window": "final-0013",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.06474899975766997
+   }
+  },
+  {
+   "window": "final-0014",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.01103811785951736
+   }
+  },
+  {
+   "window": "final-0015",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.03918537230032005
+   }
+  },
+  {
+   "window": "final-0016",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.013538024165096885
+   }
+  },
+  {
+   "window": "final-0017",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.06650296542090041
+   }
+  },
+  {
+   "window": "final-0018",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.03518097324960473
+   }
+  },
+  {
+   "window": "final-0019",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.0471876014536338
+   }
+  },
+  {
+   "window": "final-0020",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.046032403470176834
+   }
+  },
+  {
+   "window": "final-0021",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.10651621888826562
+   }
+  },
+  {
+   "window": "final-0022",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.04229122050509221
+   }
+  },
+  {
+   "window": "final-0023",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.03751406301666843
+   }
+  },
+  {
+   "window": "final-0024",
+   "rows": 2047,
+   "kl_mean": {
+    "k325-fp8": 0.013218201886918393
+   }
+  }
+ ]
+}

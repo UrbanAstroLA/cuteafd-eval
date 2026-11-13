@@ -613,7 +613,7 @@ set's manifest (`calibration.baseline_metrics`, prefill path; 0.0216 in both of 
 `zai-org/GLM-5.3-Flash` against the same BF16 root, with this set's measure, on the author's engine build and
 hardware. It is quoted, not recomputed here. The K3.25 row was measured here on 2026-10-26 on an earlier engine
 release: the fidelity set over the same generated positions with the same measure, the teacher panel over the
-full vocabulary.
+full vocabulary. Section 16 measures the same checkpoint on this release: 0.0485 and 0.0476.
 
 ### Reading
 
@@ -683,7 +683,8 @@ last hidden state into token scores. K4 and K6: quantized formats at about 4 and
 16). K3.25: a checkpoint of the same model in the same family of formats at about 3.25 bits per weight, with an
 FP8 core, measured here on 2026-10-26 on an earlier engine release (CuteAFD v3.0.1); a row for scale, not part of
 this comparison (since this was written the checkpoint has become a fifth configuration, `k325-fp8`; section 15
-gives measured bits per weight for all five and a short primer on the formats). FP8 settings: the engine has three FP8 conversion settings (`GLM5_FLASH_KDA_FP8`,
+gives measured bits per weight for all five and a short primer on the formats, and section 16 its four passes and
+its distance from BF16 on this release). FP8 settings: the engine has three FP8 conversion settings (`GLM5_FLASH_KDA_FP8`,
 `GLM5_FLASH_FP8_HEAD`, `GLM5_FLASH_FP8_PREFILL`). `anchor` is launched with all three off, which keeps its BF16
 core matrices and head at BF16. As logged at load, KDA FP8 reads Off in all nine serving launches of the three
 probe arms; the FP8 prefill setting reads none in `anchor` and `[Mla, Ffn]` in `hqa` and `compact`; the head reads
@@ -945,8 +946,11 @@ The configurations here mix several storage formats inside one model, and their 
 - **Names of the parts.** The core is everything in the main layers outside the routed experts. The shared
   experts are a feed-forward block beside the routed ones that every token passes through. `o_proj` and
   `q_b_proj` are two of the attention projection matrices of a layer, the two that `ATTENTION_MODE` selects the
-  precision of. The output head turns the last hidden state into token scores. KDA is the engine's name, in its
-  load line (the line it logs when a checkpoint is loaded), for a group of attention matrices it can hold as FP8.
+  precision of. The output head turns the last hidden state into token scores. KDA is the engine's name for one
+  of the model's two kinds of attention layer (MLA is the other); its load line (the line it logs when a
+  checkpoint is loaded) reports whether the KDA projections are held as FP8. In the engine's source (v5.0.0,
+  `rust/crates/cuteafd-loader/src/families/glm5_flash/core.rs`) `o_proj` is a projection of both kinds and
+  `q_b_proj` of MLA layers only.
 - **Configurations and checkpoints.** There are five configurations and four checkpoints: `hqa` and `compact`
   are two settings of one checkpoint.
 - **Stored is not the same as run.** The table counts what the files hold. The engine can hold a matrix in
@@ -979,8 +983,8 @@ K6 copy.
 
 `k325-fp8` is a fifth configuration, the K3.25-Core-FP8 checkpoint (`wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8`,
 revision d31ebc92), which the engine's own starting config for two RTX cards uses. Its four task passes and
-its distance from BF16 are running under amendment 2 (`protocol/AMENDMENT-2026-11-12.md`, written before their first request); this section holds
-its file accounting only.
+its distance from BF16 were run under amendment 2 (`protocol/AMENDMENT-2026-11-12.md`, written before their first request)
+and are in section 16; this section holds its file accounting.
 
 What the rows mix. `hqa` and `compact`, other attention projections at 7.00: 90% K6 and 10% BF16. `k325-fp8`:
 shared experts and dense feed-forward FP8; `o_proj` and `q_b_proj` 53% BF16 and 47% FP8; other attention
@@ -993,7 +997,8 @@ was not checked.
 
 As run, from each launch's load line. `anchor`: no FP8 conversion, head BF16. `hqa` and `compact`: head K6, as
 stored. `exlr8-k4`: head FP8 with row scales, as stored. **`k325-fp8`: under the engine's defaults the load line
-reports the attention group it calls KDA held as FP8, converted at load (`kda_fp8=Row128`: 2,844 MiB as FP8, 0 MiB
+reports the projections of the attention layers it calls KDA held as FP8, converted at load (`kda_fp8=Row128`:
+2,844 MiB as FP8, 0 MiB
 as BF16), and an FP8 output head (624 MiB, against 1,210 MiB for the BF16 head in `anchor`).** So part of what
 this file stores at BF16 is run at FP8, and its 13.65 bits outside the routed experts is a property of the file,
 not of the launch. An as-run figure is not computed, because the logs do not itemize the conversion by matrix.
@@ -1006,16 +1011,16 @@ not of the launch. An as-run figure is not computed, because the logs do not ite
 | Share of BF16 | 27.2% | 26.1% | 25.6% | 25.5% | 22.2% |
 | Bits per weight outside the routed experts, as stored | 16.00 | 9.66 | 7.25 | 6.55 | 13.65 |
 | Stored, GiB | 162.3 | 155.8 | 153.2 | 152.2 | 132.7 |
-| KL from BF16, fidelity set, to 14.4K (section 12) | 0.0328 | 0.0302 | 0.0314 | 0.0360 | running |
-| Task score, four passes, all lengths (section 11) | 0.956 | 0.959 | 0.946 | 0.955 | running |
-| Task score at 127K | 0.918 | 0.924 | 0.887 | 0.920 | running |
-| Replies at 127K that did not finish, of 240 (section 14) | 7 | 5 | 14 | 4 | running |
+| KL from BF16, fidelity set, to 14.4K (sections 12 and 16) | 0.0328 | 0.0302 | 0.0314 | 0.0360 | 0.0485 |
+| Task score, four passes, all lengths (sections 11 and 16) | 0.956 | 0.959 | 0.946 | 0.955 | 0.943 |
+| Task score at 127K | 0.918 | 0.924 | 0.887 | 0.920 | 0.867 |
+| Replies at 127K that did not finish, of 240 (sections 14 and 16) | 7 | 5 | 14 | 4 | 16 |
 
 ### Reading
 
-- **Every configuration here is a 22% to 27% copy of the BF16 model by bits.** The four measured ones span 4.08
+- **Every configuration here is a 22% to 27% copy of the BF16 model by bits.** Four of them span 4.08
   to 4.35 bits per weight, 0.27 bits end to end, because their experts are all at 4 bits and the experts are 95%
-  of the weights.
+  of the weights; `k325-fp8` is at 3.55.
 - **`hqa` to `compact` moves 0.67% of the weights from 16 bits to 6** in the main layers: 4.17 to 4.10 bits per
   weight, 2.6 GiB of files, 0.1 GiB of it the same two projections in the multi-token-prediction block.
   `anchor` to `compact` moves 2.4% of the weights from 16 bits to about 6 or 7: 4.35 to 4.10, 9.1 GiB.
@@ -1023,7 +1028,7 @@ not of the launch. An as-run figure is not computed, because the logs do not ite
 - **`k325-fp8` is the one that changes the experts**: 3.26 bits against 4.01 there. Its files are 20.5 GiB
   smaller than `compact`'s in all: the experts are smaller by more than that, and its core is stored at more bits
   than `hqa`'s or `compact`'s (stored; see "as run" above).
-- **`exlr8-k4` is the smallest of the four measured, though its head and most of its attention projections are
+- **`exlr8-k4` is the smallest of the four with 4-bit experts, though its head and most of its attention projections are
   FP8**, more bits than `compact`'s K6 there. It stores `o_proj`, `q_b_proj`, the shared experts and the dense
   feed-forward in its 4-bit trellis where `compact` has K6, and its embedding at FP8 where `compact`'s is BF16:
   6.55 bits outside the routed experts against 7.25. Its files are 1.0 GiB smaller in all, 0.3 GiB of that in the
@@ -1032,13 +1037,307 @@ not of the launch. An as-run figure is not computed, because the logs do not ite
   weights. For `compact`: 94.90% x 4.01 (routed experts) + 2.78% x 7.25 (rest of the main layers) + 2.32% x 4.05
   (multi-token-prediction block) = 4.10, and 4.10 / 16 = 25.6% of BF16. The published page draws this part by
   part for the five configurations (its layout figure).
-- **Bits per weight is a size, not a quality score.** Among the four measured configurations distance from BF16
-  and task score do not follow it: `hqa` at 4.17 is no farther from BF16 than `anchor` at 4.35 on either set
-  (section 12), and `exlr8-k4` at 4.08 scores level with `anchor`. The unit says what was spent; sections 11 to
-  14 say what it bought.
+- **Bits per weight is a size, not a quality score.** Among the four configurations at 4.08 to 4.35 distance
+  from BF16 and task score do not follow it: `hqa` at 4.17 is no farther from BF16 than `anchor` at 4.35 on
+  either set (section 12), and `exlr8-k4` at 4.08 scores level with `anchor`. `k325-fp8`, 0.5 to 0.8 bits below
+  them, is farther from BF16 on both sets and scores lower at 127K (section 16); that step changes the experts
+  and the core together. The unit says what was spent; sections 11 to 14 and 16 say what it bought.
 
 Limits: file accounting, not memory in use and not arithmetic precision at run time; the vision tower is not
 counted (every configuration ran with vision off); whether the engine uses the multi-token-prediction block when
 serving was not checked; the HQA checkpoint is no
 longer on the hub and `anchor`'s is derived locally, so the script can be rerun by a reader on `exlr8-k4` and
 `k325-fp8` only.
+
+## 16. Amendment 2: `k325-fp8`, four passes and distance from BF16 (added 2026-11-12)
+
+Amendment 2 (`AMENDMENT-2026-11-12.md`, written 2026-11-12 11:57:02 -0800, sha256
+9d90da18dede0283fff10c34277a59997f3d0effdb2564b362bb57db53521449) adds a fifth configuration, `k325-fp8`: the
+K3.25-Core-FP8 checkpoint (`wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8`, revision d31ebc92), the checkpoint
+of the engine's own starting config for this model on two RTX cards. It was written after the four-pass results
+of sections 11 to 13 were read and published and the ending breakdown of section 14 had been computed, and before
+the first request of the passes it adds (first launch ready 11:58:51). The protocol file and amendment 1 are
+unchanged.
+
+It adds four single-message passes of `k325-fp8`: the same items, lengths, reply cap, concurrency and sampling
+settings, and the same seed for each (item, length, pass) as the other arms used. The total was fixed at four
+before the first request. It also runs the BF16-reference stage of section 12 for this arm. No 8-turn pass. The
+passes ran 2026-11-12 11:58 to 16:54, one launch per pass: 960 requests, 0 errors, prompt tokens equal to
+`anchor`'s on 960 of 960 requests, seeds equal to `anchor`'s on 960 of 960, no cached prompt tokens. The launch
+config pins the engine image by the same digest as the other arms' configs, and the items, generator and driver
+hashes recorded by each pass are the same in all twenty passes of the five arms.
+
+Two things to hold while reading. **`k325-fp8` differs from every other arm in the whole checkpoint**: its routed
+experts are K3.25 where the others' are 4-bit, and everything outside them is its own (section 15 gives the stored
+bits and what the engine converts at load). No difference below is attributable to one component. **Its passes
+were not interleaved with the others'**: those ran 2026-11-10 to 2026-11-12, by pass across the arms; these four
+ran alone afterwards. A session effect cannot be excluded by design.
+
+Stated in the amendment before the data: no direction was predicted for task score; a level result and a lower
+one were both called plausible. The rule is the frozen one, as in section 11. The ending breakdown uses the
+definitions of section 14 as they stood; for this arm they were fixed before its data. The four earlier arms'
+rows below repeat sections 11, 12 and 14 for comparison. `analysis/amend2.py` recomputes them by the same rule,
+checks them equal to `FOURPASS.json` and `ENDINGS.json`, and writes this section's task figures to
+`analysis/AMEND2.json` from the per-request tables (`analysis/samples-amend2.csv` and `analysis/endings-amend2.csv`
+for the new arm). No reply text is published.
+
+### Five configurations, four passes (960 requests each; 240 per length)
+
+| arm | score, all lengths | 4K | 16K | 64K | 127K | every field right, of 960 | unfinished, of 960 (at 127K, of 240) | finished replies only, 127K |
+|---|---|---|---|---|---|---|---|---|
+| anchor | 0.956 [0.944, 0.966] | 0.985 | 0.972 | 0.946 | 0.918 | 760 | 9 (7) | 0.945 |
+| hqa | 0.959 [0.945, 0.970] | 0.984 | 0.981 | 0.945 | 0.924 | 768 | 9 (5) | 0.944 |
+| compact | 0.946 [0.932, 0.958] | 0.981 | 0.972 | 0.942 | 0.887 | 739 | 18 (14) | 0.942 |
+| exlr8-k4 | 0.955 [0.940, 0.967] | 0.983 | 0.978 | 0.938 | 0.920 | 738 | 8 (4) | 0.936 |
+| k325-fp8 | 0.943 [0.928, 0.956] | 0.985 | 0.983 | 0.936 | 0.867 | 747 | 22 (16) | 0.929 |
+
+Score per pass of `k325-fp8`, all lengths (passes 1, 2, 3, 4): 0.940, 0.938, 0.944, 0.948. At 127K: 0.840, 0.873, 0.875, 0.879. The twelve passes
+of `anchor`, `hqa` and `exlr8-k4` at 127K are 0.875 to 0.946 and `compact`'s four are 0.877 to 0.894 (section 11).
+
+### `k325-fp8` against each arm (b - a, paired by item; negative means `k325-fp8` is lower)
+
+Score:
+
+| b - a | all lengths | 4K | 16K | 64K | 127K | 4K + 16K | 64K + 127K |
+|---|---|---|---|---|---|---|---|
+| k325-fp8 - anchor | -0.013 [-0.025, -0.001] | -0.001 [-0.007, +0.006] | +0.010 [-0.003, +0.022] | -0.010 [-0.041, +0.018] | -0.051 [-0.086, -0.017] | +0.005 [-0.003, +0.012] | -0.031 [-0.054, -0.008] |
+| k325-fp8 - hqa | -0.016 [-0.030, -0.003] | +0.001 [-0.009, +0.011] | +0.002 [-0.012, +0.013] | -0.009 [-0.037, +0.018] | -0.058 [-0.095, -0.023] | +0.001 [-0.006, +0.009] | -0.033 [-0.059, -0.009] |
+| k325-fp8 - compact | -0.003 [-0.017, +0.010] | +0.004 [-0.004, +0.011] | +0.011 [-0.003, +0.025] | -0.006 [-0.035, +0.020] | -0.020 [-0.059, +0.020] | +0.007 [+0.000, +0.015] | -0.013 [-0.038, +0.012] |
+| k325-fp8 - exlr8-k4 | -0.012 [-0.023, -0.001] | +0.002 [-0.005, +0.010] | +0.005 [-0.004, +0.015] | -0.002 [-0.033, +0.029] | -0.054 [-0.088, -0.020] | +0.004 [-0.003, +0.010] | -0.028 [-0.049, -0.006] |
+
+Share of replies with every field right:
+
+| b - a, every field right | all lengths | 4K | 16K | 64K | 127K | 64K + 127K |
+|---|---|---|---|---|---|---|
+| k325-fp8 - anchor | -0.013 [-0.045, +0.017] | -0.004 [-0.050, +0.042] | +0.075 [+0.017, +0.138] | -0.017 [-0.083, +0.050] | -0.108 [-0.171, -0.046] | -0.062 [-0.106, -0.021] |
+| k325-fp8 - hqa | -0.022 [-0.057, +0.015] | -0.008 [-0.062, +0.046] | +0.029 [-0.037, +0.100] | +0.008 [-0.058, +0.079] | -0.117 [-0.183, -0.050] | -0.054 [-0.102, -0.006] |
+| k325-fp8 - compact | +0.008 [-0.028, +0.045] | +0.042 [-0.021, +0.108] | +0.062 [+0.004, +0.121] | +0.013 [-0.050, +0.075] | -0.083 [-0.154, -0.017] | -0.035 [-0.085, +0.013] |
+| k325-fp8 - exlr8-k4 | +0.009 [-0.021, +0.040] | +0.017 [-0.025, +0.058] | +0.054 [+0.000, +0.117] | +0.029 [-0.042, +0.100] | -0.062 [-0.121, -0.004] | -0.017 [-0.060, +0.027] |
+
+Score by family:
+
+| b - a, score by family | `join`, all lengths | `ledger`, all lengths | `trace`, all lengths | `join`, 127K | `ledger`, 127K | `trace`, 127K |
+|---|---|---|---|---|---|---|
+| k325-fp8 - anchor | -0.030 [-0.050, -0.012] | -0.015 [-0.044, +0.012] | +0.006 [-0.007, +0.017] | -0.095 [-0.161, -0.037] | -0.059 [-0.136, +0.020] | +0.002 [-0.011, +0.014] |
+| k325-fp8 - hqa | -0.037 [-0.060, -0.015] | -0.011 [-0.043, +0.019] | +0.000 [-0.010, +0.012] | -0.122 [-0.203, -0.047] | -0.056 [-0.119, +0.008] | +0.005 [-0.013, +0.023] |
+| k325-fp8 - compact | -0.009 [-0.038, +0.020] | -0.003 [-0.029, +0.020] | +0.003 [-0.009, +0.015] | -0.016 [-0.117, +0.092] | -0.041 [-0.097, +0.009] | -0.005 [-0.020, +0.013] |
+| k325-fp8 - exlr8-k4 | -0.036 [-0.056, -0.018] | -0.001 [-0.023, +0.023] | +0.001 [-0.009, +0.011] | -0.130 [-0.194, -0.066] | -0.048 [-0.109, +0.016] | +0.017 [-0.002, +0.047] |
+
+These three tables list 76 intervals (four pairs; score in seven scopes, every field right in six, score by
+family over all lengths and at 127K). 23 exclude 0: 21 with `k325-fp8` lower and 2 with it higher (every field
+right at 16K against `anchor` and against `compact`). None was selected and no correction is applied.
+
+### How its replies ended
+
+How each request ended, four passes (of 960 per arm):
+
+| arm | every field right | 1 field wrong | 2 wrong | 3 or more wrong | reply cap | loop abort |
+|---|---|---|---|---|---|---|
+| anchor | 760 | 133 | 45 | 13 | 7 | 2 |
+| hqa | 768 | 132 | 40 | 11 | 7 | 2 |
+| compact | 739 | 151 | 39 | 13 | 15 | 3 |
+| exlr8-k4 | 738 | 164 | 35 | 15 | 8 | 0 |
+| k325-fp8 | 747 | 135 | 45 | 11 | 21 | 1 |
+
+The same at 127K (of 240 per arm):
+
+| arm | every field right | 1 field wrong | 2 wrong | 3 or more wrong | reply cap | loop abort |
+|---|---|---|---|---|---|---|
+| anchor | 165 | 41 | 20 | 7 | 5 | 2 |
+| hqa | 167 | 38 | 24 | 6 | 4 | 1 |
+| compact | 159 | 41 | 18 | 8 | 13 | 1 |
+| exlr8-k4 | 154 | 56 | 18 | 8 | 4 | 0 |
+| k325-fp8 | 139 | 52 | 25 | 8 | 16 | 0 |
+
+**All 22 unfinished replies of `k325-fp8` ended inside the reasoning; none had written any answer text.** 21
+reached the reply cap and one was stopped by the loop abort. By section 14's definition 17 of the 22 are copying
+(12 of 13 in `join`, 5 of 9 in `ledger`). By pass: 6, 6, 6 and 4. They fall on 17 distinct items, 10 of which also
+have an unfinished reply in one of the four earlier arms. Where they sit:
+
+| arm | `join` 64K | `join` 127K | `ledger` 64K | `ledger` 127K | `trace` 16K | all |
+|---|---|---|---|---|---|---|
+| anchor | 0 | 4 | 2 | 3 | 0 | 9 |
+| hqa | 0 | 2 | 4 | 3 | 0 | 9 |
+| compact | 0 | 10 | 3 | 4 | 1 | 18 |
+| exlr8-k4 | 0 | 1 | 4 | 3 | 0 | 8 |
+| k325-fp8 | 2 | 11 | 4 | 5 | 0 | 22 |
+
+`join` at 127K, 80 requests per arm, every reply whether it finished or not:
+
+| arm | unfinished, of 80 | by pass | replies with a copy run | of those, finished | of those, unfinished | unfinished with all 8 answers written before the run | items with an unfinished reply, of 20 |
+|---|---|---|---|---|---|---|---|
+| anchor | 4 | 3 / 1 / 0 / 0 | 8 | 4 | 4 | 3 | 4 |
+| hqa | 2 | 0 / 2 / 0 / 0 | 5 | 3 | 2 | 0 | 2 |
+| compact | 10 | 1 / 2 / 4 / 3 | 11 | 2 | 9 | 9 | 8 |
+| exlr8-k4 | 1 | 0 / 0 / 1 / 0 | 4 | 3 | 1 | 1 | 1 |
+| k325-fp8 | 11 | 4 / 3 / 2 / 2 | 15 | 4 | 11 | 9 | 9 |
+
+All 11 unfinished `join` replies of `k325-fp8` at 127K have a copy run; in 9 of them all eight correct docks had
+been written in the reasoning before the run started, and in the other 2, seven had (the text match of section
+14). Its two unfinished `join` replies at 64K have copy runs too; no other arm left a `join` reply unfinished at
+64K. Across the five arms, 15 of the 20 `join` items have at least one unfinished reply at 127K.
+
+Score at 127K by family, four passes, and the score of the finished replies alone:
+
+| arm | `join` | `ledger` | `trace` | all | finished only: `join` | finished only: `ledger` | finished only: `trace` | finished only: all |
+|---|---|---|---|---|---|---|---|---|
+| anchor | 0.945 | 0.839 | 0.969 | 0.918 | 0.995 | 0.872 | 0.969 | 0.945 |
+| hqa | 0.972 | 0.836 | 0.966 | 0.924 | 0.997 | 0.869 | 0.966 | 0.944 |
+| compact | 0.866 | 0.820 | 0.975 | 0.887 | 0.989 | 0.864 | 0.975 | 0.942 |
+| exlr8-k4 | 0.980 | 0.828 | 0.953 | 0.920 | 0.992 | 0.860 | 0.953 | 0.936 |
+| k325-fp8 | 0.850 | 0.780 | 0.970 | 0.867 | 0.986 | 0.832 | 0.970 | 0.929 |
+
+Each family is a third of the requests at 127K, so a difference in score there splits into three parts (the
+family's own difference divided by 3):
+
+| difference in score at 127K | all | from `join` | from `ledger` | from `trace` |
+|---|---|---|---|---|
+| `k325-fp8` - `anchor` | -0.051 | -0.032 | -0.020 | +0.001 |
+| `k325-fp8` - `hqa` | -0.058 | -0.041 | -0.019 | +0.002 |
+| `k325-fp8` - `compact` | -0.020 | -0.005 | -0.013 | -0.002 |
+| `k325-fp8` - `exlr8-k4` | -0.054 | -0.043 | -0.016 | +0.006 |
+
+Paired differences in the share of unfinished replies (the estimator of section 14; four passes). The table holds
+all 20 intervals of this kind in `AMEND2.json`; 9 exclude 0 and no correction is applied:
+
+| difference in the share of unfinished replies | all lengths, all families | 127K, all families | 127K, `join` | 127K, `ledger` | 64K, `ledger` |
+|---|---|---|---|---|---|
+| `k325-fp8` - `anchor` | +0.013 [+0.003, +0.025] | +0.037 [+0.004, +0.071] | +0.087 [+0.025, +0.150] | +0.025 [-0.050, +0.100] | +0.025 [-0.037, +0.100] |
+| `k325-fp8` - `hqa` | +0.013 [+0.001, +0.027] | +0.046 [+0.008, +0.083] | +0.113 [+0.037, +0.200] | +0.025 [-0.037, +0.087] | +0.000 [-0.062, +0.075] |
+| `k325-fp8` - `compact` | +0.004 [-0.008, +0.017] | +0.008 [-0.033, +0.050] | +0.013 [-0.100, +0.113] | +0.013 [-0.037, +0.062] | +0.013 [-0.050, +0.087] |
+| `k325-fp8` - `exlr8-k4` | +0.015 [+0.004, +0.025] | +0.050 [+0.021, +0.083] | +0.125 [+0.062, +0.188] | +0.025 [-0.037, +0.087] | +0.000 [-0.075, +0.075] |
+
+Finished replies of `k325-fp8` at 127K: median 4.9 thousand tokens, 99th percentile 30 thousand, 12
+longer than half the cap (the other arms: 4.8 to 5.0 thousand, 25 to 29 thousand, and 11, 5, 9 and 7).
+
+### Distance from BF16, measured on this engine release
+
+Captured 2026-11-12 16:54 to 17:09 with the stage of section 12 unchanged: the same plans, dataset revision,
+scorers and two launches, prefill path, to 14.4K. The engine's fidelity CLI completed, so the stage's fallback
+capture was not used. Sources: `bf16ref/BF16REF-AMEND2.json`, which carries the numbers of the stage's score files for this configuration. KL in nats; 0 is identical, lower is
+closer.
+
+| Row | Fidelity set, generated positions | 0-2K | 2-8K | 8-16K | Teacher panel |
+|---|---|---|---|---|---|
+| Official FP8 release (baseline recorded by the engine author in the fidelity set's manifest; quoted, not recomputed here) | 0.0216 |  |  |  |  |
+| `hqa` | 0.0302 [0.0255, 0.0344] | 0.0287 | 0.0219 | 0.0350 | 0.0316 [0.0238, 0.0410] |
+| `compact` | 0.0314 [0.0263, 0.0359] | 0.0310 | 0.0230 | 0.0356 | 0.0297 [0.0236, 0.0364] |
+| `anchor` | 0.0328 [0.0275, 0.0377] | 0.0335 | 0.0215 | 0.0378 | 0.0320 [0.0241, 0.0419] |
+| `exlr8-k4` | 0.0360 [0.0300, 0.0416] | 0.0351 | 0.0245 | 0.0419 | 0.0305 [0.0244, 0.0374] |
+| `k325-fp8` | 0.0485 [0.0411, 0.0547] | 0.0486 | 0.0328 | 0.0558 | 0.0476 [0.0364, 0.0605] |
+
+| arm | top-1 agreement with BF16 (fidelity set / teacher panel) | NLL above BF16, nats | top-1 where BF16 is confident |
+|---|---|---|---|
+| anchor | 0.9472 / 0.9464 | +0.0226 / +0.0035 | 0.9738 / 0.9903 |
+| hqa | 0.9517 / 0.9461 | +0.0178 / +0.0036 | 0.9777 / 0.9906 |
+| compact | 0.9499 / 0.9467 | +0.0179 / +0.0055 | 0.9751 / 0.9908 |
+| exlr8-k4 | 0.9452 / 0.9444 | +0.0263 / +0.0074 | 0.9728 / 0.9903 |
+| k325-fp8 | 0.9332 / 0.9315 | +0.0540 / +0.0103 | 0.9630 / 0.9848 |
+
+Differences on the same rows (KL, b - a; positive means `k325-fp8` is farther from BF16):
+
+| b - a | fidelity set, overall | 0-2K | 2-8K | 8-16K | teacher panel |
+|---|---|---|---|---|---|
+| k325-fp8 - anchor | +0.0157 [+0.0121, +0.0194] | +0.0152 [+0.0086, +0.0254] | +0.0113 [+0.0050, +0.0177] | +0.0180 [+0.0135, +0.0222] | +0.0155 [+0.0115, +0.0197] |
+| k325-fp8 - hqa | +0.0183 [+0.0149, +0.0216] | +0.0199 [+0.0119, +0.0295] | +0.0109 [+0.0055, +0.0163] | +0.0208 [+0.0175, +0.0239] | +0.0159 [+0.0118, +0.0203] |
+| k325-fp8 - compact | +0.0171 [+0.0136, +0.0208] | +0.0176 [+0.0111, +0.0270] | +0.0098 [+0.0042, +0.0162] | +0.0202 [+0.0162, +0.0241] | +0.0179 [+0.0122, +0.0246] |
+| k325-fp8 - exlr8-k4 | +0.0124 [+0.0097, +0.0153] | +0.0135 [+0.0068, +0.0224] | +0.0083 [+0.0040, +0.0133] | +0.0139 [+0.0111, +0.0164] | +0.0170 [+0.0111, +0.0238] |
+
+Twenty intervals are listed (16 on the fidelity set, 4 on the teacher panel); all 20 exclude 0. None was selected.
+
+**Repeat.** The second launch reproduced the fidelity-set result exactly: KL difference 0.0 and the same argmax
+on 15,104 of 15,104 generated positions. The float64 port and the engine CLI agree on 32,768 of 32,768 records in
+both launches (largest KL difference 0.0). `k325-fp8` passes the engine CLI's own fidelity gate on this set,
+which compares point estimates with four thresholds: KL 0.0485 against at most 0.05, top-1 0.9332 against at least
+0.93, confident top-1 (positions where BF16 gives its most likely token at least 0.5) 0.9630 against at least 0.96,
+and top-3 containment 0.9948 against at least 0.97. The upper end of the KL interval, 0.0547, is above that
+threshold.
+
+**Against the earlier release.** Section 12's K3.25 row is this checkpoint on CuteAFD v3.0.1, measured 2026-10-26:
+0.0484 and 0.0476. On v5.0.0 it measures 0.0485 and 0.0476 on the same sets with the same measures.
+
+### What each configuration trades, five columns
+
+The table of section 13 with `k325-fp8` beside the four, and bits per weight from section 15. Memory rows are
+from the launch logs (`SUMMARY.json`: `amendment_2`).
+
+| | `anchor` | `hqa` | `compact` | `exlr8-k4` | `k325-fp8` |
+|---|---|---|---|---|---|
+| Bits per weight, whole language model | 4.35 | 4.17 | 4.10 | 4.08 | 3.55 |
+| Bits per weight, routed experts | 4.01 | 4.01 | 4.01 | 4.00 | 3.26 |
+| Outside the experts | BF16 core and head | BF16 `q_b_proj` and `o_proj`, rest K6 | K6 core and head | its own checkpoint (section 9) | its own checkpoint (section 15) |
+| Weights outside the experts, both GPUs, MiB | 15,138 | 10,872 | 8,304 | 7,496 | 11,384 |
+| Resident weights, both GPUs, MiB | 166,026 | 161,758 | 159,190 | 162,081 | 135,056 |
+| KL from BF16, fidelity set, to 14.4K | 0.0328 | 0.0302 | 0.0314 | 0.0360 | 0.0485 |
+| KL from BF16, teacher panel, 2K | 0.0320 | 0.0316 | 0.0297 | 0.0305 | 0.0476 |
+| Task score, four passes, all lengths | 0.956 | 0.959 | 0.946 | 0.955 | 0.943 |
+| Task score at 4K and 16K | 0.985, 0.972 | 0.984, 0.981 | 0.981, 0.972 | 0.983, 0.978 | 0.985, 0.983 |
+| Task score at 127K | 0.918 | 0.924 | 0.887 | 0.920 | 0.867 |
+| Every field right, of 960 | 760 | 768 | 739 | 738 | 747 |
+| Unfinished replies, of 960 | 9 | 9 | 18 | 8 | 22 |
+| Unfinished `join` replies at 127K, of 80 | 4 | 2 | 10 | 1 | 11 |
+| Decode tok/s per stream at 127K, median (descriptive) | 39.5 | 35.0 | 37.2 | 32.8 | 40.2 |
+| First token at 127K, s, median (descriptive) | 21.8 | 25.1 | 25.4 | 34.2 | 20.9 |
+
+### Reading
+
+- **To 16K `k325-fp8` scores level with the other four.** 0.985 at 4K and 0.983 at 16K against 0.981 to 0.985
+  and 0.972 to 0.981; pooled over 4K and 16K the four differences are +0.001 to +0.007 and every interval
+  includes 0. In the count of replies fully right it is higher at 16K than `anchor` and `compact` (214 of 240
+  against 196 and 199); those are 2 of 76 intervals, not seen at 4K, and nothing is read from them. Basis: 480
+  requests per arm at those lengths on the same items, seeds and prompts.
+- **At 127K it is lower than `anchor`, `hqa` and `exlr8-k4` by 0.05 to 0.06, and not separated from `compact`.** 0.867
+  against 0.918, 0.924 and 0.920: -0.051 [-0.086, -0.017], -0.058 [-0.095, -0.023] and -0.054 [-0.088, -0.020].
+  Against `compact` (0.887): -0.020 [-0.059, +0.020]. Over all lengths it is 0.012 to 0.016 below those three
+  (intervals exclude 0) and -0.003 [-0.017, +0.010] against `compact`. Basis: 240 requests per arm at 127K over
+  60 items; its four passes at 127K are 0.840 to 0.879 where the twelve of those three arms are 0.875 to 0.946.
+  Strength: three intervals on one item set that exclude 0, in a direction the amendment did not predict; a
+  whole-checkpoint difference; passes not interleaved.
+- **Most of that gap is `join` replies that did not finish: the ending of section 14.** Of the 0.051 to `anchor`,
+  0.032 is `join` and 0.020 `ledger`; of the 0.058 to `hqa`, 0.041 and 0.019. 11 of its 80 `join` replies at 127K
+  ran to the reply cap inside a copy run, most with every answer already written in the reasoning. Its finished
+  `join` replies score 0.986 against 0.989 to 0.997 in the other arms.
+- **`ledger` at 127K is lower in count against every arm, and no interval there excludes 0.** 0.780 against 0.820
+  to 0.839: 5 unfinished of 80 against 3 or 4, and finished replies at 0.832 against 0.860 to 0.872. The four
+  paired differences are -0.041 to -0.059 and each interval includes 0, on 20 items. `trace` is level (0.970
+  against 0.953 to 0.975).
+- **Unfinished `join` replies at 127K now separate the five into two groups, and neither stored bits nor distance
+  from BF16 orders them.** 11 and 10 of 80 (`k325-fp8`, `compact`) against 4, 2 and 1 (`anchor`, `hqa`,
+  `exlr8-k4`); `k325-fp8` - `compact` is +0.013 [-0.100, +0.113]. The grouping was read after the counts were
+  seen, and the intervals are not corrected for their number. `o_proj` and `q_b_proj`, the two projections
+  that separate `hqa` from `compact`, are stored at 16.00 bits in `anchor` and `hqa`, 12.23 in `k325-fp8`, 6.01
+  in `compact` and 4.01 in `exlr8-k4` (section 15; as stored, and for `k325-fp8` the engine holds the KDA
+  projections as FP8, converted at load, without the logs saying which matrices, so its as-run width is between 8
+  and 12.23). The fewest unfinished replies (1) are at the
+  lowest of those widths, 4.01, and the most (11) at 12.23. Distance from BF16 does not order them either: `compact`
+  sits with `hqa` and `anchor` (0.030 to 0.033 on the fidelity set) and has 10; `exlr8-k4` is farther (0.036) and
+  has 1. Within the one checkpoint where the two projections are the only difference, section 14's reading
+  stands as written: 2 against 10, indicated, not established. What `compact` and `k325-fp8` share that the
+  other three do not is not identified by these runs.
+- **It is farther from BF16 than each of the four on both sets, by 0.012 to 0.018, and the figure holds across
+  engine releases.** 0.0485 on the fidelity set and 0.0476 on the teacher panel, 2.2 times the FP8 baseline
+  where the four are 1.4 to 1.7. All 20 differences exclude 0, in every bucket. The same checkpoint measured
+  0.0484 and 0.0476 on v3.0.1, so on the two engine releases the distance is the same to 0.0001. It passes the
+  engine's fidelity gate on point estimates, with 0.0015 of KL and 0.003 of top-1 agreement to spare; the upper
+  end of its KL interval (0.0547) is above the 0.05 threshold.
+- **The two kinds of measurement separate it from the four at different lengths.** Distance from BF16 is
+  measured to 14.4K, and there it is farther; task score to 16K is level. The task difference is at 127K, where
+  there is no BF16 reference. On these tasks a configuration 0.012 to 0.018 farther in KL scored the same at
+  short context, and this run does not say whether its distance from BF16 grows with length.
+- **What the smaller size buys here.** 3.55 bits per weight against 4.08 to 4.35, 132.7 GiB of files against
+  152.2 to 162.3, and 135,056 MiB of resident weights over the two GPUs against 159,190 to 166,026: 24,134 to
+  30,970 MiB less. In these launches every arm was admitted the same KV pool (2,097,152 tokens), so the
+  difference stayed as memory not in use; pool and batch size were not varied. Its median decode speed and
+  first-token time at 127K (40.2 tok/s per stream, 20.9 s) are beside `anchor`'s (39.5, 21.8); descriptive,
+  from another session, and the protocol did not isolate speed.
+- **Beside section 13.** The four configurations at 4.08 to 4.35 bits per weight are within about one point of
+  task score over all lengths and within 0.006 of one another in distance from BF16. `k325-fp8`, 0.5 to 0.8 bits
+  below them, is the first step on this page where the distance moves by more than that (0.012 to 0.018) and
+  where a long-context task difference of about 0.05 appears against three arms. That step changes the experts
+  and everything outside them together.
+
+Limits: a whole-checkpoint difference; passes not interleaved with the other arms'; one checkpoint revision; the
+engine's default settings for this checkpoint, under which part of what the file stores at BF16 runs as FP8;
+synthetic tasks; 60 items per length and 20 per family; no 8-turn pass; BF16 reference to 14.4K only; the ending
+definitions were chosen post hoc on the first four arms; 116 intervals in this section and no correction; a
+larger reply cap was not tried.
