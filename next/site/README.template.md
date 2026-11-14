@@ -8,7 +8,7 @@ and of several quantized checkpoints of **GLM-5.3-Flash**, on one machine: two R
 300 W. The aim is evidence for choosing a deployment: what each engine and each precision cut costs or buys in distance
 from the BF16 model, task accuracy at long context, thinking length, speed and memory. Nothing here is a recommendation.
 
-**Site:** <https://urbanastrola.github.io/cuteafd-eval/> · **For agents:** [`docs/findings.json`](docs/findings.json),
+**Site:** <{{site}}> · **For agents:** [`docs/findings.json`](docs/findings.json),
 [`docs/runs.json`](docs/runs.json), [`docs/llms.txt`](docs/llms.txt)
 
 ## How results are stated
@@ -40,7 +40,7 @@ Kind, from each run's RUN.json: *measurement* (a frozen protocol), *exploratory*
 `python3 next/tools/build.py --check` re-reads every finding's value from its file, refuses any number in a finding,
 judgement or page that does not trace to the data, and checks that every published file under `results/` belongs to
 exactly one goal of the run index. Corrections made when the site was rebuilt are listed on the
-[audit page](https://urbanastrola.github.io/cuteafd-eval/audit.html#corrections).
+[audit page]({{site}}audit.html#corrections).
 
 ## Layout
 

@@ -26,12 +26,14 @@ Evidence kinds (each stores the value it read, and the build re-reads it):
 
   build.py --only RUN[,RUN]   report problems for these runs' findings (and run index) only
   build.py --out DIR          write the pages to DIR (and README.md beside it) instead of next/docs
+                              (a default build also copies next/docs to docs/preview/, the copy GitHub Pages serves)
 """
 import csv
 import io
 import html
 import json
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -567,7 +569,9 @@ def page(name, text, ctx):
     return doc
 
 
-SITE_URL = "https://urbanastrola.github.io/cuteafd-eval/"
+# GitHub Pages serves docs/ only: until cutover the rebuilt pages are also written to docs/preview/ and served from there
+SITE_URL = "https://urbanastrola.github.io/cuteafd-eval/preview/"
+PREVIEW = REPO / "docs" / "preview"
 
 
 def _cell(t):
@@ -584,14 +588,14 @@ def write_readme(F, S, R, home):
         f"| [{r['date']}](results/{rid}) | {r['kind']} | {_cell(r['question'])} | {sum(1 for f in F.values() if f['run'] == rid)} |"
         for rid, r in sorted(R.items())] + ["<!-- results:end -->"]
     text = (SITE / "README.template.md").read_text()
-    text = text.replace("{{answers-md}}", "\n".join(ans)).replace("{{runs-md}}", "\n".join(runs))
+    text = text.replace("{{answers-md}}", "\n".join(ans)).replace("{{runs-md}}", "\n".join(runs)).replace("{{site}}", SITE_URL)
     if "{{" in text:
         raise SystemExit("README template: unknown directive")
     # next/README.md sits one folder below the repository root until cutover: point root files one level up
     text = re.sub(r"\]\((results/|NOTICE\.md|CITATION\.cff)", r"](../\1", text)
     text = text.replace("\n\nMeasurements of", "\n\n> **Preview.** This is the rebuilt site, kept in `next/` beside the live one until cutover. Its pages are "
-                        "in [`next/docs/`](docs/) (open `index.html` from a checkout; GitHub shows HTML as source); links to the web site below point "
-                        "at the live, earlier version.\n\nMeasurements of", 1)
+                        f"built into [`next/docs/`](docs/) and served at <{SITE_URL}>; the live site at the repository root is the earlier version "
+                        "until cutover.\n\nMeasurements of", 1)
     (OUT.parent / "README.md" if OUT != REPO / "next" / "docs" else REPO / "next" / "README.md").write_text(text)
 
 
@@ -708,6 +712,10 @@ def main(argv):
         print("   syntheses on no page:", " ".join(homeless))
     if lost:
         print(f"   linked anchors not on the new pages ({len(lost)}):", " ".join(lost))
+    if OUT == REPO / "next" / "docs" and PREVIEW.parent.is_dir():     # the served copy; verify.py checks it is identical
+        shutil.rmtree(PREVIEW, ignore_errors=True)
+        shutil.copytree(OUT, PREVIEW)
+        print(f"   copied to {PREVIEW.relative_to(REPO)}/ ({SITE_URL})")
     return 0
 
 

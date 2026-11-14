@@ -329,6 +329,11 @@ def check_next(kinds):
         for x in sorted(built & have):
             if not filecmp.cmp(out / x, base / "docs" / x, shallow=False): fails.append(f"next/docs/{x}: differs from a fresh build (rebuild)")
         if not filecmp.cmp(tmp / "README.md", base / "README.md", shallow=False): fails.append("next/README.md: differs from a fresh build (rebuild)")
+        pv = ROOT / "docs" / "preview"                    # the copy GitHub Pages serves until cutover
+        served = {p.relative_to(pv).as_posix() for p in pv.rglob("*") if p.is_file()} if pv.is_dir() else set()
+        for x in sorted(built ^ served): fails.append(f"docs/preview: {x} {'missing' if x in built else 'not produced by the build'}")
+        for x in sorted(built & served):
+            if not filecmp.cmp(out / x, pv / x, shallow=False): fails.append(f"docs/preview/{x}: differs from a fresh build (rebuild)")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     t = (base / "README.md").read_text()
