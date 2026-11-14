@@ -14,9 +14,14 @@ The names, producers and builds are defined on the [terms page](terms.html#check
 
 {{table v5_bits}}
 
-{{cite CP-bits-per-weight CP-bits-outside-experts}}
+Sizes count the files as stored, not the form the engine runs: under the engine's defaults, part of what k325-fp8
+stores at BF16 runs at FP8.
+
+{{cite CP-bits-per-weight CP-bits-outside-experts CP-k325-as-run}}
 
 ## What they were calibrated on {#calibration}
+
+{{table calibration_mix}}
 
 {{cite V4-calibration-mix K4-pa-provenance CP-panel-tilt}}
 

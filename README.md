@@ -78,7 +78,7 @@ Kind, from each run's RUN.json: *measurement* (a frozen protocol), *exploratory*
 | [2026-11-06](results/2026-11-06-cuteafd-fp8-ablation) | measurement | On CuteAFD v4.0.0, which of the FP8 settings applied to the BF16-core checkpoint (KDA projections, vocabulary head, prefill activations) goes with its shorter code reasoning against the native 6-bit core? | 22 |
 | [2026-11-06](results/2026-11-06-new-questions) | exploratory | Does the q_b + output-projection stop-decision shift found on 11 science-question questions, and the core's (absent) effect on the stop decision, hold on 30 new questions on both engines? | 19 |
 | [2026-11-06](results/2026-11-06-vllm-code-thinking) | measurement | On the vLLM fork with the route-b loader, where only the core's weight values differ between arms, does K4-Core-K6's 6-bit core change code thinking length against the original BF16 core, and does the result agree with CuteAFD's? | 11 |
-| [2026-11-10](results/2026-11-10-context-probe) | measurement | On CuteAFD v5.0.0 with two RTX PRO 6000, what does the precision of the tensors outside the K4 experts (BF16 core, BF16 q_b_proj and o_proj with K6 elsewhere, K6 core) buy on graded tasks as context grows from 4K to 127K tokens, delivered as one message and over eight turns? | 62 |
+| [2026-11-10](results/2026-11-10-context-probe) | measurement | On CuteAFD v5.0.0 with two RTX PRO 6000, what does the precision of the tensors outside the K4 experts (BF16 core, BF16 q_b_proj and o_proj with K6 elsewhere, K6 core) buy on graded tasks as context grows from 4K to 127K tokens, delivered as one message and over eight turns? | 63 |
 <!-- results:end -->
 
 ## Checking the numbers

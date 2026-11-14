@@ -77,9 +77,20 @@ def v5_bf16(repo):
 def v5_bits(repo):
     S = _j(repo, CP)
     bw = S["bits_per_weight"]["arms"]
+    note = {"k325-fp8": ' <span class="muted">(as stored; partly run at FP8, <a href="v5.html#f-CP-k325-as-run">why</a>)</span>'}
     rows = [[f"<strong>{a}</strong>", f"{bw[a]['bits_per_weight']:.2f}", f"{100 * bw[a]['relative_to_bf16']:.1f}%", f"{bw[a]['stored_gib']:.1f}",
-             f"{bw[a]['outside_routed_experts_bits_per_weight']:.2f}"] for a in ARMS5]
+             f"{bw[a]['outside_routed_experts_bits_per_weight']:.2f}" + note.get(a, "")] for a in ARMS5]
     return htable(["Configuration", "Bits per weight", "Of BF16", "GiB as stored", "Bits per weight outside the routed experts"], rows, num=(1, 2, 3, 4))
+
+
+# ------------------------------------------------------------------ checkpoints page
+def calibration_mix(repo):
+    """What each producer calibrated on, by category: the two columns of finding V4-calibration-mix side by side."""
+    m = _j(repo, "results/2026-10-30-cuteafd-v4/SUMMARY.json")["calibration_mix"]
+    f = lambda v: "0" if v == 0 else f"{v:.1f}%"
+    rows = [[E(k), f(m["tpurtell"][k]), f(m["brandon"][k])] for k in m["tpurtell"]]
+    return htable(["Category", "K3.25 and K4-Core-K6: calibration split (share of prompt tokens)",
+                   "K4: evidence-set windows (share of windows; read as its calibration, an inferred link)"], rows, num=(1, 2))
 
 
 # ------------------------------------------------------------------ precision page

@@ -25054,6 +25054,70 @@
    ]
   },
   {
+   "id": "CP-k325-as-run",
+   "run": "2026-11-10-context-probe",
+   "goal": "BPW",
+   "question": "Does k325-fp8 run in the form its files store?",
+   "statement": "Not entirely. As stored, k325-fp8 holds 97.5% of the attention projections other than o_proj and q_b_proj, the output head and the embedding at BF16. Under the engine's defaults the load line of its serving launch reports the projections of the attention layers the engine calls KDA held as FP8, converted at load, with 0 MiB of them at BF16, and an FP8 output head: part of what the file stores at BF16 runs at FP8. Its bits per weight outside the routed experts count the file; an as-run figure is not computed, because the load line does not itemize the conversion by matrix.",
+   "class": "accounting",
+   "status": "accounting",
+   "quantity": "storage format as stored, and as reported at load",
+   "sign": "n/a",
+   "unit": "checkpoint",
+   "n": "1 configuration, 1 serving launch",
+   "interval": "none (descriptive)",
+   "scope": {
+    "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+    "checkpoint": "k325-fp8 (K3.25-Core-FP8)",
+    "items": "checkpoint file headers; the load line of one serving launch (logs not published)",
+    "context": "n/a",
+    "path": "files as stored, and the engine's load-time conversion",
+    "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+   },
+   "family": null,
+   "replication": "n/a",
+   "evidence": [
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/k325-fp8/by_component/attention: other projections/formats/BF16",
+     "what": "attention, other projections: share stored at BF16",
+     "value": 0.9748
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/k325-fp8/by_component/output head/formats/BF16",
+     "what": "output head: share stored at BF16",
+     "value": 1.0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/arms/k325-fp8/by_component/embedding/formats/BF16",
+     "what": "embedding: share stored at BF16",
+     "value": 1.0
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/as_run/launches/k325-fp8",
+     "what": "load line of the serving launch",
+     "value": {
+      "launch": "k325-fp8-serve-115719",
+      "kda_fp8": "Row128",
+      "fp8_prefill": "[Mla, Ffn]",
+      "kda_bf16_mib": 0.0,
+      "kda_fp8_mib": 2844.4453125,
+      "head": "FP8",
+      "head_mib": 623.90625
+     }
+    },
+    {
+     "file": "results/2026-11-10-context-probe/SUMMARY.json",
+     "pointer": "/bits_per_weight/as_run/k325-fp8",
+     "what": "reading of the load line",
+     "value": "under the engine's defaults the load line reports the projections of the attention layers it calls KDA held as FP8, converted at load (kda_fp8=Row128, 0 MiB as BF16), and an FP8 output head; part of what the file stores at BF16 is run at FP8. An as-run bits-per-weight figure is not computed, because the logs do not itemize the conversion by matrix"
+    }
+   ]
+  },
+  {
    "id": "CP-k325-tasks",
    "run": "2026-11-10-context-probe",
    "goal": "A2",
