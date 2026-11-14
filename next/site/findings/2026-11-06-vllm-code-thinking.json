@@ -1,0 +1,664 @@
+[
+ {
+  "id": "VC-core-code",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "PRIMARY",
+  "question": "On the vLLM fork with the route-b loader, where both cores run as BF16 on the same kernels, does K4-Core-K6's 6-bit core (rebuilt to BF16 at load) change code thinking length against the original BF16 core, on 12 new prompts?",
+  "statement": "V-K6 / V-BF16 reasoning tokens on 12 new prompts: 1.00 [0.96, 1.04], 8 of 12 prompts above 1 (47 seed pairs, sign test p = 0.39); the interval includes 1.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, V-K6 / V-BF16, exp(mean log ratio over seed pairs where both finished)",
+  "sign": "above 1 = the 6-bit core thought longer",
+  "unit": "prompt",
+  "n": "12 prompts, 47 seed pairs (one pair lost: p12 r0, V-BF16 capped while looping)",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_vct.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 0,
+   "note": "the frozen table: primary p4-p15, secondary all 16 and p0-p3; ratios, the null is 1"
+  },
+  "replication": "CuteAFD, same prompts and seeds: CT-core-code (detected); engine comparison: VC-engines",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/primary_p4_p15/ratio",
+    "what": "ratio",
+    "value": 1.0017226377706787
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/primary_p4_p15/ratio_ci95_prompts",
+    "what": "95% interval over prompts",
+    "value": [
+     0.9625130236807816,
+     1.0406239068083998
+    ]
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/primary_p4_p15/prompts_above_1",
+    "what": "prompts above 1",
+    "value": 8
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/primary_p4_p15/pairs",
+    "what": "pairs",
+    "value": 47
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/primary_p4_p15/sign_test_p",
+    "what": "sign test p",
+    "value": 0.3876953125
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/unpaired",
+    "what": "unpaired request",
+    "value": [
+     {
+      "prompt": 12,
+      "rep": 0,
+      "V-K6": "stop",
+      "V-BF16": "length"
+     }
+    ]
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/analysis/samples.csv",
+    "what": "per reply"
+   }
+  ],
+  "bound": "a ratio down to 0.96 or up to 1.04 is not excluded",
+  "replaces": [
+   "TL-code-vllm-core"
+  ]
+ },
+ {
+  "id": "VC-core-code-all16",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "SECONDARY",
+  "question": "On the vLLM fork with the route-b loader, over all 16 code prompts, does the 6-bit core change code thinking length against the original BF16 core?",
+  "statement": "V-K6 / V-BF16 reasoning tokens on all 16 prompts: 1.00 [0.95, 1.06], 10 of 16 prompts above 1 (63 seed pairs); the interval includes 1.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, V-K6 / V-BF16, exp(mean log ratio over seed pairs where both finished)",
+  "sign": "above 1 = the 6-bit core thought longer",
+  "unit": "prompt",
+  "n": "16 prompts, 63 seed pairs",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_vct.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 0,
+   "note": "the frozen table: primary p4-p15, secondary all 16 and p0-p3; ratios, the null is 1"
+  },
+  "replication": "CuteAFD, all 16: CT-core-code-all16",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/all_p0_p15/ratio",
+    "what": "ratio",
+    "value": 1.0026303957950797
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/all_p0_p15/ratio_ci95_prompts",
+    "what": "95% interval over prompts",
+    "value": [
+     0.9498291297313497,
+     1.056902265677614
+    ]
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/all_p0_p15/prompts_above_1",
+    "what": "prompts above 1",
+    "value": 10
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/all_p0_p15/pairs",
+    "what": "pairs",
+    "value": 63
+   }
+  ],
+  "bound": "a ratio down to 0.95 or up to 1.06 is not excluded"
+ },
+ {
+  "id": "VC-core-code-blockl",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "SECONDARY",
+  "question": "On the vLLM fork with the route-b loader, on the four Block L code prompts (p0-p3), does the 6-bit core change code thinking length against the original BF16 core?",
+  "statement": "V-K6 / V-BF16 reasoning tokens on p0-p3: 1.01 [0.85, 1.19], 2 of 4 prompts above 1 (16 seed pairs); the interval includes 1.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, V-K6 / V-BF16, exp(mean log ratio over seed pairs where both finished)",
+  "sign": "above 1 = the 6-bit core thought longer",
+  "unit": "prompt",
+  "n": "4 prompts, 16 seed pairs",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_vct.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "4 Block L code prompts p0-p3, 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 0,
+   "note": "the frozen table: primary p4-p15, secondary all 16 and p0-p3; ratios, the null is 1"
+  },
+  "replication": "CuteAFD, p0-p3: CT-core-code-blockl",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/blockL_p0_p3/ratio",
+    "what": "ratio",
+    "value": 1.0053016950832772
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/blockL_p0_p3/ratio_ci95_prompts",
+    "what": "95% interval over prompts",
+    "value": [
+     0.849951724621148,
+     1.1890457644377188
+    ]
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/blockL_p0_p3/prompts_above_1",
+    "what": "prompts above 1",
+    "value": 2
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/core/blockL_p0_p3/pairs",
+    "what": "pairs",
+    "value": 16
+   }
+  ],
+  "bound": "a ratio down to 0.85 or up to 1.19 is not excluded"
+ },
+ {
+  "id": "VC-engines",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "ENGINES",
+  "question": "Is the 6-bit / BF16 core ratio for code thinking length the same on the vLLM fork (route b) as on CuteAFD v4.0.0, paired by prompt?",
+  "statement": "vLLM ratio / CuteAFD ratio, exp(vLLM log ratio − CuteAFD log ratio): 0.79 [0.75, 0.83] on the 12 new prompts, 0.75 [0.69, 0.81] on all 16 and 0.64 [0.53, 0.77] on p0-p3; below 1 = the core ratio is smaller on the vLLM fork.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "ratio of ratios: (V-K6 / V-BF16) / (C-K6 / C-K6x), per prompt, then over prompts",
+  "sign": "below 1 = the 6-bit / BF16 ratio is smaller on the vLLM fork than on CuteAFD",
+  "unit": "prompt",
+  "n": "12 prompts (primary); 16; 4",
+  "interval": "95% bootstrap over prompts (analysis/analyze_vct.py, frozen)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c; CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "p4-p15, all 16, p0-p3; ratios, the null is 1"
+  },
+  "replication": "the protocol stated before the run that this outcome (vLLM not detected, comparison below 1) would place the CuteAFD ratio with CuteAFD's serving of the core rather than the weight values; the engines also differ in kernels and sampler. One launch-setting step on CuteAFD: FA-kda-step",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/reading/engine_comparison",
+    "what": "per set: ratio, 95% interval over prompts",
+    "value": {
+     "primary_p4_p15": {
+      "prompts": 12,
+      "vllm_over_cuteafd_ratio": 0.7937974729680184,
+      "ci95_prompts": [
+       0.754707998701655,
+       0.8319485922787196
+      ],
+      "per_prompt_corr": -0.31204837159613097
+     },
+     "all_p0_p15": {
+      "prompts": 16,
+      "vllm_over_cuteafd_ratio": 0.7535381394982527,
+      "ci95_prompts": [
+       0.6941621020576564,
+       0.8072085201962214
+      ],
+      "per_prompt_corr": -0.1257158054701284
+     },
+     "blockL_p0_p3": {
+      "prompts": 4,
+      "vllm_over_cuteafd_ratio": 0.6446022515476276,
+      "ci95_prompts": [
+       0.5299973294149812,
+       0.7731123242746554
+      ],
+      "per_prompt_corr": -0.5434486093492782
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/analysis/samples.csv",
+    "what": "CuteAFD per reply"
+   }
+  ],
+  "replaces": [
+   "TL-code-engines"
+  ]
+ },
+ {
+  "id": "VC-tests",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "DESC",
+  "question": "On the vLLM fork with the route-b loader, how often do the code replies of the two cores pass all hidden tests?",
+  "statement": "All hidden tests pass on 53 of 64 finished V-K6 replies and 58 of 63 finished V-BF16 replies; mean share of tests passed 0.955 and 0.957.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "all-tests-pass count of finished replies and mean share of tests passed, per arm",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "64 and 63 finished replies",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "paired post hoc in FA-pass-others (V-BF16 vs V-K6, interval includes 0)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/V-K6/all_tests_pass_of_finished",
+    "what": "V-K6",
+    "value": 53
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/V-BF16/all_tests_pass_of_finished",
+    "what": "V-BF16",
+    "value": 58
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/V-K6/mean_share_tests_passed",
+    "what": "V-K6",
+    "value": 0.9552746219519702
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/V-BF16/mean_share_tests_passed",
+    "what": "V-BF16",
+    "value": 0.9567983043882219
+   }
+  ],
+  "replaces": [
+   "TL-code-tests"
+  ]
+ },
+ {
+  "id": "VC-desc",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "DESC",
+  "question": "On the vLLM fork with the route-b loader, what were finish classes, median reasoning length and decode speed per core in the code study?",
+  "statement": "Finished 64 of 64 (V-K6) and 63 of 64 (V-BF16; one capped while looping); median reasoning tokens 62,853 and 61,129; median decode 103.9 and 103.7 tok/s.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-arm finish classes and medians",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "64 replies per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/V-K6",
+    "what": "V-K6",
+    "value": {
+     "requests": 64,
+     "finished": 64,
+     "capped": 0,
+     "capped_looping": 0,
+     "finished_with_terminal_repeat": 51,
+     "all_tests_pass_of_finished": 53,
+     "mean_share_tests_passed": 0.9552746219519702,
+     "median_reasoning_tokens": 62853.0,
+     "median_decode_tok_s": 103.87227194274419
+    }
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/V-BF16",
+    "what": "V-BF16",
+    "value": {
+     "requests": 64,
+     "finished": 63,
+     "capped": 1,
+     "capped_looping": 1,
+     "finished_with_terminal_repeat": 52,
+     "all_tests_pass_of_finished": 58,
+     "mean_share_tests_passed": 0.9567983043882219,
+     "median_reasoning_tokens": 61129,
+     "median_decode_tok_s": 103.73878092772446
+    }
+   }
+  ]
+ },
+ {
+  "id": "VC-xeng-ck6x",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "XENG",
+  "question": "Post hoc: on the same code prompts and seeds, how does CuteAFD's BF16-core arm (C-K6x) compare in reasoning length with both vLLM arms?",
+  "statement": "Post hoc, no interval: C-K6x / V-BF16 0.82 and C-K6x / V-K6 0.82 on the 12 new prompts (0 of 12 prompts above 1), 0.78 and 0.78 on all 16 (0 of 16). Median reasoning tokens of finished replies: C-K6x 50,411.5, V-BF16 61,129, V-K6 62,853.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "reasoning tokens, cross-engine ratio (analysis/cross_engine.py)",
+  "sign": "below 1 = C-K6x thought less",
+  "unit": "prompt",
+  "n": "12 prompts (all 16 as check)",
+  "interval": "none (descriptive): per (prompt, rep) with both replies finished, log ratio; mean within prompt, then over prompts; seeds pair like with like but do not reproduce samples across engines",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/analysis/cross_engine.json",
+    "pointer": "/ratios/C-K6x~1V-BF16",
+    "what": "C-K6x / V-BF16",
+    "value": {
+     "p4_p15": {
+      "ratio": 0.8235197364122174,
+      "prompts_above_1": 0,
+      "prompts": 12
+     },
+     "all_p0_p15": {
+      "ratio": 0.7842168888389073,
+      "prompts_above_1": 0,
+      "prompts": 16
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/analysis/cross_engine.json",
+    "pointer": "/ratios/C-K6x~1V-K6",
+    "what": "C-K6x / V-K6",
+    "value": {
+     "p4_p15": {
+      "ratio": 0.8238159544390024,
+      "prompts_above_1": 0,
+      "prompts": 12
+     },
+     "all_p0_p15": {
+      "ratio": 0.7833921713621301,
+      "prompts_above_1": 0,
+      "prompts": 16
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/analysis/cross_engine.json",
+    "pointer": "/median_reasoning_tokens",
+    "what": "medians, finished replies",
+    "value": {
+     "V-K6": 62853.0,
+     "V-BF16": 61129,
+     "C-K6": 63731.5,
+     "C-K6x": 50411.5
+    }
+   }
+  ],
+  "replaces": [
+   "TL-code-fp8-arm"
+  ]
+ },
+ {
+  "id": "VC-xeng-ck6",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "XENG",
+  "question": "Post hoc: on the same code prompts and seeds, how does CuteAFD's native 6-bit core arm (C-K6) compare in reasoning length with both vLLM arms?",
+  "statement": "Post hoc, no interval: C-K6 / V-K6 1.04 and C-K6 / V-BF16 1.04 on the 12 new prompts (9 of 12 prompts above 1 each), 1.04 and 1.04 on all 16 (11 and 12 of 16). Median reasoning tokens of finished replies: C-K6 63,731.5, V-K6 62,853, V-BF16 61,129.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "reasoning tokens, cross-engine ratio (analysis/cross_engine.py)",
+  "sign": "above 1 = C-K6 thought longer",
+  "unit": "prompt",
+  "n": "12 prompts (all 16 as check)",
+  "interval": "none (descriptive): per (prompt, rep) with both replies finished, log ratio; mean within prompt, then over prompts; seeds pair like with like but do not reproduce samples across engines",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/analysis/cross_engine.json",
+    "pointer": "/ratios/C-K6~1V-K6",
+    "what": "C-K6 / V-K6",
+    "value": {
+     "p4_p15": {
+      "ratio": 1.0400398351116724,
+      "prompts_above_1": 9,
+      "prompts": 12
+     },
+     "all_p0_p15": {
+      "ratio": 1.0426659900929294,
+      "prompts_above_1": 11,
+      "prompts": 16
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/analysis/cross_engine.json",
+    "pointer": "/ratios/C-K6~1V-BF16",
+    "what": "C-K6 / V-BF16",
+    "value": {
+     "p4_p15": {
+      "ratio": 1.0398921359519644,
+      "prompts_above_1": 9,
+      "prompts": 12
+     },
+     "all_p0_p15": {
+      "ratio": 1.0439340223382958,
+      "prompts_above_1": 12,
+      "prompts": 16
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/analysis/cross_engine.json",
+    "pointer": "/median_reasoning_tokens",
+    "what": "medians, finished replies",
+    "value": {
+     "V-K6": 62853.0,
+     "V-BF16": 61129,
+     "C-K6": 63731.5,
+     "C-K6x": 50411.5
+    }
+   }
+  ],
+  "replaces": [
+   "TL-code-fp8-arm"
+  ]
+ },
+ {
+  "id": "VC-fp8-path",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "FP8PATH",
+  "question": "On CuteAFD v4.0.0, what besides the core's weights differs at launch between the native 6-bit core arm and the BF16-core arm?",
+  "statement": "By the launch logs and the v4.0.0 source: the BF16-core arm (and K4) runs the KDA projections in row128 FP8 (with the f_a, g_a and b projections packed into the FP8 operand), an FP8 vocabulary head and FP8 prefill activations for MLA and FFN, while the native 6-bit arm runs KDA and the head on its 6-bit kernels without activation quantization. MLA, dense and shared-expert projections are FP8 on the BF16 path, with no BF16 option on v4.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "launch settings by core format",
+  "sign": "n/a",
+  "unit": "setting",
+  "n": "n/a",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "tagged v4.0.0 source (launcher, daemon, loader) and the core-swap run's server logs (not published)",
+   "context": "n/a",
+   "path": "launch settings",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "each F-arm launch of 2026-11-06-cuteafd-fp8-ablation logged the settings it switched (FA-launch-check)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/CUTEAFD-FP8-PATH.md",
+    "lines": [
+     14,
+     21
+    ],
+    "what": "server logs per launch",
+    "text": "## Server logs (read)\n| Launch | KDA projections | Vocabulary head | Prefill FP8 activations |\n|---|---|---|---|\n| K4-Core-K6, native 6-bit core (C-K6) | `kda_fp8=Off` (native 6-bit) | `head=\"K6\"`, `fp8_head=false` | `fp8_prefill=[Mla, Ffn]` (no FP8 MLA/FFN operands to apply it to) |\n| K4-Core-K6, BF16 core (C-K6x) | `kda_fp8=Row128`, 2,844 MiB | `head=\"FP8\"`, `fp8_head=true` | `fp8_prefill=[Mla, Ffn]` |\n| K4 (C-K4) | `kda_fp8=Row128`, 2,844 MiB | `head=\"FP8\"`, `fp8_head=true` | `fp8_prefill=[Mla, Ffn]` |\nSource: `results/2026-11-03-cuteafd-core-swap` server logs, s1 launches (not published; lines 75-80 of each).\nThe two serving configs differ only in MODEL_ID and MODEL_REVISION."
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/CUTEAFD-FP8-PATH.md",
+    "lines": [
+     23,
+     39
+    ],
+    "what": "code read",
+    "text": "## Code (read)\n- MLA (`q_a|kv_a`, `q_b`, `o_proj`), dense and shared-expert projections are FP8 only: the checkpoint's E4M3 blocks, or\n  128x128 blocks quantized from BF16 at load; BF16 is never resident (`rust/crates/cuteafd-daemon/src/families/glm5_flash/weights.rs:3-10`).\n- KDA in/out projections and the LM head take FP8 (E4M3, per row x 128-K scales) when selected\n  (`weights.rs:3-10`). The launcher's `auto` selects both: `GLM5_FLASH_KDA_FP8` auto -> row128\n  (`scripts/launch/run-family.sh:2355-2363`), `GLM5_FLASH_FP8_HEAD` auto -> on (`run-family.sh:2409-2417`).\n- With a native 6-bit core the daemon turns KDA FP8 off and, with a native `lm_head`, the FP8 head off\n  (`rust/crates/cuteafd-daemon/src/families/glm5_flash/mod.rs:1716-1723`). So the BF16-core checkpoint gets FP8 KDA and an\n  FP8 head; the 6-bit checkpoint does not.\n- The KDA FP8 input operand packs q, k, v and the f_a, g_a and b projections; f_a/g_a/b are BF16 in both checkpoints and stay\n  BF16 on the 6-bit path (`weights.rs:731-746`, native: separate BF16 `w_aux`; loader\n  `rust/crates/cuteafd-loader/src/families/glm5_flash/resident.rs:94-104`, converted: one input operand, 1 byte per value with FP8).\n- The option's own documentation: row128 \"costs 3.4 points top-1 (89.1% -> 85.7%) and doubles verify-vs-decode rounding\n  ... enough to flip greedy output under speculation; opt-in\", CLI default off (`mod.rs:189-198`).\n- Scale rule for FP8 copies made at load: default pow2 (smallest power of two >= amax/448) (`mod.rs:284-294`).\n- Prefill: MLA and FFN run W8A8 (dynamic FP8 activations) by default (`GLM5_FLASH_FP8_PREFILL`, `run-family.sh:2446-2465`);\n  on the 6-bit path these operands are 6-bit trellis kernels (FP16 weights, FP32 accumulate) with no activation quantization."
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/CUTEAFD-FP8-PATH.md",
+    "lines": [
+     50,
+     52
+    ],
+    "what": "switches that exist on v4",
+    "text": "## Switches that exist on v4 (read)\n`GLM5_FLASH_KDA_FP8=off` (BF16 KDA), `GLM5_FLASH_FP8_HEAD=off` (BF16 head), `GLM5_FLASH_FP8_PREFILL=off`, `FP8_SCALES`.\nMLA and dense/shared MLP have no BF16 option."
+   }
+  ],
+  "replaces": [
+   "TL-fp8-path"
+  ]
+ },
+ {
+  "id": "VC-fp8-path-shard",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "FP8PATH-SHARD",
+  "question": "On CuteAFD v4.0.0 on two GPUs, does switching KDA FP8 off change anything besides the KDA projections' format?",
+  "statement": "On the two-GPU head split the launcher's default also adds KDA output sharding (token-row output ownership) unless KDA FP8 is off; the daemon accepts it only with FP8 KDA and clears it for a native 6-bit core. Switching KDA FP8 off on two GPUs therefore also returns KDA to the partials split path.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "launch settings coupled to KDA FP8",
+  "sign": "n/a",
+  "unit": "setting",
+  "n": "n/a",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "tagged v4.0.0 source (launcher, daemon, loader) and the core-swap run's server logs (not published)",
+   "context": "n/a",
+   "path": "launch settings",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "bears on FA-kda-step, where the two change together",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/CUTEAFD-FP8-PATH.md",
+    "lines": [
+     41,
+     44
+    ],
+    "what": "added 2026-11-07",
+    "text": "- Added 2026-11-07: on a two-GPU head split the launcher's `auto` also adds token-row KDA output ownership\n  (`--kda-output-shard --kda-prefill-expanded`) unless KDA FP8 is off (`run-family.sh:2366`); the daemon accepts these\n  only with `--kda-fp8 row128` or `channel` (`mod.rs:1296-1299`) and clears them for a native 6-bit core (`mod.rs:1716-1722`).\n  So `GLM5_FLASH_KDA_FP8=off` on two GPUs also returns KDA to the partials split path."
+   }
+  ],
+  "replaces": [
+   "TL-fp8-path"
+  ]
+ },
+ {
+  "id": "VC-fp8-path-context",
+  "run": "2026-11-06-vllm-code-thinking",
+  "goal": "FP8PATH-CONTEXT",
+  "question": "What reasons does CuteAFD v4.0.0's own documentation give for these launch defaults, and do its documents agree?",
+  "statement": "The settings are the launcher's defaults, with reasons in its comment: row128 KDA and an FP8 head on both layouts, and on the two-GPU split token-row KDA output ownership to avoid rounding the two GPUs' half-K BF16 partials; the model notes give the speed trade with teacher-forced checks (top-1, KL). The model notes and the --kda-fp8 option text describe BF16 KDA as the two-GPU default, so the documents differ, and the launcher's choice is what runs.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "design context of the launch defaults",
+  "sign": "n/a",
+  "unit": "document",
+  "n": "3 documents (launcher comment, model notes, option text)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "tagged v4.0.0 source (launcher, daemon, loader) and the core-swap run's server logs (not published)",
+   "context": "n/a",
+   "path": "launch settings",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the same reading in FA-design-context",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/CUTEAFD-FP8-PATH.md",
+    "lines": [
+     6,
+     12
+    ],
+    "what": "design context (added 2026-11-08)",
+    "text": "Design context (added 2026-11-08): these settings are the launcher's defaults, with its stated reasons in the comment above\nthe GLM 5.3 Flash precision block (`scripts/launch/run-family.sh:2337-2351`): row128 KDA and an FP8 head on both layouts,\ntoken-row KDA output ownership on the two-GPU head split because it avoids rounding half-K BF16 partials. The model\nnotes (`docs/models/glm5_flash.md:163-210`, \"Default precision\") give the speed trade and its teacher-forced checks (top-1,\nKL); they and the `--kda-fp8` option text (`.../glm5_flash/mod.rs:189-197`, which also records the verify-vs-decode\nrounding cost under speculation) describe BF16 KDA as the default on the two-GPU split. The documents differ; the\nlauncher's choice is what runs. This note maps what each setting changes."
+   }
+  ],
+  "replaces": [
+   "TL-fp8-path"
+  ]
+ }
+]

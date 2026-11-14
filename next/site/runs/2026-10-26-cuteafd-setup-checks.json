@@ -1,0 +1,379 @@
+{
+ "id": "2026-10-26-cuteafd-setup-checks",
+ "date": "2026-10-26",
+ "title": "Core-FP8 expert bytes and FP8 projections checked against K3.25-v1; CuteAFD source audit",
+ "kind": "check",
+ "question": "Are the Core-FP8 checkpoint's bytes what its provenance says relative to K3.25-v1, and does CuteAFD v3.0.1 share, in source, the vLLM-engine issues D1-D7 and E1 found in earlier evaluation?",
+ "engines": [
+  "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1@0490d2f708b12145f6516555ab066aaeb401cd21",
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8@d31ebc92 (stitch provenance and FP8 tensors)",
+  "incoai/GLM-5.3-Flash-DFlash2 (config.json only, source audit)"
+ ],
+ "hardware": "CPU only (no GPU)",
+ "protocol": {
+  "file": null,
+  "frozen": null,
+  "amendments": []
+ },
+ "goals": [
+  {
+   "id": "BYTES",
+   "question": "Are the base tensors of the Core-FP8 checkpoint d31ebc92 byte-identical to the local K3.25-v1 0490d2f7 snapshot, as Core-FP8's stitch provenance records?",
+   "added": "check",
+   "added_source": "README.md:5-9 (Expert bytes); bytecheck/bytecheck.py docstring",
+   "design": {
+    "instrument": "bytecheck.py: sha256 of the raw bytes of every tensor in the local K3.25-v1 snapshot, compared with Core-FP8's published stitch provenance (provenance-d31ebc92.json, not copied here)",
+    "arms": [
+     "local K3.25-v1 0490d2f7 snapshot",
+     "Core-FP8 d31ebc92 stitch provenance"
+    ],
+    "items": "every tensor of the 18 local shards (150,226 tensors) against the 150,405 provenance entries",
+    "unit": "tensor",
+    "n": "150,047 base tensors (plus 358 FP8-source entries)",
+    "repeats": "one pass (deterministic)",
+    "interval": "none (deterministic check)"
+   },
+   "files": [
+    "bytecheck/*"
+   ],
+   "result_docs": [
+    "README.md",
+    "bytecheck/report-local-0490d2f7.json"
+   ],
+   "status": "done",
+   "headline": "150,047 of 150,047 base tensors byte-identical (140.9 GB), 0 mismatches, 0 missing; 358 tensors come from the FP8 source (the 179 replaced weights and their block scales).",
+   "findings": [
+    "SC-bytes"
+   ]
+  },
+  {
+   "id": "FP8",
+   "question": "For the 179 projection tensors Core-FP8 replaced, how far is the official FP8 from K3.25-v1's BF16, and does a plain E4M3 amax/448 128x128 block quantization of the BF16 reproduce the official FP8 bytes?",
+   "added": "check",
+   "added_source": "README.md:11-15 (FP8 projections); fp8check/fp8check.py docstring",
+   "design": {
+    "instrument": "fp8check.py (CPU): dequantize official FP8 (E4M3 x FP32 128x128 block scale_inv) and compare with BF16; quantize BF16 to E4M3 with amax/448 128x128 block scales and compare codes and scales",
+    "arms": [
+     "official FP8 (Core-FP8 d31ebc92)",
+     "K3.25-v1 0490d2f7 BF16",
+     "own E4M3 quantization of the BF16"
+    ],
+    "items": "the 179 projection tensors Core-FP8 replaced",
+    "unit": "tensor",
+    "n": "179 tensors",
+    "repeats": "one pass (deterministic)",
+    "interval": "none (deterministic check)"
+   },
+   "files": [
+    "fp8check/*"
+   ],
+   "result_docs": [
+    "README.md",
+    "fp8check/report.json"
+   ],
+   "status": "done",
+   "headline": "Official FP8, dequantized, differs from K3.25-v1's BF16 by 0.16% (relative Frobenius norm, all 179 tensors). Quantizing the BF16 to E4M3 with amax/448 scales over 128x128 blocks reproduces 99.99998% of the official codes, with scales within one FP32 ulp (only 37.2% bit-equal).",
+   "findings": [
+    "SC-fp8-distance",
+    "SC-fp8-recipe"
+   ]
+  },
+  {
+   "id": "PATHS",
+   "question": "Which CuteAFD v3.0.1 code paths serve 2 RTX GPUs with local experts and no Sparks (attention placement and DSA index cache)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:15-26",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "placement selection and index-cache variant in the loader, daemon and launcher",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "From source: `context` (token-split MLA, compact index cache) is the automatic placement on two GPUs; `heads` (per-token key cache) is explicit and is what the v3 2-RTX release card used; both index-cache variants were read, the `layers` placement was not audited separately.",
+   "findings": [
+    "SC-paths"
+   ]
+  },
+  {
+   "id": "D1",
+   "question": "Does CuteAFD v3.0.1 keep all 512 selected index pools (the vLLM-engine issue D1 dropped column 511)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:32,50-74",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue D1",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Handled correctly (from source): all 512 selected pools are expanded, plus the open tail pool, into a 2,112-slot row on every path read; rows of exactly 512 pools take the dense branch. Not audited: whether the b12x top-k kernel's selected set is exact.",
+   "findings": [
+    "SC-d1"
+   ]
+  },
+  {
+   "id": "D2",
+   "question": "Does CuteAFD v3.0.1 have a counterpart of the vLLM-engine issue D2 (index tail ring written without positions)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:33,76-98",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue D2",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Not applicable (different design), from source: no tail ring or generic mapping fallback; every slot is addressed from the row's own position and sequence pages, and a position outside them is an error.",
+   "findings": [
+    "SC-d2"
+   ]
+  },
+  {
+   "id": "D3",
+   "question": "Are router logits computed in FP32 in CuteAFD v3.0.1 (the vLLM-engine issue D3 computed them in BF16 on SM12x)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:34,100-125",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue D3",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Handled correctly (from source): BF16 operands, FP32 accumulation and FP32 store on both GEMM routes, bias and selection in FP32; `moe_router_dtype` is not read (FP32 is unconditional). No numerical comparison was run.",
+   "findings": [
+    "SC-d3"
+   ]
+  },
+  {
+   "id": "D4",
+   "question": "Does the routed SwiGLU limit reach CuteAFD v3.0.1's compiled expert kernels (the vLLM-engine issue D4 did not pass it)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:35,127-150",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue D4",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Handled correctly (from source) for local EXL3 routed experts: compiled at 10 and enforced at startup; shared and dense MLPs also clamp at 10. Not read: the clamp inside b12x mixed_trellis; whether activations reach 10 was not measured.",
+   "findings": [
+    "SC-d4"
+   ]
+  },
+  {
+   "id": "D5",
+   "question": "Can a CuteAFD v3.0.1 workspace referenced by a captured CUDA graph be reallocated (the vLLM-engine issue D5: workspace not locked after capture)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:36,152-169",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue D5",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Not applicable (different design), from source: fixed-capacity step workspaces allocated before capture and never replaced; no resize path found in glm5_flash/engine.rs and the drafter. Not exhaustive: EXL3 shared arenas, peer-exchange buffers and token I/O were not audited.",
+   "findings": [
+    "SC-d5"
+   ]
+  },
+  {
+   "id": "D6",
+   "question": "Can stale warm-up block ids reach CuteAFD v3.0.1's tables (the vLLM-engine issue D6)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:37,171-184",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue D6",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Not applicable (different design), from source: tables are rebuilt every step, padding and warm-up rows carry -1 slots that writers skip, and per-sequence state is reset or restored before use.",
+   "findings": [
+    "SC-d6"
+   ]
+  },
+  {
+   "id": "D7",
+   "question": "Does CuteAFD v3.0.1's index-K prefill writer handle chunk starts that are not pool-aligned (the vLLM-engine issue D7)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:38,186-208",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue D7",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Handled correctly (from source) in both index caches: a straddling pool reads the sequence's own stored keys (keys cache) or its own tail (compact cache), never other sequences' rows.",
+   "findings": [
+    "SC-d7"
+   ]
+  },
+  {
+   "id": "E1",
+   "question": "Do CuteAFD v3.0.1's router weights or logits depend on batch size (the vLLM observation E1)?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:39,210-226",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "the CuteAFD counterpart of issue E1",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "status_note": "Source verdict left the route-switch logit question open; the measurement is a separate exploratory run.",
+   "headline": "The E1 mechanism ((s+b)-b rebuild above 1,024 rows) is not applicable (different design). Whether router logits are bit-identical across the 160/161-row GEMV/GEMM route switch cannot be determined from source; it was measured afterwards in 2026-10-26-e1-router-route.",
+   "findings": [
+    "SC-e1-mechanism"
+   ],
+   "superseded_by": "2026-10-26-e1-router-route/E1-ROUTE (route-switch part, measured)"
+  },
+  {
+   "id": "SWIGLU",
+   "question": "Which of CuteAFD v3.0.1's MLP clamps and related keys are read from the checkpoint's config.json?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:41-46,230-247",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "every consumer of swiglu_limit and related router keys",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "From source: routed experts, shared expert and dense MLPs clamp at 10 from compiled constants; none read `swiglu_limit` from config.json, and no equality check was found, so a checkpoint declaring another value would not be detected (the local K3.25 declares 10.0). `routed_scaling_factor`, `index_topk` and `index_kpool` are read; `moe_router_dtype` is not.",
+   "findings": [
+    "SC-swiglu"
+   ]
+  },
+  {
+   "id": "AUDIT-LIMITS",
+   "question": "What did the source audit not cover?",
+   "added": "source reading",
+   "added_source": "source-audit/audit-vllm-items.md:249-253",
+   "design": {
+    "instrument": "read-only source reading of CuteAFD v3.0.1 (commit 9098781f) and the pinned sparkinfer submodule (d3c13652), plus the local K3.25 config.json and safetensors headers; no GPU, nothing run",
+    "arms": [
+     "CuteAFD v3.0.1 source"
+    ],
+    "items": "scope statement of the audit",
+    "unit": "code path",
+    "n": "n/a (source reading)",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "source-audit/audit-vllm-items.md"
+   ],
+   "status": "done",
+   "headline": "Source only, no behaviour measured, released image not inspected; submodule read at the pinned commit without verifying the image was built from it; b12x internals, FP8/NVFP4 local expert paths, Spark worker paths and the `layers` placement not read.",
+   "findings": [
+    "SC-audit-limits"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "source-audit/audit-vllm-items.md"
+ ]
+}

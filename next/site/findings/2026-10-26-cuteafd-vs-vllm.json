@@ -1,0 +1,4181 @@
+[
+ {
+  "id": "V3-pa-engine",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PA",
+  "question": "On K3.25 at 2K contexts, is CuteAFD v3.0.1 farther from BF16 than the vLLM fork?",
+  "statement": "Full-vocabulary KL from BF16 on the teacher panel: vLLM fork 0.0458, CuteAFD 0.0476; CuteAFD − vLLM +0.0017 [+0.0006, +0.0028].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "full-vocabulary KL(BF16 teacher || engine), CuteAFD - vLLM fork",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "25 windows",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "CuteAFD v4.0.0 gives bit-identical rows (V4-v3-identity); against a second vLLM launch: V3-f3-pa",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-V1-vs-C1.json",
+    "pointer": "/overall/kl",
+    "what": "KL A = vLLM, B = CuteAFD",
+    "value": {
+     "A": 0.045840164541551785,
+     "B": 0.047556256645403285,
+     "B_minus_A": 0.0017160921038514947,
+     "ci95": [
+      0.000647468416329731,
+      0.002817797506028621
+     ],
+     "boot_se": 0.0005530444161985005,
+     "clustered_se": 0.0005679376977484015
+    }
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-longcode",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB-BUCKET",
+  "question": "On K3.25 at 8-16K of history, is CuteAFD v3.0.1 farther from BF16 than the vLLM fork (fidelity set)?",
+  "statement": "CuteAFD − vLLM, coarse KL from BF16, generated positions at 8-16K: +0.0054 [+0.0034, +0.0074] (excludes 0).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "coarse KL from BF16 on generated positions, 8-16K history bucket, CuteAFD - mean of three vLLM runs",
+  "sign": "above 0 = CuteAFD farther",
+  "unit": "window",
+  "n": "windows in the bucket",
+  "interval": "paired 95% window bootstrap (the run's P-B scorer); CuteAFD paired against the mean of three vLLM runs from two launches",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25",
+   "items": "fidelity set (P-B): generated positions in 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 1,
+   "note": "three history buckets; the 8-16K bucket is all long-code reading (block B), so length and content are not separated"
+  },
+  "replication": "K4 run: K4-pb-longcode (larger, top-20 measure)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/8-16K|kl|C1",
+    "what": "[estimate, 2.5%, 97.5%]",
+    "value": [
+     0.005372041082018638,
+     0.003445242048948859,
+     0.007385830323231326
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/8-16K|kl|V-spread",
+    "what": "vLLM run-to-run spread",
+    "value": [
+     0.037963542389200515,
+     0.03295562576627465,
+     0.04211732671632035
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-short",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB-BUCKET",
+  "question": "On K3.25 at 0-2K of history, is CuteAFD v3.0.1 farther from BF16 than the vLLM fork (fidelity set)?",
+  "statement": "CuteAFD − vLLM, coarse KL from BF16, generated positions at 0-2K: +0.0017 [−0.0006, +0.0044] (includes 0).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "coarse KL from BF16 on generated positions, 0-2K history bucket, CuteAFD - mean of three vLLM runs",
+  "sign": "above 0 = CuteAFD farther",
+  "unit": "window",
+  "n": "windows in the bucket",
+  "interval": "paired 95% window bootstrap (the run's P-B scorer); CuteAFD paired against the mean of three vLLM runs from two launches",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25",
+   "items": "fidelity set (P-B): generated positions in 64 windows, contexts 0.5-14.4K",
+   "context": "0-2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 1,
+   "note": "three history buckets; the 8-16K bucket is all long-code reading (block B), so length and content are not separated"
+  },
+  "replication": "K4 run: K4-pb-longcode (larger, top-20 measure)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/0-2K|kl|C1",
+    "what": "[estimate, 2.5%, 97.5%]",
+    "value": [
+     0.0017451973722141963,
+     -0.000562257190399222,
+     0.004358443112237756
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/0-2K|kl|V-spread",
+    "what": "vLLM run-to-run spread",
+    "value": [
+     0.004290413966674242,
+     0.0,
+     0.010196062830247913
+    ]
+   }
+  ],
+  "bound": "a difference up to +0.0044 is not excluded"
+ },
+ {
+  "id": "V3-pb-mid",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB-BUCKET",
+  "question": "On K3.25 at 2-8K of history, is CuteAFD v3.0.1 farther from BF16 than the vLLM fork (fidelity set)?",
+  "statement": "CuteAFD − vLLM, coarse KL from BF16, generated positions at 2-8K: +0.0007 [−0.0029, +0.0032] (includes 0).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "coarse KL from BF16 on generated positions, 2-8K history bucket, CuteAFD - mean of three vLLM runs",
+  "sign": "above 0 = CuteAFD farther",
+  "unit": "window",
+  "n": "windows in the bucket",
+  "interval": "paired 95% window bootstrap (the run's P-B scorer); CuteAFD paired against the mean of three vLLM runs from two launches",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25",
+   "items": "fidelity set (P-B): generated positions in 64 windows, contexts 0.5-14.4K",
+   "context": "2-8K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 1,
+   "note": "three history buckets; the 8-16K bucket is all long-code reading (block B), so length and content are not separated"
+  },
+  "replication": "K4 run: K4-pb-longcode (larger, top-20 measure)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/2-8K|kl|C1",
+    "what": "[estimate, 2.5%, 97.5%]",
+    "value": [
+     0.000687768708928976,
+     -0.002917022799353169,
+     0.003221700417370855
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/2-8K|kl|V-spread",
+    "what": "vLLM run-to-run spread",
+    "value": [
+     0.021732024492446055,
+     0.011520020817193066,
+     0.03199299501963305
+    ]
+   }
+  ],
+  "bound": "a difference up to +0.0032 is not excluded"
+ },
+ {
+  "id": "V3-q2-nll",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q2",
+  "question": "At 32K-128K, where there is no BF16 reference, do the two engines assign different NLL to long documents (K3.25)?",
+  "statement": "NLL, CuteAFD v3.0.1 − vLLM fork: −0.0005 [−0.0037, +0.0018] nats per token over 6 documents (includes 0). The file stores vLLM − CuteAFD (B − A).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "mean NLL of given long documents, CuteAFD - vLLM fork",
+  "sign": "above 0 = CuteAFD assigns the text lower probability",
+  "unit": "document",
+  "n": "6 documents (18 windows)",
+  "interval": "95% bootstrap over documents (the run's Q2 scorer); per-type intervals rest on 3 clusters (audit U3)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25",
+   "items": "Q2: 6 long documents (code and prose), 32K, 64K and 128K",
+   "context": "32K-128K",
+   "path": "prefill (teacher-forced), no BF16 reference",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "K4 run: Q2 also not detected",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/q2/q2-C1-vs-V1.json",
+    "pointer": "/groups/overall/nll_paired",
+    "what": "NLL difference and interval",
+    "value": {
+     "A": 1.2324098206484742,
+     "B": 1.2329460109563888,
+     "B_minus_A": 0.0005361903079145439,
+     "ci95": [
+      -0.0017525885982765264,
+      0.0036984095080702353
+     ],
+     "boot_se": 0.00143908646767842,
+     "clustered_se": 0.0015686863294520285
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     186,
+     190
+    ],
+    "what": "t-intervals over document means",
+    "text": "  | | Mean | t-interval |\n  |---|---|---|\n  | Overall (5 df) | −0.0005 | [−0.0046, +0.0035] |\n  | Prose (2 df) | +0.0019 | [−0.0013, +0.0050] |\n  | Code (2 df) | −0.0029 | [−0.0135, +0.0077] |"
+   }
+  ],
+  "bound": "an NLL difference from −0.0037 (CuteAFD lower) to +0.0018 (CuteAFD higher) is not excluded; the audit's t-interval over the 6 document means is wider, −0.0046 to +0.0035 (V3-u3-q2-types)"
+ },
+ {
+  "id": "V3-f1-w8a16",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F1",
+  "question": "On K3.25, how much of CuteAFD's long-code distance from BF16 does W8A16 prefill (GLM5_FLASH_FP8_PREFILL=off) remove?",
+  "statement": "W8A16 prefill (GLM5_FLASH_FP8_PREFILL=off), CuteAFD v3.0.1 on K3.25, long-code bucket (8-16K): change against as shipped −0.0032 [−0.0049, −0.0013]; remaining difference from the vLLM fork (mean of three vLLM runs) +0.0022 [+0.0005, +0.0041].",
+  "class": "difference",
+  "status": "follow-up",
+  "quantity": "coarse KL from BF16 at 8-16K, setting - as shipped; and setting - vLLM mean",
+  "sign": "below 0 = closer to BF16 than as shipped",
+  "unit": "window",
+  "n": "windows in the 8-16K bucket (block B)",
+  "interval": "change against as shipped: 95% paired window bootstrap, 2,000 draws, random.Random(7) (f1/f1_analysis.py); against the vLLM fork: CuteAFD paired against the per-row mean of three vLLM runs from two launches (q/pb/pb-vs-vllm-mean3.json; bootstrap settings not published)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 with one setting changed; vLLM fork v0.9.2 for reference",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "fidelity set (P-B): generated positions in 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 3,
+   "note": "four settings against as shipped; F1a also turns off KDA output sharding (audit U2)"
+  },
+  "replication": "K4: F1K4 (W8A16 alone moves less of the gap)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/f1c/8-16K/vs_C1/kl",
+    "what": "vs as shipped",
+    "value": [
+     -0.0031949565759185707,
+     -0.004911381401425696,
+     -0.0013299162738536604
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/8-16K|kl|F1c",
+    "what": "vs mean of three vLLM runs",
+    "value": [
+     0.0021770845061000665,
+     0.00047759070425439353,
+     0.0041169695664135956
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V3-f1-all",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F1",
+  "question": "On K3.25, how much of CuteAFD's long-code distance from BF16 does KDA FP8, FP8 head and FP8 prefill all off remove?",
+  "statement": "KDA FP8, FP8 head and FP8 prefill all off, CuteAFD v3.0.1 on K3.25, long-code bucket (8-16K): change against as shipped −0.0038 [−0.0063, −0.0013]; remaining difference from the vLLM fork (mean of three vLLM runs) +0.0016 [−0.0005, +0.0033] (includes 0).",
+  "class": "difference",
+  "status": "follow-up",
+  "quantity": "coarse KL from BF16 at 8-16K, setting - as shipped; and setting - vLLM mean",
+  "sign": "below 0 = closer to BF16 than as shipped",
+  "unit": "window",
+  "n": "windows in the 8-16K bucket (block B)",
+  "interval": "change against as shipped: 95% paired window bootstrap, 2,000 draws, random.Random(7) (f1/f1_analysis.py); against the vLLM fork: CuteAFD paired against the per-row mean of three vLLM runs from two launches (q/pb/pb-vs-vllm-mean3.json; bootstrap settings not published)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 with one setting changed; vLLM fork v0.9.2 for reference",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "fidelity set (P-B): generated positions in 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 3,
+   "note": "four settings against as shipped; F1a also turns off KDA output sharding (audit U2)"
+  },
+  "replication": "K4: F1K4 (W8A16 alone moves less of the gap)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/f1d/8-16K/vs_C1/kl",
+    "what": "vs as shipped",
+    "value": [
+     -0.003785898784013252,
+     -0.0063198862105862535,
+     -0.0013261276197145554
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/8-16K|kl|F1d",
+    "what": "vs mean of three vLLM runs",
+    "value": [
+     0.0015861422980053851,
+     -0.000503509369869762,
+     0.003343260868150884
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V3-f1-head",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F1",
+  "question": "On K3.25, how much of CuteAFD's long-code distance from BF16 does BF16 output head (GLM5_FLASH_FP8_HEAD=off) remove?",
+  "statement": "BF16 output head (GLM5_FLASH_FP8_HEAD=off), CuteAFD v3.0.1 on K3.25, long-code bucket (8-16K): change against as shipped −0.0003 [−0.0004, −0.0001]; remaining difference from the vLLM fork (mean of the first two vLLM runs) +0.0048 [+0.0028, +0.0069].",
+  "class": "difference",
+  "status": "follow-up",
+  "quantity": "coarse KL from BF16 at 8-16K, setting - as shipped; and setting - vLLM mean",
+  "sign": "below 0 = closer to BF16 than as shipped",
+  "unit": "window",
+  "n": "windows in the 8-16K bucket (block B)",
+  "interval": "change against as shipped: 95% paired window bootstrap, 2,000 draws, random.Random(7) (f1/f1_analysis.py); against the vLLM fork: CuteAFD paired against the per-row mean of the two first-launch vLLM runs (V1, V1r), same bootstrap",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 with one setting changed; vLLM fork v0.9.2 for reference",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "fidelity set (P-B): generated positions in 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 3,
+   "note": "four settings against as shipped; F1a also turns off KDA output sharding (audit U2)"
+  },
+  "replication": "K4: F1K4 (W8A16 alone moves less of the gap). README.md:46 and SUMMARY.md:19 word this setting as 'no change'; the change against as shipped is very small but its interval excludes 0 (f1/RESULTS-F1.md:17)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/f1b/8-16K/vs_C1/kl",
+    "what": "vs as shipped",
+    "value": [
+     -0.00027025303654977767,
+     -0.00043071220717136554,
+     -9.407140953829222e-05
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/f1b/8-16K/vs_vllm_mean/kl",
+    "what": "vs mean of the first two vLLM runs",
+    "value": [
+     0.004778399556199868,
+     0.002803851210768449,
+     0.006873939603358418
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/README.md",
+    "lines": [
+     46,
+     46
+    ],
+    "what": "the README's wording",
+    "text": "+0.0041] at ~4% longer time to first token and no decode cost; BF16 head → no change at ~6% decode cost; all three"
+   }
+  ]
+ },
+ {
+  "id": "V3-f1-kda",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F1",
+  "question": "On K3.25, how much of CuteAFD's long-code distance from BF16 does BF16 KDA projections (GLM5_FLASH_KDA_FP8=off) remove?",
+  "statement": "BF16 KDA projections (GLM5_FLASH_KDA_FP8=off), CuteAFD v3.0.1 on K3.25, long-code bucket (8-16K): change against as shipped −0.0022 [−0.0047, +0.0005]; remaining difference from the vLLM fork (mean of the first two vLLM runs) +0.0028 [+0.0007, +0.0052].",
+  "class": "not detected",
+  "status": "follow-up",
+  "quantity": "coarse KL from BF16 at 8-16K, setting - as shipped; and setting - vLLM mean",
+  "sign": "below 0 = closer to BF16 than as shipped",
+  "unit": "window",
+  "n": "windows in the 8-16K bucket (block B)",
+  "interval": "change against as shipped: 95% paired window bootstrap, 2,000 draws, random.Random(7) (f1/f1_analysis.py); against the vLLM fork: CuteAFD paired against the per-row mean of the two first-launch vLLM runs (V1, V1r), same bootstrap",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 with one setting changed; vLLM fork v0.9.2 for reference",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "fidelity set (P-B): generated positions in 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 3,
+   "note": "four settings against as shipped; F1a also turns off KDA output sharding (audit U2)"
+  },
+  "replication": "K4: F1K4 (W8A16 alone moves less of the gap)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/f1a/8-16K/vs_C1/kl",
+    "what": "vs as shipped",
+    "value": [
+     -0.002202567997127536,
+     -0.004730124894561185,
+     0.0004828528259078177
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/f1a/8-16K/vs_vllm_mean/kl",
+    "what": "vs mean of the first two vLLM runs",
+    "value": [
+     0.0028460845956221094,
+     0.0007302874598848105,
+     0.005206744511512157
+    ]
+   }
+  ],
+  "bound": "a change down to −0.0047 is not excluded"
+ },
+ {
+  "id": "V3-f1-w8a16-cost",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F1-SPEED",
+  "question": "What does W8A16 prefill cost in speed on CuteAFD v3.0.1 (K3.25)?",
+  "statement": "Time to first token with W8A16 prefill, relative to as shipped: 1.038 to 1.045 across 8 cells; per-stream decode relative 0.885 to 1.043.",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "time to first token and decode, setting / as shipped, per cell",
+  "sign": "above 1 = slower first token",
+  "unit": "cell",
+  "n": "8 cells",
+  "interval": "none (descriptive; per-cell noise in M1 is 0.96-1.08)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "Block T subset",
+   "context": "1K and 8K",
+   "path": "serving",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "K4: F1K4-T (+3-4% first token)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/speed/f1c",
+    "what": "per-cell ratios",
+    "value": {
+     "1K code c1": {
+      "decode_tok_s_per_stream_median": 0.9766468231840989,
+      "aggregate_tok_s": 0.9751018304097943,
+      "ttft_median_s": 1.0407872659301463
+     },
+     "1K code c8": {
+      "decode_tok_s_per_stream_median": 0.9623343107025716,
+      "aggregate_tok_s": 0.978220461172058,
+      "ttft_median_s": 1.044644562373792
+     },
+     "1K prose c1": {
+      "decode_tok_s_per_stream_median": 1.0434784794083316,
+      "aggregate_tok_s": 1.0392418620382842,
+      "ttft_median_s": 1.0412085596965668
+     },
+     "1K prose c8": {
+      "decode_tok_s_per_stream_median": 1.0224172679940917,
+      "aggregate_tok_s": 0.9997069773726784,
+      "ttft_median_s": 1.0425205180673889
+     },
+     "8K code c1": {
+      "decode_tok_s_per_stream_median": 1.0052807222068711,
+      "aggregate_tok_s": 0.9949099918339597,
+      "ttft_median_s": 1.0382392714374111
+     },
+     "8K code c8": {
+      "decode_tok_s_per_stream_median": 0.9757139214351447,
+      "aggregate_tok_s": 0.9621645843439623,
+      "ttft_median_s": 1.0391720872221366
+     },
+     "8K prose c1": {
+      "decode_tok_s_per_stream_median": 1.016741732094356,
+      "aggregate_tok_s": 1.0072258215483292,
+      "ttft_median_s": 1.038689567512131
+     },
+     "8K prose c8": {
+      "decode_tok_s_per_stream_median": 0.8849225912993469,
+      "aggregate_tok_s": 0.9941529040173573,
+      "ttft_median_s": 1.0414907751745697
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "V3-pa-nll",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PA",
+  "question": "On K3.25 at 2K contexts, do CuteAFD v3.0.1 and the vLLM fork v0.9.2 assign different NLL to the BF16 teacher panel's text?",
+  "statement": "NLL of the panel text, CuteAFD − vLLM fork: −0.0001 [−0.0038, +0.0040] nats per token (vLLM 1.0731, CuteAFD 1.0730, BF16 teacher 1.0627); the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "mean NLL of the next token over all panel positions, CuteAFD - vLLM fork (run V1), nats",
+  "sign": "above 0 = CuteAFD assigns the panel text lower probability",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 5,
+   "excluding_0": 3,
+   "note": "P-A pair file, CuteAFD - vLLM: KL, NLL, top-1, confident top-1, top-3 (KL, top-1 and top-3 exclude 0)"
+  },
+  "replication": "second vLLM launch: C1 - V2 NLL in q/pa-v2/pa-pair-V2-vs-C1.json gives the same reading",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-V1-vs-C1.json",
+    "pointer": "/overall/nll",
+    "what": "NLL, A = vLLM V1, B = CuteAFD C1",
+    "value": {
+     "A": 1.0731354819911814,
+     "B": 1.0730463409525626,
+     "B_minus_A": -8.914103861885112e-05,
+     "ci95": [
+      -0.0038310250977830465,
+      0.004018639551019181
+     ],
+     "boot_se": 0.0020164985490949317,
+     "clustered_se": 0.0020445453713987954
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-V1-vs-C1.json",
+    "pointer": "/overall/teacher_nll/A",
+    "what": "teacher NLL",
+    "value": 1.0627276797019625
+   }
+  ],
+  "bound": "an NLL difference from −0.0038 to +0.0040 nats is not excluded"
+ },
+ {
+  "id": "V3-pa-top1",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PA",
+  "question": "On K3.25 at 2K contexts, does CuteAFD v3.0.1 agree less often than the vLLM fork v0.9.2 with the BF16 teacher's most likely token?",
+  "statement": "Top-1 agreement with the BF16 teacher, CuteAFD − vLLM fork: −0.35 pts [−0.54, −0.16] (vLLM 93.50%, CuteAFD 93.15%); top-3 containment −0.11 pts [−0.20, −0.03].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "share of positions where the engine's most likely token is the teacher's, CuteAFD - vLLM fork (run V1), percentage points; and top-3 containment",
+  "sign": "below 0 = CuteAFD agrees with the teacher less often",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 5,
+   "excluding_0": 3,
+   "note": "P-A pair file, CuteAFD - vLLM: KL, NLL, top-1, confident top-1, top-3"
+  },
+  "replication": "second vLLM launch: identical top-1 difference against V2 (q/pa-v2/pa-pair-V2-vs-C1.json)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-V1-vs-C1.json",
+    "pointer": "/overall/top1",
+    "what": "top-1, A = vLLM V1, B = CuteAFD C1",
+    "value": {
+     "A": 0.9350073277967758,
+     "B": 0.9315290669272106,
+     "B_minus_A": -0.0034782608695652175,
+     "ci95": [
+      -0.00537371763556424,
+      -0.001621885686370298
+     ],
+     "boot_se": 0.0009580156192034071,
+     "clustered_se": 0.000973908024963526
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-V1-vs-C1.json",
+    "pointer": "/overall/top3",
+    "what": "top-3 containment",
+    "value": {
+     "A": 0.9906399609184172,
+     "B": 0.9895065950170981,
+     "B_minus_A": -0.0011333659013190035,
+     "ci95": [
+      -0.002012701514411334,
+      -0.0002540302882266732
+     ],
+     "boot_se": 0.0004501340567563867,
+     "clustered_se": 0.0004614896210501043
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa-v2/pa-pair-V2-vs-C1.json",
+    "pointer": "/overall/top1/B_minus_A",
+    "what": "C1 - V2 top-1",
+    "value": -0.0034782608695652175
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-all",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB",
+  "question": "On K3.25 at 0.5-14.4K (fidelity set, generated positions), is CuteAFD v3.0.1 farther from BF16 than the vLLM fork v0.9.2? (Baseline corrected after the audit, I1.)",
+  "statement": "Coarse KL from BF16 on all generated positions, CuteAFD − mean of three vLLM fork runs (two launches): +0.0033 [+0.0016, +0.0049]. Against the first vLLM run alone, the reading before the audit correction (I1), +0.0027 [+0.0007, +0.0046].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "coarse KL (reference top 1,024 ids plus a tail bin) from BF16 on generated positions, CuteAFD - per-row mean of vLLM runs V1, V1r, V2",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "53 windows (15,104 generated rows)",
+  "interval": "95% paired window bootstrap; bootstrap settings for q/pb/pb-vs-vllm-mean3.json are not published; against V1 alone: 95% percentile bootstrap over windows, 5,000 draws, SplitMix64 seed 20260829 (the run's P-B scorer)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 4,
+   "note": "pb-vs-vllm-mean3.json, CuteAFD rows: KL and top-1, all rows and three history buckets"
+  },
+  "replication": "baseline changed from V1 alone to the vLLM run mean after the audit (I1, F3); same sign on the 2K panel (V3-pa-engine)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/all|kl|C1",
+    "what": "[estimate, 2.5%, 97.5%], vs mean of three vLLM runs",
+    "value": [
+     0.00330309057378175,
+     0.0015956167722687561,
+     0.004889550992339135
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/overall/kl",
+    "what": "vs V1 alone (A = V1, B = C1)",
+    "value": {
+     "A": 0.0457121309103551,
+     "B": 0.04844465523431681,
+     "B_minus_A": 0.0027325243239617095,
+     "ci95": [
+      0.0007048836510462638,
+      0.004557197916924405
+     ],
+     "boot_se": 0.0009857406083354254,
+     "clustered_se": 0.0009768778904821977
+    }
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-top1",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB",
+  "question": "On K3.25 at 0.5-14.4K (fidelity set, generated positions), does CuteAFD v3.0.1 agree less often than the vLLM fork v0.9.2 with BF16's most likely token?",
+  "statement": "Top-1 agreement with BF16 on generated positions, CuteAFD − mean of three vLLM runs: −0.46 pts [−0.73, −0.17]; against the first vLLM run alone −0.51 pts [−0.85, −0.16].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-1 agreement with the BF16 reference, CuteAFD - per-row mean of vLLM runs, percentage points",
+  "sign": "below 0 = CuteAFD agrees with BF16 less often",
+  "unit": "window",
+  "n": "53 windows (15,104 generated rows)",
+  "interval": "95% paired window bootstrap; bootstrap settings for q/pb/pb-vs-vllm-mean3.json are not published; against V1 alone: 95% percentile bootstrap over windows, 5,000 draws, SplitMix64 seed 20260829 (the run's P-B scorer)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 4,
+   "note": "pb-vs-vllm-mean3.json, CuteAFD rows: KL and top-1, all rows and three history buckets"
+  },
+  "replication": "baseline changed from V1 alone to the vLLM run mean after the audit (I1, F3); 2K panel: V3-pa-top1",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/all|top1|C1",
+    "what": "[estimate, 2.5%, 97.5%], vs mean of three vLLM runs",
+    "value": [
+     -0.004612464689265535,
+     -0.007290686735653809,
+     -0.0016617631034106992
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/overall/top1",
+    "what": "vs V1 alone",
+    "value": {
+     "A": 0.938426906779661,
+     "B": 0.9333289194915254,
+     "B_minus_A": -0.0050979872881355935,
+     "ci95": [
+      -0.008528838122658962,
+      -0.0016471071078182113
+     ],
+     "boot_se": 0.0017563322259470185,
+     "clustered_se": 0.001779819937659073
+    }
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-nll",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB",
+  "question": "On K3.25 at 0.5-14.4K (fidelity set), does CuteAFD v3.0.1 assign higher NLL than the vLLM fork v0.9.2 to the panel's generated text?",
+  "statement": "NLL of the generated text, CuteAFD − vLLM: +0.0168 [+0.0121, +0.0211] nats against the first vLLM run, +0.0167 [+0.0125, +0.0207] against the mean of the two first-launch runs.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "mean NLL of the panel's generated tokens, CuteAFD - vLLM, nats (the panel text is greedy output, audit M5)",
+  "sign": "above 0 = CuteAFD assigns the panel's greedy-generated text lower probability",
+  "unit": "window",
+  "n": "53 windows (15,104 generated rows)",
+  "interval": "95% percentile bootstrap over windows, 5,000 draws, SplitMix64 seed 20260829 (the run's P-B scorer); against the two-run mean: 95% paired window bootstrap, 2,000 draws, random.Random(7) (f1/f1_analysis.py)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 4,
+   "note": "NLL against the two-run vLLM mean, all rows and three buckets (f1/F1-RESULTS.json); V3-pb-nll-buckets"
+  },
+  "replication": "not attempted against the second launch (no NLL in pb-vs-vllm-mean3.json)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/overall/nll",
+    "what": "vs V1 (A = V1, B = C1)",
+    "value": {
+     "A": 0.23169099513295374,
+     "B": 0.2484791341630431,
+     "B_minus_A": 0.01678813903008944,
+     "ci95": [
+      0.012079977016806503,
+      0.0211256191817364
+     ],
+     "boot_se": 0.0022974097392345683,
+     "clustered_se": 0.0023009962443954874
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/C1/all/vs_vllm_mean/nll",
+    "what": "vs mean of V1, V1r [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.01668530118401773,
+     0.012493130315310144,
+     0.020706529786320916
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-bar",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB-BAR",
+  "question": "Do CuteAFD v3.0.1 and the vLLM fork v0.9.2 on K3.25 meet the fidelity panel's absolute bar for generated rows?",
+  "statement": "Against the panel's absolute bar (KL at most 0.05, top-1 at least 93%, confident top-1 at least 96%, top-3 at least 97%), CuteAFD scores 0.0484 / 93.33% / 96.31% / 99.48% and the first vLLM run 0.0457 / 93.84% / 96.66% / 99.58%; all three vLLM runs and CuteAFD pass. For scale, the panel's published figure for the official FP8 model on the same set is KL 0.0216 / top-1 95.77% (quoted, not measured in this run).",
+  "class": "accounting",
+  "status": "post hoc",
+  "quantity": "panel verdict on generated rows: coarse KL, top-1, confident top-1, top-3 against fixed thresholds",
+  "sign": "KL below and agreement above the thresholds = pass",
+  "unit": "panel",
+  "n": "15,104 generated rows per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "post hoc reading; the paired bar is read separately (V3-m4-pairedbar)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-C1.json",
+    "pointer": "/cuteafd_verdict_gen",
+    "what": "CuteAFD verdict and thresholds",
+    "value": {
+     "pass": true,
+     "positions": 15104,
+     "top1": 0.9333289194915254,
+     "kl": 0.048444655234316805,
+     "confident_top1": 0.963142299631423,
+     "top3_contained": 0.9948358050847458,
+     "top1_min": 0.93,
+     "kl_max": 0.05,
+     "confident_top1_min": 0.96,
+     "top3_min": 0.97,
+     "windows_below_80pct": [],
+     "reasons": []
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V1.json",
+    "pointer": "/cuteafd_verdict_gen",
+    "what": "vLLM V1 verdict",
+    "value": {
+     "pass": true,
+     "positions": 15104,
+     "top1": 0.938426906779661,
+     "kl": 0.0457121309103551,
+     "confident_top1": 0.9666112596661126,
+     "top3_contained": 0.9957627118644068,
+     "top1_min": 0.93,
+     "kl_max": 0.05,
+     "confident_top1_min": 0.96,
+     "top3_min": 0.97,
+     "windows_below_80pct": [],
+     "reasons": []
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V1r.json",
+    "pointer": "/cuteafd_verdict_gen/pass",
+    "what": "vLLM V1r passes",
+    "value": true
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V2.json",
+    "pointer": "/cuteafd_verdict_gen/pass",
+    "what": "vLLM V2 passes",
+    "value": true
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md",
+    "lines": [
+     52,
+     55
+    ],
+    "what": "bar and the quoted FP8 baseline",
+    "text": "Both engines pass tpurtell's calibrated bar for this set (generated rows, prefill: KL ≤ 0.05, top-1 ≥ 93%,\nconfident top-1 ≥ 96%, top-3 ≥ 97%); CuteAFD narrowly (0.0484 / 93.33% / 96.31% / 99.48%).\nFor scale: his published baseline for the official FP8 model on the same set is KL 0.0216 / top-1 95.77%, so\nthe 3.25-bit experts account for most of either engine's distance from BF16."
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-top1-buckets",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB-BUCKET",
+  "question": "On K3.25, how does CuteAFD v3.0.1's top-1 agreement with BF16 differ from the vLLM fork's in each history bucket (fidelity set)?",
+  "statement": "Top-1 agreement, CuteAFD − mean of three vLLM runs: 8-16K −0.81 pts [−1.22, −0.44]; 0-2K −0.38 pts [−0.88, +0.05] and 2-8K +0.19 pts [−0.16, +0.52] include 0.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-1 agreement with BF16 on generated positions by history bucket, CuteAFD - per-row mean of three vLLM runs, percentage points",
+  "sign": "below 0 = CuteAFD agrees with BF16 less often",
+  "unit": "window",
+  "n": "19 / 16 / 18 windows (4,035 / 3,547 / 7,522 generated rows)",
+  "interval": "95% paired window bootstrap; bootstrap settings for q/pb/pb-vs-vllm-mean3.json are not published",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 1,
+   "note": "three history buckets; the 8-16K bucket is mostly block B (long code reading), so length and content are not separated (audit U1)"
+  },
+  "replication": "K4 run: K4-pb-longcode",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/8-16K|top1|C1",
+    "what": "8-16K",
+    "value": [
+     -0.008109545333687847,
+     -0.01216312902456475,
+     -0.004448555320648342
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/0-2K|top1|C1",
+    "what": "0-2K",
+    "value": [
+     -0.003800082610491532,
+     -0.00881488736532811,
+     0.0005243838489774516
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/2-8K|top1|C1",
+    "what": "2-8K",
+    "value": [
+     0.0018795226012592815,
+     -0.0016253555465258012,
+     0.005224867724867726
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-nll-buckets",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB-BUCKET",
+  "question": "On K3.25, does CuteAFD v3.0.1 assign higher NLL than the vLLM fork to the fidelity set's generated text in each history bucket?",
+  "statement": "NLL, CuteAFD − mean of the two first-launch vLLM runs: 0-2K +0.0067 [+0.0030, +0.0111], 2-8K +0.0067 [+0.0021, +0.0107], 8-16K +0.0267 [+0.0229, +0.0296] nats; all three exclude 0, while the KL differences below 8K include 0 (V3-pb-short, V3-pb-mid).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "mean NLL of generated tokens by history bucket, CuteAFD - per-row mean of V1 and V1r, nats",
+  "sign": "above 0 = CuteAFD assigns the panel's greedy-generated text lower probability",
+  "unit": "window",
+  "n": "19 / 16 / 18 windows",
+  "interval": "95% paired window bootstrap, 2,000 draws, random.Random(7) (f1/f1_analysis.py)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "three history buckets"
+  },
+  "replication": "against V1 alone the run's pair file gives 0-2K +0.0069 and 2-8K +0.0073 (q/pb/pb-pair-V1-C1.json, gen/by_bucket)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/C1/0-2K/vs_vllm_mean/nll",
+    "what": "0-2K",
+    "value": [
+     0.006747658177127853,
+     0.00302415639594126,
+     0.011062416941141894
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/C1/2-8K/vs_vllm_mean/nll",
+    "what": "2-8K",
+    "value": [
+     0.006672018906148924,
+     0.0020753377411998975,
+     0.010650299891103424
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/C1/8-16K/vs_vllm_mean/nll",
+    "what": "8-16K",
+    "value": [
+     0.02673788052094957,
+     0.0229394816010883,
+     0.029555522830891027
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V3-pb-ctx",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-PB-CTX",
+  "question": "On the fidelity set's trailing context rows (tool-call windows), how far are both engines from the reference, and are those rows evidence about the reference? (Reading corrected by the audit, U4.)",
+  "statement": "On the 17,664 trailing context rows, coarse KL from the reference is 1.69 (vLLM fork, first run) and 1.73 (CuteAFD), and NLL 3.77 and 3.61 against the reference's own 3.87. After the audit (U4), the run reads these rows as sensitive to any numerical change and not as evidence about the reference: they are near-copies of one filler file, and vLLM against its own repeat reaches 1.96 nats there (V3-u4-ctx).",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "mean coarse KL and NLL on context (non-generated) rows, per engine",
+  "sign": "higher KL = farther from the reference",
+  "unit": "row",
+  "n": "17,664 context rows in 41 windows",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 17,664 trailing context rows",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the question (reference-side or engine-side) was answered by the audit, not by a measurement: V3-u4-ctx",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V1.json",
+    "pointer": "/summary/ctx/overall/kl/value",
+    "what": "vLLM V1 KL",
+    "value": 1.6949525979168552
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-C1.json",
+    "pointer": "/summary/ctx/overall/kl/value",
+    "what": "CuteAFD KL",
+    "value": 1.7325591091233494
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V1.json",
+    "pointer": "/summary/ctx/overall/nll/value",
+    "what": "vLLM V1 NLL",
+    "value": 3.7654810999391115
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-C1.json",
+    "pointer": "/summary/ctx/overall/nll/value",
+    "what": "CuteAFD NLL",
+    "value": 3.606167603091586
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-C1.json",
+    "pointer": "/summary/ctx/overall/ref_nll/value",
+    "what": "reference NLL",
+    "value": 3.8730311348389983
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     211,
+     214
+    ],
+    "what": "vLLM against itself on a context span",
+    "text": "- *The rows are hypersensitive.* Cross-engine KL on rows 20 or more positions into the trailing span\n  is 0.72 / 3.14 / 2.53 nats on `a03` / `d03` / `a10` (`ee.py`), against 0.008-0.020 on the same\n  windows' gen rows. **vLLM against itself** is 1.96 nats on `a10`, a multi-chunk window. Both engines\n  are confident (entropy about 1 nat) but disagree."
+   }
+  ]
+ },
+ {
+  "id": "V3-c0-projection",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "C0",
+  "question": "Inside CuteAFD v3.0.1, do the official FP8 projections (Core-FP8) and FP8 projections quantised at load from K3.25-v1 differ in distance from BF16 on the fidelity set? (RESULTS-Q.md:76 words this 'indistinguishable'.)",
+  "statement": "Official FP8 projections (C1) − projections quantised at load (C0), generated positions: KL −0.0003 [−0.0019, +0.0014], top-1 −0.14 pts [−0.54, +0.25]; both intervals include 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "coarse KL from BF16 and top-1 agreement, C1 - C0 (CuteAFD v3.0.1 both)",
+  "sign": "KL above 0 = official FP8 projections farther from BF16",
+  "unit": "window",
+  "n": "53 windows (15,104 generated rows)",
+  "interval": "95% percentile bootstrap over windows, 5,000 draws, SplitMix64 seed 20260829 (the run's P-B scorer)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified)",
+   "checkpoint": "K3.25-Core-FP8 (C1) and K3.25-v1 with GLM5_FLASH_FP8_MODEL_ID=off (C0); expert bytes identical",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 6,
+   "excluding_0": 0,
+   "note": "C1 - C0 pair file: KL, NLL, top-1 on all generated rows and KL in three buckets"
+  },
+  "replication": "not attempted; RESULTS-Q.md:75-76 and AUDIT-2026-10-27.md:328-329 word this as 'indistinguishable' / 'do not matter', which the interval does not support beyond not detected",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-C0-C1.json",
+    "pointer": "/gen/overall/kl",
+    "what": "KL, A = C0, B = C1",
+    "value": {
+     "A": 0.048706426076196636,
+     "B": 0.04844465523431681,
+     "B_minus_A": -0.00026177084187983476,
+     "ci95": [
+      -0.0019470910936890777,
+      0.0013684905929803905
+     ],
+     "boot_se": 0.0008521372529336576,
+     "clustered_se": 0.0008585269164534412
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-C0-C1.json",
+    "pointer": "/gen/overall/top1",
+    "what": "top-1",
+    "value": {
+     "A": 0.934719279661017,
+     "B": 0.9333289194915254,
+     "B_minus_A": -0.0013903601694915254,
+     "ci95": [
+      -0.005436177051527398,
+      0.0024568920501467067
+     ],
+     "boot_se": 0.002046402598396426,
+     "clustered_se": 0.002042894587667354
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md",
+    "lines": [
+     75,
+     76
+    ],
+    "what": "the run's wording",
+    "text": "- C0 vs C1 (projection source inside CuteAFD): KL −0.0003 [−0.0019, +0.0014], top-1 −0.14 pts\n  [−0.54, +0.25]. Indistinguishable; the official-FP8 vs load-quantized projections do not matter."
+   }
+  ],
+  "bound": "a KL difference from −0.0019 to +0.0014 and a top-1 difference from −0.54 to +0.25 pts are not excluded"
+ },
+ {
+  "id": "V3-repeat-cuteafd",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-REPEAT",
+  "question": "Does CuteAFD v3.0.1 give identical precision rows when a panel is scored twice?",
+  "statement": "CuteAFD v3.0.1 repeats are byte-identical: the repeat minus the first run is 0 on every P-A and P-B metric, engine top-1 agreement between the P-B repeats is 1.0, the two P-A row files share one sha256, and the Q2 repeat floor is 0.",
+  "class": "accounting",
+  "status": "protocol",
+  "quantity": "repeat - first run, same launch, all panel metrics",
+  "sign": "0 = identical",
+  "unit": "row",
+  "n": "P-A 51,175 rows, P-B 32,768 rows, Q2 24,576 rows (2 documents)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified)",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "P-A, P-B and Q2 panels",
+   "context": "2K to 128K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "CuteAFD v4.0.0 gives bit-identical rows (V4-v3-identity)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-C1-vs-C1r.json",
+    "pointer": "/overall/kl",
+    "what": "P-A KL",
+    "value": {
+     "A": 0.047556256645403285,
+     "B": 0.047556256645403285,
+     "B_minus_A": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "boot_se": 0.0,
+     "clustered_se": 0.0
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-C1-C1r.json",
+    "pointer": "/gen/overall/kl",
+    "what": "P-B KL",
+    "value": {
+     "A": 0.04844465523431681,
+     "B": 0.04844465523431681,
+     "B_minus_A": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ],
+     "boot_se": 0.0,
+     "clustered_se": 0.0
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-C1-C1r.json",
+    "pointer": "/engine_argmax_agreement_gen",
+    "what": "P-B engine top-1 agreement",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/NOT-PUBLISHED.json",
+    "pointer": "/files/0",
+    "what": "P-A C1 row file",
+    "value": {
+     "file": "q/score/final/pa/pa-C1.rows.npz",
+     "bytes": 1768913,
+     "sha256": "14b82a346dd9cde6c1d0873363ffad3726342fd7950e1dae28f58cdf95e7d7ab",
+     "what": "per-row scores"
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/NOT-PUBLISHED.json",
+    "pointer": "/files/1",
+    "what": "P-A C1r row file",
+    "value": {
+     "file": "q/score/final/pa/pa-C1r.rows.npz",
+     "bytes": 1768913,
+     "sha256": "14b82a346dd9cde6c1d0873363ffad3726342fd7950e1dae28f58cdf95e7d7ab",
+     "what": "per-row scores"
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/q2/q2-C1-vs-V1.json",
+    "pointer": "/groups/overall/noise_floor_A/kl_ab/value",
+    "what": "Q2 CuteAFD repeat floor",
+    "value": 0.0
+   }
+  ]
+ },
+ {
+  "id": "V3-repeat-vllm-pa",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-REPEAT",
+  "question": "How much does the vLLM fork v0.9.2's full-vocabulary KL on the 2K teacher panel change between two runs in one launch?",
+  "statement": "vLLM fork, second run − first run in the same launch, P-A full-vocabulary KL: +0.0000010 [−0.0000005, +0.0000027]; top-1, top-3 and confident top-1 identical.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "P-A full-vocabulary KL from BF16, V1r - V1",
+  "sign": "above 0 = second run farther from BF16",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25-v1",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "second launch: V3-f3-pa-launch",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-V1-vs-V1r.json",
+    "pointer": "/overall/kl",
+    "what": "A = V1, B = V1r",
+    "value": {
+     "A": 0.045840164541551785,
+     "B": 0.045841178707875005,
+     "B_minus_A": 1.0141663232176585e-06,
+     "ci95": [
+      -4.890757412399885e-07,
+      2.6643205612741384e-06
+     ],
+     "boot_se": 8.01003994552803e-07,
+     "clustered_se": 8.24117503301663e-07
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa/pa-pair-V1-vs-V1r.json",
+    "pointer": "/top1_discordance",
+    "what": "top-1 discordance",
+    "value": {
+     "A_only": 0,
+     "B_only": 0,
+     "engine_argmax_agreement": 0.9999804592085979
+    }
+   }
+  ],
+  "bound": "a run-to-run shift up to +0.0000027 is not excluded"
+ },
+ {
+  "id": "V3-repeat-vllm-pb",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-REPEAT",
+  "question": "How much does the vLLM fork v0.9.2's mean distance from BF16 on the fidelity set change between two runs in one launch?",
+  "statement": "vLLM fork, second run − first run in the same launch, P-B generated positions: KL −0.0006 [−0.0021, +0.0008], top-1 −0.09 pts [−0.40, +0.23]. This is the shift of a mean; per-row run-to-run divergence is larger (V3-i1-selfdiv).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "coarse KL from BF16 and top-1 on generated positions, V1r - V1",
+  "sign": "KL above 0 = second run farther from BF16",
+  "unit": "window",
+  "n": "53 windows (15,104 generated rows)",
+  "interval": "95% percentile bootstrap over windows, 5,000 draws, SplitMix64 seed 20260829 (the run's P-B scorer)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25-v1",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "second launch V2 on the same panel: V3-f3-vspread",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-V1r.json",
+    "pointer": "/gen/overall/kl",
+    "what": "A = V1, B = V1r",
+    "value": {
+     "A": 0.0457121309103551,
+     "B": 0.04513177674903999,
+     "B_minus_A": -0.0005803541613151205,
+     "ci95": [
+      -0.002094103952002982,
+      0.0008324777790934607
+     ],
+     "boot_se": 0.0007529529787670275,
+     "clustered_se": 0.0007574761868649366
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-V1r.json",
+    "pointer": "/gen/overall/top1",
+    "what": "top-1",
+    "value": {
+     "A": 0.938426906779661,
+     "B": 0.9375662076271186,
+     "B_minus_A": -0.0008606991525423729,
+     "ci95": [
+      -0.003994888240170504,
+      0.002290194630262319
+     ],
+     "boot_se": 0.0016102785745064313,
+     "clustered_se": 0.001621345058830386
+    }
+   }
+  ],
+  "bound": "a run-to-run shift of the mean KL from −0.0021 to +0.0008 is not excluded"
+ },
+ {
+  "id": "V3-q2-disagree",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q2",
+  "question": "At 32K-128K on long human-written documents (no BF16 reference), how much do CuteAFD v3.0.1's and the vLLM fork's distributions disagree, against vLLM's own run-to-run disagreement? (Ratio corrected by the audit, U3.)",
+  "statement": "Between the engines: KL(CuteAFD ‖ vLLM) 0.0141, JS 0.0028, argmax agreement 96.2% over 73,728 positions; vLLM against its own repeat 0.0047 on the 2 repeated documents. On those same 2 documents the cross-engine KL is 0.0086, 1.8x the floor (audit U3), not the 3x first reported; this does not say which engine is closer to BF16.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "full-vocabulary KL and JS between the two engines' next-token distributions, and argmax agreement; vLLM V1 vs V1r as floor",
+  "sign": "0 = identical distributions",
+  "unit": "document",
+  "n": "6 documents (18 windows, 73,728 positions); floor on 2 documents (6 windows)",
+  "interval": "none (descriptive); the file's document bootstrap rests on 6 clusters",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Q2: 6 long documents (3 prose, 3 code) at 32K, 64K and 128K, last 4,096 positions each",
+   "context": "32K-128K",
+   "path": "prefill (teacher-forced), no BF16 reference",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "ratio corrected by the audit (U3) from '3x' to 1.8x on matched documents",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/q2/q2-C1-vs-V1.json",
+    "pointer": "/groups/overall/between_engines/kl_ab/value",
+    "what": "KL(C1 || V1)",
+    "value": 0.014129874287146342
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/q2/q2-C1-vs-V1.json",
+    "pointer": "/groups/overall/between_engines/js/value",
+    "what": "JS",
+    "value": 0.0028013514218665023
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/q2/q2-C1-vs-V1.json",
+    "pointer": "/groups/overall/between_engines/top1_agree/value",
+    "what": "argmax agreement",
+    "value": 0.9618055555555556
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/q2/q2-C1-vs-V1.json",
+    "pointer": "/groups/overall/noise_floor_B/kl_ab/value",
+    "what": "vLLM V1 vs V1r floor",
+    "value": 0.004716115769286224
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     198,
+     201
+    ],
+    "what": "matched-document ratio",
+    "text": "- *\"3x vLLM's own run-to-run disagreement\"* (`RESULTS-Q.md:38-39`). The floor comes from 2 documents\n  (pg28988, c0) and the cross-engine figure from 6. On the same 2 documents the cross-engine KL is\n  0.0086 against a floor of 0.0047, which is **1.8x**. Without `c2-064k` the 18-window mean drops from\n  0.0141 to 0.0094."
+   }
+  ]
+ },
+ {
+  "id": "V3-think-off",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "THINK-OFF",
+  "question": "Do the vLLM fork v0.9.2 and CuteAFD v3.0.1 honour enable_thinking:false with the K3.25 chat template?",
+  "statement": "The vLLM fork rendered 147 prompt tokens for enable_thinking true and false alike, and with false returned no separate reasoning (0 reasoning characters; the reasoning arrived in the content); the template has no thinking-off switch and ends every prompt with an open think tag, while CuteAFD renders false as an empty think block. The run therefore used thinking on for every T and L request.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "prompt tokens and reasoning characters per flag value (vLLM), template text (both)",
+  "sign": "n/a",
+  "unit": "request",
+  "n": "1 request per flag value (vLLM); template read for both",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "one short prompt; chat_template.jinja",
+   "context": "n/a",
+   "path": "chat template rendering",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the audit reads the template and token count as the decisive evidence and the single request as weak",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/thinking-check-vllm.json",
+    "pointer": "/False/prompt_tokens",
+    "what": "enable_thinking false",
+    "value": 147
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/thinking-check-vllm.json",
+    "pointer": "/True/prompt_tokens",
+    "what": "enable_thinking true",
+    "value": 147
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/thinking-check-vllm.json",
+    "pointer": "/True/reasoning_chars",
+    "what": "reasoning characters, true",
+    "value": 1381
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     342,
+     346
+    ],
+    "what": "template reading",
+    "text": "**The thinking-off confound is real**\n- The template has no `enable_thinking`. It always ends `<|assistant|><think>` (`chat_template.jinja:259-260`).\n- vLLM renders 147 prompt tokens for both flag values (`q/thinking-check-vllm.json`).\n- The check is one request with unrecorded `max_tokens` and does not close `</think>`. The template and\n  token count are the decisive evidence."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/README.md",
+    "lines": [
+     122,
+     123
+    ],
+    "what": "both stacks",
+    "text": "- Thinking off: same chat template on both; CuteAFD renders an empty `<think></think>`, the vLLM stack ignores\n  `enable_thinking:false` (reasoning arrives in content)."
+   }
+  ]
+ },
+ {
+  "id": "V3-tails-pb",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-TAILS",
+  "question": "On the fidelity set's generated positions (K3.25), how heavy is each arm's KL tail?",
+  "statement": "Post hoc, no intervals: coarse KL 99th percentile, vLLM runs 0.6095 / 0.5859 / 0.5666, CuteAFD 0.6204 (C1) and 0.5818 (C0); share of total KL in the worst 1% of positions, V1 0.236, C1 0.212.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "per-position coarse KL quantiles and share of the KL sum in the top 1% of positions, per arm",
+  "sign": "higher = heavier tail",
+  "unit": "row",
+  "n": "15,104 generated rows per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pb-tails.json",
+    "pointer": "/arms/V1/kl_p99",
+    "what": "V1 p99",
+    "value": 0.6094959400000001
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pb-tails.json",
+    "pointer": "/arms/V1r/kl_p99",
+    "what": "V1r p99",
+    "value": 0.5858839109999994
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pb-tails.json",
+    "pointer": "/arms/V2/kl_p99",
+    "what": "V2 p99",
+    "value": 0.5666467549999996
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pb-tails.json",
+    "pointer": "/arms/C1/kl_p99",
+    "what": "C1 p99",
+    "value": 0.6204286609999982
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pb-tails.json",
+    "pointer": "/arms/C0/kl_p99",
+    "what": "C0 p99",
+    "value": 0.581835023
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pb-tails.json",
+    "pointer": "/arms/V1/kl_share_top1pct",
+    "what": "V1 share in worst 1%",
+    "value": 0.2363933853817554
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pb-tails.json",
+    "pointer": "/arms/C1/kl_share_top1pct",
+    "what": "C1 share in worst 1%",
+    "value": 0.21240826716052436
+   }
+  ]
+ },
+ {
+  "id": "V3-tails-pa",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "Q-TAILS",
+  "question": "On the 2K teacher panel (K3.25), how heavy is each engine's KL tail and how does KL vary with position?",
+  "statement": "Post hoc, no intervals: full-vocabulary KL 99th percentile, vLLM 0.6381 (all three runs), CuteAFD 0.6623; share in the worst 1% of positions 0.284 vs 0.277; mean KL at rows 0-255 0.1143 vs 0.1155 and at rows 1024-2046 0.0325 vs 0.0346.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "per-position full-vocabulary KL quantiles, top-1% share, and mean KL by row band, per arm",
+  "sign": "higher = farther from the teacher",
+  "unit": "row",
+  "n": "51,175 rows per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/arms/V1/kl_p99",
+    "what": "V1 p99",
+    "value": 0.6380735840000011
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/arms/V2/kl_p99",
+    "what": "V2 p99",
+    "value": 0.6380735840000011
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/arms/C1/kl_p99",
+    "what": "C1 p99",
+    "value": 0.6623060180000017
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/arms/V1/kl_share_top1pct",
+    "what": "V1 share",
+    "value": 0.2836026111708501
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/arms/C1/kl_share_top1pct",
+    "what": "C1 share",
+    "value": 0.2766006788050516
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/by_position/0/arms/V1/kl_mean",
+    "what": "V1 rows 0-255",
+    "value": 0.11425001924788336
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/by_position/0/arms/C1/kl_mean",
+    "what": "C1 rows 0-255",
+    "value": 0.11547901327157582
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/by_position/2/arms/V1/kl_mean",
+    "what": "V1 rows 1024-2046",
+    "value": 0.032455788613680106
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/tails/pa-tails.json",
+    "pointer": "/by_position/2/arms/C1/kl_mean",
+    "what": "C1 rows 1024-2046",
+    "value": 0.03464237987546214
+   }
+  ]
+ },
+ {
+  "id": "V3-t-decode-single",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "T",
+  "question": "With one stream, how does CuteAFD v3.0.1's per-stream decode rate compare with the vLLM fork v0.9.2's on K3.25?",
+  "statement": "Single-stream decode, CuteAFD / vLLM fork: 1.02 to 1.41 across the 12 single-stream cells; prose cells 1.02-1.06, code, json and reasoning-prompt cells 1.10-1.41. Code and json cells measure reasoning text (V3-m2-labels), and the engines' draft policies differ (V3-m2-draft).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median per-stream decode tok/s, CuteAFD / vLLM, per cell",
+  "sign": "above 1 = CuteAFD decodes faster",
+  "unit": "cell",
+  "n": "12 single-stream cells, 3 replicates each",
+  "interval": "none (descriptive; median of 3 replicates per cell; per-cell noise: V3-m1-noise, V3-drift)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T: 1,008 requests per engine (prose, code, json and reasoning prompts; 1K, 8K, 32K, 128K inputs; 1-16 streams; 3 replicates), 1,024 output tokens, thinking on, temperature 1.0",
+   "context": "1K-128K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "drift repeat at 1K and 32K: V3-drift",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md",
+    "lines": [
+     1,
+     50
+    ],
+    "what": "decode table",
+    "text": "Median of 3 replicates (min-max). Decode = per-stream tok/s (median stream); aggregate = completion tok/s of the batch; TTFT median seconds; prefill = prompt tok/s of the batch (sum prompt tokens / time to last first token). Thinking on, temperature 1.0, top_p 0.95, 1,024 output tokens.\n\n### decode\n\n| Input | Content | Streams | V1-r1 | C1-r1 | ratio C1-r1/V1-r1 |\n|---|---|---|---|---|---|\n| 1K | code | 1 | 145.2 (141.5-149.0) | 196.0 (191.1-208.1) | 1.35 |\n| 1K | code | 4 | 88.9 (84.4-90.6) | 91.9 (91.3-93.3) | 1.03 |\n| 1K | code | 8 | 62.0 (61.1-62.9) | 58.4 (57.8-64.2) | 0.94 |\n| 1K | code | 16 | 33.6 (33.2-33.9) | 39.1 (38.8-39.8) | 1.16 |\n| 1K | json | 1 | 130.8 (125.5-133.1) | 154.9 (152.2-157.2) | 1.18 |\n| 1K | json | 4 | 82.2 (77.7-83.0) | 84.8 (84.5-88.9) | 1.03 |\n| 1K | json | 8 | 57.1 (56.9-58.2) | 56.5 (55.3-57.3) | 0.99 |\n| 1K | json | 16 | 32.5 (31.5-33.3) | 35.0 (35.0-35.2) | 1.08 |\n| 1K | prose | 1 | 120.7 (104.2-122.0) | 125.7 (115.5-126.3) | 1.04 |\n| 1K | prose | 4 | 67.1 (65.3-69.1) | 71.2 (68.9-75.9) | 1.06 |\n| 1K | prose | 8 | 48.3 (46.8-49.7) | 48.0 (47.6-48.3) | 0.99 |\n| 1K | prose | 16 | 26.4 (26.3-26.7) | 29.2 (29.2-30.0) | 1.11 |\n| 1K | reasoning | 1 | 161.2 (158.0-168.5) | 228.0 (226.7-232.5) | 1.41 |\n| 1K | reasoning | 4 | 99.4 (96.0-99.9) | 117.0 (110.8-118.7) | 1.18 |\n| 1K | reasoning | 8 | 71.8 (71.7-73.6) | 69.3 (68.7-75.0) | 0.96 |\n| 1K | reasoning | 16 | 38.5 (38.3-40.7) | 46.5 (46.3-48.0) | 1.21 |\n| 8K | code | 1 | 151.1 (151.0-152.0) | 174.6 (171.5-179.3) | 1.16 |\n| 8K | code | 4 | 73.3 (72.5-74.5) | 78.1 (74.4-87.0) | 1.07 |\n| 8K | code | 8 | 44.5 (44.4-45.6) | 49.2 (48.2-50.0) | 1.10 |\n| 8K | code | 16 | 23.9 (23.5-24.1) | 28.4 (27.3-28.9) | 1.19 |\n| 8K | json | 1 | 130.1 (127.0-133.6) | 146.1 (145.7-147.6) | 1.12 |\n| 8K | json | 4 | 68.6 (66.1-70.2) | 74.1 (70.6-75.7) | 1.08 |\n| 8K | json | 8 | 43.3 (43.1-46.2) | 44.8 (43.7-45.4) | 1.03 |\n| 8K | json | 16 | 23.4 (23.1-24.1) | 25.7 (25.6-26.3) | 1.10 |\n| 8K | prose | 1 | 117.4 (113.4-117.8) | 119.8 (118.0-123.5) | 1.02 |\n| 8K | prose | 4 | 59.3 (55.8-59.6) | 61.4 (58.4-65.4) | 1.04 |\n| 8K | prose | 8 | 38.5 (38.3-40.1) | 39.3 (39.0-42.1) | 1.02 |\n| 8K | prose | 16 | 20.5 (19.8-20.9) | 24.1 (23.7-24.3) | 1.18 |\n| 8K | reasoning | 1 | 168.4 (165.2-174.6) | 234.7 (215.4-239.2) | 1.39 |\n| 8K | reasoning | 4 | 77.4 (77.0-80.0) | 98.1 (84.8-100.3) | 1.27 |\n| 8K | reasoning | 8 | 50.9 (50.2-52.5) | 53.8 (50.6-59.9) | 1.06 |\n| 8K | reasoning | 16 | 26.8 (26.3-27.9) | 33.0 (31.7-33.7) | 1.23 |\n| 32K | code | 1 | 148.0 (146.9-148.8) | 169.3 (163.4-172.7) | 1.14 |\n| 32K | code | 4 | 50.2 (49.9-52.5) | 81.6 (74.3-87.3) | 1.63 |\n| 32K | code | 8 | 25.5 (25.3-26.2) | 47.9 (45.8-51.2) | 1.88 |\n| 32K | code | 16 | 13.0 (13.0-13.0) | 29.2 (26.7-30.7) | 2.24 |\n| 32K | prose | 1 | 114.4 (113.7-117.0) | 121.4 (115.0-121.5) | 1.06 |\n| 32K | prose | 4 | 42.8 (40.7-45.2) | 63.0 (60.4-65.8) | 1.47 |\n| 32K | prose | 8 | 22.4 (22.3-23.2) | 41.3 (39.3-42.0) | 1.84 |\n| 32K | prose | 16 | 11.8 (11.8-12.1) | 23.1 (23.1-24.0) | 1.96 |\n| 128K | code | 1 | 150.2 (147.5-153.6) | 165.3 (161.5-169.5) | 1.10 |\n| 128K | code | 4 | 22.2 (22.0-22.7) | 89.6 (89.1-92.5) | 4.03 |\n| 128K | prose | 1 | 119.5 (112.4-123.1) | 122.9 (118.7-127.6) | 1.03 |\n| 128K | prose | 4 | 21.3 (19.6-21.4) | 62.7 (62.6-62.8) | 2.94 |"
+   }
+  ]
+ },
+ {
+  "id": "V3-t-decode-longctx",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "T",
+  "question": "At 32K and 128K inputs with several streams, how does per-stream decode compare between CuteAFD v3.0.1 and the vLLM fork v0.9.2, and what do streams decoding without concurrent prefill show?",
+  "statement": "At 32K and 128K inputs with 4 to 16 streams, per-stream decode CuteAFD / vLLM fork is 1.47 to 4.03. Streams whose decode window overlapped other streams' prefill by under 5% decoded at 45.0 vs 45.6 tok/s (vLLM vs CuteAFD, 32K code, 16 streams), 50.4 vs 49.7, 95.4 vs 90.5 and 72.6 vs 76.6 in three other cells (audit check).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median per-stream decode tok/s ratio; and decode rate of streams with under 5% prefill overlap",
+  "sign": "above 1 = CuteAFD decodes faster",
+  "unit": "cell",
+  "n": "8 cells; 4 cells for the clean-stream check",
+  "interval": "none (descriptive; median of 3 replicates per cell; per-cell noise: V3-m1-noise, V3-drift)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T: 1,008 requests per engine (prose, code, json and reasoning prompts; 1K, 8K, 32K, 128K inputs; 1-16 streams; 3 replicates), 1,024 output tokens, thinking on, temperature 1.0",
+   "context": "32K-128K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md",
+    "lines": [
+     39,
+     50
+    ],
+    "what": "decode, 32K and 128K",
+    "text": "| 32K | code | 1 | 148.0 (146.9-148.8) | 169.3 (163.4-172.7) | 1.14 |\n| 32K | code | 4 | 50.2 (49.9-52.5) | 81.6 (74.3-87.3) | 1.63 |\n| 32K | code | 8 | 25.5 (25.3-26.2) | 47.9 (45.8-51.2) | 1.88 |\n| 32K | code | 16 | 13.0 (13.0-13.0) | 29.2 (26.7-30.7) | 2.24 |\n| 32K | prose | 1 | 114.4 (113.7-117.0) | 121.4 (115.0-121.5) | 1.06 |\n| 32K | prose | 4 | 42.8 (40.7-45.2) | 63.0 (60.4-65.8) | 1.47 |\n| 32K | prose | 8 | 22.4 (22.3-23.2) | 41.3 (39.3-42.0) | 1.84 |\n| 32K | prose | 16 | 11.8 (11.8-12.1) | 23.1 (23.1-24.0) | 1.96 |\n| 128K | code | 1 | 150.2 (147.5-153.6) | 165.3 (161.5-169.5) | 1.10 |\n| 128K | code | 4 | 22.2 (22.0-22.7) | 89.6 (89.1-92.5) | 4.03 |\n| 128K | prose | 1 | 119.5 (112.4-123.1) | 122.9 (118.7-127.6) | 1.03 |\n| 128K | prose | 4 | 21.3 (19.6-21.4) | 62.7 (62.6-62.8) | 2.94 |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     352,
+     363
+    ],
+    "what": "clean-stream check",
+    "text": "- The scheduling explanation is **supported** (`t2.py`). vLLM decode windows overlap other streams'\n  prefill by a median 40-81%, CuteAFD's by 0-51%. Streams whose window overlaps less than 5% decode at\n  the same speed on both engines:\n\n  | Cell | vLLM clean stream (tok/s) | CuteAFD clean stream (tok/s) |\n  |---|---|---|\n  | 32K code c16 | 45.0 | 45.6 |\n  | 32K prose c8 | 50.4 | 49.7 |\n  | 128K code c4 | 95.4 | 90.5 |\n  | 128K prose c4 | 72.6 | 76.6 |\n\n  So the 1.5-4x is prefill-first vs interleaved scheduling. It trades against vLLM's earlier first"
+   }
+  ]
+ },
+ {
+  "id": "V3-t-aggregate",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "T",
+  "question": "How does aggregate completion throughput compare between CuteAFD v3.0.1 and the vLLM fork v0.9.2 across input length and concurrency?",
+  "statement": "Aggregate completion throughput, CuteAFD / vLLM fork: 0.87 to 0.93 at 1K input with 8 streams in all four content types; at 32K-128K 1.06 to 1.17 across all 12 cells and 1.06 to 1.11 in the 8 cells with 4-16 streams, where batch prefill runs at 4,252-4,516 tok/s on CuteAFD and 3,737-3,969 on vLLM.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "aggregate completion tok/s of the batch, CuteAFD / vLLM, per cell; batch prefill tok/s",
+  "sign": "above 1 = CuteAFD higher throughput",
+  "unit": "cell",
+  "n": "64 cells, 3 replicates each",
+  "interval": "none (descriptive; median of 3 replicates per cell; per-cell noise: V3-m1-noise, V3-drift). The run's '+6-17%' (t/CAVEATS.md:15, SUMMARY.md) is the 12-cell range at 32K-128K; the audit's '+6-11%' (AUDIT-2026-10-27.md:365) is the range in the 4-16-stream cells",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T: 1,008 requests per engine (prose, code, json and reasoning prompts; 1K, 8K, 32K, 128K inputs; 1-16 streams; 3 replicates), 1,024 output tokens, thinking on, temperature 1.0",
+   "context": "1K-128K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "drift repeat at 1K and 32K: V3-drift",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md",
+    "lines": [
+     52,
+     99
+    ],
+    "what": "aggregate table",
+    "text": "### aggregate\n\n| Input | Content | Streams | V1-r1 | C1-r1 | ratio C1-r1/V1-r1 |\n|---|---|---|---|---|---|\n| 1K | code | 1 | 140.4 (135.3-143.7) | 181.9 (177.6-192.3) | 1.30 |\n| 1K | code | 4 | 324.3 (306.0-324.4) | 309.9 (299.5-310.9) | 0.96 |\n| 1K | code | 8 | 439.5 (437.0-440.0) | 381.1 (379.5-385.0) | 0.87 |\n| 1K | code | 16 | 476.8 (466.4-479.3) | 483.6 (482.6-493.1) | 1.01 |\n| 1K | json | 1 | 126.9 (121.7-128.9) | 146.1 (143.7-148.1) | 1.15 |\n| 1K | json | 4 | 294.8 (285.5-301.0) | 296.6 (289.8-309.1) | 1.01 |\n| 1K | json | 8 | 416.0 (405.2-421.4) | 379.6 (372.6-384.6) | 0.91 |\n| 1K | json | 16 | 473.1 (453.4-475.4) | 462.1 (459.3-465.0) | 0.98 |\n| 1K | prose | 1 | 117.4 (101.4-118.5) | 119.8 (110.5-120.3) | 1.02 |\n| 1K | prose | 4 | 247.2 (242.7-248.4) | 246.1 (237.7-249.6) | 1.00 |\n| 1K | prose | 8 | 344.9 (339.9-356.9) | 321.5 (319.9-332.7) | 0.93 |\n| 1K | prose | 16 | 377.9 (376.2-380.5) | 397.0 (395.9-398.4) | 1.05 |\n| 1K | reasoning | 1 | 155.3 (150.8-161.8) | 204.4 (201.2-208.8) | 1.32 |\n| 1K | reasoning | 4 | 317.5 (309.8-330.3) | 334.1 (328.5-339.2) | 1.05 |\n| 1K | reasoning | 8 | 454.1 (443.5-454.7) | 410.0 (408.3-426.3) | 0.90 |\n| 1K | reasoning | 16 | 508.1 (469.3-510.2) | 516.2 (504.6-518.4) | 1.02 |\n| 8K | code | 1 | 115.4 (115.1-115.9) | 133.5 (131.8-136.3) | 1.16 |\n| 8K | code | 4 | 207.4 (204.4-209.4) | 205.5 (202.9-206.8) | 0.99 |\n| 8K | code | 8 | 248.0 (245.9-251.5) | 244.7 (239.2-245.9) | 0.99 |\n| 8K | code | 16 | 263.7 (262.7-264.3) | 278.0 (273.8-279.0) | 1.05 |\n| 8K | json | 1 | 102.6 (100.8-104.9) | 116.3 (116.0-117.2) | 1.13 |\n| 8K | json | 4 | 194.2 (194.1-196.3) | 200.0 (199.9-205.7) | 1.03 |\n| 8K | json | 8 | 242.2 (239.7-243.7) | 239.3 (234.1-240.6) | 0.99 |\n| 8K | json | 16 | 260.0 (259.8-260.8) | 271.1 (268.6-271.9) | 1.04 |\n| 8K | prose | 1 | 94.6 (92.0-94.9) | 99.0 (97.7-101.5) | 1.05 |\n| 8K | prose | 4 | 168.3 (167.3-171.0) | 177.2 (177.0-177.7) | 1.05 |\n| 8K | prose | 8 | 215.6 (214.2-216.0) | 216.7 (214.8-219.2) | 1.00 |\n| 8K | prose | 16 | 233.1 (232.6-236.2) | 244.9 (242.8-245.4) | 1.05 |\n| 8K | reasoning | 1 | 121.2 (119.9-124.4) | 157.1 (147.5-158.0) | 1.30 |\n| 8K | reasoning | 4 | 202.6 (199.0-211.8) | 225.1 (214.5-238.7) | 1.11 |\n| 8K | reasoning | 8 | 250.0 (240.9-253.2) | 239.7 (234.4-246.3) | 0.96 |\n| 8K | reasoning | 16 | 255.5 (255.5-264.9) | 277.7 (276.0-289.0) | 1.09 |\n| 32K | code | 1 | 65.5 (65.3-65.8) | 76.9 (75.6-77.7) | 1.17 |\n| 32K | code | 4 | 92.3 (92.2-93.1) | 99.5 (97.9-100.3) | 1.08 |\n| 32K | code | 8 | 100.5 (100.2-100.9) | 106.7 (106.0-107.0) | 1.06 |\n| 32K | code | 16 | 105.1 (105.0-105.1) | 112.1 (111.9-112.4) | 1.07 |\n| 32K | prose | 1 | 57.8 (57.8-58.7) | 65.2 (63.3-65.2) | 1.13 |\n| 32K | prose | 4 | 84.2 (83.5-84.5) | 91.1 (89.7-91.6) | 1.08 |\n| 32K | prose | 8 | 94.3 (94.2-94.8) | 99.7 (99.4-99.9) | 1.06 |\n| 32K | prose | 16 | 99.6 (99.5-99.7) | 106.6 (106.4-106.7) | 1.07 |\n| 128K | code | 1 | 24.5 (24.4-24.5) | 28.6 (28.5-28.8) | 1.17 |\n| 128K | code | 4 | 28.2 (28.2-28.3) | 31.3 (31.2-31.4) | 1.11 |\n| 128K | prose | 1 | 23.5 (23.1-23.6) | 27.0 (26.8-27.3) | 1.15 |\n| 128K | prose | 4 | 27.5 (27.4-27.6) | 30.6 (30.5-30.6) | 1.11 |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md",
+    "lines": [
+     150,
+     197
+    ],
+    "what": "prefill table",
+    "text": "### prefill tok/s\n\n| Input | Content | Streams | V1-r1 | C1-r1 | ratio C1-r1/V1-r1 |\n|---|---|---|---|---|---|\n| 1K | code | 1 | 4054 (3368-4064) | 2491 (2488-2491) | 0.61 |\n| 1K | code | 4 | 4081 (4034-4096) | 2084 (2082-2090) | 0.51 |\n| 1K | code | 8 | 4133 (4017-4146) | 2081 (2076-2094) | 0.50 |\n| 1K | code | 16 | 4177 (4159-4180) | 1998 (1984-2000) | 0.48 |\n| 1K | json | 1 | 4078 (3885-4186) | 2529 (2525-2533) | 0.62 |\n| 1K | json | 4 | 4105 (4101-4112) | 2125 (2103-2136) | 0.52 |\n| 1K | json | 8 | 4117 (4101-4124) | 2124 (2119-2128) | 0.52 |\n| 1K | json | 16 | 4172 (4162-4175) | 2041 (2038-2044) | 0.49 |\n| 1K | prose | 1 | 4127 (3623-4169) | 2499 (2491-2533) | 0.61 |\n| 1K | prose | 4 | 4078 (3643-4096) | 2105 (2093-2136) | 0.52 |\n| 1K | prose | 8 | 4089 (3341-4106) | 2107 (2085-2108) | 0.52 |\n| 1K | prose | 16 | 4093 (3770-4151) | 2020 (2004-2021) | 0.49 |\n| 1K | reasoning | 1 | 3947 (3613-4023) | 2510 (2505-2512) | 0.64 |\n| 1K | reasoning | 4 | 4072 (4070-4098) | 2101 (2091-2103) | 0.52 |\n| 1K | reasoning | 8 | 4091 (4068-4099) | 2093 (2089-2111) | 0.51 |\n| 1K | reasoning | 16 | 4147 (4128-4157) | 2008 (1991-2010) | 0.48 |\n| 8K | code | 1 | 3901 (3868-3902) | 4541 (4526-4548) | 1.16 |\n| 8K | code | 4 | 4044 (4041-4047) | 3812 (3791-3812) | 0.94 |\n| 8K | code | 8 | 4045 (4037-4049) | 3699 (3686-3705) | 0.91 |\n| 8K | code | 16 | 3996 (3989-3997) | 3644 (3638-3656) | 0.91 |\n| 8K | json | 1 | 3887 (3873-3897) | 4547 (4534-4547) | 1.17 |\n| 8K | json | 4 | 4032 (4030-4035) | 3816 (3798-3817) | 0.95 |\n| 8K | json | 8 | 4037 (4031-4044) | 3705 (3702-3707) | 0.92 |\n| 8K | json | 16 | 3985 (3981-3990) | 3647 (3647-3662) | 0.92 |\n| 8K | prose | 1 | 3890 (3773-3893) | 4540 (4539-4541) | 1.17 |\n| 8K | prose | 4 | 4021 (4017-4028) | 3811 (3801-3819) | 0.95 |\n| 8K | prose | 8 | 4019 (4018-4034) | 3704 (3698-3707) | 0.92 |\n| 8K | prose | 16 | 3974 (3971-3983) | 3649 (3647-3656) | 0.92 |\n| 8K | reasoning | 1 | 3879 (3844-3885) | 4533 (4520-4534) | 1.17 |\n| 8K | reasoning | 4 | 4015 (4014-4030) | 3795 (3793-3797) | 0.95 |\n| 8K | reasoning | 8 | 4023 (4020-4033) | 3694 (3669-3700) | 0.92 |\n| 8K | reasoning | 16 | 3974 (3973-3976) | 3636 (3630-3638) | 0.91 |\n| 32K | code | 1 | 3766 (3766-3773) | 4510 (4499-4516) | 1.20 |\n| 32K | code | 4 | 3965 (3961-3967) | 4299 (4282-4302) | 1.08 |\n| 32K | code | 8 | 3969 (3966-3971) | 4271 (4263-4271) | 1.08 |\n| 32K | code | 16 | 3939 (3932-3942) | 4254 (4242-4256) | 1.08 |\n| 32K | prose | 1 | 3762 (3744-3764) | 4515 (4500-4516) | 1.20 |\n| 32K | prose | 4 | 3955 (3948-3958) | 4296 (4284-4299) | 1.09 |\n| 32K | prose | 8 | 3962 (3955-3965) | 4269 (4254-4269) | 1.08 |\n| 32K | prose | 16 | 3930 (3923-3934) | 4252 (4239-4254) | 1.08 |\n| 128K | code | 1 | 3742 (3730-3743) | 4434 (4431-4441) | 1.18 |\n| 128K | code | 4 | 3905 (3897-3906) | 4445 (4439-4450) | 1.14 |\n| 128K | prose | 1 | 3737 (3710-3739) | 4430 (4429-4436) | 1.19 |\n| 128K | prose | 4 | 3898 (3891-3899) | 4384 (4374-4384) | 1.12 |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     365,
+     366
+    ],
+    "what": "audit's range",
+    "text": "- At 32K/128K, 71-92% of batch wall time precedes the last first token. The +6-11% aggregate there is\n  mostly CuteAFD's +8-14% batch prefill rate."
+   }
+  ]
+ },
+ {
+  "id": "V3-t-ttft",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "T",
+  "question": "How does time to first token compare between CuteAFD v3.0.1 and the vLLM fork v0.9.2 across input length and concurrency?",
+  "statement": "Median time to first token with 1 stream: 1K prompts 0.25-0.26 s on vLLM and 0.40-0.41 s on CuteAFD; 8K-128K prompts CuteAFD / vLLM 0.83-0.86. With 4-16 streams at 32K-128K, CuteAFD / vLLM is 1.18-1.47.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median time to first token, s, and its ratio CuteAFD / vLLM, per cell",
+  "sign": "above 1 = CuteAFD slower to first token",
+  "unit": "cell",
+  "n": "64 cells, 3 replicates each",
+  "interval": "none (descriptive; median of 3 replicates per cell; per-cell noise: V3-m1-noise, V3-drift)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T: 1,008 requests per engine (prose, code, json and reasoning prompts; 1K, 8K, 32K, 128K inputs; 1-16 streams; 3 replicates), 1,024 output tokens, thinking on, temperature 1.0",
+   "context": "1K-128K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md",
+    "lines": [
+     101,
+     148
+    ],
+    "what": "TTFT table",
+    "text": "### TTFT s\n\n| Input | Content | Streams | V1-r1 | C1-r1 | ratio C1-r1/V1-r1 |\n|---|---|---|---|---|---|\n| 1K | code | 1 | 0.25 (0.25-0.31) | 0.41 (0.41-0.41) | 1.63 |\n| 1K | code | 4 | 0.87 (0.86-0.88) | 1.22 (1.22-1.23) | 1.41 |\n| 1K | code | 8 | 1.43 (1.43-1.49) | 2.77 (2.77-2.78) | 1.93 |\n| 1K | code | 16 | 2.37 (2.37-2.38) | 4.34 (4.32-4.35) | 1.83 |\n| 1K | json | 1 | 0.25 (0.24-0.26) | 0.40 (0.40-0.41) | 1.61 |\n| 1K | json | 4 | 0.86 (0.86-0.87) | 1.21 (1.21-1.21) | 1.40 |\n| 1K | json | 8 | 1.44 (1.44-1.45) | 2.74 (2.72-2.74) | 1.91 |\n| 1K | json | 16 | 2.37 (2.37-2.38) | 4.25 (4.24-4.27) | 1.79 |\n| 1K | prose | 1 | 0.25 (0.25-0.28) | 0.41 (0.40-0.41) | 1.65 |\n| 1K | prose | 4 | 0.87 (0.87-0.99) | 1.22 (1.21-1.22) | 1.40 |\n| 1K | prose | 8 | 1.45 (1.44-1.82) | 2.76 (2.74-2.77) | 1.91 |\n| 1K | prose | 16 | 2.39 (2.39-2.61) | 4.32 (4.29-4.32) | 1.80 |\n| 1K | reasoning | 1 | 0.26 (0.25-0.29) | 0.41 (0.41-0.41) | 1.57 |\n| 1K | reasoning | 4 | 0.87 (0.87-0.87) | 1.22 (1.22-1.22) | 1.40 |\n| 1K | reasoning | 8 | 1.45 (1.45-1.46) | 2.75 (2.74-2.77) | 1.90 |\n| 1K | reasoning | 16 | 2.39 (2.38-2.40) | 4.30 (4.30-4.36) | 1.80 |\n| 8K | code | 1 | 2.10 (2.10-2.12) | 1.80 (1.80-1.81) | 0.86 |\n| 8K | code | 4 | 5.46 (5.45-5.46) | 5.21 (5.21-5.24) | 0.96 |\n| 8K | code | 8 | 9.45 (9.44-9.46) | 9.78 (9.76-9.81) | 1.03 |\n| 8K | code | 16 | 17.43 (17.41-17.45) | 18.86 (18.85-18.94) | 1.08 |\n| 8K | json | 1 | 2.11 (2.10-2.12) | 1.80 (1.80-1.81) | 0.85 |\n| 8K | json | 4 | 5.47 (5.47-5.47) | 5.21 (5.20-5.23) | 0.95 |\n| 8K | json | 8 | 9.47 (9.46-9.48) | 9.76 (9.75-9.80) | 1.03 |\n| 8K | json | 16 | 17.47 (17.44-17.48) | 18.89 (18.82-18.93) | 1.08 |\n| 8K | prose | 1 | 2.11 (2.10-2.17) | 1.80 (1.80-1.80) | 0.86 |\n| 8K | prose | 4 | 5.49 (5.48-5.49) | 5.21 (5.20-5.22) | 0.95 |\n| 8K | prose | 8 | 9.50 (9.48-9.51) | 9.77 (9.77-9.78) | 1.03 |\n| 8K | prose | 16 | 17.52 (17.48-17.53) | 18.85 (18.84-18.88) | 1.08 |\n| 8K | reasoning | 1 | 2.11 (2.11-2.13) | 1.81 (1.81-1.81) | 0.86 |\n| 8K | reasoning | 4 | 5.50 (5.48-5.50) | 5.24 (5.23-5.25) | 0.95 |\n| 8K | reasoning | 8 | 9.50 (9.48-9.51) | 9.81 (9.79-9.83) | 1.03 |\n| 8K | reasoning | 16 | 17.51 (17.49-17.51) | 18.93 (18.88-18.94) | 1.08 |\n| 32K | code | 1 | 8.70 (8.69-8.70) | 7.27 (7.26-7.28) | 0.84 |\n| 32K | code | 4 | 22.98 (22.97-23.00) | 27.07 (27.04-27.15) | 1.18 |\n| 32K | code | 8 | 39.21 (39.20-39.25) | 53.34 (53.30-53.45) | 1.36 |\n| 32K | code | 16 | 72.19 (72.15-72.36) | 105.94 (105.83-106.14) | 1.47 |\n| 32K | prose | 1 | 8.71 (8.70-8.75) | 7.26 (7.26-7.28) | 0.83 |\n| 32K | prose | 4 | 23.05 (23.03-23.08) | 27.09 (27.06-27.16) | 1.18 |\n| 32K | prose | 8 | 39.31 (39.28-39.36) | 53.40 (53.39-53.59) | 1.36 |\n| 32K | prose | 16 | 72.39 (72.31-72.54) | 106.03 (106.03-106.37) | 1.46 |\n| 128K | code | 1 | 35.02 (35.02-35.14) | 29.57 (29.52-29.59) | 0.84 |\n| 128K | code | 4 | 92.47 (92.44-92.64) | 117.96 (117.84-118.11) | 1.28 |\n| 128K | prose | 1 | 35.08 (35.05-35.33) | 29.58 (29.55-29.59) | 0.84 |\n| 128K | prose | 4 | 92.64 (92.61-92.87) | 116.03 (116.01-116.31) | 1.25 |"
+   }
+  ]
+ },
+ {
+  "id": "V3-t-cached",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "T-CACHED",
+  "question": "How fast does each engine serve a repeated identical 8K prompt (prefix-cache reuse)?",
+  "statement": "Repeated 8,192-token prompt, 1 stream: CuteAFD v3.0.1 reported 8,192 cached tokens and median time to first token 0.017 s; the vLLM fork v0.9.2 reported 0 cached tokens and 2.10 s, the same as its uncached 8K single-stream cells (2.10-2.11 s).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "cached tokens reported in usage and median time to first token, per engine",
+  "sign": "lower time = faster",
+  "unit": "request",
+  "n": "3 sequential repeats per engine after a primer",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T cached cell: one 8,192-token prose prompt",
+   "context": "8K",
+   "path": "serving, prefix cache as shipped",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "investigated in F2: V3-f2-prefix",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/C1-r1-block-t.json",
+    "pointer": "/batches/133/summary",
+    "what": "CuteAFD cached cell",
+    "value": {
+     "requests": 3,
+     "errors": 0,
+     "finish_reasons": [
+      "length"
+     ],
+     "content_has_think_close": 0,
+     "ttft_median_s": 0.01710636797361076,
+     "prefill_tok_s_median": 478885.99220111704,
+     "decode_tok_s_per_stream_median": 101.30116595485221,
+     "completion_tokens": [
+      1024,
+      1024,
+      1024
+     ],
+     "prompt_tokens": [
+      8192
+     ],
+     "cached_tokens": [
+      8192
+     ],
+     "aggregate_tok_s": 101.22871476244055,
+     "aggregate_prefill_tok_s": 478885.99220111704,
+     "aggregate_note": "median over 3 sequential single-request batches"
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/V1-r1-block-t.json",
+    "pointer": "/batches/133/summary",
+    "what": "vLLM cached cell",
+    "value": {
+     "requests": 3,
+     "errors": 0,
+     "finish_reasons": [
+      "length"
+     ],
+     "content_has_think_close": 0,
+     "ttft_median_s": 2.098103200085461,
+     "prefill_tok_s_median": 3904.4790550180364,
+     "decode_tok_s_per_stream_median": 103.15463337434966,
+     "completion_tokens": [
+      1024,
+      1024,
+      1024
+     ],
+     "prompt_tokens": [
+      8192
+     ],
+     "cached_tokens": [
+      0
+     ],
+     "aggregate_tok_s": 85.22500193036947,
+     "aggregate_prefill_tok_s": 3904.4790550180364,
+     "aggregate_note": "median over 3 sequential single-request batches"
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md",
+    "lines": [
+     121,
+     133
+    ],
+    "what": "uncached 8K TTFT",
+    "text": "| 8K | code | 1 | 2.10 (2.10-2.12) | 1.80 (1.80-1.81) | 0.86 |\n| 8K | code | 4 | 5.46 (5.45-5.46) | 5.21 (5.21-5.24) | 0.96 |\n| 8K | code | 8 | 9.45 (9.44-9.46) | 9.78 (9.76-9.81) | 1.03 |\n| 8K | code | 16 | 17.43 (17.41-17.45) | 18.86 (18.85-18.94) | 1.08 |\n| 8K | json | 1 | 2.11 (2.10-2.12) | 1.80 (1.80-1.81) | 0.85 |\n| 8K | json | 4 | 5.47 (5.47-5.47) | 5.21 (5.20-5.23) | 0.95 |\n| 8K | json | 8 | 9.47 (9.46-9.48) | 9.76 (9.75-9.80) | 1.03 |\n| 8K | json | 16 | 17.47 (17.44-17.48) | 18.89 (18.82-18.93) | 1.08 |\n| 8K | prose | 1 | 2.11 (2.10-2.17) | 1.80 (1.80-1.80) | 0.86 |\n| 8K | prose | 4 | 5.49 (5.48-5.49) | 5.21 (5.20-5.22) | 0.95 |\n| 8K | prose | 8 | 9.50 (9.48-9.51) | 9.77 (9.77-9.78) | 1.03 |\n| 8K | prose | 16 | 17.52 (17.48-17.53) | 18.85 (18.84-18.88) | 1.08 |\n| 8K | reasoning | 1 | 2.11 (2.11-2.13) | 1.81 (1.81-1.81) | 0.86 |"
+   }
+  ]
+ },
+ {
+  "id": "V3-l-tasks-128k",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "L",
+  "question": "At a 128K output cap (L3), how do CuteAFD v3.0.1 and the vLLM fork v0.9.2 do on the long-output tasks?",
+  "statement": "At the 128K cap, vLLM fork / CuteAFD: code with all tests passing 7/8 and 7/8 (217 and 212 tests passed); level-5 math problems correct 8/8 and 8/8; prose finished 8/8 and 8/8 with median words-written / words-required 0.95 and 1.05; JSON valid 6/8 and 4/8.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per content type: replies passing the type's check, counts",
+  "sign": "higher = more replies pass",
+  "unit": "reply",
+  "n": "8 replies per type and engine (4 prompts x 2)",
+  "interval": "none (descriptive; 2 replies per prompt)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block L: 100 requests per engine (4 content types x 4 prompts x 2 replies at L1, L2, L3; 1 reply per type at L3s)",
+   "context": "up to 128K output",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/24/all_pass",
+    "what": "V1-r1 L3 code all_pass",
+    "value": 7
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/8/all_pass",
+    "what": "C1-r1 L3 code all_pass",
+    "value": 7
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/24/tests_passed_total",
+    "what": "V1-r1 L3 code tests_passed_total",
+    "value": 217
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/8/tests_passed_total",
+    "what": "C1-r1 L3 code tests_passed_total",
+    "value": 212
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/27/correct",
+    "what": "V1-r1 L3 reasoning correct",
+    "value": 8
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/11/correct",
+    "what": "C1-r1 L3 reasoning correct",
+    "value": 8
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/26/stop",
+    "what": "V1-r1 L3 prose stop",
+    "value": 8
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/10/stop",
+    "what": "C1-r1 L3 prose stop",
+    "value": 8
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/26/words_ratio_median",
+    "what": "V1-r1 L3 prose words_ratio_median",
+    "value": 0.9495
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/10/words_ratio_median",
+    "what": "C1-r1 L3 prose words_ratio_median",
+    "value": 1.0527
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/25/valid",
+    "what": "V1-r1 L3 json valid",
+    "value": 6
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/9/valid",
+    "what": "C1-r1 L3 json valid",
+    "value": 4
+   }
+  ]
+ },
+ {
+  "id": "V3-l-length",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "L",
+  "question": "At a 128K output cap (L3), how long are CuteAFD v3.0.1's replies compared with the vLLM fork v0.9.2's?",
+  "statement": "Median reply length at the 128K cap, vLLM fork vs CuteAFD: prose 48,831.5 vs 39,344.5 tokens, code 51,297.5 vs 38,190.5, JSON 74,589 vs 67,381; the run did not separate engine from sampling as the source of the difference.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median completion tokens per content type",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "8 replies per type and engine",
+  "interval": "none (descriptive; 2 replies per prompt)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block L: 100 requests per engine (4 content types x 4 prompts x 2 replies at L1, L2, L3; 1 reply per type at L3s)",
+   "context": "up to 128K output",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/26/completion_tokens_median",
+    "what": "V1-r1 L3 prose",
+    "value": 48831.5
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/10/completion_tokens_median",
+    "what": "C1-r1 L3 prose",
+    "value": 39344.5
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/24/completion_tokens_median",
+    "what": "V1-r1 L3 code",
+    "value": 51297.5
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/8/completion_tokens_median",
+    "what": "C1-r1 L3 code",
+    "value": 38190.5
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/25/completion_tokens_median",
+    "what": "V1-r1 L3 json",
+    "value": 74589.0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/9/completion_tokens_median",
+    "what": "C1-r1 L3 json",
+    "value": 67381.0
+   }
+  ]
+ },
+ {
+  "id": "V3-l-stop-cap",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "L",
+  "question": "At the 8K (L1) and 32K (L2) output caps, do the engines' code, prose and JSON replies finish before the cap?",
+  "statement": "At L1 no code, prose or JSON reply finished before the cap on either engine (0/8 each); at L2 code finished 0/8 (vLLM fork) and 4/8 (CuteAFD), prose 1/8 and 0/8, JSON 2/8 and 2/8. The tasks were sized for thinking off, so the run reads these cells as stop versus cap, not task completion.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "replies that stopped before the cap, per stage, content type and engine",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "8 replies per cell",
+  "interval": "none (descriptive; 2 replies per prompt)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block L: 100 requests per engine (4 content types x 4 prompts x 2 replies at L1, L2, L3; 1 reply per type at L3s)",
+   "context": "8K and 32K output caps",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/16/stop",
+    "what": "V1-r1 L1 code finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/0/stop",
+    "what": "C1-r1 L1 code finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/18/stop",
+    "what": "V1-r1 L1 prose finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/2/stop",
+    "what": "C1-r1 L1 prose finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/17/stop",
+    "what": "V1-r1 L1 json finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/1/stop",
+    "what": "C1-r1 L1 json finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/20/stop",
+    "what": "V1-r1 L2 code finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/4/stop",
+    "what": "C1-r1 L2 code finished",
+    "value": 4
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/22/stop",
+    "what": "V1-r1 L2 prose finished",
+    "value": 1
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/6/stop",
+    "what": "C1-r1 L2 prose finished",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/21/stop",
+    "what": "V1-r1 L2 json finished",
+    "value": 2
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/5/stop",
+    "what": "C1-r1 L2 json finished",
+    "value": 2
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/README.md",
+    "lines": [
+     118,
+     118
+    ],
+    "what": "the run's reading",
+    "text": "The terminal-loop counts on code replies come from the detector counting the answer restating code drafted in the reasoning; no periodic structure was found in them (audit U5). The code, JSON and prose tasks were sized for thinking off: at the L1 and L2 caps, and for the 1,030-record JSON task at L3, the reasoning leaves too little room for the answer, so those cells measure stop-versus-cap rather than task completion."
+   }
+  ]
+ },
+ {
+  "id": "V3-l-decode",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "L",
+  "question": "During long outputs at 8 streams (L3), how fast does each engine decode?",
+  "statement": "Median decode rate at L3 (8 streams, 128K cap), vLLM fork vs CuteAFD: reasoning 71.27 vs 89.15 tok/s, JSON 65.5 vs 81.85, code 55.59 vs 58.17, prose 41.46 vs 39.27.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median per-reply decode tok/s per content type",
+  "sign": "higher = faster",
+  "unit": "reply",
+  "n": "8 replies per type and engine",
+  "interval": "none (descriptive; 2 replies per prompt)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block L: 100 requests per engine (4 content types x 4 prompts x 2 replies at L1, L2, L3; 1 reply per type at L3s)",
+   "context": "up to 128K output",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/27/decode_tok_s_median",
+    "what": "V1-r1 L3 reasoning",
+    "value": 71.27
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/11/decode_tok_s_median",
+    "what": "C1-r1 L3 reasoning",
+    "value": 89.15
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/25/decode_tok_s_median",
+    "what": "V1-r1 L3 json",
+    "value": 65.5
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/9/decode_tok_s_median",
+    "what": "C1-r1 L3 json",
+    "value": 81.85
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/24/decode_tok_s_median",
+    "what": "V1-r1 L3 code",
+    "value": 55.59
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/8/decode_tok_s_median",
+    "what": "C1-r1 L3 code",
+    "value": 58.17
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/26/decode_tok_s_median",
+    "what": "V1-r1 L3 prose",
+    "value": 41.46
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/10/decode_tok_s_median",
+    "what": "C1-r1 L3 prose",
+    "value": 39.27
+   }
+  ]
+ },
+ {
+  "id": "V3-l-loopflags",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "L",
+  "question": "Which long code replies did the terminal-loop detector flag on each engine, and what does the analysis record about them?",
+  "statement": "The detector flagged code replies on both engines: vLLM fork 6 of 8 at L3 and 1 of 1 at L3s, CuteAFD 2 of 8 at L2 and 4 of 8 at L3; for all 13 the analysis records no exact period and a flag onset before the reasoning ends. The audit's reading that the flagged text is code restated from the reasoning (U5) covers the 7 vLLM replies only.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "replies with R50 >= 0.5 at the end (terminal loop flag), onset token, exact period at m >= 0.8, reasoning tokens",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "13 flagged replies of 50 code replies",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block L: 100 requests per engine (4 content types x 4 prompts x 2 replies at L1, L2, L3; 1 reply per type at L3s); code replies",
+   "context": "up to 128K output",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "vLLM side checked by the audit: V3-u5-vllm-code",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/20/terminal_loops",
+    "what": "V1-r1 L2 code flagged",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/24/terminal_loops",
+    "what": "V1-r1 L3 code flagged",
+    "value": 6
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/28/terminal_loops",
+    "what": "V1-r1 L3s code flagged",
+    "value": 1
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/4/terminal_loops",
+    "what": "C1-r1 L2 code flagged",
+    "value": 2
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/8/terminal_loops",
+    "what": "C1-r1 L3 code flagged",
+    "value": 4
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/summary/12/terminal_loops",
+    "what": "C1-r1 L3s code flagged",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/34/C1-r1",
+    "what": "C1-r1-L2-code-p1-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 32617,
+     "onset": 27483,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/137/reasoning_tokens",
+    "what": "C1-r1-L2-code-p1-r0: reasoning tokens",
+    "value": 28559
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/38/C1-r1",
+    "what": "C1-r1-L2-code-p3-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 20589,
+     "onset": 15558,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/145/reasoning_tokens",
+    "what": "C1-r1-L2-code-p3-r0: reasoning tokens",
+    "value": 17245
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/64/V1-r1",
+    "what": "V1-r1-L3-code-p0-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 80319,
+     "onset": 73016,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/74/reasoning_tokens",
+    "what": "V1-r1-L3-code-p0-r0: reasoning tokens",
+    "value": 74465
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/64/C1-r1",
+    "what": "C1-r1-L3-code-p0-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 42406,
+     "onset": 36194,
+     "period": null,
+     "period_refined": null,
+     "correct": false
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/170/reasoning_tokens",
+    "what": "C1-r1-L3-code-p0-r0: reasoning tokens",
+    "value": 36809
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/66/V1-r1",
+    "what": "V1-r1-L3-code-p1-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 46998,
+     "onset": 42234,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/69/reasoning_tokens",
+    "what": "V1-r1-L3-code-p1-r0: reasoning tokens",
+    "value": 43783
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/66/C1-r1",
+    "what": "C1-r1-L3-code-p1-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 39723,
+     "onset": 34329,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/172/reasoning_tokens",
+    "what": "C1-r1-L3-code-p1-r0: reasoning tokens",
+    "value": 36047
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/67/V1-r1",
+    "what": "V1-r1-L3-code-p1-r1: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 44691,
+     "onset": 40347,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/86/reasoning_tokens",
+    "what": "V1-r1-L3-code-p1-r1: reasoning tokens",
+    "value": 41006
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/67/C1-r1",
+    "what": "C1-r1-L3-code-p1-r1: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 26344,
+     "onset": 19818,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/184/reasoning_tokens",
+    "what": "C1-r1-L3-code-p1-r1: reasoning tokens",
+    "value": 22349
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/68/V1-r1",
+    "what": "V1-r1-L3-code-p2-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 54454,
+     "onset": 49406,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/71/reasoning_tokens",
+    "what": "V1-r1-L3-code-p2-r0: reasoning tokens",
+    "value": 50104
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/68/C1-r1",
+    "what": "C1-r1-L3-code-p2-r0: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 38278,
+     "onset": 33412,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/169/reasoning_tokens",
+    "what": "C1-r1-L3-code-p2-r0: reasoning tokens",
+    "value": 34088
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/69/V1-r1",
+    "what": "V1-r1-L3-code-p2-r1: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 58199,
+     "onset": 51388,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/90/reasoning_tokens",
+    "what": "V1-r1-L3-code-p2-r1: reasoning tokens",
+    "value": 53540
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/71/V1-r1",
+    "what": "V1-r1-L3-code-p3-r1: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 40148,
+     "onset": 35913,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/93/reasoning_tokens",
+    "what": "V1-r1-L3-code-p3-r1: reasoning tokens",
+    "value": 36903
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/pairs/96/V1-r1",
+    "what": "V1-r1-L3s-code-p0-r9: onset, period",
+    "value": {
+     "stop": "stop",
+     "completion_tokens": 85441,
+     "onset": 78229,
+     "period": null,
+     "period_refined": null,
+     "correct": true
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/l/L-analysis-both.json",
+    "pointer": "/results/97/reasoning_tokens",
+    "what": "V1-r1-L3s-code-p0-r9: reasoning tokens",
+    "value": 79190
+   }
+  ]
+ },
+ {
+  "id": "V3-f1-speed-arms",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F1-SPEED",
+  "question": "What does each CuteAFD v3.0.1 FP8 switch tested in F1 cost in decode speed and time to first token on K3.25?",
+  "statement": "Median per-stream decode relative to the as-shipped scoring launch (F1-base) over 8 cells: KDA FP8 off 0.92, BF16 head 0.94, W8A16 prefill 0.99, all three 0.96 (cells 0.86-1.05); time to first token, W8A16 prefill 1.04 and all three 1.02-1.04.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "per-stream decode and time to first token, arm / F1-base, per cell (median of 2 replicates)",
+  "sign": "decode below 1 = slower; time to first token above 1 = slower",
+  "unit": "cell",
+  "n": "8 cells (1K and 8K input, 1 and 8 streams, code and prose), 2 replicates",
+  "interval": "none (descriptive; per-cell noise 0.96-1.08, V3-m1-noise)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 with one or all three settings changed",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "Block T subset",
+   "context": "1K and 8K",
+   "path": "serving",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "K4: F1K4-T",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/RESULTS-F1.md",
+    "lines": [
+     13,
+     19
+    ],
+    "what": "speed columns",
+    "text": "| Arm | Change | KL | vs C1 | vs vLLM mean | Top-1 vs vLLM | Decode speed | TTFT |\n|---|---|---|---|---|---|---|---|\n| C1 | as shipped | 0.0557 | — | +0.0050 [+0.0031, +0.0071] | −0.87 pts | 1.00 | 1.00 |\n| F1a | KDA projections BF16 (also drops KDA output sharding) | 0.0535 | −0.0022 [−0.0047, +0.0005] | +0.0028 [+0.0007, +0.0052] | +0.06 | 0.92 | 0.98-1.00 |\n| F1b | output head BF16 | 0.0555 | −0.0003 [−0.0004, −0.0001] | +0.0048 [+0.0028, +0.0069] | −0.79 | 0.94 | 1.00 |\n| F1c | prefill GEMMs W8A16 (not W8A8) | 0.0525 | **−0.0032 [−0.0049, −0.0013]** | +0.0019 [+0.0000, +0.0039] | −0.51 | 0.99 | **1.04** |\n| F1d | all three | 0.0519 | **−0.0038 [−0.0063, −0.0013]** | **+0.0013 [−0.0008, +0.0031]** | −0.14 | 0.96 (0.86-1.05) | 1.02-1.04 |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/speed/f1d",
+    "what": "F1d per-cell ratios",
+    "value": {
+     "1K code c1": {
+      "decode_tok_s_per_stream_median": 0.915572014573679,
+      "aggregate_tok_s": 0.920059791380206,
+      "ttft_median_s": 1.0151641215758032
+     },
+     "1K code c8": {
+      "decode_tok_s_per_stream_median": 0.9962060655569394,
+      "aggregate_tok_s": 1.0087358444666936,
+      "ttft_median_s": 1.0213737540798853
+     },
+     "1K prose c1": {
+      "decode_tok_s_per_stream_median": 0.8551484598876915,
+      "aggregate_tok_s": 0.8606432093975296,
+      "ttft_median_s": 1.0192413706557648
+     },
+     "1K prose c8": {
+      "decode_tok_s_per_stream_median": 1.0159886837326622,
+      "aggregate_tok_s": 1.0020420628301414,
+      "ttft_median_s": 1.0217407040374948
+     },
+     "8K code c1": {
+      "decode_tok_s_per_stream_median": 1.0164777409095846,
+      "aggregate_tok_s": 1.0034540942896217,
+      "ttft_median_s": 1.035677884505109
+     },
+     "8K code c8": {
+      "decode_tok_s_per_stream_median": 1.0451904570161807,
+      "aggregate_tok_s": 0.9847928626475396,
+      "ttft_median_s": 1.0340564291945007
+     },
+     "8K prose c1": {
+      "decode_tok_s_per_stream_median": 0.9253057464424067,
+      "aggregate_tok_s": 0.9318020507874704,
+      "ttft_median_s": 1.0359529759733974
+     },
+     "8K prose c8": {
+      "decode_tok_s_per_stream_median": 0.8918697231591289,
+      "aggregate_tok_s": 0.9905230138618916,
+      "ttft_median_s": 1.03453879018952
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "V3-f2-prefix",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F2",
+  "question": "Does the vLLM fork v0.9.2 reuse its prefix cache for identical repeated prompts, and at what lengths?",
+  "statement": "Each prompt sent 3 times in sequence: 0 cached tokens on every repeat at 1,024, 4,352, 8,192 and 8,704 tokens; at 17,408 tokens 4,352, 8,704 and 8,704 cached, with time to first token 3.457, 2.313 and 2.309 s. The run reads this as reuse in whole 4,352-token blocks, excluding the last two blocks of a prompt; the opt-in boundary lookup was not tested.",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "cached tokens reported in usage and time to first token per repeat",
+  "sign": "n/a",
+  "unit": "request",
+  "n": "5 lengths x 3 repeats",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image, normal served launch",
+   "checkpoint": "K3.25-v1",
+   "items": "exact-length token prompts from one public-domain book",
+   "context": "1K-17K",
+   "path": "serving, prefix caching on (align mode)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/0/usage/prompt_tokens_details/cached_tokens",
+    "what": "1024 rep 0 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/1/usage/prompt_tokens_details/cached_tokens",
+    "what": "1024 rep 1 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/2/usage/prompt_tokens_details/cached_tokens",
+    "what": "1024 rep 2 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/3/usage/prompt_tokens_details/cached_tokens",
+    "what": "4352 rep 0 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/4/usage/prompt_tokens_details/cached_tokens",
+    "what": "4352 rep 1 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/5/usage/prompt_tokens_details/cached_tokens",
+    "what": "4352 rep 2 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/6/usage/prompt_tokens_details/cached_tokens",
+    "what": "8192 rep 0 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/7/usage/prompt_tokens_details/cached_tokens",
+    "what": "8192 rep 1 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/8/usage/prompt_tokens_details/cached_tokens",
+    "what": "8192 rep 2 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/9/usage/prompt_tokens_details/cached_tokens",
+    "what": "8704 rep 0 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/10/usage/prompt_tokens_details/cached_tokens",
+    "what": "8704 rep 1 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/11/usage/prompt_tokens_details/cached_tokens",
+    "what": "8704 rep 2 cached",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/12/usage/prompt_tokens_details/cached_tokens",
+    "what": "17408 rep 0 cached",
+    "value": 4352
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/13/usage/prompt_tokens_details/cached_tokens",
+    "what": "17408 rep 1 cached",
+    "value": 8704
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/14/usage/prompt_tokens_details/cached_tokens",
+    "what": "17408 rep 2 cached",
+    "value": 8704
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/12/ttft_s",
+    "what": "17408 rep 0 TTFT",
+    "value": 3.4566060311626643
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/13/ttft_s",
+    "what": "17408 rep 1 TTFT",
+    "value": 2.3130658958107233
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/f2.json",
+    "pointer": "/runs/14/ttft_s",
+    "what": "17408 rep 2 TTFT",
+    "value": 2.30853821686469
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f2/RESULTS-F2.md",
+    "lines": [
+     14,
+     17
+    ],
+    "what": "the run's reading",
+    "text": "`/metrics` prefix-cache hit counters agree with the usage field. The server log shows the MLA cache groups at\n`block_size 4352` (hybrid KDA state alignment). Observed: reuse in whole 4,352-token blocks, and not the last two\nblocks of a prompt; a repeated prompt below about 13K tokens gets no reuse. The v0.9.0 opt-in boundary prefix lookup\n(`GLM53_DFLASH_BOUNDARY_LOOKUP`, default 0) was not tested. For comparison, CuteAFD restored a repeated 8K prompt in"
+   }
+  ]
+ },
+ {
+  "id": "V3-f3-pa",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F3",
+  "question": "On the 2K teacher panel, does CuteAFD v3.0.1's KL difference from the vLLM fork hold against a second vLLM launch?",
+  "statement": "P-A full-vocabulary KL from BF16, CuteAFD − second vLLM launch (V2): +0.0017 [+0.0006, +0.0028].",
+  "class": "difference",
+  "status": "follow-up",
+  "quantity": "full-vocabulary KL(BF16 teacher || engine), CuteAFD - vLLM V2",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "replicates V3-pa-engine against a fresh vLLM launch",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa-v2/pa-pair-V2-vs-C1.json",
+    "pointer": "/overall/kl",
+    "what": "A = V2, B = C1",
+    "value": {
+     "A": 0.04584084935472062,
+     "B": 0.047556256645403285,
+     "B_minus_A": 0.0017154072906826706,
+     "ci95": [
+      0.0006467317708630777,
+      0.0028174012215368884
+     ],
+     "boot_se": 0.0005529335865735753,
+     "clustered_se": 0.0005678175641470591
+    }
+   }
+  ]
+ },
+ {
+  "id": "V3-f3-pa-launch",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F3",
+  "question": "How much does the vLLM fork v0.9.2's 2K-panel KL change between two launches?",
+  "statement": "P-A full-vocabulary KL, second launch (V2) − first launch (V1): +0.0000007 [−0.0000003, +0.0000018]; top-1, top-3 and confident top-1 identical.",
+  "class": "not detected",
+  "status": "follow-up",
+  "quantity": "full-vocabulary KL from BF16, V2 - V1",
+  "sign": "above 0 = second launch farther from BF16",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25-v1",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "within-launch counterpart: V3-repeat-vllm-pa",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa-v2/pa-pair-V1-vs-V2.json",
+    "pointer": "/overall/kl",
+    "what": "A = V1, B = V2",
+    "value": {
+     "A": 0.045840164541551785,
+     "B": 0.04584084935472062,
+     "B_minus_A": 6.848131688244364e-07,
+     "ci95": [
+      -2.5442660993794395e-07,
+      1.7781778213753039e-06
+     ],
+     "boot_se": 5.188351774779382e-07,
+     "clustered_se": 5.32817811617232e-07
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pa-v2/pa-pair-V1-vs-V2.json",
+    "pointer": "/top1_discordance",
+    "what": "top-1 discordance",
+    "value": {
+     "A_only": 0,
+     "B_only": 0,
+     "engine_argmax_agreement": 0.9999804592085979
+    }
+   }
+  ],
+  "bound": "a launch-to-launch shift up to +0.0000018 is not excluded"
+ },
+ {
+  "id": "V3-f3-vspread",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "F3",
+  "question": "On the fidelity set, how much do three vLLM fork v0.9.2 runs (two in one launch, one in a second launch) differ from each other?",
+  "statement": "Mean coarse KL from BF16 on generated positions: 0.0457 and 0.0451 for two runs in one launch, 0.0446 in a second launch; mean per-position range of KL across the three runs 0.0043 (0-2K), 0.0217 (2-8K), 0.0380 (8-16K), 0.0252 overall. The launch-to-launch versus within-launch comparison declared in protocol/FOLLOWUPS.md:64-65 was not published separately; this pooled range is the file's 'V-spread'.",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "per generated position, largest minus smallest coarse KL across V1, V1r, V2, averaged (the 'V-spread' entries of pb-vs-vllm-mean3.json; definition not stated in the file, confirmed by recomputation from q/rows/pb-rows.csv); and each run's mean KL",
+  "sign": "0 = the three runs agree at every position",
+  "unit": "window",
+  "n": "53 windows (15,104 generated rows)",
+  "interval": "95% paired window bootstrap; bootstrap settings for q/pb/pb-vs-vllm-mean3.json are not published (interval stored with each V-spread value)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25-v1",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "P-A counterpart: V3-f3-pa-launch, V3-repeat-vllm-pa",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V1.json",
+    "pointer": "/summary/gen/overall/kl/value",
+    "what": "V1 mean KL",
+    "value": 0.0457121309103551
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V1r.json",
+    "pointer": "/summary/gen/overall/kl/value",
+    "what": "V1r mean KL",
+    "value": 0.04513177674903999
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-V2.json",
+    "pointer": "/summary/gen/overall/kl/value",
+    "what": "V2 mean KL",
+    "value": 0.04458078632221008
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/0-2K|kl|V-spread",
+    "what": "0-2K [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.004290413966674242,
+     0.0,
+     0.010196062830247913
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/2-8K|kl|V-spread",
+    "what": "2-8K [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.021732024492446055,
+     0.011520020817193066,
+     0.03199299501963305
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/8-16K|kl|V-spread",
+    "what": "8-16K [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.037963542389200515,
+     0.03295562576627465,
+     0.04211732671632035
+    ]
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/all|kl|V-spread",
+    "what": "all [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.025156056480521913,
+     0.018850057294123354,
+     0.03087426292201689
+    ]
+   },
+   {
+    "file": "protocol/FOLLOWUPS.md",
+    "lines": [
+     62,
+     65
+    ],
+    "what": "declared side-by-side",
+    "text": "**F3 — second vLLM launch for precision (audit I1).** vLLM's multi-chunk prefill is not run-to-run deterministic, so\nCuteAFD is compared against more than one vLLM draw. A new capture-mode launch (fresh process) captures P-B and P-A\nonce more (run tag v2-r1). Headline then pairs CuteAFD against the mean of all vLLM runs; launch-to-launch spread is\nreported next to within-launch spread."
+   }
+  ]
+ },
+ {
+  "id": "V3-drift",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "DRIFT",
+  "question": "Did either engine's serving speed change between its Block T run and a later repeat of identical requests?",
+  "statement": "Later run / Block T run, per cell and replicate: CuteAFD (about 3 h later) decode median 0.981 (range 0.958-1.065), aggregate 0.990 (0.971-1.029); vLLM fork (about 7.5 h later, fresh launch) decode 1.021 (0.931-1.126), aggregate 1.013 (0.935-1.125). This repeat replaces the protocol's CVC drift control (principle 6), which was not run inside Block T.",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "per-stream decode and aggregate tok/s, later / earlier, per (cell, replicate)",
+  "sign": "above 1 = faster in the later run",
+  "unit": "cell x replicate",
+  "n": "16 per engine (1K and 32K, 1 and 8 streams, code and prose, replicates 0-1)",
+  "interval": "none (descriptive; median and range)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T subset with identical prompts, seeds and nonce salt",
+   "context": "1K and 32K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "CuteAFD re-run on the scoring launch: V3-m1-noise",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/drift/RESULTS-DRIFT.md",
+    "lines": [
+     7,
+     13
+    ],
+    "what": "ratios and reading",
+    "text": "| Engine | Later run | Decode per-stream, median (range) | Aggregate, median (range) |\n|---|---|---|---|\n| CuteAFD | ~3 h after its Block T | 0.981 (0.958-1.065) | 0.990 (0.971-1.029) |\n| vLLM | ~7.5 h after its Block T, fresh launch | 1.021 (0.931-1.126) | 1.013 (0.935-1.125) |\n\nReading: no systematic drift at the median; single cells vary by up to about ±13%, so Block T ratios within about\n±10% are not differences. vLLM draft acceptance over this subset: 1.53 of 3 drafted tokens per verify step (51%)."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/drift/C1-drift.json",
+    "what": "CuteAFD repeat receipt"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/drift/V1-drift.json",
+    "what": "vLLM repeat receipt"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     233,
+     235
+    ],
+    "what": "CVC control not run",
+    "text": "**M1. No drift control or in-run telemetry for Block T.**\n- *Run order.* The protocol's CVC drift control (`PROTOCOL-DRAFT.md:19`) has no declared subset. T ran\n  V then C (V1 18:35-20:35, C1 22:39-00:29), with no repeat of either."
+   },
+   {
+    "file": "protocol/PROTOCOL.md",
+    "lines": [
+     19,
+     19
+    ],
+    "what": "principle 6",
+    "text": "6. Drift control: engine order C, V, then a predeclared subset of C again (CVC)."
+   }
+  ]
+ },
+ {
+  "id": "V3-draft-accept",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "DRAFT-ACCEPT",
+  "question": "What is the vLLM fork v0.9.2's speculative draft acceptance on the drift subset?",
+  "statement": "vLLM fork over the whole drift subset: 1.53 of 3 drafted tokens accepted per verify step (51%), from one before/after pair of its counters; CuteAFD v3.0.1 exposes no acceptance counter.",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "(accepted tokens) / (drafts), difference of /metrics counters before and after the subset",
+  "sign": "higher = more draft tokens accepted",
+  "unit": "subset",
+  "n": "one counter pair over 16 batches (not per cell as FOLLOWUPS.md:67 describes)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (DFlash2 drafter, 3 draft tokens)",
+   "checkpoint": "K3.25-v1",
+   "items": "drift subset (1K and 32K, code and prose)",
+   "context": "1K and 32K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/drift/RESULTS-DRIFT.md",
+    "lines": [
+     13,
+     13
+    ],
+    "what": "acceptance",
+    "text": "±10% are not differences. vLLM draft acceptance over this subset: 1.53 of 3 drafted tokens per verify step (51%)."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/drift/V1-spec-metrics-before.txt",
+    "lines": [
+     1,
+     5
+    ],
+    "what": "counters before",
+    "text": "vllm:spec_decode_num_drafts_total{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 5886.0\nvllm:spec_decode_num_drafts_created{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 1.7930988998133986e+09\nvllm:spec_decode_num_draft_tokens_total{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 17658.0\nvllm:spec_decode_num_draft_tokens_created{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 1.7930988998141406e+09\nvllm:spec_decode_num_accepted_tokens_total{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 10607.0"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/drift/V1-spec-metrics-after.txt",
+    "lines": [
+     1,
+     5
+    ],
+    "what": "counters after",
+    "text": "vllm:spec_decode_num_drafts_total{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 46296.0\nvllm:spec_decode_num_drafts_created{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 1.7930988998133986e+09\nvllm:spec_decode_num_draft_tokens_total{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 138888.0\nvllm:spec_decode_num_draft_tokens_created{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 1.7930988998141406e+09\nvllm:spec_decode_num_accepted_tokens_total{engine=\"0\",model_name=\"wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1\"} 72608.0"
+   }
+  ]
+ },
+ {
+  "id": "V3-telemetry",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "TELEMETRY",
+  "question": "Under what power, clocks and temperature did the later runs (F1 from its second arm, CuteAFD Block L, drift, F3, F2) execute?",
+  "statement": "Busy samples (utilisation at least 50%): GPU 0 median 299.9 W of a 300 W limit, 1,890 MHz, 87 °C, software power cap in 1,619 of 1,842 samples; GPU 1 287.51 W, 2,100 MHz, 85 °C, power cap in 1,351 of 1,873. Neither engine's Block T is covered.",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "nvidia-smi samples every 5 s: power, SM clock, temperature, clock event reasons",
+  "sign": "n/a",
+  "unit": "sample",
+  "n": "2,464 samples per GPU",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "telemetry 01:06-04:31 on 2026-10-27",
+   "context": "n/a",
+   "path": "all later runs",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/telemetry/gpu-telemetry-from-0050.summary.json",
+    "pointer": "/gpus",
+    "what": "per-GPU summary",
+    "value": {
+     "0": {
+      "samples": 2464,
+      "busy_samples_util_ge_50pct": 1842,
+      "busy_power_w": {
+       "median": 299.9,
+       "p95": 300.42,
+       "limit": 300.0
+      },
+      "busy_sm_clock_mhz": {
+       "median": 1890.0,
+       "p5": 1822.0
+      },
+      "busy_temperature_c": {
+       "median": 87.0,
+       "max": 88.0
+      },
+      "busy_clock_event_reasons": {
+       "0x0000000000000000": 223,
+       "0x0000000000000004": 1619
+      }
+     },
+     "1": {
+      "samples": 2464,
+      "busy_samples_util_ge_50pct": 1873,
+      "busy_power_w": {
+       "median": 287.51,
+       "p95": 294.55,
+       "limit": 300.0
+      },
+      "busy_sm_clock_mhz": {
+       "median": 2100.0,
+       "p5": 1935.0
+      },
+      "busy_temperature_c": {
+       "median": 85.0,
+       "max": 89.0
+      },
+      "busy_clock_event_reasons": {
+       "0x0000000000000000": 522,
+       "0x0000000000000004": 1351
+      }
+     }
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/telemetry/gpu-telemetry-from-0050.summary.json",
+    "pointer": "/about",
+    "what": "coverage",
+    "value": "Summary of the GPU telemetry CSV in this folder (nvidia-smi every 5 s; first and last sample below, UTC-7). It covers F1 from its second arm on, CuteAFD's Block L, the drift runs, F3 and F2; both engines' Block T ran before it began. Busy = utilization of at least 50%. Clock event reason 0x4 is the software power cap."
+   }
+  ]
+ },
+ {
+  "id": "V3-obs-launcher",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "OBS-LAUNCHER",
+  "question": "Which CuteAFD v3.0.1 launcher defaults differ from what the comparison assumed?",
+  "statement": "As read in the CuteAFD v3.0.1 launcher: default output limit 4,096 tokens (longer requests are clamped), an unconditional /dev/infiniband device, request logging on by default, listen address 0.0.0.0 under host networking, and swiglu_limit compiled in.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "launcher defaults (source)",
+  "sign": "n/a",
+  "unit": "launcher",
+  "n": "1",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 launcher",
+   "checkpoint": "n/a",
+   "items": "launcher source",
+   "context": "n/a",
+   "path": "launch",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/README.md",
+    "lines": [
+     127,
+     128
+    ],
+    "what": "observation",
+    "text": "- CuteAFD launcher: default output limit 4,096 (longer requests are clamped), unconditional `/dev/infiniband`, request logging on\n  by default, `0.0.0.0` under host networking; `swiglu_limit` compiled in."
+   },
+   {
+    "file": "protocol/PROTOCOL.md",
+    "lines": [
+     15,
+     17
+    ],
+    "what": "documented local deltas",
+    "text": "4. Each engine as its author ships it, plus only the documented local deltas (listen address, request\n   logging off, output limit raised, infiniband guard). Settings a measurement path requires (bench\n   endpoint, API key, full-prefill logits) are listed per block."
+   }
+  ]
+ },
+ {
+  "id": "V3-i1-chunks",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "I1",
+  "question": "Where does the vLLM fork v0.9.2's run-to-run variation on the fidelity set start?",
+  "statement": "Every vLLM capture ran alone with identical prefill chunking; generated rows bit-equal between the two same-launch runs: 100% in the 20 one-step windows, 46% in the 14 two-step windows and 0% in windows of 4, 8 and 10 prefill steps, and within two-step windows every row of the first 2,045-token chunk is bit-equal (audit).",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "share of generated rows bit-equal between V1 and V1r, by number of prefill steps",
+  "sign": "100% = deterministic",
+  "unit": "window",
+  "n": "64 windows",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25-v1",
+   "items": "fidelity set (P-B), 64 windows",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "consistent with the run's verification of 4 windows (RESULTS-Q.md:11-14)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     41,
+     61
+    ],
+    "what": "capture conditions and bit-equality table",
+    "text": "**I1. vLLM's run-to-run variation was attributed to another cause, and its size was understated.**\n- *Claim.* `RESULTS-Q.md:45-46` says vLLM repeats differ slightly (\"P-B KL ±0.0006, Q2 floor KL 0.0047\"),\n  \"as expected with continuous batching and speculation on\".\n- *Evidence: no batching.* Every vLLM capture ran alone. `vllm-v092-dumps/runs/v1-r{1,2}/{pa,pb,q2}/capture-manifest.json`\n  has `steps_with_other_requests = 0` for all 25 + 64 + 18 (r1) and 25 + 64 + 6 (r2) windows. Chunking is\n  identical between the two runs (64/64 windows have the same `chunk_lens`), and `cached_tokens` is 0.\n- *Evidence: where the variation starts.* `pb3.py` splits windows by number of prefill steps:\n\n  | Prefill steps | Windows | Gen rows bit-equal between V1 and V1r | Mean \\|ΔKL\\| per gen row |\n  |---|---|---|---|\n  | 1 | 20 | 100% | 0 |\n  | 2 | 14 | 46% | 0.011 |\n  | 4 | 12 | 0% | 0.008 |\n  | 8 | 12 | 0% | 0.024 |\n  | 10 | 6 | 0% | 0.022 |\n\n  Inside 2-step windows, rows of the first 2,045-token chunk are 100% bit-equal and rows of the second\n  chunk are 2-67% bit-equal (`a04`, `d01`, `d04`, `c03`). This matches the earlier finding in\n  `contrib/local-inference-evals/LEDGER.md:768-800` (amendments 22ax-22az): identical solo prefills\n  diverge from the layer-3 indexer top-k at token 2,051, the first position where sparse selection\n  applies."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md",
+    "lines": [
+     11,
+     14
+    ],
+    "what": "the run's verification",
+    "text": "1. **vLLM run-to-run variation: cause.** It is not batching or speculation: every vLLM capture ran alone.\n   Rows inside the first 2,045-token prefill chunk are bit-identical between the two vLLM runs; rows beyond it almost\n   never are (verified: e00 512/512 and d01 419/419 identical inside; a08 and b00 0/512 beyond). Multi-chunk prefill is\n   not run-to-run deterministic on this stack (consistent with the earlier indexer top-k ordering finding)."
+   }
+  ]
+ },
+ {
+  "id": "V3-i1-selfdiv",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "I1",
+  "question": "How large is the vLLM fork v0.9.2's per-row run-to-run divergence on the fidelity set, compared with the divergence between the two engines?",
+  "statement": "Per-row KL between the two same-launch vLLM runs on generated rows: 0.0080 at 2-8K and 0.0160 at 8-16K, against 0.0146 and 0.0245 between vLLM and CuteAFD (55% and 65%), from the full-vocabulary dumps of 34 windows (audit; dumps not published).",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "mean KL(V1 || V1r) and KL(V1 || C1) per generated row, full vocabulary",
+  "sign": "higher = larger divergence",
+  "unit": "row",
+  "n": "generated rows of 34 windows",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B), 34 windows at 2-16K",
+   "context": "2-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     62,
+     69
+    ],
+    "what": "self-divergence table",
+    "text": "- *Evidence: size, from the full-vocabulary dumps* (`ee2.py`, gen rows, 34 windows):\n\n  | Bucket | KL(V1‖C1) | KL(V1‖V1r) | vLLM self-divergence as share of cross-engine |\n  |---|---|---|---|\n  | 2-8K | 0.0146 | 0.0080 | 55% |\n  | 8-16K | 0.0245 | 0.0160 | 65% |\n\n  \"±0.0006\" is the shift of a mean, not the size of the run-to-run noise."
+   }
+  ]
+ },
+ {
+  "id": "V3-i1-baseline",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "I1",
+  "question": "On the fidelity set's 8-16K bucket, how much does CuteAFD v3.0.1's KL difference from the vLLM fork depend on which vLLM run is the baseline?",
+  "statement": "8-16K coarse KL, CuteAFD − vLLM: +0.0044 [+0.0017, +0.0069] against run V1, +0.0057 [+0.0037, +0.0082] against run V1r (audit), +0.0050 [+0.0031, +0.0071] against their mean; top-1 against the mean −0.87 pts [−1.18, −0.54].",
+  "class": "difference",
+  "status": "check",
+  "quantity": "coarse KL from BF16 at 8-16K, CuteAFD - each vLLM baseline",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "18 windows (7,522 generated rows)",
+  "interval": "V1: 95% percentile bootstrap over windows, 5,000 draws, SplitMix64 seed 20260829 (the run's P-B scorer); V1r: the audit's 95% window-cluster percentile bootstrap, 5,000 draws, numpy (recomputation scripts not published); mean: 95% paired window bootstrap, 2,000 draws, random.Random(7) (f1/f1_analysis.py)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "three choices of vLLM baseline for the same bucket"
+  },
+  "replication": "with the second launch added: V3-pb-longcode (+0.0054)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/by_bucket/8-16K/kl",
+    "what": "vs V1",
+    "value": {
+     "A": 0.05136611318187481,
+     "B": 0.055725234040453334,
+     "B_minus_A": 0.004359120858578522,
+     "ci95": [
+      0.0017014901201710083,
+      0.006882504208339447
+     ],
+     "boot_se": 0.0013281911565076873,
+     "clustered_se": 0.0013749051245378783
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     72,
+     75
+    ],
+    "what": "vs V1r and vs the mean (audit)",
+    "text": "  | P-B gen rows | C1 − V1 (reported) | C1 − V1r | C1 − mean(V1, V1r) |\n  |---|---|---|---|\n  | 8-16K KL | +0.0044 [+0.0017, +0.0069] | +0.0057 [+0.0037, +0.0082] | **+0.0050 [+0.0031, +0.0071]** |\n  | 8-16K top-1 | −1.04 pts | −0.70 [−1.14, −0.32] | **−0.87 [−1.20, −0.54]** |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/F1-RESULTS.json",
+    "pointer": "/precision/C1/8-16K/vs_vllm_mean",
+    "what": "vs mean of V1, V1r",
+    "value": {
+     "kl": [
+      0.005048652592749646,
+      0.003070500910714009,
+      0.007145482902110143
+     ],
+     "top1": [
+      -0.008707790481254985,
+      -0.011830635118306352,
+      -0.00535815002820079
+     ],
+     "nll": [
+      0.02673788052094957,
+      0.0229394816010883,
+      0.029555522830891027
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V3-i1-midtop1",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "I1",
+  "question": "Does CuteAFD v3.0.1's higher top-1 agreement at 2-8K on the fidelity set, seen against the first vLLM run, hold against other vLLM runs?",
+  "statement": "2-8K top-1 agreement, CuteAFD − vLLM: +0.39 pts [+0.03, +0.76] against run V1, but +0.14 pts [−0.29, +0.48] against run V1r (audit) and +0.19 pts [−0.16, +0.52] against the mean of three runs; the corrected reading is not detected.",
+  "class": "not detected",
+  "status": "check",
+  "quantity": "top-1 agreement with BF16 at 2-8K, CuteAFD - vLLM baseline, percentage points",
+  "sign": "above 0 = CuteAFD agrees with BF16 more often",
+  "unit": "window",
+  "n": "16 windows (3,547 generated rows)",
+  "interval": "V1: 95% percentile bootstrap over windows, 5,000 draws, SplitMix64 seed 20260829 (the run's P-B scorer); V1r: the audit's 95% window-cluster percentile bootstrap, 5,000 draws, numpy (recomputation scripts not published); mean of three: 95% paired window bootstrap; bootstrap settings for q/pb/pb-vs-vllm-mean3.json are not published",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "2-8K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 1,
+   "note": "three choices of vLLM baseline; only V1 excludes 0"
+  },
+  "replication": "failed to replicate against V1r and the three-run mean",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/by_bucket/2-8K/top1",
+    "what": "vs V1",
+    "value": {
+     "A": 0.9543276007893995,
+     "B": 0.958274598252044,
+     "B_minus_A": 0.0039469974626444885,
+     "ci95": [
+      0.0003005633164475199,
+      0.007572810289809688
+     ],
+     "boot_se": 0.0018896492273244624,
+     "clustered_se": 0.001928054428494874
+    }
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     76,
+     76
+    ],
+    "what": "vs V1r (audit)",
+    "text": "  | 2-8K top-1 | **+0.39 [+0.03, +0.76]** | +0.14 [−0.29, +0.48] | +0.27 [−0.05, +0.52] |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-vs-vllm-mean3.json",
+    "pointer": "/2-8K|top1|C1",
+    "what": "vs mean of three",
+    "value": [
+     0.0018795226012592815,
+     -0.0016253555465258012,
+     0.005224867724867726
+    ]
+   }
+  ],
+  "bound": "against the three-run mean, a top-1 difference from −0.16 to +0.52 pts is not excluded"
+ },
+ {
+  "id": "V3-i2-inputs",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "I2",
+  "question": "Did Block T give CuteAFD v3.0.1 and the vLLM fork v0.9.2 identical inputs?",
+  "statement": "No: 0 of 1,008 paired requests share a nonce first line between the engines (seeds and prompt bodies pair), and the 24 CuteAFD requests at 128K code report 131,096 or 131,095 prompt tokens against 131,072 or 131,071 on vLLM. The audit traces the 24 tokens to literal think-tag strings in those prompts, parsed as special tokens by the vLLM stack and kept as text by CuteAFD.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "nonce equality per paired request; reported prompt tokens at 128K code",
+  "sign": "n/a",
+  "unit": "request",
+  "n": "1,008 paired requests; 24 at 128K code",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T: 1,008 requests per engine (prose, code, json and reasoning prompts; 1K, 8K, 32K, 128K inputs; 1-16 streams; 3 replicates), 1,024 output tokens, thinking on, temperature 1.0",
+   "context": "1K-128K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/C1-r1-block-t.json",
+    "pointer": "/batches/43/groups/0/0/prompt_tokens",
+    "what": "CuteAFD 128K code, first request",
+    "value": 131096
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/C1-r1-block-t.json",
+    "pointer": "/batches/43/groups/1/0/prompt_tokens",
+    "what": "CuteAFD 128K code, second request",
+    "value": 131095
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/V1-r1-block-t.json",
+    "pointer": "/batches/43/groups/0/0/prompt_tokens",
+    "what": "vLLM 128K code, first request",
+    "value": 131072
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/V1-r1-block-t.json",
+    "pointer": "/batches/43/groups/1/0/prompt_tokens",
+    "what": "vLLM 128K code, second request",
+    "value": 131071
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/C1-r1-block-t.json",
+    "pointer": "/nonce_salt",
+    "what": "CuteAFD nonce salt",
+    "value": "C1-r1:1793079558737877023"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/V1-r1-block-t.json",
+    "pointer": "/nonce_salt",
+    "what": "vLLM nonce salt",
+    "value": "V1-r1:1793064953235561649"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     83,
+     96
+    ],
+    "what": "audit item I2",
+    "text": "**I2. The claim of identical inputs does not hold for two Block T details.**\n- *Nonces differ between engines.* `block_t.py:20` says requests \"pair across engines\". The nonce salt is\n  `label:time_ns` (`block_t.py:213`), so 0 of 1,008 paired requests share a nonce: every prompt differs\n  in its first line between engines. Seeds still pair, but at temperature 1.0 with two different samplers\n  they do not pair the outputs either.\n- *128K code prompts differ by 24 tokens.* All 24 C1 requests at 128K code report 131,096 / 131,095\n  prompt tokens against the expected 131,072 / 131,071; vLLM matches the expectation. Those prompts\n  (vLLM source) contain literal `<think>` once and `</think>` 11 times (checked in\n  `stage0/prompts/T/code/128k/p*.json`). vLLM's chat path tokenizes them as special tokens; CuteAFD\n  tokenizes them as text. So A2's \"thinking on gives both engines the same prompt\"\n  (`PROTOCOL-DRAFT.md:168-172`) does not hold for those cells: vLLM's model sees 11 end-of-thinking\n  control tokens inside the user turn.\n- *Impact.* Negligible for throughput. It is a stack difference: control-token strings in user text are parsed as control\n  tokens on vLLM."
+   }
+  ]
+ },
+ {
+  "id": "V3-u1-blockB",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U1",
+  "question": "Is the fidelity set's 8-16K history bucket separable from its long-code-reading content (block B)?",
+  "statement": "No: all 12 block-B (long code reading) windows sit in the 8-16K bucket and supply 6,144 of its 7,522 generated rows; no block-B window lies elsewhere, so the bucket difference cannot be separated from that content.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "generated rows by block and bucket",
+  "sign": "n/a",
+  "unit": "window",
+  "n": "18 windows in the 8-16K bucket",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/by_block/B/rows",
+    "what": "block B rows",
+    "value": 6144
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/by_block/B/clusters",
+    "what": "block B windows",
+    "value": 12
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/by_bucket/8-16K/rows",
+    "what": "8-16K rows",
+    "value": 7522
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     100,
+     103
+    ],
+    "what": "audit",
+    "text": "**U1. \"The gap is located at 8-16K and grows with context\" is confounded with content (block B).**\n- *The bucket is block B.* All 12 block-B windows are in 8-16K, and none are elsewhere. They supply\n  6,144 of the bucket's 7,522 gen rows; the other 6 windows are block A (`pb1.out`). The bucket effect\n  is therefore inseparable from \"long code reading\" content."
+   }
+  ]
+ },
+ {
+  "id": "V3-u1-blockA-trend",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U1",
+  "question": "Within the only fidelity-set block present at every length (block A), does CuteAFD v3.0.1's KL difference from the vLLM fork grow with context?",
+  "statement": "Post hoc (audit), block A, CuteAFD − mean of vLLM runs, KL: 0-2K +0.0029 [−0.0013, +0.0083], 2-8K +0.0017 [−0.0005, +0.0033], 8-16K +0.0028 [−0.0003, +0.0055]; difference-in-differences (8-16K minus below 8K) +0.0006 [−0.0030, +0.0044].",
+  "class": "not detected",
+  "status": "check",
+  "quantity": "coarse KL difference by bucket within block A, and (8-16K) - (<8K)",
+  "sign": "difference-in-differences above 0 = larger gap at 8-16K",
+  "unit": "window",
+  "n": "26 block-A windows (6 at 8-16K)",
+  "interval": "the audit's 95% window-cluster percentile bootstrap, 5,000 draws, numpy (recomputation scripts not published)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B), block A: 4,174 generated rows",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 0,
+   "note": "three buckets and the difference-in-differences"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     104,
+     115
+    ],
+    "what": "block A table and difference-in-differences",
+    "text": "- *Block A shows no growth with context.* A is the only block present in all three buckets\n  (`pb4.py`, C1 − mean(V)):\n\n  | Block A, bucket | KL | Top-1 | NLL |\n  |---|---|---|---|\n  | 0-2K | +0.0029 [−0.0013, +0.0083] | | |\n  | 2-8K | +0.0017 [−0.0005, +0.0033] | | |\n  | 8-16K | +0.0028 [−0.0003, +0.0055] | −1.05 pts | +0.0137 [+0.0043, +0.0221] |\n\n  Difference-in-differences for KL (8-16K minus <8K): +0.0006 [−0.0030, +0.0044]. So \"consistent with a\n  gap that grows with context\" (`RESULTS-Q.md:51-53`) is not supported for KL. A context trend is\n  suggested only in block A's NLL and top-1, on 6 windows."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/gen/by_block/A/rows",
+    "what": "block A rows",
+    "value": 4174
+   }
+  ],
+  "bound": "growth of the KL gap with context up to +0.0044 is not excluded"
+ },
+ {
+  "id": "V3-u1-robust",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U1",
+  "question": "Does the 8-16K KL difference (CuteAFD v3.0.1 − vLLM run V1) on the fidelity set survive leaving windows out and a multiplicity correction?",
+  "statement": "Post hoc (audit): leaving out any one window keeps the 8-16K KL difference between +0.0037 and +0.0051, 14 of 18 windows are positive, and with Bonferroni over about 15 bucket-by-metric looks it is +0.0044 [+0.0003, +0.0082] (99.67% interval).",
+  "class": "difference",
+  "status": "check",
+  "quantity": "coarse KL at 8-16K, CuteAFD - V1, leave-one-window-out range and Bonferroni interval",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "18 windows",
+  "interval": "99.67% (Bonferroni, about 15 looks); the audit's 95% window-cluster percentile bootstrap, 5,000 draws, numpy (recomputation scripts not published)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "8-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "Bonferroni-adjusted KL, top-1 and NLL at 8-16K"
+  },
+  "replication": "against three vLLM runs: V3-pb-longcode",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     119,
+     123
+    ],
+    "what": "what holds",
+    "text": "- *What does hold.*\n  - Leave-one-window-out at 8-16K: dKL stays between +0.0037 (drop `b08`) and +0.0051 (drop `b04`).\n  - 14 of 18 windows are positive.\n  - Bonferroni over about 15 bucket×metric looks (99.67% intervals): KL +0.0044 [+0.0003, +0.0082],\n    top-1 −1.04 [−1.67, −0.29], NLL +0.0266 [+0.0186, +0.0325]. All survive, KL narrowly."
+   }
+  ]
+ },
+ {
+  "id": "V3-u2-arith",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U2",
+  "question": "Besides FP8 projections, FP8 head and KDA FP8, how else do CuteAFD v3.0.1's and the vLLM fork v0.9.2's arithmetic differ, and is F1's KDA arm a single-factor test?",
+  "statement": "Read from source and logs, not measured: the engines also differ in DSA index-key format (CuteAFD BF16, vLLM FP8), attention placement (token split vs whole layers per GPU), KDA split path, prefill chunk geometry, BF16 logits in vLLM, and CuteAFD's W8A8 prefill GEMMs. F1's KDA arm (GLM5_FLASH_KDA_FP8=off) also removes KDA output sharding, so it changes two things.",
+  "class": "source reading",
+  "status": "check",
+  "quantity": "arithmetic and geometry settings per engine (source)",
+  "sign": "n/a",
+  "unit": "engine",
+  "n": "2",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "launcher source, dry-run and capture logs",
+   "context": "n/a",
+   "path": "prefill and decode",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     138,
+     155
+    ],
+    "what": "omitted differences",
+    "text": "- *Omitted differences between the engines' arithmetic or geometry* (found in source and logs, not\n  measured):\n  - **DSA indexer.** CuteAFD keeps BF16 key/gate rows (`keys`, forced on a head split;\n    `dry-run-score.log:1`). vLLM uses FP8 index-K with the B12x kpool top-k (prior audit\n    `phase1-indexer-selection.md:31`; `VLLM_USE_B12X_KPOOL_INDEXER=1`). This difference runs in\n    CuteAFD's favour for precision. The indexer engages only past about 2K tokens, which is exactly\n    where any context-dependent gap would appear. Selection and tie handling differ too (22az).\n  - **Attention placement.** CuteAFD uses `context`: MLA split by token across both GPUs, with a\n    cross-GPU partial-softmax merge (`dry-run-score.log:61`). vLLM uses `split:25`: whole MLA layers\n    owned by one GPU, unsharded (`start.sh:41-45`).\n  - **KDA split path.** On CuteAFD, `--kda-output-shard --kda-prefill-expanded` (`run-family.sh:2012-2017`).\n  - **Prefill geometry.** vLLM uses 2,045/2,045/262 chunks aligned to 4,352 (`b08.steps.jsonl`), and\n    the scored rows straddle chunk boundaries. CuteAFD prefills context in 4,096-row lanes, then scores\n    the 512 rows through the scoring path.\n  - **Logit precision.** vLLM's logits are BF16 before log-softmax (`logits_dtype: torch.bfloat16` in\n    every steps.jsonl). Its head output is rounded too; it is not exact BF16-head arithmetic.\n  - **Prefill-shaped scoring measures CuteAFD's W8A8 prefill GEMMs.** Decode and verify rows in serving\n    do not use W8A8 activations; prompt KV written during prefill does carry the effect."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     171,
+     175
+    ],
+    "what": "F1a confound",
+    "text": "- *F1a is confounded.* `GLM5_FLASH_KDA_FP8=off` also removes `--kda-output-shard --kda-prefill-expanded`\n  (`run-family.sh:2012-2017`: added only when `kda_fp8 != off`). It reverts to the half-K BF16 partials\n  path, whose documented cost is about KL +0.0008 and a top-1 loss (`run-family.sh:1981-1986`). The\n  discovery notes this (`discovery-cuteafd-fidelity.md:496`), but `FOLLOWUPS.md:13` describes F1a as a\n  pure precision switch. A null or adverse F1a result would be uninterpretable."
+   }
+  ]
+ },
+ {
+  "id": "V3-u2-entropy",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U2",
+  "question": "Are CuteAFD v3.0.1's next-token distributions on the fidelity set flatter than the vLLM fork's?",
+  "statement": "Post hoc (audit): predictive entropy on generated rows at 8-16K is 0.580 for CuteAFD and 0.523 / 0.522 for the two vLLM runs, higher for CuteAFD in 18 of 18 windows (14 of 16 at 2-8K); in block B 0.616 vs 0.555, with a teacher lower bound of 0.527.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "mean predictive entropy per generated row, nats",
+  "sign": "higher = flatter distribution",
+  "unit": "window",
+  "n": "18 windows at 8-16K",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "2-16K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     156,
+     167
+    ],
+    "what": "entropy table",
+    "text": "- *New evidence, a cheap mechanism clue.* CuteAFD's distributions are systematically **flatter**\n  (`ee2.py`, `teachH.py`, gen rows):\n\n  | Rows | Entropy C1 | Entropy V1 | Entropy V1r | Teacher (lower bound) | Windows with C1 > V1 |\n  |---|---|---|---|---|---|\n  | 8-16K | 0.580 | 0.523 | 0.522 | | 18 of 18 |\n  | block B | 0.616 | 0.555 | | 0.527 | |\n  | 2-8K | | | | | 14 of 16 |\n\n  The teacher bound is top-1024 plus the tail as one bucket. Excess entropy over the teacher is +17%\n  for C1 and +5% for V1. This explains why the P-B NLL gap (+0.0168) is about 6x the KL gap: the panel\n  text was generated greedily (`windows.json` `recipe.temperature = 0`), so NLL rewards sharpness."
+   }
+  ]
+ },
+ {
+  "id": "V3-u3-q2-types",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U3",
+  "question": "With 6 documents, do CuteAFD v3.0.1 and the vLLM fork differ in NLL on long prose or long code separately (32K-128K)?",
+  "statement": "Q2 NLL, CuteAFD − vLLM, t-intervals over document means (audit): overall −0.0005 [−0.0046, +0.0035] (5 df), prose +0.0019 [−0.0013, +0.0050], code −0.0029 [−0.0135, +0.0077] (2 df each); the run's earlier per-type bootstrap intervals rested on 3 clusters each.",
+  "class": "not detected",
+  "status": "check",
+  "quantity": "mean NLL difference per document type, CuteAFD - vLLM fork, nats",
+  "sign": "above 0 = CuteAFD assigns the text lower probability",
+  "unit": "document",
+  "n": "6 documents (3 prose, 3 code)",
+  "interval": "95% t-interval over document means (audit)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Q2: 6 long documents (3 prose, 3 code) at 32K, 64K and 128K",
+   "context": "32K-128K",
+   "path": "prefill (teacher-forced), no BF16 reference",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 0,
+   "note": "overall, prose, code"
+  },
+  "replication": "replaces the per-type bootstrap intervals first reported (RESULTS-Q.md:31-34)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     184,
+     192
+    ],
+    "what": "t-intervals",
+    "text": "- *t-intervals on the 6 document means (C1 − V1).* Recomputed from `per_window`:\n\n  | | Mean | t-interval |\n  |---|---|---|\n  | Overall (5 df) | −0.0005 | [−0.0046, +0.0035] |\n  | Prose (2 df) | +0.0019 | [−0.0013, +0.0050] |\n  | Code (2 df) | −0.0029 | [−0.0135, +0.0077] |\n\n  Neither sub-claim excludes zero."
+   }
+  ],
+  "bound": "per type, NLL differences from −0.0013 to +0.0050 (prose) and −0.0135 to +0.0077 (code) are not excluded"
+ },
+ {
+  "id": "V3-u4-ctx",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U4",
+  "question": "Do the fidelity set's trailing context rows show a reference-side error, or are they sensitive rows?",
+  "statement": "All 30 trailing context spans are near-copies of one unrelated filler file; on rows 20 or more positions into a span, cross-engine KL is 0.72, 3.14 and 2.53 nats on three windows (0.008-0.020 on the same windows' generated rows), and vLLM against its own repeat is 1.96 nats on one of them (audit). The audit reads these rows as sensitive to any arithmetic change, not as evidence of a reference-side error.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "KL between arms on trailing context rows, nats",
+  "sign": "higher = larger disagreement",
+  "unit": "window",
+  "n": "3 windows checked; 30 spans read",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): trailing context spans",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     206,
+     218
+    ],
+    "what": "U4",
+    "text": "**U4. Trailing context rows: \"a property of the panel's context rows\" is right; the implied reference-side cause is not.**\n- *All 30 trailing spans are the same filler.* Every span begins `File: rust/crates/cuteafd-api/src/openai/probe.rs`\n  (`ctx4.py`). It is an unrelated file inserted as the observation after the model's tool call, for\n  example a call to `read_file ledger/dates.py`. The 12,032 rows are 30 near-copies of one text, so they\n  are effectively one item. The tokenization is canonical: re-encoding gives identical ids in 30 of 30.\n- *The rows are hypersensitive.* Cross-engine KL on rows 20 or more positions into the trailing span\n  is 0.72 / 3.14 / 2.53 nats on `a03` / `d03` / `a10` (`ee.py`), against 0.008-0.020 on the same\n  windows' gen rows. **vLLM against itself** is 1.96 nats on `a10`, a multi-chunk window. Both engines\n  are confident (entropy about 1 nat) but disagree.\n- *What follows.* Any arithmetic perturbation produces nat-scale KL on these rows. Both engines being\n  about 1.7 nats from the teacher, with NLL below the teacher's, fits \"three perturbed copies of a\n  fragile computation\". It does not show a reference-side error, which A1 (`PROTOCOL-DRAFT.md:162-164`)\n  set up as the question."
+   }
+  ]
+ },
+ {
+  "id": "V3-u5-vllm-code",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "U5",
+  "question": "Are the vLLM fork v0.9.2's flagged long code replies (Block L) loops?",
+  "statement": "In the 7 flagged vLLM fork code replies (6 of 8 at L3, 1 of 1 at L3s), every repeated 50-gram in the final 4,096-token window first occurs in the reasoning, self-repetition within the answer is 0.000-0.001, 37-88% of the answer's 50-grams are copied from the reasoning, and no exact period is found (audit). This check covers vLLM only: CuteAFD's Block L ran after the audit, and its copy-from-reasoning share is not published.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "share of repeated 50-grams first seen in the reasoning; within-answer repetition; share of answer 50-grams copied from the reasoning",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "7 flagged vLLM replies",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25-v1",
+   "items": "Block L: 100 requests per engine (4 content types x 4 prompts x 2 replies at L1, L2, L3; 1 reply per type at L3s); flagged code replies",
+   "context": "up to 128K output",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "CuteAFD's 6 flagged replies share the absence of an exact period and an onset before the reasoning ends (V3-l-loopflags); the copy share was not measured for them",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     220,
+     229
+    ],
+    "what": "U5",
+    "text": "**U5. Block L: the code \"terminal loop\" flags count restated code, not loops** (6 of 8 L3 and 1 of 1 L3s).\n- *Evidence* (`l1.py`). Re-tokenizing every L3/L3s code reply:\n  - 100% of the repeated 50-grams in the final 4,096-token window have their earlier occurrence in the\n    reasoning span.\n  - Self-repetition *within* the content is 0.000-0.001.\n  - 37-88% of content 50-grams are copied from the reasoning.\n  - `exact_period_m08` is `None` for every flagged reply: no periodic structure.\n- *What the detector measures here.* The onset sits about 1K tokens before the end of the reasoning\n  (for example 42,234 of 43,783). The answer re-states code drafted in the reasoning; this is not looping.\n  7 of 8 L3 replies pass all tests (217 tests)."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/README.md",
+    "lines": [
+     118,
+     118
+    ],
+    "what": "README applies it to both engines",
+    "text": "The terminal-loop counts on code replies come from the detector counting the answer restating code drafted in the reasoning; no periodic structure was found in them (audit U5). The code, JSON and prose tasks were sized for thinking off: at the L1 and L2 caps, and for the 1,030-record JSON task at L3, the reasoning leaves too little room for the answer, so those cells measure stop-versus-cap rather than task completion."
+   }
+  ]
+ },
+ {
+  "id": "V3-m1-noise",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "M1",
+  "question": "How much do CuteAFD v3.0.1's Block T speed cells vary when re-run, and was Block T protected against drift?",
+  "statement": "A CuteAFD re-run of the Block T speed subset (F1-base: same seeds, about 2 hours later, on the scoring launch) over C1's Block T gives per cell and replicate 0.96 to 1.08 on per-stream decode and 0.96 to 1.05 on aggregate; Block T itself had no drift repeat (vLLM ran first, CuteAFD second, no repeat) and no in-run telemetry.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "per-stream decode and aggregate tok/s, F1-base / C1 Block T, per (cell, replicate)",
+  "sign": "above 1 = faster in the re-run",
+  "unit": "cell x replicate",
+  "n": "16 (1K and 8K, 1 and 8 streams, code and prose, replicates 0-1)",
+  "interval": "none (descriptive; range)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1",
+   "checkpoint": "K3.25-Core-FP8",
+   "items": "Block T subset",
+   "context": "1K and 8K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "later repeat on the serving launch: V3-drift",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     233,
+     242
+    ],
+    "what": "M1",
+    "text": "**M1. No drift control or in-run telemetry for Block T.**\n- *Run order.* The protocol's CVC drift control (`PROTOCOL-DRAFT.md:19`) has no declared subset. T ran\n  V then C (V1 18:35-20:35, C1 22:39-00:29), with no repeat of either.\n- *Telemetry.* There is only a pre-run snapshot: temperature, power limit, memory\n  (`t/gpu-before-*.txt`: 66/63 °C before V1, 63/61 °C before C1). There are no clocks, power draw or\n  throttle reasons during the runs. On 300 W Max-Q cards, 4 hours apart, this is a real gap.\n- *A partial CuteAFD repeat exists.* F1-base (`f1/speed-F1-base.json`, same seeds, scoring launch,\n  2 hours later) against C1-r1 gives per-cell ratios of 0.96-1.08 on decode and 0.96-1.05 on aggregate.\n  So **single-cell noise is about ±4-8%**, and T-SUMMARY ratios between 0.95 and 1.08 cannot be read as\n  differences. T-SUMMARY has no intervals, against principle 7 (`PROTOCOL-DRAFT.md:20`)."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/speed-F1-base.json",
+    "what": "F1-base receipt"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/CAVEATS.md",
+    "lines": [
+     16,
+     17
+    ],
+    "what": "the run's restatement",
+    "text": "- **Noise.** A later re-run of CuteAFD (F1-base) shows about ±4-8% per cell; ratios within that range are not\n  differences. No drift repeat was run inside Block T; one is declared in FOLLOWUPS.md."
+   }
+  ]
+ },
+ {
+  "id": "V3-m2-labels",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "M2",
+  "question": "In Block T (thinking on, 1,024 output tokens), do the code and json cells measure code and JSON output?",
+  "statement": "No: one CuteAFD code reply (1K, 8 streams) reached the answer and every other code and json reply on both engines ended inside the reasoning, so these cells measure reasoning text about a code or JSON prompt. The audit and t/CAVEATS.md state this as 0% / every reply, which the receipts show for all but that one reply.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "replies with answer (content) characters, code and json cells",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "312 code and 192 json replies per engine",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block T: 1,008 requests per engine (prose, code, json and reasoning prompts; 1K, 8K, 32K, 128K inputs; 1-16 streams; 3 replicates), 1,024 output tokens, thinking on, temperature 1.0",
+   "context": "1K-128K input",
+   "path": "serving (sampled generation, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/C1-r1-block-t.json",
+    "pointer": "/batches/51/groups/0/2/content_chars",
+    "what": "the one CuteAFD code reply with content",
+    "value": 1136
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/C1-r1-block-t.json",
+    "pointer": "/batches/51/content",
+    "what": "its cell content type",
+    "value": "code"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     253,
+     255
+    ],
+    "what": "audit",
+    "text": "- *The labels.* At 1,024 output tokens with thinking on, **0% of code and json requests on either engine\n  left the reasoning** (`t1.out`: content 0% in every code and json cell). So \"code\" and \"json\" mean\n  \"reasoning about a code or json prompt\"."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/t/CAVEATS.md",
+    "lines": [
+     8,
+     9
+    ],
+    "what": "caveat",
+    "text": "- **\"code\" and \"json\" cells measure reasoning text.** With thinking on and 1,024 output tokens, every reply in those\n  cells is still reasoning when it hits the cap, on both engines. Content labels describe the prompt, not the output."
+   }
+  ]
+ },
+ {
+  "id": "V3-m2-draft",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "M2",
+  "question": "Do CuteAFD v3.0.1 and the vLLM fork v0.9.2 use the same speculative draft policy?",
+  "statement": "No, as read from the launchers: the vLLM fork drafts 3 fixed tokens with a BF16 drafter, CuteAFD drafts adaptively with an FP8 drafter and a W8A8 draft linear; draft acceptance was not recorded in Block T.",
+  "class": "source reading",
+  "status": "check",
+  "quantity": "draft policy per engine (source)",
+  "sign": "n/a",
+  "unit": "engine",
+  "n": "2",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "launcher source",
+   "context": "n/a",
+   "path": "serving (speculative decoding)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "vLLM acceptance measured later: V3-draft-accept",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     246,
+     251
+    ],
+    "what": "draft policy",
+    "text": "**M2. The single-stream speed advantage is plausibly draft policy, and the \"code\" and \"json\" labels are misleading.**\n- *Draft policy differs.* vLLM uses a fixed `DFLASH_TOKENS=3` (`start.sh:61`) with a BF16 drafter.\n  CuteAFD uses `SPECULATOR_DRAFTS=adaptive` (`run-family.sh:1700-1707`) with an FP8 drafter and W8A8\n  draft linear (`:2074-2076`). Acceptance was not recorded, although vLLM's `/metrics` exposes the\n  speculative-decoding counters.\n- *Speedup pattern.* 1.16-1.41x on code, json and reasoning against 1.02-1.06 on prose: consistent with"
+   }
+  ]
+ },
+ {
+  "id": "V3-m3-launch",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "M3",
+  "question": "Which launch settings differ between the two engines beyond the protocol's documented deltas?",
+  "statement": "On the vLLM side, GPU memory utilisation 0.95 instead of the launcher default 0.97, and the v0.9.0 repository's start script run with the v0.9.2 image (whether v0.9.2's own launcher defaults differ was not verified). Between the engines also: drafter policy, attention placement, DSA index-key format, KV record, prefill scheduling, prefix cache, logit precision (BF16 vs F32) and parsing of special tokens in user text.",
+  "class": "source reading",
+  "status": "check",
+  "quantity": "launch settings per engine (configs and logs)",
+  "sign": "n/a",
+  "unit": "engine",
+  "n": "2",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "launch configs and logs",
+   "context": "n/a",
+   "path": "launch",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     259,
+     278
+    ],
+    "what": "M3",
+    "text": "**M3. \"As shipped\" has undocumented deltas; the full list of launch differences follows.**\n- *Undocumented on the vLLM side.*\n  - `GPU_MEMORY_UTILIZATION=0.95` (`recipes/…+v0.9.2/env.sh`) instead of the launcher default 0.97\n    (`start.sh:104`, fp8 profile).\n  - The launcher is the v0.9.0 repo's `start.sh` (`git log`: `9f0c617 release: v0.9.0`) run with the\n    v0.9.2 image. Whether v0.9.2's own launcher defaults differ, for example `DFLASH_TOKENS`, is\n    **unverified here**.\n- *Differences beyond the documented deltas* (from the configs and logs read):\n\n  | Setting | vLLM v0.9.2 | CuteAFD v3.0.1 |\n  |---|---|---|\n  | Drafter | DFlash2, 3 fixed tokens, BF16 | DFlash2, adaptive, FP8 / W8A8 |\n  | Attention placement | MLA layer ownership `split:25` | token split `context` |\n  | DSA index K | FP8 kpool | BF16 `keys` |\n  | KV record | `fp8_ds_mla` NOPE, 528 B | FP8 latent, own records |\n  | Prefill scheduling | chunked 2,048 per step, interleaved with decode | 4,096-row lanes, prefill first |\n  | Prefix cache | `align` mode, 0 hits at 8K | 20 entries, hit |\n  | Logits | BF16 | F32 |\n  | Special tokens in user text | parsed | literal |\n  | GPU memory utilisation | 0.95 | pool `auto` |"
+   }
+  ]
+ },
+ {
+  "id": "V3-m4-pairedbar",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "M4",
+  "question": "Is CuteAFD v3.0.1 within the fidelity panel's own paired bar against the vLLM fork v0.9.2 (generated rows)?",
+  "statement": "Against the panel's paired bar of 0.005, the one-sided upper 95% bound of CuteAFD's loss is 0.0080 on top-1 and 0.0043 on KL against vLLM run V1, and 0.0067 and 0.0048 against run V1r: above the bar on top-1, below it on KL. The bar is defined for same-engine changes and is applied here by analogy.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "one-sided upper 95% bound of top-1 loss and KL increase, CuteAFD vs vLLM, against a 0.005 margin",
+  "sign": "above 0.005 = not shown within the bar",
+  "unit": "window",
+  "n": "53 windows (15,104 generated rows)",
+  "interval": "one-sided 95% (the panel's compare rule, 5,000 bootstrap draws)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of its 64 windows, contexts 0.5-14.4K",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "against V1 and V1r (same launch); not computed against V2",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/cuteafd_compare/top1_upper95",
+    "what": "top-1 upper bound vs V1",
+    "value": 0.0079868967201163
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/pb/pb-pair-V1-C1.json",
+    "pointer": "/cuteafd_compare/kl_upper95",
+    "what": "KL upper bound vs V1",
+    "value": 0.004306119483818152
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     281,
+     291
+    ],
+    "what": "M4, incl. V1r",
+    "text": "**M4. Results are not read against the panel's own paired bar.**\n- The P-B manifest sets `paired_bar: kl_margin 0.005, top1_margin 0.005`.\n- tpurtell's one-sided compare (`bar.py`, the port of `fidelity.rs:269-333`):\n\n  | Baseline | Top-1 upper95 | KL upper95 |\n  |---|---|---|\n  | V1 | 0.0080 | 0.0043 |\n  | V1r | 0.0067 | 0.0048 |\n\n- So C1 is **not shown within his bar on top-1** against vLLM, while KL is within it, narrowly.\n  `RESULTS-Q.md:20-21` reports only the absolute bar."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md",
+    "lines": [
+     22,
+     24
+    ],
+    "what": "applied by analogy",
+    "text": "4. **Against the panel's own paired bar (0.005)**: CuteAFD's top-1 loss upper bound is 0.0080 (vs V1) / 0.0067\n   (vs V1r), so it is not shown within that bar on top-1 (the bar is defined for same-engine changes; applied here by\n   analogy only)."
+   }
+  ]
+ },
+ {
+  "id": "V3-m5-panel-source",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "M5",
+  "question": "Where does the fidelity panel's generated text come from?",
+  "statement": "The panel's generated rows are greedy (temperature 0) outputs of CuteAFD v1.0.0 serving the official FP8 model with a BF16 head, KDA FP8 off and FP8 prefill off, per the panel's windows.json (audit).",
+  "class": "source reading",
+  "status": "check",
+  "quantity": "panel provenance fields",
+  "sign": "n/a",
+  "unit": "panel",
+  "n": "1",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "fidelity set (P-B) windows.json",
+   "context": "n/a",
+   "path": "n/a",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     293,
+     298
+    ],
+    "what": "M5",
+    "text": "**M5. The panel's text provenance is not stated.**\n- *Provenance.* The P-B generated rows are greedy (temperature 0) outputs of CuteAFD v1.0.0 serving\n  official FP8 with a BF16 head, `kda-fp8 off`, `fp8-prefill none` (`windows.json`: `generation_server`,\n  `recipe`).\n- *Bias.* Any engine-family bias would favour CuteAFD, so it runs *against* the finding (good to state).\n- *What NLL measures.* On greedy text, NLL measures sharpness (see U2)."
+   }
+  ]
+ },
+ {
+  "id": "V3-m6-prefill-only",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "M6",
+  "question": "Was the precision of the decode path (the path generated tokens use) scored in this run?",
+  "statement": "No: only prefill-shaped (teacher-forced) scoring was run on both engines; the panel tool's decode score path was not run, so the F1 W8A16-prefill result does not cover decode-path precision.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "score paths run",
+  "sign": "n/a",
+  "unit": "run",
+  "n": "1",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "Block Q and F1",
+   "context": "0.5-14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     300,
+     301
+    ],
+    "what": "M6",
+    "text": "**M6. Only prefill-shaped scoring was done.**\n- His CLI has `--score-path decode` (`discovery-cuteafd-fidelity.md:23,454`). It was not run."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/f1/RESULTS-F1.md",
+    "lines": [
+     33,
+     35
+    ],
+    "what": "F1 scope",
+    "text": "- Scope: W8A8 prefill matters to prefill-shaped scoring and to prompt processing; tokens generated during decode use\n  the decode path, which this measurement does not score. Precision of generated text under decode was not measured.\n  The MLA, shared and dense projections stay FP8 in every arm (no BF16 option)."
+   }
+  ]
+ },
+ {
+  "id": "V3-audit-reproduce",
+  "run": "2026-10-26-cuteafd-vs-vllm",
+  "goal": "AUDIT-HOLDS",
+  "question": "Do the run's instruments, numbers, seeds, freeze and Block T arithmetic reproduce under the separate review?",
+  "statement": "Reported as holding by the audit: the P-A scorer reproduces the earlier v0.8.0 result 0.0493912; vLLM dumps match its API log-probabilities to max |Δ| 5.7e-6; every RESULTS-Q.md number traced matches; T seeds are 1,008 distinct of 1,008 per engine; freeze hashes match and vLLM captures began after the freeze; t_summary.py regenerates T-SUMMARY.md byte-identically. The scorer port's 0-difference check against the panel tool was claimed, not re-run.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "reproduction checks (scorer, capture, numbers, seeds, freeze, summary script)",
+  "sign": "n/a",
+  "unit": "check",
+  "n": "as listed",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (unmodified) and the vLLM fork v0.9.2 release image",
+   "checkpoint": "K3.25 (vLLM: K3.25-v1; CuteAFD: K3.25-Core-FP8)",
+   "items": "all blocks",
+   "context": "0.5K-128K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     308,
+     340
+    ],
+    "what": "what holds: scorer, numbers, gap, seeds, freeze",
+    "text": "**Scorer and capture**\n- Our port of tpurtell's P-B rule matches his CLI (0 differences on 32,768 positions; claimed, not\n  re-run). P-A reproduces the v0.8.0 result 0.0493912 (`stage0/scorers/selfcheck/pa.log`). Unit tests\n  27/27 (`tests/results.json`).\n- vLLM's dumps match its API log-probabilities: max |Δ| 5.7e-6 across all captures\n  (`capture-manifest.json`, `chosen_check_server`).\n- The vLLM capture launch equals the served launch apart from the plugin mounts and env\n  (`stage0/capture-vllm/launch-compare.txt`).\n- CuteAFD's serving and scoring dry-run plans are identical (`diff dry-run-1.log dry-run-score.log`).\n\n**Numbers in RESULTS-Q.md**\n- Every headline, bucket, block and C0 number I traced matches the logs and pair JSONs:\n  - P-A: 0.0458 / 0.0476 / +0.0017.\n  - P-B: 0.0457 / 0.0484 / +0.0027, NLL +0.0168, top-1 −0.51; bucket table; block B +0.0047 / +0.029 / −1.1.\n  - Bar values 0.0484 / 93.33 / 96.31 / 99.48, and his FP8 baseline 0.02164 / 95.77.\n  - Q2 overall and per-type values, after negation.\n\n**The precision gap exists**\n- Survives Bonferroni and leave-one-window-out (U1).\n- C1 NLL is higher than V1 in 12 of 12 block-B windows.\n- C0 tracks C1, so load-quantized vs official FP8 projections do not matter: C1 − C0 −0.0003\n  [−0.0019, +0.0014].\n\n**Seeds and determinism**\n- T: 1,008 distinct seeds of 1,008 per engine, the same seed list on both engines.\n- L: 32 of 32 per stage, recorded per request.\n- Q (vLLM): 64 distinct seeds of 64, irrelevant for teacher-forced rows.\n- CuteAFD repeats are byte-identical.\n\n**Freeze**\n- Protocol, drivers, scorers and manifest hashes match `FROZEN.json` today (sha256 prefixes re-computed).\n  `FROZEN.json` itself is `c4815666…`, as the local change log says.\n- vLLM captures started at 18:00, after the 17:32 freeze. The A1 changes predate any vLLM result."
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md",
+    "lines": [
+     348,
+     351
+    ],
+    "what": "Block T arithmetic",
+    "text": "**Block T arithmetic and the scheduling explanation**\n- `t_summary.py` regenerates `T-SUMMARY.md` byte-identically.\n- `aggregate_tok_s` = sum of completion tokens / (last token − first send), applied identically to both\n  engines."
+   }
+  ]
+ }
+]

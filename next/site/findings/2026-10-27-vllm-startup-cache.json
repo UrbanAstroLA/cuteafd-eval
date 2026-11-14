@@ -1,0 +1,315 @@
+[
+ {
+  "id": "SU-ready",
+  "run": "2026-10-27-vllm-startup-cache",
+  "goal": "PERSIST",
+  "question": "How long does the vLLM fork v0.9.2 (K3.25-v1) take from container start to ready with its JIT caches persisted and warm, against not persisted?",
+  "statement": "One start per arm, descriptive: ready 697 s with the TileLang, Triton, TorchInductor and CUDA JIT caches not persisted and 382 s with them persisted and warm.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "seconds from container start to 'startup warmup complete'",
+  "sign": "lower = faster start",
+  "unit": "container start",
+  "n": "2 starts (one per arm)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 (vLLM build v0.1.dev20051+g487ecf187 in the logs; image digest not stated)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7, drafter snapshot bf582e4e",
+   "items": "one container start per arm; only the four JIT cache variables in the stack's env overlay changed",
+   "context": "n/a (startup)",
+   "path": "server startup, container start to the 'startup warmup complete' log line",
+   "hardware": "two GPUs (world_size=2 in the logs); GPU model and power limit not stated in this run's files"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/runs/0/label",
+    "what": "arm",
+    "value": "vLLM v0.9.2, JIT caches not persisted"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/runs/0/ready_s",
+    "what": "not persisted",
+    "value": 697
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/runs/1/label",
+    "what": "arm",
+    "value": "vLLM v0.9.2, JIT caches persisted (warm)"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/runs/1/ready_s",
+    "what": "persisted, warm",
+    "value": 382
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.txt",
+    "lines": [
+     1,
+     1
+    ],
+    "what": "receipt, not persisted",
+    "text": "run0-baseline-uncached: ready 697s after container start; weights 135.68s; TileLang compiles 49 (first 242.938602, last 465.05277); graph capture 153s"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.txt",
+    "lines": [
+     15,
+     15
+    ],
+    "what": "receipt, persisted, warm",
+    "text": "run2-warm: ready 382s after container start; weights 139.29s; TileLang compiles 0 (first None, last None); graph capture 43s"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/run0-baseline-uncached-docker.log",
+    "what": "server log, not persisted"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/run2-warm-docker.log",
+    "what": "server log, persisted, warm"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/measure.sh",
+    "what": "timing script"
+   }
+  ]
+ },
+ {
+  "id": "SU-populate",
+  "run": "2026-10-27-vllm-startup-cache",
+  "goal": "POPULATE",
+  "question": "How long does the first vLLM fork v0.9.2 start after persisting the JIT caches, which fills them, take to ready?",
+  "statement": "One start, descriptive: 714 s to ready, with 48 TileLang compiles and 151 s of CUDA graph capture.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "seconds from container start to ready; TileLang compile count; graph capture seconds",
+  "sign": "lower = faster start",
+  "unit": "container start",
+  "n": "1 start",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 (vLLM build v0.1.dev20051+g487ecf187 in the logs; image digest not stated)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7, drafter snapshot bf582e4e",
+   "items": "one container start per arm; only the four JIT cache variables in the stack's env overlay changed",
+   "context": "n/a (startup)",
+   "path": "server startup, container start to the 'startup warmup complete' log line",
+   "hardware": "two GPUs (world_size=2 in the logs); GPU model and power limit not stated in this run's files"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/first_start_after_change_s",
+    "what": "first start after the change",
+    "value": 714
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.txt",
+    "lines": [
+     2,
+     2
+    ],
+    "what": "receipt",
+    "text": "run1-populate: ready 714s after container start; weights 136.33s; TileLang compiles 48 (first 257.470354, last 482.989956); graph capture 151s"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/run1-populate-docker.log",
+    "what": "server log"
+   }
+  ]
+ },
+ {
+  "id": "SU-phases",
+  "run": "2026-10-27-vllm-startup-cache",
+  "goal": "PHASES",
+  "question": "Where does the vLLM fork v0.9.2's startup time go, phase by phase, with and without persisted JIT caches?",
+  "statement": "One start each, descriptive. Not persisted: process start and weight loading 242 s (weights 135.7 s), TileLang JIT 222 s (49 compiles), CUDA graph capture 153 s, warm-up 73 s; persisted and warm: 254 s (weights 139.3 s), 0 compiles, memory profiling 6 s, graph-capture phase 58 s, warm-up 64 s.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "seconds per startup phase, from log line timestamps",
+  "sign": "lower = faster",
+  "unit": "phase of one start",
+  "n": "2 starts",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 (vLLM build v0.1.dev20051+g487ecf187 in the logs; image digest not stated)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7, drafter snapshot bf582e4e",
+   "items": "one container start per arm; only the four JIT cache variables in the stack's env overlay changed",
+   "context": "n/a (startup)",
+   "path": "server startup, container start to the 'startup warmup complete' log line",
+   "hardware": "two GPUs (world_size=2 in the logs); GPU model and power limit not stated in this run's files"
+  },
+  "family": null,
+  "replication": "not attempted; RESULTS.md reads the remaining time as mostly weight loading, which is stated, not separately measured",
+  "evidence": [
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/runs/0/phases",
+    "what": "phases, not persisted",
+    "value": [
+     {
+      "name": "process start + weight loading",
+      "s": 242
+     },
+     {
+      "name": "TileLang JIT (49 compiles)",
+      "s": 222
+     },
+     {
+      "name": "CUDA graph capture",
+      "s": 153
+     },
+     {
+      "name": "warm-up",
+      "s": 73
+     },
+     {
+      "name": "other",
+      "s": 7
+     }
+    ]
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/runs/1/phases",
+    "what": "phases, persisted, warm",
+    "value": [
+     {
+      "name": "process start + weight loading",
+      "s": 254
+     },
+     {
+      "name": "memory profiling",
+      "s": 6
+     },
+     {
+      "name": "CUDA graph capture",
+      "s": 58
+     },
+     {
+      "name": "warm-up",
+      "s": 64
+     }
+    ]
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.txt",
+    "lines": [
+     1,
+     1
+    ],
+    "what": "weights and compiles, not persisted",
+    "text": "run0-baseline-uncached: ready 697s after container start; weights 135.68s; TileLang compiles 49 (first 242.938602, last 465.05277); graph capture 153s"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.txt",
+    "lines": [
+     15,
+     15
+    ],
+    "what": "weights and compiles, warm",
+    "text": "run2-warm: ready 382s after container start; weights 139.29s; TileLang compiles 0 (first None, last None); graph capture 43s"
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.md",
+    "lines": [
+     7,
+     13
+    ],
+    "what": "phase table",
+    "text": "| Phase | Not persisted | Persisted, warm |\n|---|---|---|\n| Process start + weight loading | 242 s (weights 135.7 s) | 254 s (weights 139.3 s) |\n| TileLang JIT | 222 s (49 compiles) | 0 compiles |\n| CUDA graph capture | 153 s | 43 s (58 s phase) |\n| Warm-up (4 passes) | ~73 s | ~64 s |\n| **Ready** | **697 s** | **382 s** (−45%) |"
+   }
+  ]
+ },
+ {
+  "id": "SU-cache-size",
+  "run": "2026-10-27-vllm-startup-cache",
+  "goal": "PHASES",
+  "question": "How large are the persisted JIT caches of the vLLM fork v0.9.2 after a warm start?",
+  "statement": "Persisted cache directories after the warm start (du): TileLang 11 MB, Triton 88 MB, TorchInductor 6.1 MB; the CUDA ComputeCache directory could not be read (permission denied).",
+  "class": "accounting",
+  "status": "exploratory",
+  "quantity": "du -sh of each cache directory",
+  "sign": "n/a",
+  "unit": "directory",
+  "n": "4 cache directories",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 (vLLM build v0.1.dev20051+g487ecf187 in the logs; image digest not stated)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7, drafter snapshot bf582e4e",
+   "items": "one container start per arm; only the four JIT cache variables in the stack's env overlay changed",
+   "context": "n/a (startup)",
+   "path": "server startup, container start to the 'startup warmup complete' log line",
+   "hardware": "two GPUs (world_size=2 in the logs); GPU model and power limit not stated in this run's files"
+  },
+  "family": null,
+  "replication": "same sizes after the populate start (RESULTS.txt lines 11-13)",
+  "evidence": [
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.txt",
+    "lines": [
+     16,
+     27
+    ],
+    "what": "environment and du after the warm start",
+    "text": "TRITON_CACHE_DIR=/root/.cache/triton\nCUDA_CACHE_PATH=/root/.cache/nv/ComputeCache\nTORCHINDUCTOR_CACHE_DIR=/root/.cache/torchinductor\nTILELANG_CACHE_DIR=/root/.cache/tilelang\n115M\t<cache>/vllm-v090/b12x\n12K\t<cache>/vllm-v090/flashinfer\ndu: cannot read directory '<cache>/vllm-v090/nv': Permission denied\n4.0K\t<cache>/vllm-v090/nv\n11M\t<cache>/vllm-v090/tilelang\n6.1M\t<cache>/vllm-v090/torchinductor\n88M\t<cache>/vllm-v090/triton\n1.4M\t<cache>/vllm-v090/vllm"
+   }
+  ]
+ },
+ {
+  "id": "SU-cuteafd",
+  "run": "2026-10-27-vllm-startup-cache",
+  "goal": "CUTEAFD",
+  "question": "For comparison, how long does CuteAFD v3.0.1 take to ready on this setup?",
+  "statement": "Stated without a receipt in this folder: CuteAFD v3.0.1 ready in 89 s from start (AOT kernels; experts loaded in 30.6 s), one start, checkpoint not stated.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "seconds from start to ready, as stated",
+  "sign": "lower = faster start",
+  "unit": "container start",
+  "n": "1 start",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (no log or receipt in this folder)",
+   "checkpoint": "not stated",
+   "items": "one start",
+   "context": "n/a (startup)",
+   "path": "server startup to ready (as stated)",
+   "hardware": "two GPUs (world_size=2 in the logs); GPU model and power limit not stated in this run's files"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/startup.json",
+    "pointer": "/runs/2",
+    "what": "CuteAFD row",
+    "value": {
+     "label": "CuteAFD v3.0.1",
+     "ready_s": 89,
+     "phases": [
+      {
+       "name": "start to ready (AOT kernels; experts loaded in 30.6 s)",
+       "s": 89
+      }
+     ]
+    }
+   },
+   {
+    "file": "results/2026-10-27-vllm-startup-cache/RESULTS.md",
+    "lines": [
+     16,
+     16
+    ],
+    "what": "RESULTS.md",
+    "text": "TorchInductor 6.1 MB, CUDA ComputeCache (root-owned, small). For comparison CuteAFD v3.0.1 is ready in 89 s."
+   }
+  ]
+ }
+]

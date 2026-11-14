@@ -18,6 +18,10 @@ Checks
      segments such as "humanevalplus/data/x" are not).
   7. Block Q tails: tools/kl_tails.py --check recomputes every results/<run>/q/tails/<panel>-tails.json whose
      per-position file is in the repository and requires byte-identical output.
+  8. The rebuilt site (next/): next/tools/build.py --check passes (run index covers every published file; every finding's
+     values re-read from its file; every number in findings, judgements and pages traces to data), next/docs and
+     next/README.md equal a fresh build, the README's run list states each run's kind, and next/docs passes check 2.
+     Recomputations carried from the earlier findings file (next/site/recompute.json) are rerun with check 6's code.
   6. Content scan of every file, docs/ included: local paths, machine and user names, private IP addresses, e-mail addresses
      other than the maintainer's public no-reply address, credentials, GPU identifiers, benchmark names that
      must not appear, names of the K4 protocol's unpublished arm (its project name, build tag, author and run
@@ -117,26 +121,26 @@ SITE_FORBIDDEN = [("script", re.compile(r"(?i)<script")), ("external stylesheet 
                   ("remote resource", re.compile(r"""(?i)\b(?:src|srcset)\s*=\s*["']?(?:https?:)?//|url\(\s*["']?(?:https?:)?//"""))]
 
 
-def check_site():
-    d = ROOT / "docs"
-    if not d.is_dir(): fails.append("docs/ missing"); return 0
+def check_site(d=ROOT / "docs"):
+    if not d.is_dir(): fails.append(f"{rel(d)}/ missing"); return 0
     pages = {p.name: p.read_text() for p in sorted(d.glob("*.html"))}
     if "index.html" not in pages: fails.append("docs/index.html missing")
     for name, html in pages.items():
         for what, rx in SITE_FORBIDDEN:
-            if rx.search(html): fails.append(f"docs/{name}: {what} not allowed on the static site")
+            if rx.search(html): fails.append(f"{rel(d)}/{name}: {what} not allowed on the static site")
         for href in re.findall(r'href="([^"]+)"', html):
             m = re.match(re.escape(REPO_URL) + r"/(blob|tree)/main/([^#?]+)", href)
             if m:                                                          # a link to a repository file or folder
                 t = ROOT / m.group(2)
                 if not (t.is_file() if m.group(1) == "blob" else t.is_dir()):
-                    fails.append(f"docs/{name}: link to a missing repository {'file' if m.group(1) == 'blob' else 'folder'} {m.group(2)}")
+                    fails.append(f"{rel(d)}/{name}: link to a missing repository {'file' if m.group(1) == 'blob' else 'folder'} {m.group(2)}")
                 continue
             if re.match(r"(?i)[a-z][a-z0-9+.-]*:", href): continue          # other absolute link
             page, _, frag = href.partition("#")
+            if page and not page.endswith(".html") and (d / page).is_file(): continue   # findings.json, runs.json, llms.txt
             target = pages.get(page or name)
-            if target is None: fails.append(f"docs/{name}: link to missing page {href}"); continue
-            if frag and f'id="{frag}"' not in target: fails.append(f"docs/{name}: link to missing anchor {href}")
+            if target is None: fails.append(f"{rel(d)}/{name}: link to missing page {href}"); continue
+            if frag and f'id="{frag}"' not in target: fails.append(f"{rel(d)}/{name}: link to missing anchor {href}")
     return len(pages)
 
 
@@ -180,6 +184,11 @@ def check_findings():
     fp = ROOT / "docs" / "findings.json"
     if not fp.exists(): fails.append("docs/findings.json missing"); return 0
     doc = json.loads(fp.read_text()); cache = {}
+    if "syntheses" in doc: doc = {"findings": []}      # the rebuilt site's file: checked by next/tools/build.py (check_next)
+    for lp in (ROOT / "next" / "site" / "recompute.json", ROOT / "site" / "recompute.json"):
+        if lp.exists():                                 # recomputations carried from the earlier findings file
+            doc["findings"] += [dict(e, _legacy=True) for e in json.loads(lp.read_text())["checks"]
+                                if e["id"] not in {f["id"] for f in doc["findings"]}]
     def at(file, pointer):
         if file not in cache: cache[file] = json.loads((ROOT / file).read_text())
         v = cache[file]
@@ -200,7 +209,7 @@ def check_findings():
         return by
     for f in doc["findings"]:
         fid = f["id"]
-        for e in f.get("evidence", []):
+        for e in ([] if f.get("_legacy") else f.get("evidence", [])):
             if not (ROOT / e["file"]).is_file(): fails.append(f"findings {fid}: file missing {e['file']}"); continue
             if "pointer" in e:
                 try: v = at(e["file"], e["pointer"])
@@ -208,9 +217,10 @@ def check_findings():
                 if v != e["value"]: fails.append(f"findings {fid}: {e['file']}#{e['pointer']} is {v!r}, findings.json says {e['value']!r}")
         for d in f.get("data", []):
             if not (ROOT / d).is_file(): fails.append(f"findings {fid}: data file missing {d}")
-        page, _, frag = f["page"].rpartition("/")[2].partition("#")
-        html = (ROOT / "docs" / page).read_text() if (ROOT / "docs" / page).exists() else None
-        if html is None or (frag and f'id="{frag}"' not in html): fails.append(f"findings {fid}: page anchor missing {f['page']}")
+        if not f.get("_legacy"):
+            page, _, frag = f["page"].rpartition("/")[2].partition("#")
+            html = (ROOT / "docs" / page).read_text() if (ROOT / "docs" / page).exists() else None
+            if html is None or (frag and f'id="{frag}"' not in html): fails.append(f"findings {fid}: page anchor missing {f['page']}")
         rc = f.get("recompute")
         if not rc: continue
         if rc["kind"] == "seed_paired_ratio":
@@ -299,6 +309,38 @@ def check_findings():
     return len(doc["findings"])
 
 
+def check_next(kinds):
+    """The rebuilt site's sources (next/ before cutover): run index, findings, judgements and pages pass build.py --check,
+    and next/docs and next/README.md are exactly what a fresh build produces."""
+    import filecmp, shutil, tempfile
+    base = ROOT / "next" if (ROOT / "next" / "tools" / "build.py").exists() else None
+    if base is None: return 0
+    tool = base / "tools" / "build.py"
+    r = subprocess.run([sys.executable, "-B", str(tool), "--check"], capture_output=True, text=True, cwd=ROOT)
+    if r.returncode: fails.append("next/tools/build.py --check: " + " | ".join((r.stdout + r.stderr).strip().splitlines()[-12:]))
+    tmp = Path(tempfile.mkdtemp(prefix="cuteafd-eval-build-"))
+    try:
+        out = tmp / "docs"
+        r = subprocess.run([sys.executable, "-B", str(tool), "--out", str(out)], capture_output=True, text=True, cwd=ROOT)
+        if r.returncode: fails.append("next/tools/build.py: " + " | ".join((r.stdout + r.stderr).strip().splitlines()[-6:])); return 0
+        built = {p.relative_to(out).as_posix() for p in out.rglob("*") if p.is_file()}
+        have = {p.relative_to(base / "docs").as_posix() for p in (base / "docs").rglob("*") if p.is_file()}
+        for x in sorted(built ^ have): fails.append(f"next/docs: {x} {'missing' if x in built else 'not produced by the build'}")
+        for x in sorted(built & have):
+            if not filecmp.cmp(out / x, base / "docs" / x, shallow=False): fails.append(f"next/docs/{x}: differs from a fresh build (rebuild)")
+        if not filecmp.cmp(tmp / "README.md", base / "README.md", shallow=False): fails.append("next/README.md: differs from a fresh build (rebuild)")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    t = (base / "README.md").read_text()
+    a, b = t.find("<!-- results:start -->"), t.find("<!-- results:end -->")
+    if a < 0 or b < a: fails.append("next/README.md: results markers missing")
+    for row in t[a:b].splitlines():
+        m = re.match(r"\| \[[^\]]+\]\((?:\.\./)?results/([^)]+)\) \| (\w+) \|", row)
+        if m and kinds.get(m.group(1)) != m.group(2):
+            fails.append(f"next/README.md: {m.group(1)} shown as {m.group(2)}, RUN.json says {kinds.get(m.group(1))}")
+    return check_site(base / "docs")
+
+
 def check_readme_links(kinds):
     t = (ROOT / "README.md").read_text()
     a, b = t.find("<!-- results:start -->"), t.find("<!-- results:end -->")
@@ -340,10 +382,10 @@ def main(argv):
         if mp.exists(): n += check_manifest(mp)
         else: fails.append(f"{rel(mp)} missing")
     pages = check_site(); check_hashes()
-    kinds = check_runs(); check_readme_links(kinds); check_tails(); nf = check_findings()
+    kinds = check_runs(); check_readme_links(kinds); check_tails(); nf = check_findings(); npages = check_next(kinds)
     files = len(files_under(ROOT)); hits = scan()
     if not quiet:
-        print(f"self-test: {len(SELF_TEST)} cases; site pages: {pages}; manifests: {1 + len(list((ROOT / 'results').glob('*/MANIFEST.json')))} ({n} entries); files scanned: {files}; "
+        print(f"self-test: {len(SELF_TEST)} cases; site pages: {pages} (rebuilt site: {npages}); manifests: {1 + len(list((ROOT / 'results').glob('*/MANIFEST.json')))} ({n} entries); files scanned: {files}; "
               f"findings checked: {nf}; runs: {', '.join(f'{k} ({v})' for k, v in kinds.items())}; content hits: {hits}")
     for f in fails: print("FAIL", f)
     print("OK" if not fails else f"{len(fails)} failure(s)")

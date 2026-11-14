@@ -1,0 +1,622 @@
+{
+ "id": "2026-10-30-cuteafd-v4",
+ "date": "2026-10-30",
+ "title": "CuteAFD v4.0.0 against tpurtell's vLLM fork v0.9.2 on K3.25 and K4, and K4-Core-K6 on CuteAFD v4.0.0",
+ "kind": "measurement",
+ "question": "Does CuteAFD v4.0.0 change precision, speed, memory and long-output behaviour against v3.0.1 and against tpurtell's vLLM fork v0.9.2 on K3.25 and K4, and how far is each checkpoint, including K4-Core-K6, from BF16?",
+ "engines": [
+  "tpurtell vLLM fork (glm-5.3-flash-ext3-2x-rtx) v0.9.2, image index sha256:ea0430aa",
+  "tpurtell CuteAFD v4.0.0, coordinator index sha256:e257bc61",
+  "tpurtell CuteAFD v3.0.1 (same-day contrast; digest not stated in this run)"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM fork; revision not stated in this run)",
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25 Core-FP8 build (CuteAFD; revision not stated in this run)",
+  "brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (K4)",
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 (CuteAFD only; revision not stated in this run)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local, no DGX Spark expert nodes",
+ "protocol": {
+  "file": null,
+  "frozen": "2026-10-30T08:50:28",
+  "amendments": [
+   "A1: K4-Core-K6 Block L, declared before it ran",
+   "A2: full-vocabulary P-A and a Block L repeat (r2), declared before they ran"
+  ]
+ },
+ "goals": [
+  {
+   "id": "V4V3-PREC",
+   "question": "Does CuteAFD v4.0.0 give the same precision rows as CuteAFD v3.0.1 on the same checkpoints?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); RUN.json arms.C3 ('same-day contrast'); SUMMARY.json /v4_vs_v3",
+   "design": {
+    "instrument": "P-A full-vocabulary rows (fp64, all 154,880 ids) and P-B top-20 rows, v4.0.0 against v3.0.1, paired by position",
+    "arms": [
+     "CuteAFD v4.0.0",
+     "CuteAFD v3.0.1 (the published K3.25 P-A pair file takes its v3.0.1 rows from the K3.25 run's capture C1)"
+    ],
+    "items": "panel P-A: brandonmusic's 25 sealed windows × 2,048 tokens (51,175 positions) with full-vocabulary BF16 teacher logits; drawn from K4's producer's corpus, document-disjoint from the calibration windows published for K4; panel P-B: tpurtell's cuteafd-fidelity set, generated positions",
+    "unit": "window (P-A bootstrap cluster)",
+    "n": "25 P-A windows per checkpoint (K3.25, K4); P-B generated positions",
+    "repeats": "one capture per arm (CuteAFD is bit-deterministic run to run)",
+    "interval": "20,000-replicate window bootstrap (P-A pair file)"
+   },
+   "files": [
+    "q/fullvocab/pa-pair-C1v3-vs-C325.json"
+   ],
+   "result_docs": [
+    "SUMMARY.json",
+    "q/fullvocab/pa-pair-C1v3-vs-C325.json"
+   ],
+   "status": "done",
+   "status_note": "The K3.25 full-vocabulary P-A pair takes its v3.0.1 rows from the 2026-10-26 run's capture (C1), not from a same-day v3.0.1 run; the same-day v3.0.1 arm (C3, 2026-10-30) supplies the top-20 P-A and P-B comparisons on both checkpoints, which are stated in SUMMARY.json only.",
+   "headline": "CuteAFD v4.0.0 − v3.0.1: panel P-A bit-identical on K3.25 and K4 (KL, NLL and top-1 differences 0.0, interval [0.0, 0.0] on K3.25); panel P-B within ±0.00005, not detected.",
+   "findings": [
+    "V4-v3-identity",
+    "V4-v3-pb"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "V4V3-TEXT",
+   "question": "Do CuteAFD v4.0.0 and v3.0.1 produce the same long-output reply text for the same requests?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /v4_vs_v3/text",
+   "design": {
+    "instrument": "byte comparison of Block L reply text, same requests and seeds",
+    "arms": [
+     "CuteAFD v4.0.0",
+     "CuteAFD v3.0.1"
+    ],
+    "items": "Block L replies on K4 (code, prose, reasoning, JSON prompts)",
+    "unit": "reply",
+    "n": "100 replies (75 code/prose/reasoning, 25 JSON)",
+    "repeats": "one reply per request and engine",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Code, prose and reasoning replies identical between v4.0.0 and v3.0.1 (75/75); JSON replies differ (25/25).",
+   "findings": [
+    "V4-v3-text"
+   ],
+   "replication": "not attempted",
+   "status_note": "The v3.0.1 replies are the 2026-10-27 K4 run's receipts (same driver, prompts, seeds and salt); this run ran Block L on CuteAFD v4.0.0 only."
+  },
+  {
+   "id": "V4V3-CAUSE",
+   "question": "Why do the JSON replies differ between v4.0.0 and v3.0.1?",
+   "added": "post hoc",
+   "added_source": "SUMMARY.json /v4_vs_v3/text (cause stated after the JSON replies were seen to differ); docs/v4.html 'Why the JSON replies differ'",
+   "design": {
+    "instrument": "rerun of CuteAFD v3.0.1 with one prefill lane, compared bit for bit with v4.0.0",
+    "arms": [
+     "CuteAFD v3.0.1, one prefill lane",
+     "CuteAFD v4.0.0"
+    ],
+    "items": "the JSON replies that differed",
+    "unit": "reply",
+    "n": "not stated in the run's files",
+    "repeats": "not stated",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "status_note": "No receipt for the one-lane rerun is published in this folder. The run's notes put the check on the fidelity set's 64 windows (13 of which differ between v3.0.1's two-lane prefill and v4.0.0), not on the JSON replies named in the design.",
+   "headline": "Post hoc: the run reads the JSON difference as prefill split geometry and states it confirmed: CuteAFD v3.0.1 run with one prefill lane matches v4.0.0 bit for bit.",
+   "findings": [
+    "V4-v3-cause"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "Q-TOP20",
+   "question": "On K3.25 and K4, how far is CuteAFD v4.0.0 from BF16 against tpurtell's vLLM fork v0.9.2 on the top-20 measures (P-A KL20, P-B KL_pb20)?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /precision_top20/source ('RESULTS.md Stage 2', not published)",
+   "design": {
+    "instrument": "top-20 KL against the BF16 reference: P-A KL20 (teacher), P-B KL_pb20 (generated positions); CuteAFD − vLLM fork, same rows",
+    "arms": [
+     "vLLM fork v0.9.2 (receipts from other days on the same panels, rows asserted identical)",
+     "CuteAFD v4.0.0"
+    ],
+    "items": "panel P-A: brandonmusic's 25 sealed windows × 2,048 tokens (51,175 positions) with full-vocabulary BF16 teacher logits; drawn from K4's producer's corpus, document-disjoint from the calibration windows published for K4; panel P-B: tpurtell's cuteafd-fidelity set, generated positions",
+    "unit": "window",
+    "n": "P-A 25 windows; P-B generated positions in 53 windows",
+    "repeats": "one capture per arm",
+    "interval": "window bootstrap 95% (as in the K3.25 and K4 runs)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "CuteAFD v4.0.0 − vLLM fork v0.9.2, top-20: K3.25 P-A KL20 +0.0015 [+0.0006, +0.0025], P-B generated KL_pb20 +0.0036 [+0.0020, +0.0051]; K4 P-A +0.0027 [+0.0012, +0.0047], P-B +0.0045 [+0.0024, +0.0068]. Top-20 values are not comparable in level with full-vocabulary KL or across panels.",
+   "findings": [
+    "V4-top20-engine-k325-pa",
+    "V4-top20-engine-k325-pb",
+    "V4-top20-engine-k4-pa",
+    "V4-top20-engine-k4-pb"
+   ],
+   "replication": "not attempted",
+   "status_note": "The vLLM rows for these top-20 contrasts are two launches captured in this run on 2026-10-30, before and after the CuteAFD capture, not receipts from other days as the design's arm text says. SUMMARY.json gives the first launch's level and the difference against the mean of the two launches."
+  },
+  {
+   "id": "A2-FV-ENG",
+   "question": "On full-vocabulary P-A, how far is CuteAFD v4.0.0 from BF16 against the vLLM fork v0.9.2, per checkpoint?",
+   "added": "amendment",
+   "added_source": "RUN.json protocol (amendment A2: full-vocabulary P-A, declared before it ran); SUMMARY.json /precision_fullvocab_pa",
+   "design": {
+    "instrument": "full-vocabulary KL(teacher ‖ engine), top-1 agreement and NLL, fp64, all 154,880 ids; CuteAFD − vLLM fork, paired by position",
+    "arms": [
+     "vLLM fork v0.9.2 (K3.25: K3.25 run capture; K4: capture from 2026-10-30-k4k6-card)",
+     "CuteAFD v4.0.0"
+    ],
+    "items": "panel P-A: brandonmusic's 25 sealed windows × 2,048 tokens (51,175 positions) with full-vocabulary BF16 teacher logits; drawn from K4's producer's corpus, document-disjoint from the calibration windows published for K4",
+    "unit": "window",
+    "n": "25 windows (51,175 positions) per checkpoint",
+    "repeats": "one capture per arm",
+    "interval": "20,000-replicate window bootstrap, seed 20260929"
+   },
+   "files": [
+    "q/fullvocab/pa-pair-V1-vs-C325.json",
+    "q/fullvocab/pa-pair-V4card-vs-C4.json"
+   ],
+   "result_docs": [
+    "SUMMARY.json",
+    "q/fullvocab/pa-pair-V1-vs-C325.json",
+    "q/fullvocab/pa-pair-V4card-vs-C4.json"
+   ],
+   "status": "done",
+   "headline": "CuteAFD v4.0.0 − vLLM fork v0.9.2, P-A full vocabulary: KL on K3.25 +0.0017 [+0.0006, +0.0028], on K4 +0.0035 [+0.0016, +0.0059]; top-1 agreement K3.25 −0.35 pts [−0.54, −0.16], K4 −0.55 pts [−0.72, −0.37]; NLL on K3.25 −0.0001, not detected (interval [−0.0038, +0.0040]), on K4 +0.0026 [+0.0005, +0.0048].",
+   "findings": [
+    "V4-fv-engine-k325",
+    "V4-fv-engine-k325-top1",
+    "V4-fv-engine-k325-nll",
+    "V4-fv-engine-k4",
+    "V4-fv-engine-k4-top1",
+    "V4-fv-engine-k4-nll"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "CK-TOP20",
+   "question": "Which checkpoint sits closer to BF16 on the top-20 measures: K4 against K3.25 on both engines, and K4-Core-K6 against K4 on CuteAFD v4.0.0?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /precision_top20 (k4_over_k325, k6_minus_k4)",
+   "design": {
+    "instrument": "top-20 KL (P-A KL20, P-B KL_pb20); K4 as a share of K3.25 per engine; K4-Core-K6 − K4 on CuteAFD",
+    "arms": [
+     "K3.25",
+     "K4",
+     "K4-Core-K6 (CuteAFD only; the vLLM fork v0.9.2 does not load it)"
+    ],
+    "items": "panel P-A: brandonmusic's 25 sealed windows × 2,048 tokens (51,175 positions) with full-vocabulary BF16 teacher logits; drawn from K4's producer's corpus, document-disjoint from the calibration windows published for K4; panel P-B: tpurtell's cuteafd-fidelity set, generated positions",
+    "unit": "window",
+    "n": "P-A 25 windows; P-B generated positions",
+    "repeats": "one capture per arm",
+    "interval": "window bootstrap 95% for K4-Core-K6 − K4; none for the K4/K3.25 ratios"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "K4 top-20 KL as a share of K3.25's: P-A 0.53 (vLLM fork) and 0.58 (CuteAFD), P-B 0.69 and 0.75 (no interval). K4-Core-K6 − K4 on CuteAFD v4.0.0: P-A KL20 +0.0013, not detected (interval [−0.0022, +0.0042]); P-B KL_pb20 −0.0049 [−0.0076, −0.0026]. P-A is drawn from K4's producer's corpus and can favour K4; the two panels do not agree on a direction between K4 and K4-Core-K6.",
+   "findings": [
+    "V4-top20-ratio",
+    "V4-top20-k6-vs-k4-pa",
+    "V4-top20-k6-vs-k4-pb"
+   ],
+   "replication": "not attempted",
+   "status_note": "The fidelity-set vLLM ratio (0.69) does not follow from this run's own same-day vLLM levels (0.0315 / 0.0444); its inputs are not published in this folder."
+  },
+  {
+   "id": "A2-FV-CK",
+   "question": "On full-vocabulary P-A with CuteAFD v4.0.0, how do K4 − K3.25 and K4-Core-K6 − K4 differ in distance from BF16?",
+   "added": "amendment",
+   "added_source": "RUN.json protocol (amendment A2); SUMMARY.json /precision_fullvocab_pa/checkpoints_cuteafd",
+   "design": {
+    "instrument": "full-vocabulary KL, top-1 agreement and NLL against the BF16 teacher, paired by position",
+    "arms": [
+     "K3.25 Core-FP8",
+     "K4",
+     "K4-Core-K6",
+     "all on CuteAFD v4.0.0"
+    ],
+    "items": "panel P-A: brandonmusic's 25 sealed windows × 2,048 tokens (51,175 positions) with full-vocabulary BF16 teacher logits; drawn from K4's producer's corpus, document-disjoint from the calibration windows published for K4",
+    "unit": "window",
+    "n": "25 windows (51,175 positions)",
+    "repeats": "one capture per checkpoint",
+    "interval": "20,000-replicate window bootstrap, seed 20260929"
+   },
+   "files": [
+    "q/fullvocab/pa-pair-C325-vs-C4.json",
+    "q/fullvocab/pa-pair-C4-vs-K6.json"
+   ],
+   "result_docs": [
+    "SUMMARY.json",
+    "q/fullvocab/pa-pair-C325-vs-C4.json",
+    "q/fullvocab/pa-pair-C4-vs-K6.json"
+   ],
+   "status": "done",
+   "headline": "On CuteAFD v4.0.0, P-A full vocabulary: K4 − K3.25 KL −0.0195 [−0.0257, −0.0135], top-1 +1.57 pts [+1.07, +2.10], NLL −0.0077 [−0.0166, −0.0011]. K4-Core-K6 − K4: KL +0.0016, not detected (interval [−0.0031, +0.0057]); top-1 −0.06 pts, not detected (interval [−0.46, +0.37]); NLL +0.0029, not detected (interval [−0.0017, +0.0073]). P-A can favour K4 (same corpus as its published calibration windows).",
+   "findings": [
+    "V4-fv-k4-vs-k325",
+    "V4-fv-k4-vs-k325-top1",
+    "V4-fv-k4-vs-k325-nll",
+    "V4-fv-k6-vs-k4",
+    "V4-fv-k6-vs-k4-top1",
+    "V4-fv-k6-vs-k4-nll"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "K6-DOMAIN",
+   "question": "Within P-A's four domains, is K4-Core-K6 or K4 closer to BF16 on CuteAFD v4.0.0?",
+   "added": "exploratory",
+   "added_source": "SUMMARY.json /k6_minus_k4_by_domain_pa (source q/fullvocab/detail/FULLVOCAB-DETAIL.json, not published)",
+   "design": {
+    "instrument": "full-vocabulary KL, K4-Core-K6 − K4, per domain",
+    "arms": [
+     "K4",
+     "K4-Core-K6",
+     "on CuteAFD v4.0.0"
+    ],
+    "items": "P-A windows split by domain (general, legal, code/agentic, reasoning-termination)",
+    "unit": "window",
+    "n": "6-7 windows per domain",
+    "repeats": "one capture per checkpoint",
+    "interval": "window bootstrap within the domain (interval bounds not published in this folder)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "status_note": "Interval bounds and the detail file are not published in this run folder; SUMMARY.json gives the difference and a resolved flag only. When this split was chosen is not recorded in the run's files.",
+   "headline": "K4-Core-K6 − K4 full-vocabulary KL per P-A domain, CuteAFD v4.0.0: legal +0.0097 (resolved), reasoning-termination +0.0062 (resolved), general −0.0081 (not detected), code +0.0004 (not detected); 6-7 windows per domain.",
+   "findings": [
+    "V4-k6-vs-k4-domain"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "CONF",
+   "question": "Per 1,000 positions, how often does each checkpoint's top token differ from BF16's, how often where BF16 was at least 90% sure (confident misses), and how often is KL above 1 nat?",
+   "added": "exploratory",
+   "added_source": "SUMMARY.json /per_1000",
+   "design": {
+    "instrument": "counts per 1,000 positions: top token differs; differs where BF16 ≥90% sure (57% of P-A positions) or under 50% sure; KL above 1 nat (P-A full vocabulary, P-B top-20)",
+    "arms": [
+     "K3.25, K4 on CuteAFD v4.0.0 and the vLLM fork v0.9.2",
+     "K4-Core-K6 on CuteAFD v4.0.0"
+    ],
+    "items": "panel P-A: brandonmusic's 25 sealed windows × 2,048 tokens (51,175 positions) with full-vocabulary BF16 teacher logits; drawn from K4's producer's corpus, document-disjoint from the calibration windows published for K4; panel P-B: tpurtell's cuteafd-fidelity set, generated positions",
+    "unit": "position",
+    "n": "P-A 51,175 positions; P-B generated positions",
+    "repeats": "one capture per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "status_note": "When this count was chosen is not recorded in the run's files.",
+   "headline": "Descriptive, P-A full vocabulary, per 1,000 positions (CuteAFD v4.0.0 / vLLM fork): top token differs K3.25 68.5 / 65.0, K4 52.7 / 47.2, K4-Core-K6 53.3; where BF16 was ≥90% sure 0.61 / 0.59, 0.10 / 0.06, 0.18; KL above 1 nat 5.0 / 4.6, 2.1 / 1.7, 2.5. The two engines differ from each other in 40.1 (K3.25) and 43.3 (K4) top tokens per 1,000. P-B generated, top-20: differs 66.8 / 61.9, 54.6 / 51.8, 50.1.",
+   "findings": [
+    "V4-per1000-top-token",
+    "V4-per1000-confident",
+    "V4-per1000-pb"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "CALIB",
+   "question": "What text was each checkpoint calibrated on, by content share?",
+   "added": "source reading",
+   "added_source": "SUMMARY.json /calibration_mix",
+   "design": {
+    "instrument": "reading of tpurtell's agentic-quant-panel-v1 statistics.json and the windows file of brandonmusic's GLM-5.3-Flash-ShapleyMCG-K4-Evidence",
+    "arms": [
+     "K3.25 and K4-Core-K6 (agentic-quant-panel-v1)",
+     "K4 (evidence-set windows)"
+    ],
+    "items": "tpurtell: 1,426 prompts, 1.08M tokens (share of tokens); brandonmusic: 640 non-final windows (share of windows)",
+    "unit": "content domain",
+    "n": "6 domains",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Shares, tpurtell / brandonmusic: code 33.3% / 31.4%, general 24.0% / 31.7%, legal 0 / 27.0%, math 20.4% / 0, reasoning topics 12.1% / 9.8%, function calling 10.2% / 0. K4's model card does not describe calibration; the run reads the evidence-set windows as K4's calibration windows.",
+   "findings": [
+    "V4-calibration-mix"
+   ]
+  },
+  {
+   "id": "T-K325",
+   "question": "On K3.25, how fast is CuteAFD v4.0.0 against the vLLM fork v0.9.2 over the Block T grid?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /speed/source ('RESULTS.md Stage 3')",
+   "design": {
+    "instrument": "Block T: per cell median decode, clean decode, aggregate and median time to first token; CuteAFD / vLLM ratio with the range over 3 replicates; noise band max(8%, largest drift-repeat change)",
+    "arms": [
+     "vLLM fork v0.9.2",
+     "CuteAFD v4.0.0"
+    ],
+    "items": "the Block T prompt set, 22 cells (input length × content × concurrency)",
+    "unit": "cell",
+    "n": "22 cells",
+    "repeats": "3 replicates per cell; drift repeats",
+    "interval": "none (band rule: level inside the band)"
+   },
+   "files": [
+    "t/k325/T-COMPARE.json"
+   ],
+   "result_docs": [
+    "SUMMARY.json",
+    "t/k325/T-COMPARE.json"
+   ],
+   "status": "done",
+   "status_note": "The band applied to every K3.25 ratio was 0.0885 (the vLLM fork's largest drift-repeat change; CuteAFD's own band 0.08), as recorded in t/k325/T-COMPARE.json; SUMMARY.json and the v4 page state it as ±8%.",
+   "headline": "K3.25, CuteAFD v4.0.0 / vLLM fork v0.9.2: aggregate faster in 19 of 22 cells, level in 3, slower in 0; clean decode 15 faster, 7 level, 0 slower; one-stream decode 1.06-1.46x; aggregate at 32K-128K input 1.40-1.63x; first token at 128K 19.8 s against 34.9 s.",
+   "findings": [
+    "V4-speed-k325-cells",
+    "V4-speed-k325-ratios"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "T-K4",
+   "question": "On K4, how fast is CuteAFD v4.0.0 against the vLLM fork v0.9.2 over the Block T grid?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /speed/source",
+   "design": {
+    "instrument": "as T-K325",
+    "arms": [
+     "vLLM fork v0.9.2",
+     "CuteAFD v4.0.0"
+    ],
+    "items": "the Block T prompt set, 22 cells",
+    "unit": "cell",
+    "n": "22 cells",
+    "repeats": "3 replicates per cell; drift repeats",
+    "interval": "none (band rule: ±8%)"
+   },
+   "files": [
+    "t/k4/T-COMPARE.json"
+   ],
+   "result_docs": [
+    "SUMMARY.json",
+    "t/k4/T-COMPARE.json"
+   ],
+   "status": "done",
+   "headline": "K4, CuteAFD v4.0.0 / vLLM fork v0.9.2: aggregate faster in 22 of 22 cells; clean decode 19 faster, 3 level, 0 slower; one-stream decode 1.07-1.42x; aggregate at 32K-128K input 1.38-1.66x; first token at 128K 20.0 s against 36.3 s.",
+   "findings": [
+    "V4-speed-k4-cells",
+    "V4-speed-k4-ratios"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "T-K6",
+   "question": "How fast is K4-Core-K6 on CuteAFD v4.0.0, against the vLLM fork on K4 and against K4 on CuteAFD?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); t/k4/T-COMPARE.json rule (arm K); SUMMARY.json /speed",
+   "design": {
+    "instrument": "as T-K325; arm K = K4-Core-K6 on CuteAFD v4.0.0, ratios against the vLLM fork's K4 cells",
+    "arms": [
+     "vLLM fork v0.9.2 on K4",
+     "CuteAFD v4.0.0 on K4",
+     "CuteAFD v4.0.0 on K4-Core-K6"
+    ],
+    "items": "the Block T prompt set, 22 cells",
+    "unit": "cell",
+    "n": "22 cells",
+    "repeats": "3 replicates per cell; drift repeats",
+    "interval": "none (band rule: ±8%)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json",
+    "t/k4/T-COMPARE.json"
+   ],
+   "status": "done",
+   "headline": "K4-Core-K6 on CuteAFD v4.0.0 / vLLM fork on K4: aggregate faster in 20 of 22 cells, level in 2; clean decode 16 faster, 6 level; one-stream decode 0.99-1.36x; aggregate at 32K-128K 1.21-1.41x; first token at 128K 24.5 s against 36.3 s. Against K4 on CuteAFD v4.0.0 the run reports K4-Core-K6 5-15% slower.",
+   "findings": [
+    "V4-speed-k6-cells",
+    "V4-speed-k6-ratios",
+    "V4-speed-k6-vs-k4"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "POOL",
+   "question": "How many KV tokens does each engine hold per checkpoint on the serving launches?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /kv_pool/source ('RESULTS.md Stage 1')",
+   "design": {
+    "instrument": "KV pool reported at startup on the serving launch",
+    "arms": [
+     "vLLM fork v0.9.2",
+     "CuteAFD v4.0.0",
+     "CuteAFD v3.0.1 (K4, for contrast)"
+    ],
+    "items": "K3.25, K4, K4-Core-K6",
+    "unit": "launch",
+    "n": "one serving launch per engine and checkpoint",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "KV pool, vLLM fork v0.9.2 / CuteAFD v4.0.0: K3.25 4,762,898 / 5,799,424 tokens (1.22x); K4 1,377,179 / 1,931,264 (1.40x); K4-Core-K6 on CuteAFD 2,240,512. K4 on CuteAFD v3.0.1 held 447,488 tokens.",
+   "findings": [
+    "V4-kv-pool",
+    "V4-kv-pool-v3"
+   ],
+   "replication": "not attempted",
+   "status_note": "The v3.0.1 K4 pool (447,488 tokens) is the 2026-10-27 K4 run's launch, not a same-day launch."
+  },
+  {
+   "id": "START",
+   "question": "How long does each engine take to start, cold and warm, per checkpoint?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /startup_s",
+   "design": {
+    "instrument": "start to ready, seconds",
+    "arms": [
+     "vLLM fork v0.9.2",
+     "CuteAFD v4.0.0"
+    ],
+    "items": "K3.25, K4",
+    "unit": "launch",
+    "n": "one cold and one warm start per engine and checkpoint",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Descriptive, one cold and one warm start: K3.25 vLLM fork 348 / 349 s, CuteAFD v4.0.0 91 / 86 s; K4 vLLM fork 292 / 313 s, CuteAFD v4.0.0 86 / 81 s.",
+   "findings": [
+    "V4-startup"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "L-R1",
+   "question": "On K4, how do CuteAFD v4.0.0's long outputs (finish within cap, content checks, reply and thinking length, loops) compare with the vLLM fork's?",
+   "added": "protocol",
+   "added_source": "RUN.json protocol (frozen 2026-10-30T08:50:28 before the first comparison request); SUMMARY.json /block_l/source ('RESULTS.md Stage 4')",
+   "design": {
+    "instrument": "Block L: caps 8K, 32K, 130K; finished on its own, code tests, JSON validity, reply and thinking length, loops (U5 rule)",
+    "arms": [
+     "vLLM fork v0.9.2 (the 2026-10-27 run, same requests)",
+     "CuteAFD v4.0.0 r1"
+    ],
+    "items": "the Block L prompt set: 8 code, 8 JSON, 8 prose, 8 reasoning replies per cap",
+    "unit": "reply",
+    "n": "32 replies per cap per arm",
+    "repeats": "one run each; engines do not share a sampler, so columns are not paired",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Descriptive, K4, vLLM fork (2026-10-27) / CuteAFD v4.0.0 r1: finished within 8K 8 / 8, within 32K 12 / 17, within 130K 29 / 31 of 32; code all tests pass at 130K 8 / 8 of 8; median code reply at 130K 51,343 / 39,377 tokens (thinking 47.5K / 34.8K); JSON valid at 130K 5 / 5 of 8; replies that looped 0 / 0.",
+   "findings": [
+    "V4-blockL-k4-finish",
+    "V4-blockL-k4-tasks"
+   ],
+   "status_note": "Repeated with new seeds in A2-L-R2."
+  },
+  {
+   "id": "A1-K6-L",
+   "question": "How does K4-Core-K6 on CuteAFD v4.0.0 behave under Block L?",
+   "added": "amendment",
+   "added_source": "RUN.json protocol (amendment A1: K4-Core-K6 Block L, declared before it ran)",
+   "design": {
+    "instrument": "as L-R1",
+    "arms": [
+     "K4-Core-K6 on CuteAFD v4.0.0 r1"
+    ],
+    "items": "the Block L prompt set, 32 replies per cap",
+    "unit": "reply",
+    "n": "32 replies per cap",
+    "repeats": "one run",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Descriptive, K4-Core-K6 on CuteAFD v4.0.0 r1: finished within 8K 8, within 32K 11, within 130K 31 of 32; code all tests pass at 130K 7 of 8; median code reply at 130K 46,417 tokens (thinking 42.4K); JSON valid at 130K 7 of 8; 0 looped.",
+   "findings": [
+    "V4-blockL-k6-r1"
+   ],
+   "status_note": "Repeated with new seeds in A2-L-R2."
+  },
+  {
+   "id": "A2-L-R2",
+   "question": "With new seeds, do K4 and K4-Core-K6 on CuteAFD v4.0.0 repeat their Block L pattern?",
+   "added": "amendment",
+   "added_source": "RUN.json protocol (amendment A2: Block L repeat); SUMMARY.json /block_l/source ('A2 r2')",
+   "design": {
+    "instrument": "as L-R1, repeat with new seeds",
+    "arms": [
+     "K4 on CuteAFD v4.0.0 r2",
+     "K4-Core-K6 on CuteAFD v4.0.0 r2"
+    ],
+    "items": "the Block L prompt set, 32 replies per cap",
+    "unit": "reply",
+    "n": "32 replies per cap per arm",
+    "repeats": "one repeat (r2), new seeds",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Descriptive, r2 (r1 in brackets), CuteAFD v4.0.0: K4 finished within 32K 18 (17), within 130K 31 (31); code pass at 130K 8 (8); median code reply 35,407 (39,377) tokens; JSON valid 5 (5). K4-Core-K6 finished within 32K 13 (11), within 130K 30 (31); code pass 8 (7); median code reply 41,913 (46,417); JSON valid 6 (7). 0 looped in either.",
+   "findings": [
+    "V4-blockL-r2-k4",
+    "V4-blockL-r2-k6"
+   ]
+  },
+  {
+   "id": "V41-SRC",
+   "question": "Does CuteAFD v4.1.0, released after this run, change the GLM-5.3-Flash compute path on this GPU-only two-RTX setup?",
+   "added": "source reading",
+   "added_source": "README.md:4-5",
+   "design": {
+    "instrument": "source reading of the v4.1.0 changes",
+    "arms": [
+     "CuteAFD v4.1.0 (not run)"
+    ],
+    "items": "the release's changes",
+    "unit": "code change",
+    "n": "not stated",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md"
+   ],
+   "status": "done",
+   "headline": "Read in source, not run: no change to this setup's GLM-5.3-Flash compute path was found; no difference was measured.",
+   "findings": [
+    "V4-v41-source"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "SUMMARY.json"
+ ]
+}

@@ -1,0 +1,394 @@
+[
+ {
+  "id": "LP-needle",
+  "run": "2026-10-27-long-context-pilot",
+  "goal": "NEEDLE",
+  "question": "At 262,144, 524,288 and 1,000,000 content tokens, do the vLLM fork v0.9.2 (K3.25-v1) and CuteAFD v3.0.1 (K3.25-Core-FP8) finish on their own and return a planted code, and six planted records in order?",
+  "statement": "Exploratory feasibility pilot, one request per prompt and engine: all 12 requests finished with stop, the single code was found at all three lengths on both engines, and every six-record prompt returned 6 of 6 records in document order on both (reply 69 to 220 tokens on the vLLM fork, 74 to 365 on CuteAFD).",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "finish reason; code found after the reasoning; six records found and in document order",
+  "sign": "n/a",
+  "unit": "request (prompt x engine)",
+  "n": "12 requests (6 prompts x 2 engines), one each; same seed per prompt on both engines",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 (arm V1) and CuteAFD v3.0.1 (arm C1); image digests not stated",
+   "checkpoint": "V1: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7; C1: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92 (engine and checkpoint variant change together)",
+   "items": "6 synthetic needle prompts (one single-code and one six-record prompt at each length), each with its own nonce; prompt texts not published (sha256 in prompts-index.json)",
+   "context": "262,156 / 524,300 / 1,000,012 prompt tokens",
+   "path": "generation (one chat request at a time on an idle server; thinking on, temperature 1.0, top_p 0.95, max_tokens 16,384)",
+   "hardware": "not stated in this run's files"
+  },
+  "family": null,
+  "replication": "not attempted; a feasibility result, not a quality result",
+  "evidence": [
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/0/finish_reason",
+    "what": "V1 single-256k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/0/score",
+    "what": "V1 single-256k check",
+    "value": {
+     "found": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/0/usage/completion_tokens",
+    "what": "V1 single-256k reply tokens",
+    "value": 77
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/1/finish_reason",
+    "what": "V1 six-256k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/1/score",
+    "what": "V1 six-256k check",
+    "value": {
+     "found_count": 6,
+     "all_found": true,
+     "in_order": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/1/usage/completion_tokens",
+    "what": "V1 six-256k reply tokens",
+    "value": 194
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/2/finish_reason",
+    "what": "V1 single-512k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/2/score",
+    "what": "V1 single-512k check",
+    "value": {
+     "found": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/2/usage/completion_tokens",
+    "what": "V1 single-512k reply tokens",
+    "value": 69
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/3/finish_reason",
+    "what": "V1 six-512k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/3/score",
+    "what": "V1 six-512k check",
+    "value": {
+     "found_count": 6,
+     "all_found": true,
+     "in_order": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/3/usage/completion_tokens",
+    "what": "V1 six-512k reply tokens",
+    "value": 218
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/4/finish_reason",
+    "what": "V1 single-1m finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/4/score",
+    "what": "V1 single-1m check",
+    "value": {
+     "found": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/4/usage/completion_tokens",
+    "what": "V1 single-1m reply tokens",
+    "value": 79
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/5/finish_reason",
+    "what": "V1 six-1m finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/5/score",
+    "what": "V1 six-1m check",
+    "value": {
+     "found_count": 6,
+     "all_found": true,
+     "in_order": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/5/usage/completion_tokens",
+    "what": "V1 six-1m reply tokens",
+    "value": 220
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/0/finish_reason",
+    "what": "C1 single-256k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/0/score",
+    "what": "C1 single-256k check",
+    "value": {
+     "found": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/0/usage/completion_tokens",
+    "what": "C1 single-256k reply tokens",
+    "value": 74
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/1/finish_reason",
+    "what": "C1 six-256k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/1/score",
+    "what": "C1 six-256k check",
+    "value": {
+     "found_count": 6,
+     "all_found": true,
+     "in_order": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/1/usage/completion_tokens",
+    "what": "C1 six-256k reply tokens",
+    "value": 212
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/2/finish_reason",
+    "what": "C1 single-512k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/2/score",
+    "what": "C1 single-512k check",
+    "value": {
+     "found": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/2/usage/completion_tokens",
+    "what": "C1 single-512k reply tokens",
+    "value": 135
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/3/finish_reason",
+    "what": "C1 six-512k finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/3/score",
+    "what": "C1 six-512k check",
+    "value": {
+     "found_count": 6,
+     "all_found": true,
+     "in_order": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/3/usage/completion_tokens",
+    "what": "C1 six-512k reply tokens",
+    "value": 365
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/4/finish_reason",
+    "what": "C1 single-1m finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/4/score",
+    "what": "C1 single-1m check",
+    "value": {
+     "found": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/4/usage/completion_tokens",
+    "what": "C1 single-1m reply tokens",
+    "value": 108
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/5/finish_reason",
+    "what": "C1 six-1m finish",
+    "value": "stop"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/5/score",
+    "what": "C1 six-1m check",
+    "value": {
+     "found_count": 6,
+     "all_found": true,
+     "in_order": true
+    }
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/5/usage/completion_tokens",
+    "what": "C1 six-1m reply tokens",
+    "value": 227
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/prompts-index.json",
+    "what": "prompt ids, seeds, placements, sha256"
+   }
+  ]
+ },
+ {
+  "id": "LP-ttft",
+  "run": "2026-10-27-long-context-pilot",
+  "goal": "TTFT",
+  "question": "How long do the vLLM fork v0.9.2 (K3.25-v1) and CuteAFD v3.0.1 (K3.25-Core-FP8) take to the first token on 256K, 512K and 1M-token prompts?",
+  "statement": "Exploratory, one request each, engines run one after the other: first token at 262,156 prompt tokens 62.5 and 63.2 s (vLLM fork) and 58.0 and 58.5 s (CuteAFD); at 524,300 tokens 132.2 and 129.8 s and 123.2 and 122.5 s; at 1,000,012 tokens 270.5 and 269.7 s and 255.4 and 254.2 s (single-code prompt first).",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "seconds from request to first streamed token",
+  "sign": "lower = faster first token",
+  "unit": "request",
+  "n": "12 requests, one per prompt and engine",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 (arm V1) and CuteAFD v3.0.1 (arm C1); image digests not stated",
+   "checkpoint": "V1: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7; C1: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92 (engine and checkpoint variant change together)",
+   "items": "6 synthetic needle prompts (one single-code and one six-record prompt at each length), each with its own nonce; prompt texts not published (sha256 in prompts-index.json)",
+   "context": "262,156 / 524,300 / 1,000,012 prompt tokens",
+   "path": "generation (one chat request at a time on an idle server; thinking on, temperature 1.0, top_p 0.95, max_tokens 16,384)",
+   "hardware": "not stated in this run's files"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/0/ttft_s",
+    "what": "V1 single-256k",
+    "value": 62.53350527607836
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/1/ttft_s",
+    "what": "V1 six-256k",
+    "value": 63.163029036019
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/2/ttft_s",
+    "what": "V1 single-512k",
+    "value": 132.15680909715593
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/3/ttft_s",
+    "what": "V1 six-512k",
+    "value": 129.83407454099506
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/4/ttft_s",
+    "what": "V1 single-1m",
+    "value": 270.4693907010369
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/requests/5/ttft_s",
+    "what": "V1 six-1m",
+    "value": 269.73354538786225
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/0/ttft_s",
+    "what": "C1 single-256k",
+    "value": 57.95790847111493
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/1/ttft_s",
+    "what": "C1 six-256k",
+    "value": 58.482930704951286
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/2/ttft_s",
+    "what": "C1 single-512k",
+    "value": 123.18893338716589
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/3/ttft_s",
+    "what": "C1 six-512k",
+    "value": 122.49158632592298
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/4/ttft_s",
+    "what": "C1 single-1m",
+    "value": 255.3612716018688
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/requests/5/ttft_s",
+    "what": "C1 six-1m",
+    "value": 254.24832329992205
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/V1-pilot.json",
+    "pointer": "/started",
+    "what": "vLLM fork start",
+    "value": "2026-10-27T13:03:15-0700"
+   },
+   {
+    "file": "results/2026-10-27-long-context-pilot/C1-pilot.json",
+    "pointer": "/started",
+    "what": "CuteAFD start",
+    "value": "2026-10-27T13:20:18-0700"
+   }
+  ]
+ }
+]

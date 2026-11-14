@@ -1,0 +1,466 @@
+[
+ {
+  "id": "E1-route-logits",
+  "run": "2026-10-26-e1-router-route",
+  "goal": "E1-ROUTE",
+  "question": "Are CuteAFD's router logits bit-identical across its skinny-GEMV (up to 160 rows) / TMA tensor-core (above 160 rows) route switch?",
+  "statement": "Exploratory, one GPU, one kernel, approximate inputs: the same rows launched at 160 (skinny) and 161 (TMA) rows give bit-identical logits for 0.35% to 0.37% of logits per cell, with a largest absolute logit difference per cell of 1.7e-5 to 8.2e-5 (64,000 rows over 10 cells).",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "fraction of FP32 logits bit-equal, and max |logit difference|, skinny 160-row launch vs TMA 161-row launch, same 160 rows",
+  "sign": "1 = every logit bit-equal; difference 0 = identical",
+  "unit": "row (one router input row; 288 logits)",
+  "n": "64,000 rows (6,400 per cell, 10 cells)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD image (tag and digest not recorded): sparkinfer b12x RoutedBf16Projection(288, 4096, FP32 out) JIT-compiled from the image's source, not the served AOT binary; torch 2.12.0a0+5aff3928d8.nv26.05",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92 (router weights and correction biases only)",
+   "items": "layers 3, 12, 24, 36, 44 x two approximate input kinds (normalized embedding rows of seeded random token ids; N(0,1) rows), each times the post-attention norm weight; 40 batches per cell, torch seed 70901; the real router input (mHC-collapsed residual) was not reproduced",
+   "context": "n/a (one router projection, no sequence)",
+   "path": "router projection kernel alone, launched at 100, 160, 161 and 512 rows",
+   "hardware": "1x RTX PRO 6000 Blackwell Max-Q Workstation Edition"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/skinny160_vs_tma161/logits_bit_equal_frac",
+    "what": "lowest cell (layer 3, embed)",
+    "value": 0.0035438368853647263
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/8/skinny160_vs_tma161/logits_bit_equal_frac",
+    "what": "highest cell (layer 44, embed)",
+    "value": 0.0036973742302507163
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/3/skinny160_vs_tma161/logit_max_abs_diff",
+    "what": "smallest cell max (layer 12, random)",
+    "value": 1.6450881958007812e-05
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/skinny160_vs_tma161/logit_max_abs_diff",
+    "what": "largest cell max (layer 3, embed)",
+    "value": 8.20159912109375e-05
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/skinny160_vs_tma161/rows",
+    "what": "rows per cell",
+    "value": 6400
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/README.md",
+    "lines": [
+     17,
+     17
+    ],
+    "what": "README table row (rounded)",
+    "text": "| Skinny route at 160 rows vs TMA route at 161 rows | 0.35-0.37% of logits | 1.7e-5 to 8.2e-5 | 2 of 64,000 rows |"
+   }
+  ]
+ },
+ {
+  "id": "E1-route-selection",
+  "run": "2026-10-26-e1-router-route",
+  "goal": "E1-ROUTE",
+  "question": "Across CuteAFD's 160/161-row router route switch, does the top-8 expert set or its routing weights change?",
+  "statement": "Exploratory, approximate inputs: the top-8 expert set changed in 2 of 64,000 rows across the switch (one row each in layer 3 and layer 12, embedding inputs); where the set agreed, routing weights differed by at most 8.0e-7.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "rows whose top-8 set (sigmoid score + correction bias) differs, and max |weight difference| where the set agrees (weights normalized x 2.5), skinny 160 vs TMA 161",
+  "sign": "0 = no change",
+  "unit": "row",
+  "n": "64,000 rows (6,400 per cell, 10 cells)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD image (tag and digest not recorded): sparkinfer b12x RoutedBf16Projection(288, 4096, FP32 out) JIT-compiled from the image's source, not the served AOT binary; torch 2.12.0a0+5aff3928d8.nv26.05",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92 (router weights and correction biases only)",
+   "items": "layers 3, 12, 24, 36, 44 x two approximate input kinds (normalized embedding rows of seeded random token ids; N(0,1) rows), each times the post-attention norm weight; 40 batches per cell, torch seed 70901; the real router input (mHC-collapsed residual) was not reproduced",
+   "context": "n/a (one router projection, no sequence)",
+   "path": "router projection kernel alone, launched at 100, 160, 161 and 512 rows",
+   "hardware": "1x RTX PRO 6000 Blackwell Max-Q Workstation Edition"
+  },
+  "family": null,
+  "replication": "not attempted; the run reads launches above 160 rows as prefill chunks only (decode steps stay on the skinny route), which is from source, not measured here",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 3 embed",
+    "value": 1
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/1/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 3 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/2/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 12 embed",
+    "value": 1
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/3/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 12 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/4/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 24 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/5/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 24 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/6/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 36 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/7/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 36 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/8/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 44 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/9/skinny160_vs_tma161/top8_set_changed_rows",
+    "what": "set changed, layer 44 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/7/skinny160_vs_tma161/weight_max_abs_diff_same_set",
+    "what": "largest weight difference (layer 36, random)",
+    "value": 8.046627044677734e-07
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/README.md",
+    "lines": [
+     23,
+     23
+    ],
+    "what": "README (rounded)",
+    "text": "Where the top-8 set agreed, routing weights differed by at most 8.0e-7. Both routes accumulate in FP32;"
+   }
+  ]
+ },
+ {
+  "id": "E1-within-route",
+  "run": "2026-10-26-e1-router-route",
+  "goal": "E1-WITHIN",
+  "question": "Within each of CuteAFD's router routes, do the logits depend on the launch's row count?",
+  "statement": "Exploratory, approximate inputs: every compared row was bit-identical within a route, for skinny 160 vs 100 rows (40,000 rows) and TMA 161 vs 512 rows (64,000 rows); max difference 0, top-8 set changed in 0 rows. README.md's '64,000 rows per comparison' does not hold for the skinny pair.",
+  "class": "accounting",
+  "status": "exploratory",
+  "quantity": "fraction of rows whose 288 logits are all bit-equal, same rows in launches of different row counts within one route",
+  "sign": "1 = every row bit-equal",
+  "unit": "row",
+  "n": "40,000 rows (skinny 160 vs 100: first 100 rows of each batch, 4,000 per cell); 64,000 rows (TMA 161 vs 512: 6,400 per cell)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD image (tag and digest not recorded): sparkinfer b12x RoutedBf16Projection(288, 4096, FP32 out) JIT-compiled from the image's source, not the served AOT binary; torch 2.12.0a0+5aff3928d8.nv26.05",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92 (router weights and correction biases only)",
+   "items": "layers 3, 12, 24, 36, 44 x two approximate input kinds (normalized embedding rows of seeded random token ids; N(0,1) rows), each times the post-attention norm weight; 40 batches per cell, torch seed 70901; the real router input (mHC-collapsed residual) was not reproduced",
+   "context": "n/a (one router projection, no sequence)",
+   "path": "router projection kernel alone, launched at 100, 160, 161 and 512 rows",
+   "hardware": "1x RTX PRO 6000 Blackwell Max-Q Workstation Edition"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 3 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 3 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/1/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 3 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/1/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 3 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/2/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 12 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/2/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 12 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/3/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 12 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/3/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 12 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/4/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 24 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/4/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 24 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/5/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 24 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/5/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 24 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/6/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 36 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/6/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 36 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/7/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 36 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/7/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 36 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/8/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 44 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/8/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 44 embed",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/9/skinny160_vs_skinny100/rows_all_bit_equal_frac",
+    "what": "skinny 160 vs 100, layer 44 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/9/tma161_vs_tma512/rows_all_bit_equal_frac",
+    "what": "TMA 161 vs 512, layer 44 random",
+    "value": 1.0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/skinny160_vs_skinny100/rows",
+    "what": "rows per cell, skinny 160 vs 100",
+    "value": 4000
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/tma161_vs_tma512/rows",
+    "what": "rows per cell, TMA 161 vs 512",
+    "value": 6400
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/README.md",
+    "lines": [
+     13,
+     13
+    ],
+    "what": "README: '64,000 rows per comparison' (not so for skinny 160 vs 100)",
+    "text": "(the mHC-collapsed residual) was not reproduced. 64,000 rows per comparison."
+   }
+  ]
+ },
+ {
+  "id": "E1-fp64",
+  "run": "2026-10-26-e1-router-route",
+  "goal": "E1-FP64",
+  "question": "How far is each CuteAFD router route's FP32 logit from an FP64 reference, and does either change expert selection against it?",
+  "statement": "Exploratory, approximate inputs: the largest error against FP64 x·Wᵀ, relative to the largest logit, is 1.0-1.6e-7 per cell on the skinny route (top-8 set changed in 0 of 64,000 rows) and 5.3-6.8e-6 on the TMA route (2 of 64,000 rows, the same two rows that changed across the switch).",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "max |route logit − FP64 logit| / max |FP64 logit| per cell; rows whose top-8 set differs from the set selected on the FP64 logits rounded to FP32",
+  "sign": "higher = farther from FP64",
+  "unit": "row",
+  "n": "64,000 rows per route (6,400 per cell, 10 cells)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD image (tag and digest not recorded): sparkinfer b12x RoutedBf16Projection(288, 4096, FP32 out) JIT-compiled from the image's source, not the served AOT binary; torch 2.12.0a0+5aff3928d8.nv26.05",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92 (router weights and correction biases only)",
+   "items": "layers 3, 12, 24, 36, 44 x two approximate input kinds (normalized embedding rows of seeded random token ids; N(0,1) rows), each times the post-attention norm weight; 40 batches per cell, torch seed 70901; the real router input (mHC-collapsed residual) was not reproduced",
+   "context": "n/a (one router projection, no sequence)",
+   "path": "router projection kernel alone, launched at 100, 160, 161 and 512 rows",
+   "hardware": "1x RTX PRO 6000 Blackwell Max-Q Workstation Edition"
+  },
+  "family": null,
+  "replication": "not attempted; the skinny route matches the FP64 set in every row, so the TMA rows that differ from FP64 are the rows that differ across the switch. The run's reading of both as near-ties is not recorded in the data (no score margins stored)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/2/max_abs_err_vs_fp64_rel_to_max_logit/skinny160",
+    "what": "skinny, smallest (layer 12, embed)",
+    "value": 1.0296599311172796e-07
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/5/max_abs_err_vs_fp64_rel_to_max_logit/skinny160",
+    "what": "skinny, largest (layer 24, random)",
+    "value": 1.5885531366339822e-07
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/max_abs_err_vs_fp64_rel_to_max_logit/tma161",
+    "what": "TMA, smallest (layer 3, embed)",
+    "value": 5.2652990720953025e-06
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/5/max_abs_err_vs_fp64_rel_to_max_logit/tma161",
+    "what": "TMA, largest (layer 24, random)",
+    "value": 6.832283919333723e-06
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/tma161_vs_fp64/top8_set_changed_rows",
+    "what": "TMA vs FP64 set changed, layer 3 embed",
+    "value": 1
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/2/tma161_vs_fp64/top8_set_changed_rows",
+    "what": "TMA vs FP64 set changed, layer 12 embed",
+    "value": 1
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/README.md",
+    "lines": [
+     20,
+     21
+    ],
+    "what": "README rows vs FP64 (rounded)",
+    "text": "| Skinny vs FP64 reference | | max error 1.0-1.6e-7 of the largest logit | 0 rows |\n| TMA vs FP64 reference | | max error 5.3-6.8e-6 of the largest logit | 2 rows |"
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/0/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 3 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/1/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 3 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/2/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 12 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/3/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 12 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/4/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 24 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/5/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 24 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/6/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 36 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/7/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 36 random",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/8/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 44 embed",
+    "value": 0
+   },
+   {
+    "file": "results/2026-10-26-e1-router-route/e1-router-route.json",
+    "pointer": "/cells/9/skinny160_vs_fp64/top8_set_changed_rows",
+    "what": "skinny vs FP64 set changed, layer 44 random",
+    "value": 0
+   }
+  ]
+ }
+]

@@ -1,0 +1,299 @@
+{
+ "id": "2026-11-02-tool-calling",
+ "date": "2026-11-02",
+ "title": "Multi-turn tool calling (tool-eval-bench, 88 scenarios): CuteAFD v4.0.0 and the vLLM fork v0.9.2 on K3.25 and K4, CuteAFD on K4-Core-K6",
+ "kind": "measurement",
+ "question": "Does multi-turn tool calling work, and does its tool-eval-bench outcome differ, between CuteAFD v4.0.0 and tpurtell's vLLM fork v0.9.2 (same K4 checkpoint; on K3.25 each engine runs its own variant, Core-FP8 on CuteAFD and v1 on the vLLM fork)?",
+ "engines": [
+  "tpurtell/cuteafd v4.0.0 (image digest not given in this run's files)",
+  "tpurtell vLLM fork v0.9.2 (recipe glm53-flash-exl3-k3.25@tpurtell+v0.9.2; image digest not given in this run's files)"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm; revision not given)",
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm; revision not given)",
+  "brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (K4, both engines)",
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local, no DGX Spark expert nodes",
+ "protocol": {
+  "file": "PROTOCOL.md",
+  "frozen": "2026-11-02T11:49:33-08:00 (FROZEN.json)",
+  "amendments": [
+   "Amendment 1 (before any result was read): add --hardmode, 88 scenarios instead of 69; re-frozen and restarted"
+  ]
+ },
+ "goals": [
+  {
+   "id": "GATE-R",
+   "question": "With the clear_thinking=false kwarg, do the K4, zai and K4-Core-K6 chat templates render byte-identical text on three tool conversations?",
+   "added": "check",
+   "added_source": "PROTOCOL.md:23-24 (Gate R, passed before freeze)",
+   "design": {
+    "instrument": "offline template render (CPU)",
+    "arms": [
+     "K4 template",
+     "zai template (vLLM fork)",
+     "K4-Core-K6 template"
+    ],
+    "items": "3 fixed tool conversations (tool-loop, follow-up, two-calls)",
+    "unit": "conversation",
+    "n": "3",
+    "repeats": "one render",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "gate/render_gate.py",
+    "gate/gate-r-conversations.json"
+   ],
+   "result_docs": [
+    "PROTOCOL.md",
+    "CORRECTIONS.md"
+   ],
+   "status": "done",
+   "headline": "Passed before the freeze: with the kwarg the three templates render byte-identical text on the three conversations; without it, K4 differs on the follow-up case. K4-Core-K6's template checked before the freeze (CORRECTIONS.md).",
+   "findings": [],
+   "no_findings_reason": "support file only"
+  },
+  {
+   "id": "GATE-R2",
+   "question": "Live, before each arm's repeats: is usage.prompt_tokens equal across all five arms for each gate conversation?",
+   "added": "check",
+   "added_source": "PROTOCOL.md:25-27 (Gate R2)",
+   "design": {
+    "instrument": "the three gate conversations sent with max_tokens 1 and the kwarg; usage.prompt_tokens",
+    "arms": [
+     "V-k325 (vLLM fork v0.9.2, K3.25-v1)",
+     "C-k325 (CuteAFD v4.0.0, K3.25-Core-FP8)",
+     "V-k4 (vLLM fork v0.9.2, K4)",
+     "C-k4 (CuteAFD v4.0.0, K4)",
+     "C-k6 (CuteAFD v4.0.0, K4-Core-K6)"
+    ],
+    "items": "3 gate conversations",
+    "unit": "conversation x arm",
+    "n": "15",
+    "repeats": "one per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "gate/gate_r2.py",
+    "gate/live-*.json"
+   ],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Equal on every arm: tool-loop 192, follow-up 204, two-calls 207 prompt tokens.",
+   "findings": [
+    "TC-gate-r2"
+   ]
+  },
+  {
+   "id": "AMEND1",
+   "question": "Run all 88 scenarios of protocol v1 (add --hardmode) after a first start ran 69.",
+   "added": "amendment",
+   "added_source": "PROTOCOL.md:44-49 (Amendment 1, before any result was read); times corrected in CORRECTIONS.md",
+   "design": {
+    "instrument": "command change",
+    "arms": [
+     "V-k325 first repeat (aborted)"
+    ],
+    "items": "69 vs 88 scenarios",
+    "unit": "n/a",
+    "n": "n/a",
+    "repeats": "n/a",
+    "interval": "n/a"
+   },
+   "files": [],
+   "result_docs": [
+    "PROTOCOL.md",
+    "CORRECTIONS.md"
+   ],
+   "status": "done",
+   "headline": "The first start omitted --hardmode (69 scenarios); stopped during the first repeat on V-k325 (about 11:49 per the logs), outputs kept unscored and unpublished; command amended, re-frozen 2026-11-02T11:49:33-08:00, restarted from the first arm.",
+   "findings": [],
+   "no_findings_reason": "support file only"
+  },
+  {
+   "id": "TC-TOTALS",
+   "question": "Per arm and repeat, how many of 176 points, and how many pass / partial / fail scenarios, does each engine-checkpoint arm score?",
+   "added": "protocol",
+   "added_source": "PROTOCOL.md:17-31 (Block TC; summary per repeat: points of 176, pass/partial/fail)",
+   "design": {
+    "instrument": "tool-eval-bench cf54b4b, 88 scenarios incl. 19 Hard Mode (--hardmode), temperature 0, thinking on, 8 parallel, max 8 turns, 900 s timeout, reference date 2026-09-04, clear_thinking=false",
+    "arms": [
+     "V-k325 (vLLM fork v0.9.2, K3.25-v1)",
+     "C-k325 (CuteAFD v4.0.0, K3.25-Core-FP8)",
+     "V-k4 (vLLM fork v0.9.2, K4)",
+     "C-k4 (CuteAFD v4.0.0, K4)",
+     "C-k6 (CuteAFD v4.0.0, K4-Core-K6)"
+    ],
+    "items": "all 88 tool-eval-bench scenarios",
+    "unit": "repeat (88 scenarios)",
+    "n": "3 repeats per arm, 15 runs",
+    "repeats": "seeds 1001, 1002, 1003 on every arm, one server launch per arm",
+    "interval": "none (descriptive; per-repeat range, no significance claim)"
+   },
+   "files": [
+    "rows.csv",
+    "analyze_tc.py",
+    "chain-tc.sh"
+   ],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Points of 176 per repeat (seeds 1001/1002/1003): V-k325 160, 163, 160; C-k325 163, 163, 163; V-k4 163, 158, 160; C-k4 158, 158, 158; C-k6 160, 160, 160. Harness safety gate not passed on any repeat (TC-43 flagged on every arm). Descriptive, no significance claim.",
+   "findings": [
+    "TC-points",
+    "TC-status-counts",
+    "TC-safety-gate",
+    "TC-turn-time"
+   ]
+  },
+  {
+   "id": "TC-ENGINES",
+   "question": "Per checkpoint (K3.25, K4), which scenarios differ between the vLLM fork and CuteAFD in all three repeats?",
+   "added": "protocol",
+   "added_source": "PROTOCOL.md:32-33 (reading rule: a scenario differs only if its status differs in all three repeats pairwise)",
+   "design": {
+    "instrument": "scenario status sets per arm; differs when the status sets are disjoint (analyze_tc.py)",
+    "arms": [
+     "V-k325 vs C-k325",
+     "V-k4 vs C-k4"
+    ],
+    "items": "88 scenarios",
+    "unit": "scenario",
+    "n": "88 per pair",
+    "repeats": "3 repeats per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "K3.25: 7 scenarios differ (CuteAFD partial where vLLM passes on TC-23, 31, 40, 50; CuteAFD passes where vLLM is partial on TC-46, 61, 69). K4: 5 differ (TC-53, 62, 67, 68, 76; CuteAFD partial in every repeat). Descriptive.",
+   "findings": [
+    "TC-engines-k325",
+    "TC-engines-k4"
+   ]
+  },
+  {
+   "id": "TC-STABILITY",
+   "question": "Which scenarios change status between repeats of one arm?",
+   "added": "protocol",
+   "added_source": "PROTOCOL.md:15,33 (vLLM repeats known to flip); analyze_tc.py docstring ('counted as unstable')",
+   "design": {
+    "instrument": "status per repeat",
+    "arms": [
+     "V-k325 (vLLM fork v0.9.2, K3.25-v1)",
+     "C-k325 (CuteAFD v4.0.0, K3.25-Core-FP8)",
+     "V-k4 (vLLM fork v0.9.2, K4)",
+     "C-k4 (CuteAFD v4.0.0, K4)",
+     "C-k6 (CuteAFD v4.0.0, K4-Core-K6)"
+    ],
+    "items": "88 scenarios",
+    "unit": "scenario",
+    "n": "88 per arm",
+    "repeats": "3 repeats per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Status changed between repeats on 8 scenarios for V-k325 and 8 for V-k4; on 0 for every CuteAFD arm (CuteAFD totals identical across the three seeds).",
+   "findings": [
+    "TC-stability"
+   ]
+  },
+  {
+   "id": "TC-CORE",
+   "question": "On CuteAFD, which scenarios differ between K4-Core-K6 and K4 in all three repeats?",
+   "added": "exploratory",
+   "added_source": "analyze_tc.py:7-9 (PAIRS includes C-k4 vs C-k6); not in PROTOCOL.md's reading rule, which names engine contrasts; analyze_tc.py is not in FROZEN.json, so when this pair was added is not recorded",
+   "design": {
+    "instrument": "as TC-ENGINES",
+    "arms": [
+     "C-k6 vs C-k4"
+    ],
+    "items": "88 scenarios",
+    "unit": "scenario",
+    "n": "88",
+    "repeats": "3 repeats per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "7 scenarios differ: C-k6 passes where C-k4 is partial on TC-53, 62, 68, 76; TC-82 C-k6 partial vs C-k4 pass; TC-85 C-k6 partial vs C-k4 fail; TC-88 C-k6 fail vs C-k4 pass (statuses identical in all three repeats). Descriptive.",
+   "findings": [
+    "TC-core-k6-vs-k4"
+   ],
+   "status_note": "Exploratory: the frozen reading rule (PROTOCOL.md:32-33) names engine contrasts only; analyze_tc.py, which adds this pair, is not among the files hashed in FROZEN.json."
+  },
+  {
+   "id": "SOAK",
+   "question": "Block S: stability over a long serving period.",
+   "added": "protocol",
+   "added_source": "PROTOCOL.md:35-37 (Block S)",
+   "design": {
+    "instrument": "soak",
+    "arms": [
+     "n/a"
+    ],
+    "items": "n/a",
+    "unit": "n/a",
+    "n": "n/a",
+    "repeats": "n/a",
+    "interval": "n/a"
+   },
+   "files": [],
+   "result_docs": [
+    "PROTOCOL.md"
+   ],
+   "status": "not run",
+   "headline": "Not run (decision 2026-11-02: tool calling only); stated as a gap.",
+   "findings": [],
+   "no_findings_reason": "not run"
+  },
+  {
+   "id": "CORR",
+   "question": "Accounting: corrections to the frozen protocol text, kept outside PROTOCOL.md so its hash stays valid.",
+   "added": "accounting",
+   "added_source": "CORRECTIONS.md",
+   "design": {
+    "instrument": "log and source check",
+    "arms": [
+     "n/a"
+    ],
+    "items": "PROTOCOL.md statements",
+    "unit": "statement",
+    "n": "4",
+    "repeats": "n/a",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "CORRECTIONS.md"
+   ],
+   "result_docs": [
+    "CORRECTIONS.md"
+   ],
+   "status": "done",
+   "headline": "Amendment 1's '11:58' and '10 minutes' corrected from the logs (first repeat started 11:48:19, stopped about 11:49, amended chain frozen 11:49:33); K4-Core-K6's template was checked before the freeze; the run was published as results/2026-11-02-tool-calling (soak not run); Gate R2 as run uses three fixed conversations per arm, not the first request of each scenario.",
+   "findings": [],
+   "no_findings_reason": "support file only"
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "SUMMARY.json",
+  "PROTOCOL.md",
+  "FROZEN.json"
+ ]
+}

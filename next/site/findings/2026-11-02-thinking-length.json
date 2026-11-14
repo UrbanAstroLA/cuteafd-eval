@@ -1,0 +1,1480 @@
+[
+ {
+  "id": "TL-g0-checks",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G0",
+  "question": "Before any GPU stage: is the BF16 core file correct, does the loader swap switch load exactly the chosen groups, and which probe traces were built?",
+  "statement": "All 316 BF16 core tensors are within 6-bit error of K4-Core-K6's decoded tensors (relative error 0.0190 to 0.0246, median 0.0197; pass at 0.05) and the loader swap test passes for 12 owners. G0 built 84 probe traces (60 finished, 24 not) and G2 scored 52 of that kind (40 finished, 12 not); no published document states how the 52 were selected.",
+  "class": "accounting",
+  "status": "protocol",
+  "quantity": "per-tensor relative error, BF16 file against K4-Core-K6's decoded 6-bit tensors; loader owner test; trace counts",
+  "sign": "n/a",
+  "unit": "tensor / loader owner / trace",
+  "n": "316 tensors; 12 owners; 84 and 52 probe traces",
+  "interval": "none (checks)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "316 core tensors; 12 loader owners; looping-investigation probe traces",
+   "context": "n/a",
+   "path": "CPU checks (no GPU)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/g0/core-check.json",
+    "pointer": "/summary",
+    "what": "core check summary (min, median, max, rule)",
+    "value": {
+     "tensors": 316,
+     "fail": {},
+     "rel_err_min": 0.018955730368861175,
+     "rel_err_median": 0.019694784388349876,
+     "rel_err_max": 0.02458837079892454,
+     "rule": "pass when rel_err <= 0.05 and the BF16 tensor is non-zero; uncorrelated bytes give ~1.4"
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/g0/swap-test.json",
+    "pointer": "/pass",
+    "what": "loader swap test passes",
+    "value": true
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/G0-RESULT.md",
+    "lines": [
+     8,
+     8
+    ],
+    "what": "G0 trace set: 84 traces",
+    "text": "| Trace set | 84 traces from the looping probes (60 finished, 24 not finished; docs 79, 13, 127, 88, 121; doc 121 has no non-finished sample), 5.32M tokens per arm; re-tokenized reasoning / logged tokens median 0.99 | `traces/index.json`, `traces/registry/tr/` |"
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/G2-RESULT.md",
+    "lines": [
+     9,
+     9
+    ],
+    "what": "G2 trace set",
+    "text": "- Trace set: 77 finished traces (tr 40, on 37) and 16 not finished; P-A 25 windows."
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/traces/by_set/tr",
+    "what": "probe traces scored in G2",
+    "value": {
+     "finished": 40,
+     "not_finished": 12,
+     "docs": [
+      13,
+      79,
+      88,
+      121,
+      127
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "TL-g1b-spread",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G1b",
+  "question": "How spread out is K4-Core-K6's own (6-bit core, route b) completion length on the seven knife-edge science questions, and how many samples were made?",
+  "statement": "K4-Core-K6 wrote 42 samples on seven knife-edge questions, 6 per question (the plan said 8; Amendment 1 says 4-6): 38 finished, 3 loops and 1 exhaustion at the 327,680 cap, all on questions 13 and 81. On question 12 the sd of log completion tokens over its 6 samples is 0.19 as a sample sd (the value G4 was sized on); Amendment 1's 0.17 for the same question is the population sd of the same samples.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "finish classes per sample; sd of log completion tokens per question",
+  "sign": "n/a",
+  "unit": "sample",
+  "n": "42 samples (7 questions x 6; seed 40000 + 100 x question + rep, recorded)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load, no swap",
+   "items": "science-question knife-edge set: questions 186, 12, 81, 120, 86, 74, 13",
+   "context": "free generation, cap 327,680 completion tokens",
+   "path": "free generation (temperature 1.0, top_p 0.95, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "question 12 resampled in G4 (TL-g4-classes)",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/G1b",
+    "what": "G1b requests and cap hits by question",
+    "value": {
+     "knife_requests": 42,
+     "knife_cap_hits": 4,
+     "by_doc": {
+      "12": 0,
+      "13": 2,
+      "74": 0,
+      "81": 2,
+      "86": 0,
+      "120": 0,
+      "186": 0
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g4/g1b_q12_k6_context",
+    "what": "question 12, G1b samples (sample sd)",
+    "value": {
+     "n": 6,
+     "classes": {
+      "ok": 6
+     },
+     "tokens_sorted": [
+      25241,
+      26163,
+      28279,
+      32276,
+      38121,
+      38990
+     ],
+     "median_tokens": 32276,
+     "geo_mean_tokens": 31049,
+     "sd_log_tokens": 0.18783580357159163,
+     "correct": 6,
+     "no_letter": 0
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/protocol/PLAN-EXCERPT.md",
+    "lines": [
+     42,
+     42
+    ],
+    "what": "plan: 8 samples per question",
+    "text": "| G1b | on-policy traces: K4-Core-K6 (route b, no swap) generates 8 samples on each of 186, 12, 81, 120, 86, 74 and 13 (default sampling, distinct seeds recorded, cap 327,680, reasoning text kept); gives K4-Core-K6's own spread on these questions and adds on-policy traces to the G2 trace set. Runs first in the G2 session (same launch) | vLLM fork + route b | ~1.5-2 h [I] |"
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/protocol/AMENDMENT-1.md",
+    "lines": [
+     13,
+     15
+    ],
+    "what": "Amendment 1: 4-6 samples, sd values",
+    "text": "## 2. G4 redesign from the G1b spread (descriptive basis: G1b, 4-6 samples per question)\n\nPooled within-question sd of log thinking tokens on K4-Core-K6 (route b) is 1.56 (question 12: 0.17; 81: 2.77). With"
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/analysis/samples.csv",
+    "what": "one row per sample: seed, class, completion tokens"
+   }
+  ]
+ },
+ {
+  "id": "TL-stop-core",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-STOP",
+  "question": "On the vLLM fork with route b, does loading all 316 core tensors as BF16 instead of the 6-bit rebuild change log p(</think>) at the true close of fixed science-question traces (11 questions)?",
+  "statement": "all - k6: +0.005 [−0.009, +0.019] in log p(</think>) at the close, 77 finished traces; the interval includes 0. Two launches of the same 6-bit arm differ by +0.006 [−0.005, +0.018] on the same measure (TL-launch-stop).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the true close, all (BF16 core) - k6 (6-bit core), mean over finished traces",
+  "sign": "arm - k6: above 0 = the arm puts more probability on </think> where the trace closed",
+  "unit": "trace (paired across arms)",
+  "n": "77 finished traces from 11 questions; one launch per arm",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 2,
+   "note": "lp_close against k6: whole core, second 6-bit launch (k6r2) and 9 single groups; mla_q_b and mla_o exclude 0. Across the three stop measures (lp_close, hazard, max p): 33 intervals, 6 exclude 0 (also k6r2 on hazard and max p; shared_gu and shared_down on max p)"
+  },
+  "replication": "30 new questions on the vLLM fork: NQ-core-stop-vllm; CuteAFD v4.0.0 on the same 93 traces: 2026-11-03-cuteafd-core-swap/S2; CuteAFD on 30 new questions and pooled over 41: NQ-core-stop-cuteafd, NQ-core-stop-cuteafd-pooled. This is the stop decision only; free-generation length is TL-g4-primary (one question)",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/all/lp_close",
+    "what": "all - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.004822894167903412,
+     "ci95": [
+      -0.008639133340013313,
+      0.01914793799020918
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 0.9999999999999951,
+     "moves": false,
+     "beyond_launch_noise": false,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/k6r2/lp_close",
+    "what": "k6r2 - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.006116328126744839,
+     "ci95": [
+      -0.0048491691095596135,
+      0.018280358030522175
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 1.2681862619854405,
+     "moves": false
+    }
+   }
+  ],
+  "bound": "a change from −0.009 to +0.019 in log p(</think>) at the close is not excluded"
+ },
+ {
+  "id": "TL-stop-mla-q-b",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-STOP",
+  "question": "On the vLLM fork with route b, does swapping only the mla_q_b group to BF16 move log p(</think>) at the close of the fixed science-question traces?",
+  "statement": "mla_q_b - k6: +0.014 [+0.002, +0.026] in log p(</think>) at the close, 77 finished traces, bootstrap over traces; it meets the frozen rule and Amendment 1 (larger than the second-launch gap +0.006), one of 2 groups to do so among 27 group tests. With the bootstrap clustered by question (11 questions; 2026-11-05-attn-position) the same delta is +0.014 [−0.001, +0.027].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the true close, mla_q_b (one group BF16) - k6, mean over finished traces",
+  "sign": "arm - k6: above 0 = the arm puts more probability on </think> where the trace closed",
+  "unit": "trace (paired across arms)",
+  "n": "77 finished traces from 11 questions; one launch per arm",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 27,
+   "excluding_0": 4,
+   "note": "9 groups x 3 stop measures (the run's own count); excluding 0: mla_q_b and mla_o on lp_close, shared_gu and shared_down on max p (below 0); 2 meet the reading rule"
+  },
+  "replication": "re-based post hoc: TL-ph-vs-k6r2, TL-ph-vs-pooled, AP-mean4-mla-q-b, AP-mean4-o-proj; combined with mla_o and kda_o in one arm on the same 11 questions: AP-qbo (a lead chosen after this screen); that arm failed to replicate on 30 new questions: NQ-qbo-primary",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/mla_q_b/lp_close",
+    "what": "mla_q_b - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.013796600919527186,
+     "ci95": [
+      0.0021131179466099092,
+      0.025860468275959055
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 2.860647660764391,
+     "moves": true,
+     "beyond_launch_noise": true,
+     "moves_amendment_1": true
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/k6r2/lp_close",
+    "what": "k6r2 - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.006116328126744839,
+     "ci95": [
+      -0.0048491691095596135,
+      0.018280358030522175
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 1.2681862619854405,
+     "moves": false
+    }
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_q_b/m2_lp_close_delta",
+    "what": "mla_q_b - k6 lp_close, clustered by question [mean, 2.5%, 97.5%]",
+    "value": [
+     0.013796600919527186,
+     -0.0013956119039154572,
+     0.02701392823479768
+    ]
+   }
+  ]
+ },
+ {
+  "id": "TL-stop-mla-o",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-STOP",
+  "question": "On the vLLM fork with route b, does swapping only the mla_o group to BF16 move log p(</think>) at the close of the fixed science-question traces?",
+  "statement": "mla_o - k6: +0.017 [+0.007, +0.029] in log p(</think>) at the close, 77 finished traces, bootstrap over traces; it meets the frozen rule and Amendment 1 (larger than the second-launch gap +0.006), one of 2 groups to do so among 27 group tests. With the bootstrap clustered by question (11 questions; 2026-11-05-attn-position) the same delta is +0.017 [+0.005, +0.033].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the true close, mla_o (one group BF16) - k6, mean over finished traces",
+  "sign": "arm - k6: above 0 = the arm puts more probability on </think> where the trace closed",
+  "unit": "trace (paired across arms)",
+  "n": "77 finished traces from 11 questions; one launch per arm",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 27,
+   "excluding_0": 4,
+   "note": "9 groups x 3 stop measures (the run's own count); excluding 0: mla_q_b and mla_o on lp_close, shared_gu and shared_down on max p (below 0); 2 meet the reading rule"
+  },
+  "replication": "re-based post hoc: TL-ph-vs-k6r2, TL-ph-vs-pooled, AP-mean4-mla-q-b, AP-mean4-o-proj; combined with mla_q_b and kda_o in one arm on the same 11 questions: AP-qbo (a lead chosen after this screen); that arm failed to replicate on 30 new questions: NQ-qbo-primary",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/mla_o/lp_close",
+    "what": "mla_o - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.01681828331304321,
+     "ci95": [
+      0.006842188082158497,
+      0.02926714065628661
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 3.487176522547311,
+     "moves": true,
+     "beyond_launch_noise": true,
+     "moves_amendment_1": true
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/k6r2/lp_close",
+    "what": "k6r2 - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.006116328126744839,
+     "ci95": [
+      -0.0048491691095596135,
+      0.018280358030522175
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 1.2681862619854405,
+     "moves": false
+    }
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_o/m2_lp_close_delta",
+    "what": "mla_o - k6 lp_close, clustered by question [mean, 2.5%, 97.5%]",
+    "value": [
+     0.01681828331304321,
+     0.005103806343718402,
+     0.03270863129948861
+    ]
+   }
+  ]
+ },
+ {
+  "id": "TL-stop-other-groups",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-STOP",
+  "question": "On the vLLM fork with route b, do the other seven single-group BF16 swaps move log p(</think>) at the close of the fixed science-question traces?",
+  "statement": "kda_qkv, kda_o, mla_a, dense, shared_gu, shared_down and lm_head, each minus k6: estimates from −0.001 (mla_a) to +0.014 (shared_down) in log p(</think>) at the close, 77 finished traces; every interval includes 0, the widest ends being −0.014 and +0.028.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the true close, single-group arm - k6, mean over finished traces",
+  "sign": "arm - k6: above 0 = the arm puts more probability on </think> where the trace closed",
+  "unit": "trace (paired across arms)",
+  "n": "77 finished traces from 11 questions; one launch per arm",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 27,
+   "excluding_0": 4,
+   "note": "9 groups x 3 stop measures (the run's own count); excluding 0: mla_q_b and mla_o on lp_close, shared_gu and shared_down on max p (below 0); 2 meet the reading rule"
+  },
+  "replication": "not attempted (kda_o was carried into the combined arm AP-qbo)",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/kda_qkv/lp_close",
+    "what": "kda_qkv - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.002606757330795517,
+     "ci95": [
+      -0.010337145255494737,
+      0.017020811665238923
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 0.5404964819969713,
+     "moves": false,
+     "beyond_launch_noise": false,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/kda_o/lp_close",
+    "what": "kda_o - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.009014076049117956,
+     "ci95": [
+      -0.0013639331461573337,
+      0.01999378359997925
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 1.8690180077155774,
+     "moves": false,
+     "beyond_launch_noise": true,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/mla_a/lp_close",
+    "what": "mla_a - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": -0.0007523694327940209,
+     "ci95": [
+      -0.01391930416167187,
+      0.009559583540745228
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": -0.155999573409898,
+     "moves": false,
+     "beyond_launch_noise": false,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/dense/lp_close",
+    "what": "dense - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.009908619999840959,
+     "ci95": [
+      -0.002805859074387272,
+      0.02449698852678094
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 2.054496668366319,
+     "moves": false,
+     "beyond_launch_noise": true,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/shared_gu/lp_close",
+    "what": "shared_gu - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.004425251377744951,
+     "ci95": [
+      -0.010726093905773799,
+      0.019679728384313387
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 0.9175510022996535,
+     "moves": false,
+     "beyond_launch_noise": false,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/shared_down/lp_close",
+    "what": "shared_down - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.013593905882476361,
+     "ci95": [
+      -0.0021185343551282983,
+      0.027552929128234437
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 2.8186199840221207,
+     "moves": false,
+     "beyond_launch_noise": true,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/lm_head/lp_close",
+    "what": "lm_head - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.0035188641162818245,
+     "ci95": [
+      -0.010163486620286358,
+      0.013822267056894374
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 0.7296166977289309,
+     "moves": false,
+     "beyond_launch_noise": false,
+     "moves_amendment_1": false
+    }
+   }
+  ],
+  "bound": "changes from −0.014 to +0.028 in log p(</think>) at the close are not excluded for these groups"
+ },
+ {
+  "id": "TL-stop-hazard",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-STOP",
+  "question": "On the vLLM fork with route b, does the BF16 core (or any group) change the pre-close hazard, mean p(</think>) over the 512 rows before the close, on the fixed science-question traces?",
+  "statement": "The hazard is 0.00026 to 0.00027 on every arm; all - k6 is −0.0000040 [−0.0000134, +0.0000056], and no group meets the rule. Two launches of the same 6-bit arm differ by −0.0000100 [−0.0000190, −0.0000024], an interval that excludes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "mean p(</think>) over the 512 rows before the close, arm - k6",
+  "sign": "arm - k6: above 0 = the arm puts more probability on </think> just before the close",
+  "unit": "trace (paired across arms)",
+  "n": "77 finished traces from 11 questions; one launch per arm",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 1,
+   "note": "hazard against k6: whole core, k6r2 and 9 groups; only k6r2 (a second launch of the same arm) excludes 0"
+  },
+  "replication": "30 new questions: NQ-hazard-vllm-core (whole core, interval excludes 0), NQ-hazard-qbo",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/all/hazard_mean",
+    "what": "all, hazard",
+    "value": 0.0002630194699110477
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/k6/hazard_mean",
+    "what": "k6, hazard",
+    "value": 0.0002670203470976081
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/k6r2/hazard_mean",
+    "what": "k6r2, hazard",
+    "value": 0.0002569976523964967
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/all/hazard",
+    "what": "all - k6, hazard",
+    "value": {
+     "delta": -4.000877186560358e-06,
+     "ci95": [
+      -1.3421513586589073e-05,
+      5.55169929533882e-06
+     ],
+     "ref_gap": -4.0008771865603565e-06,
+     "closure": 1.0000000000000004,
+     "moves": false,
+     "beyond_launch_noise": false,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/k6r2/hazard",
+    "what": "k6r2 - k6, hazard",
+    "value": {
+     "delta": -1.0022694701111334e-05,
+     "ci95": [
+      -1.8973612006805432e-05,
+      -2.441686921733364e-06
+     ],
+     "ref_gap": -4.0008771865603565e-06,
+     "closure": 2.5051243099336595,
+     "moves": true
+    }
+   }
+  ],
+  "bound": "a whole-core change from −0.0000134 to +0.0000056 in the hazard is not excluded"
+ },
+ {
+  "id": "TL-stop-top1",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-STOP",
+  "question": "On the fixed science-question traces, is </think> the top-1 token at the close on every arm?",
+  "statement": "</think> is top-1 at the close on a share of 0.909 of the 77 finished traces on every arm (whole core, 9 groups, both 6-bit launches); the 7 traces where it is not are the same 7 on every arm.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "share of finished traces where </think> is the top-1 token at the true close",
+  "sign": "n/a",
+  "unit": "trace",
+  "n": "77 finished traces from 11 questions",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/k6/close_top1_share",
+    "what": "k6",
+    "value": 0.9090909090909091
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/all/close_top1_share",
+    "what": "all",
+    "value": 0.9090909090909091
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/G2-RESULT.md",
+    "lines": [
+     29,
+     31
+    ],
+    "what": "same 7 traces on every arm",
+    "text": "Hazard (mean p(</think>) over the 512 rows before the close) is 0.00026-0.00027 on every arm; max p(</think>) on the\n16 not-finished traces is ~0 on every arm. The 7 traces where </think> is not top-1 at the close are the same 7 on\nevery arm."
+   }
+  ]
+ },
+ {
+  "id": "TL-maxp-position",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-MAXP",
+  "question": "Check after publication: where along a not-finished trace does the max p(</think>) measure of G2 fall?",
+  "statement": "Checked after publication: the max of p(</think>) on the 16 not-finished traces falls on the first scored row in 180 of 192 trace-arms, so the measure is mostly one value per question (question 13 is 5 of the 16 traces) and says little about stopping later in a reply.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "row index of max p(</think>) per not-finished trace and arm",
+  "sign": "n/a",
+  "unit": "trace-arm",
+  "n": "192 trace-arms (16 traces x 12 arms)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "the 16 not-finished traces of the 93 fixed science-question traces",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "same pattern on CuteAFD v4.0.0: 2026-11-03-cuteafd-core-swap/S2-MAXP",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/G2-RESULT.md",
+    "lines": [
+     73,
+     78
+    ],
+    "what": "note dated 2026-11-04, after publication",
+    "text": "*Note (2026-11-04, after publication).* The max p(</think>) measure on the 16 not-finished traces falls on the first\nscored row (the opening of the reasoning span) in 180 of 192 trace-arms. That row is the same for every trace of a\nquestion, so the measure is mostly a per-question value counted once per trace (question 13 is 5 of the 16). The\nreading above (no group meets the rule on max p) is unchanged; the measure says little about stopping later in a\nreply. The same holds on CuteAFD (results/2026-11-03-cuteafd-core-swap, `S2-READ.md`), where the routed experts are\nalso compared."
+   }
+  ]
+ },
+ {
+  "id": "TL-pa-core",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-PA",
+  "question": "On 25 short single-chunk P-A windows, does the BF16 core bring top-64 KL to the BF16 teacher down against the 6-bit core (vLLM fork, route b)?",
+  "statement": "Top-64 KL to the BF16 teacher: 0.0268 (k6) and 0.0260 (all); all - k6 −0.0008 [−0.0019, +0.0002] nats/token over 25 windows; the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "top-64 KL to the BF16 teacher logits, all - k6, nats/token, mean over windows",
+  "sign": "all - k6: below 0 = the BF16 core is closer to the teacher",
+  "unit": "window",
+  "n": "25 P-A windows (4 domains, 3-8 windows each); one launch per arm",
+  "interval": "95% bootstrap over windows (paired), 2,000 replicates, numpy default_rng(20261102) (score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "25 P-A windows, 4 domains",
+   "context": "short single-chunk windows",
+   "path": "teacher-forced (reduced top-64 dumps)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 1,
+   "note": "P-A KL against k6: whole core, k6r2 and 9 groups; only lm_head excludes 0 (TL-pa-lm-head); per-domain cells descriptive only"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/pa/k6/kl64_mean",
+    "what": "k6, KL to teacher",
+    "value": 0.026835304908352467
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/pa/all/kl64_mean",
+    "what": "all, KL to teacher",
+    "value": 0.026019218410649532
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/pa/all/kl64_delta_vs_base",
+    "what": "all - k6 [delta, [2.5%, 97.5%]]",
+    "value": [
+     -0.0008160864977029436,
+     [
+      -0.0018760643262668393,
+      0.00017808017323430207
+     ]
+    ]
+   }
+  ],
+  "bound": "a reduction up to 0.0019 nats/token, or an increase up to 0.0002, is not excluded"
+ },
+ {
+  "id": "TL-pa-lm-head",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-PA",
+  "question": "On the P-A windows, does swapping only the output head to BF16 change top-64 KL to the BF16 teacher?",
+  "statement": "lm_head - k6: −0.0001 [−0.00015, −0.00007] nats/token in top-64 KL to the BF16 teacher over 25 windows; the interval excludes 0.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-64 KL to the BF16 teacher logits, lm_head - k6, nats/token",
+  "sign": "lm_head - k6: below 0 = the BF16 head is closer to the teacher",
+  "unit": "window",
+  "n": "25 P-A windows; one launch per arm",
+  "interval": "95% bootstrap over windows (paired), 2,000 replicates, numpy default_rng(20261102) (score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "25 P-A windows, 4 domains",
+   "context": "short single-chunk windows",
+   "path": "teacher-forced (reduced top-64 dumps)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 1,
+   "note": "P-A KL against k6: whole core, k6r2 and 9 groups"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/pa/lm_head/kl64_delta_vs_base",
+    "what": "lm_head - k6 [delta, [2.5%, 97.5%]]",
+    "value": [
+     -0.00010774145829727772,
+     [
+      -0.0001515952952953872,
+      -6.585070661012378e-05
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "TL-trace-kl",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-KL",
+  "question": "How far is the whole-core BF16 arm's next-token distribution from the 6-bit core's on the fixed science-question traces (top-64 KL)?",
+  "statement": "Top-64 KL between the whole-core BF16 arm and k6 is 0.0071 nats/token over every trace row and 0.0070 over the last 512 rows before the close; single-group swaps reduce the KL to the whole-core arm by 0.0000 to 0.0005 each.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "top-64 KL between arms (all as reference), nats/token, mean over rows",
+  "sign": "n/a (a distance)",
+  "unit": "trace row",
+  "n": "93 traces (all rows); 77 finished traces (last 512 rows)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "launch-to-launch distance on the same traces: TL-launch-kl; on 30 new questions: NQ-trace-kl",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/k6/kl64_vs_ref_all_rows",
+    "what": "KL(all, k6), every row",
+    "value": 0.0070626925799707
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/k6/kl64_vs_ref_stop_window",
+    "what": "KL(all, k6), last 512 rows",
+    "value": 0.006968926875877914
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/G2-RESULT.md",
+    "lines": [
+     55,
+     55
+    ],
+    "what": "single-group reduction",
+    "text": "Single-group swaps reduce KL to the all-BF16 arm by 0.0000-0.0005 each (largest: kda_o, kda_qkv, shared_gu, dense)."
+   }
+  ]
+ },
+ {
+  "id": "TL-launch-stop",
+  "run": "2026-11-02-thinking-length",
+  "goal": "AMEND1",
+  "question": "How far apart are two launches of the same 6-bit arm (vLLM fork, route b) on the stop decision and on P-A KL?",
+  "statement": "k6r2 - k6 (same arm, second launch): +0.006 [−0.005, +0.018] in log p(</think>) at the close, larger than the whole-core gap all - k6 (+0.005); on P-A KL +0.0000007 [−0.0000013, +0.0000023] nats/token.",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "k6r2 - k6 for log p(</think>) at the close and for P-A top-64 KL",
+  "sign": "k6r2 - k6: above 0 = the second launch puts more probability on </think> at the close",
+  "unit": "trace (lp_close); window (P-A)",
+  "n": "77 finished traces; 25 P-A windows; two launches",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 2,
+   "note": "k6r2 - k6 on the three stop measures; hazard and max p exclude 0 (TL-stop-hazard)"
+  },
+  "replication": "launch band on the same traces in 2026-11-05-attn-position (AP-qbo: k6 −0.0018) and on 30 new questions (NQ-qbo-primary: 0.0039)",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/k6r2/lp_close",
+    "what": "k6r2 - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.006116328126744839,
+     "ci95": [
+      -0.0048491691095596135,
+      0.018280358030522175
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 1.2681862619854405,
+     "moves": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/all/lp_close",
+    "what": "all - k6, lp_close: delta, ci95, rule fields",
+    "value": {
+     "delta": 0.004822894167903412,
+     "ci95": [
+      -0.008639133340013313,
+      0.01914793799020918
+     ],
+     "ref_gap": 0.004822894167903435,
+     "closure": 0.9999999999999951,
+     "moves": false,
+     "beyond_launch_noise": false,
+     "moves_amendment_1": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/pa/k6r2/kl64_delta_vs_base",
+    "what": "P-A KL, k6r2 - k6",
+    "value": [
+     7.097501035529738e-07,
+     [
+      -1.2686635347256888e-06,
+      2.308090323309609e-06
+     ]
+    ]
+   }
+  ],
+  "bound": "a launch-to-launch change from −0.005 to +0.018 in log p(</think>) at the close is not excluded",
+  "replaces": [
+   "TL-identity"
+  ]
+ },
+ {
+  "id": "TL-launch-kl",
+  "run": "2026-11-02-thinking-length",
+  "goal": "AMEND1",
+  "question": "How large is the top-64 KL between two launches of the same 6-bit arm on the fixed traces, against the whole-core swap's?",
+  "statement": "Post hoc: top-64 KL between two launches of the same 6-bit arm is 0.0040 nats/token over every trace row and 0.0038 over the last 512 rows before the close, against 0.0071 and 0.0070 between the whole-core BF16 arm and k6.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "top-64 KL(k6, k6r2) and KL(all, k6), nats/token",
+  "sign": "n/a (a distance)",
+  "unit": "trace row",
+  "n": "93 traces (all rows); 77 finished (last 512 rows)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "on 30 new questions, k6-b against k6-a: NQ-trace-kl; CuteAFD launches are bit-identical (2026-11-03-cuteafd-core-swap/S2-ID, AP-cuteafd-cross-day)",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/post_hoc/kl64_k6_vs_k6r2",
+    "what": "KL(k6, k6r2), post hoc",
+    "value": {
+     "all_rows": 0.0040197925717639395,
+     "last_512_rows_finished": 0.0037760231871741727,
+     "traces": 93,
+     "finished": 77
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/k6/kl64_vs_ref_all_rows",
+    "what": "KL(all, k6), every row",
+    "value": 0.0070626925799707
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/per_arm/k6/kl64_vs_ref_stop_window",
+    "what": "KL(all, k6), last 512 rows",
+    "value": 0.006968926875877914
+   }
+  ],
+  "replaces": [
+   "TL-identity"
+  ]
+ },
+ {
+  "id": "TL-ph-vs-k6r2",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-PH",
+  "question": "Post hoc: against the second 6-bit launch as base, do the mla_q_b and mla_o flags hold?",
+  "statement": "Post hoc, against k6r2 as base: mla_o +0.011 [−0.002, +0.027] and mla_q_b +0.008 [−0.001, +0.017] in log p(</think>) at the close; both intervals include 0.",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, group arm - k6r2",
+  "sign": "arm - k6r2: above 0 = the arm puts more probability on </think> where the trace closed",
+  "unit": "trace",
+  "n": "77 finished traces from 11 questions",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 10,
+   "excluding_0": 0,
+   "note": "post hoc: whole core and 9 groups against one re-base"
+  },
+  "replication": "against four 6-bit launches: AP-mean4-mla-q-b, AP-mean4-o-proj",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/post_hoc/contrasts/k6r2/mla_o",
+    "what": "mla_o - k6r2",
+    "value": {
+     "delta": 0.010701955186298372,
+     "ci95": [
+      -0.0016195578595263169,
+      0.026510871997946536
+     ],
+     "n": 77
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/post_hoc/contrasts/k6r2/mla_q_b",
+    "what": "mla_q_b - k6r2",
+    "value": {
+     "delta": 0.007680272792782347,
+     "ci95": [
+      -0.0011163274416373624,
+      0.017186758093087857
+     ],
+     "n": 77
+    }
+   }
+  ],
+  "bound": "an mla_o change up to +0.027 and an mla_q_b change up to +0.017 are not excluded"
+ },
+ {
+  "id": "TL-ph-vs-pooled",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G2-PH",
+  "question": "Post hoc: against the mean of the two 6-bit launches, do the mla_q_b and mla_o flags hold?",
+  "statement": "Post hoc, against the mean of k6 and k6r2: mla_o +0.014 [+0.004, +0.026] and mla_q_b +0.011 [+0.002, +0.020] in log p(</think>) at the close; both intervals exclude 0, and no other arm's does.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, group arm - mean(k6, k6r2)",
+  "sign": "arm - mean of the 6-bit launches: above 0 = the arm puts more probability on </think> where the trace closed",
+  "unit": "trace",
+  "n": "77 finished traces from 11 questions",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "93 fixed science-question traces from 11 questions (77 finished, 16 not finished): 52 looping-investigation probe traces (questions 13, 79, 88, 121, 127) and 41 on-policy G1b traces (questions 12, 13, 74, 81, 86, 120, 186); token ids teacher-forced",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 10,
+   "excluding_0": 2,
+   "note": "post hoc: whole core and 9 groups against one re-base"
+  },
+  "replication": "against four 6-bit launches: AP-mean4-mla-q-b (includes 0), AP-mean4-o-proj; combined arm on new questions failed to replicate: NQ-qbo-primary",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/post_hoc/contrasts/pooled/mla_o",
+    "what": "mla_o - mean(k6, k6r2)",
+    "value": {
+     "delta": 0.01376011924967079,
+     "ci95": [
+      0.004190690913350551,
+      0.026053157918063112
+     ],
+     "n": 77
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/post_hoc/contrasts/pooled/mla_q_b",
+    "what": "mla_q_b - mean(k6, k6r2)",
+    "value": {
+     "delta": 0.010738436856154767,
+     "ci95": [
+      0.0023947719884780745,
+      0.02010280869917669
+     ],
+     "n": 77
+    }
+   }
+  ]
+ },
+ {
+  "id": "TL-g4-primary",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G4",
+  "question": "In free generation on one science question (12), does loading the 316 core tensors as BF16 change how long K4-Core-K6 replies on the vLLM fork with route b?",
+  "statement": "Ratio of geometric-mean completion tokens, BF16 core / 6-bit core, 0.80 [0.51, 1.14] on question 12, 12 samples per arm; the interval includes 1 and is wider than the frozen band of 0.8 to 1.25, so the frozen reading is inconclusive. This is the only free-generation length measurement on science questions in these runs: one question, one engine.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "exp(mean log completion tokens | all - mean log completion tokens | k6)",
+  "sign": "ratio below 1 = the BF16 core wrote shorter replies",
+  "unit": "sample",
+  "n": "12 per arm, seeds 51201-51212 in both arms; one launch per arm",
+  "interval": "95% bootstrap, 2,000 replicates resampling samples within each arm, seed 20261103 (analyze_g4.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1: k6 (6-bit core rebuilt by route b) and all (316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb)",
+   "items": "science-question 12 only (steady long thinker in G1b)",
+   "context": "free generation, cap 327,680 completion tokens",
+   "path": "free generation (temperature 1.0, top_p 0.95, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 1,
+   "excluding_0": 0,
+   "note": "the single frozen G4 primary (interval excludes 1: no)"
+  },
+  "replication": "not attempted on other questions or on CuteAFD; 2026-11-06-new-questions did not measure free-generation length (goal FREE-LEN)",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/analysis/G4-RESULT.json",
+    "pointer": "/primary",
+    "what": "frozen primary: delta_log, ci95, ratio, ratio_ci95",
+    "value": {
+     "delta_log": -0.22390686027483575,
+     "ci95": [
+      -0.6812121541351779,
+      0.1330534469140474
+     ],
+     "ratio": 0.7993895858284403,
+     "ratio_ci95": [
+      0.5060032665236474,
+      1.1423110496998647
+     ],
+     "shift_detected": false,
+     "no_shift_ge_1_25x": false
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/protocol/G4-PROTOCOL.md",
+    "lines": [
+     26,
+     29
+    ],
+    "what": "frozen reading",
+    "text": "- Primary: delta = mean(log completion tokens | all) - mean(log completion tokens | k6), 95% bootstrap interval\n  (2,000 replicates, resampling samples within each arm, seed 20261103); reported as a ratio exp(delta).\n- A shift is detected when the interval excludes 0. \"No shift of 1.25x or more\" when the interval lies inside\n  +-log(1.25). Anything else is inconclusive."
+   }
+  ],
+  "bound": "a ratio from 0.51 to 1.14 (BF16 core / 6-bit core) is not excluded"
+ },
+ {
+  "id": "TL-g4-classes",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G4-SEC",
+  "question": "In G4, how did the replies on question 12 end on each core, and how often did each core loop on this question across G1b and G4?",
+  "statement": "6-bit core: 11 finished and 1 loop to the 327,680 cap (no answer), median 31,997 tokens, 11 correct; BF16 core: 12 finished, median 33,778 tokens, 11 correct. Across G1b and G4 the 6-bit core looped on 1 of 18 samples of this question and the BF16 core on 0 of 12 (two-sided Fisher p = 1.0).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "finish classes, median completion tokens and answers against the gold letter per arm",
+  "sign": "n/a",
+  "unit": "sample",
+  "n": "12 per arm (+6 G1b samples of the 6-bit core as context)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1: k6 (6-bit core rebuilt by route b) and all (316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb)",
+   "items": "science-question 12 only (steady long thinker in G1b)",
+   "context": "free generation, cap 327,680 completion tokens",
+   "path": "free generation (temperature 1.0, top_p 0.95, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/analysis/G4-RESULT.json",
+    "pointer": "/per_arm/k6",
+    "what": "6-bit core",
+    "value": {
+     "n": 12,
+     "classes": {
+      "ok": 11,
+      "loop": 1
+     },
+     "tokens_sorted": [
+      23421,
+      23921,
+      24101,
+      26138,
+      28849,
+      31886,
+      31997,
+      36071,
+      43521,
+      45566,
+      51471,
+      327680
+     ],
+     "median_tokens": 31997,
+     "geo_mean_tokens": 39039,
+     "sd_log_tokens": 0.7205486973054255,
+     "correct": 11,
+     "no_letter": 1
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/analysis/G4-RESULT.json",
+    "pointer": "/per_arm/all",
+    "what": "BF16 core",
+    "value": {
+     "n": 12,
+     "classes": {
+      "ok": 12
+     },
+     "tokens_sorted": [
+      17119,
+      20493,
+      25605,
+      27756,
+      28977,
+      30700,
+      33778,
+      33789,
+      38744,
+      42613,
+      45030,
+      45345
+     ],
+     "median_tokens": 33778,
+     "geo_mean_tokens": 31208,
+     "sd_log_tokens": 0.3054903508904412,
+     "correct": 11,
+     "no_letter": 0
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/question_12",
+    "what": "loops on question 12, G1b + G4",
+    "value": {
+     "6-bit core": [
+      1,
+      18
+     ],
+     "BF16 core": [
+      0,
+      12
+     ],
+     "fisher": 1.0
+    }
+   }
+  ]
+ },
+ {
+  "id": "TL-g4-finished",
+  "run": "2026-11-02-thinking-length",
+  "goal": "G4-PH",
+  "question": "Post hoc: on finished replies only, does the BF16 core change completion length on question 12?",
+  "statement": "Post hoc, finished replies only (11 vs 12): ratio BF16 core / 6-bit core 0.97 [0.78, 1.21]; sd of log tokens 0.28 and 0.31, so the resolution is about 1.3x rather than the planned 1.24x.",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "ratio of geometric-mean completion tokens, all / k6, finished replies only",
+  "sign": "ratio below 1 = the BF16 core wrote shorter replies",
+  "unit": "sample",
+  "n": "11 (k6) and 12 (all)",
+  "interval": "95% bootstrap as G4 (2,000 replicates within arm, seed 20261103)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1: k6 (6-bit core rebuilt by route b) and all (316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb)",
+   "items": "science-question 12 only (steady long thinker in G1b)",
+   "context": "free generation, cap 327,680 completion tokens",
+   "path": "free generation (temperature 1.0, top_p 0.95, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 1,
+   "excluding_0": 0,
+   "note": "one post hoc re-reading"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/G4-RESULT.md",
+    "lines": [
+     15,
+     16
+    ],
+    "what": "post hoc, finished replies only",
+    "text": "**Post hoc (labelled; not the frozen reading):** finished replies only (11 vs 12): ratio 0.97 [0.78, 1.21];\nsd of log tokens 0.28 and 0.31, larger than G1b's 0.19, so the resolution is about 1.3x, not the planned 1.24x."
+   }
+  ],
+  "bound": "a ratio from 0.78 to 1.21 is not excluded"
+ },
+ {
+  "id": "TL-loop-cap-share",
+  "run": "2026-11-02-thinking-length",
+  "goal": "LOOP-A",
+  "question": "Post hoc, exploratory: in existing records, how often do the knife-edge science questions reach the length cap for K3.25, K4 and K4-Core-K6?",
+  "statement": "Post hoc and exploratory: on the seven knife-edge questions, requests reaching the 327,680 cap among records with token counts are K3.25 4 of 35 and K4 3 of 28 (earlier vLLM fork versions), and K4-Core-K6 in G1b 4 of 42; K4 against K4-Core-K6 two-sided Fisher p = 1.0. Engine versions, concurrency and route b differ between rows.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "cap hits (completion tokens >= 327,680) per request",
+  "sign": "n/a",
+  "unit": "request",
+  "n": "35 / 28 / 42 requests with token counts",
+  "interval": "none (descriptive; Fisher exact test reported)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K3.25 and K4 (published records, vLLM fork 0.7.0-0.9.1); K4-Core-K6 @ 5d3fffe1 (G1b)",
+   "items": "knife-edge questions 186, 12, 81, 120, 86, 74, 13",
+   "context": "free generation, cap 327,680",
+   "path": "free generation (records of several engine versions)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/K3.25/knife_requests",
+    "what": "K3.25 requests",
+    "value": 35
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/K3.25/knife_cap_hits",
+    "what": "K3.25 hits",
+    "value": 4
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/K4/knife_requests",
+    "what": "K4 requests",
+    "value": 28
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/K4/knife_cap_hits",
+    "what": "K4 hits",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/G1b/knife_cap_hits",
+    "what": "G1b hits",
+    "value": 4
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/a_cap_hits/fisher_k4_vs_k4core_k6_g1b",
+    "what": "Fisher p, K4 vs G1b",
+    "value": 1.0
+   }
+  ]
+ },
+ {
+  "id": "TL-loop-detector",
+  "run": "2026-11-02-thinking-length",
+  "goal": "LOOP-B",
+  "question": "Post hoc, exploratory: would the looping investigation's early-stop detector have stopped any finished reply of G1b or G4, and where does it fire on the loops?",
+  "statement": "Post hoc and exploratory: the detector (three consecutive zlib ratios below 0.10) would have stopped none of the 61 finished replies (lowest check 0.221); on the three loops where it fires it does so at 110,000 of 1,485,415, 1,190,000 of 1,406,326 and 730,000 of 802,274 reasoning characters.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "detector stop decisions on stored reasoning text",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "61 finished + 5 non-finished replies (G1b and G4)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "G1b and G4 replies (questions 186, 12, 81, 120, 86, 74, 13)",
+   "context": "free generation, cap 327,680",
+   "path": "offline check on stored reasoning text",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/loop_checks/b_detector",
+    "what": "detector rule, finished replies, non-finished replies",
+    "value": {
+     "rule": "last 30000 characters every 10000 from 30000; stop after 3 consecutive zlib ratios below 0.1",
+     "finished_replies": 61,
+     "finished_stopped": 0,
+     "finished_lowest_check": 0.2214,
+     "not_finished": [
+      {
+       "source": "G1b",
+       "doc": 13,
+       "rep": 5,
+       "class": "loop",
+       "reasoning_chars": 1406326,
+       "detector_fires_at_char": 1190000,
+       "detector_lowest_check": 0.03
+      },
+      {
+       "source": "G1b",
+       "doc": 13,
+       "rep": 6,
+       "class": "loop",
+       "reasoning_chars": 1371614,
+       "detector_fires_at_char": null,
+       "detector_lowest_check": 0.1009
+      },
+      {
+       "source": "G1b",
+       "doc": 81,
+       "rep": 5,
+       "class": "exhaust",
+       "reasoning_chars": 864803,
+       "detector_fires_at_char": null,
+       "detector_lowest_check": 0.1414
+      },
+      {
+       "source": "G1b",
+       "doc": 81,
+       "rep": 6,
+       "class": "loop",
+       "reasoning_chars": 802274,
+       "detector_fires_at_char": 730000,
+       "detector_lowest_check": 0.0025
+      },
+      {
+       "source": "G4 6-bit core",
+       "doc": 12,
+       "rep": 3,
+       "class": "loop",
+       "reasoning_chars": 1485415,
+       "detector_fires_at_char": 110000,
+       "detector_lowest_check": 0.0093
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "TL-loop-chosen-logprob",
+  "run": "2026-11-02-thinking-length",
+  "goal": "LOOP-C",
+  "question": "Post hoc, exploratory: on the 16 not-finished traces, does the BF16 core make the trace's own tokens less likely than the 6-bit core does?",
+  "statement": "Post hoc and exploratory, 16 not-finished traces truncated at 32K: mean chosen-token log-prob, BF16 core - 6-bit core, −0.0015 [−0.0031, −0.00004] (excludes 0); second 6-bit launch - first −0.0010 [−0.0023, +0.0004] (includes 0).",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "mean log p of the trace's own next token (every 64th row + last 512), arm - k6",
+  "sign": "arm - k6: below 0 = the arm finds the trace's tokens less likely",
+  "unit": "trace",
+  "n": "16 not-finished traces (about 1,000 rows each)",
+  "interval": "95% bootstrap over traces (paired), 2,000 replicates, numpy default_rng(20261102) (analysis/score_stop.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 release image (index sha256:ea0430aa...) + a local loader modification (route b), not an upstream release (built image sha256:5fc05b7c...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load (k6); swap arms load the named core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "the 16 not-finished traces of the 93 fixed science-question traces",
+   "context": "fixed traces, largest sequence under 100K tokens (not-finished traces truncated at 32K)",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "BF16 core - k6 and k6r2 - k6"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/post_hoc/loop_check_c/all_minus_k6",
+    "what": "all - k6",
+    "value": {
+     "delta": -0.0015265473610465434,
+     "ci95": [
+      -0.0031138342606163655,
+      -3.96959862222376e-05
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/post_hoc/loop_check_c/k6r2_minus_k6",
+    "what": "k6r2 - k6",
+    "value": {
+     "delta": -0.001018966109737181,
+     "ci95": [
+      -0.0023310341192686536,
+      0.00036082475479004073
+     ]
+    }
+   }
+  ]
+ }
+]

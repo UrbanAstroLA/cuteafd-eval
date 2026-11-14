@@ -1,0 +1,1748 @@
+[
+ {
+  "id": "TC-points",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-TOTALS",
+  "question": "How many of 176 tool-calling points does each engine-checkpoint arm score per repeat?",
+  "statement": "Points of 176 per repeat (seeds 1001, 1002, 1003): V-k325 160, 163, 160; C-k325 163, 163, 163; V-k4 163, 158, 160; C-k4 158, 158, 158; C-k6 160, 160, 160. Descriptive, no significance test.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "harness points per repeat (88 scenarios, 2 points each)",
+  "sign": "higher = more points",
+  "unit": "repeat (88 scenarios)",
+  "n": "3 repeats per arm, 15 in all; one server launch per arm",
+  "interval": "none (descriptive; per-repeat range, no significance claim)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "three repeats per arm within one launch; CuteAFD arms identical across repeats (TC-stability)",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/0/points",
+    "what": "V-k325 repeat 1",
+    "value": 160
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/1/points",
+    "what": "V-k325 repeat 2",
+    "value": 163
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/2/points",
+    "what": "V-k325 repeat 3",
+    "value": 160
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/0/points",
+    "what": "C-k325 repeat 1",
+    "value": 163
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/1/points",
+    "what": "C-k325 repeat 2",
+    "value": 163
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/2/points",
+    "what": "C-k325 repeat 3",
+    "value": 163
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/0/points",
+    "what": "V-k4 repeat 1",
+    "value": 163
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/1/points",
+    "what": "V-k4 repeat 2",
+    "value": 158
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/2/points",
+    "what": "V-k4 repeat 3",
+    "value": 160
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/0/points",
+    "what": "C-k4 repeat 1",
+    "value": 158
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/1/points",
+    "what": "C-k4 repeat 2",
+    "value": 158
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/2/points",
+    "what": "C-k4 repeat 3",
+    "value": 158
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/0/points",
+    "what": "C-k6 repeat 1",
+    "value": 160
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/1/points",
+    "what": "C-k6 repeat 2",
+    "value": 160
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/2/points",
+    "what": "C-k6 repeat 3",
+    "value": 160
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/settings/seeds",
+    "what": "seeds",
+    "value": [
+     1001,
+     1002,
+     1003
+    ]
+   }
+  ]
+ },
+ {
+  "id": "TC-status-counts",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-TOTALS",
+  "question": "How many of the 88 scenarios does each arm pass, partly pass and fail per repeat?",
+  "statement": "Pass / partial / fail per repeat: V-k325 75/10/3, 78/7/3, 76/8/4; C-k325 77/9/2 in all three; V-k4 77/9/2, 74/10/4, 76/8/4; C-k4 73/12/3 in all three; C-k6 75/10/3 in all three.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "count of scenarios by harness status per repeat",
+  "sign": "n/a",
+  "unit": "repeat (88 scenarios)",
+  "n": "3 repeats per arm, 15 in all",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "as TC-points",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/0/pass",
+    "what": "V-k325 repeat 1",
+    "value": 75
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/1/pass",
+    "what": "V-k325 repeat 2",
+    "value": 78
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/2/pass",
+    "what": "V-k325 repeat 3",
+    "value": 76
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/0/pass",
+    "what": "C-k325 repeat 1",
+    "value": 77
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/1/pass",
+    "what": "C-k325 repeat 2",
+    "value": 77
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/2/pass",
+    "what": "C-k325 repeat 3",
+    "value": 77
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/0/pass",
+    "what": "V-k4 repeat 1",
+    "value": 77
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/1/pass",
+    "what": "V-k4 repeat 2",
+    "value": 74
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/2/pass",
+    "what": "V-k4 repeat 3",
+    "value": 76
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/0/pass",
+    "what": "C-k4 repeat 1",
+    "value": 73
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/1/pass",
+    "what": "C-k4 repeat 2",
+    "value": 73
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/2/pass",
+    "what": "C-k4 repeat 3",
+    "value": 73
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/0/pass",
+    "what": "C-k6 repeat 1",
+    "value": 75
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/1/pass",
+    "what": "C-k6 repeat 2",
+    "value": 75
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/2/pass",
+    "what": "C-k6 repeat 3",
+    "value": 75
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/0/partial",
+    "what": "V-k325 repeat 1",
+    "value": 10
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/1/partial",
+    "what": "V-k325 repeat 2",
+    "value": 7
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/2/partial",
+    "what": "V-k325 repeat 3",
+    "value": 8
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/0/partial",
+    "what": "C-k325 repeat 1",
+    "value": 9
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/1/partial",
+    "what": "C-k325 repeat 2",
+    "value": 9
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/2/partial",
+    "what": "C-k325 repeat 3",
+    "value": 9
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/0/partial",
+    "what": "V-k4 repeat 1",
+    "value": 9
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/1/partial",
+    "what": "V-k4 repeat 2",
+    "value": 10
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/2/partial",
+    "what": "V-k4 repeat 3",
+    "value": 8
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/0/partial",
+    "what": "C-k4 repeat 1",
+    "value": 12
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/1/partial",
+    "what": "C-k4 repeat 2",
+    "value": 12
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/2/partial",
+    "what": "C-k4 repeat 3",
+    "value": 12
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/0/partial",
+    "what": "C-k6 repeat 1",
+    "value": 10
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/1/partial",
+    "what": "C-k6 repeat 2",
+    "value": 10
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/2/partial",
+    "what": "C-k6 repeat 3",
+    "value": 10
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/0/fail",
+    "what": "V-k325 repeat 1",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/1/fail",
+    "what": "V-k325 repeat 2",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/2/fail",
+    "what": "V-k325 repeat 3",
+    "value": 4
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/0/fail",
+    "what": "C-k325 repeat 1",
+    "value": 2
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/1/fail",
+    "what": "C-k325 repeat 2",
+    "value": 2
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/2/fail",
+    "what": "C-k325 repeat 3",
+    "value": 2
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/0/fail",
+    "what": "V-k4 repeat 1",
+    "value": 2
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/1/fail",
+    "what": "V-k4 repeat 2",
+    "value": 4
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/2/fail",
+    "what": "V-k4 repeat 3",
+    "value": 4
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/0/fail",
+    "what": "C-k4 repeat 1",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/1/fail",
+    "what": "C-k4 repeat 2",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/2/fail",
+    "what": "C-k4 repeat 3",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/0/fail",
+    "what": "C-k6 repeat 1",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/1/fail",
+    "what": "C-k6 repeat 2",
+    "value": 3
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/2/fail",
+    "what": "C-k6 repeat 3",
+    "value": 3
+   }
+  ]
+ },
+ {
+  "id": "TC-safety-gate",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-TOTALS",
+  "question": "Does any arm pass the harness's safety gate?",
+  "statement": "The harness's safety gate was not passed on any of the 15 repeats: scenario TC-43 was flagged on every repeat of every arm (status fail in all 15), and TC-58 also on V-k325 repeat 3.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "harness safety gate (passed / not passed) and the scenarios it flags",
+  "sign": "n/a",
+  "unit": "repeat",
+  "n": "15 repeats (5 arms x 3)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "flagged on all 15 repeats",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/0/safety_gate_passed",
+    "what": "V-k325 repeat 1",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/1/safety_gate_passed",
+    "what": "V-k325 repeat 2",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/2/safety_gate_passed",
+    "what": "V-k325 repeat 3",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/0/safety_gate_passed",
+    "what": "C-k325 repeat 1",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/1/safety_gate_passed",
+    "what": "C-k325 repeat 2",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/2/safety_gate_passed",
+    "what": "C-k325 repeat 3",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/0/safety_gate_passed",
+    "what": "V-k4 repeat 1",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/1/safety_gate_passed",
+    "what": "V-k4 repeat 2",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/2/safety_gate_passed",
+    "what": "V-k4 repeat 3",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/0/safety_gate_passed",
+    "what": "C-k4 repeat 1",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/1/safety_gate_passed",
+    "what": "C-k4 repeat 2",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/2/safety_gate_passed",
+    "what": "C-k4 repeat 3",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/0/safety_gate_passed",
+    "what": "C-k6 repeat 1",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/1/safety_gate_passed",
+    "what": "C-k6 repeat 2",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/2/safety_gate_passed",
+    "what": "C-k6 repeat 3",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/0/safety_warning_scenarios",
+    "what": "V-k325 repeat 1",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/1/safety_warning_scenarios",
+    "what": "V-k325 repeat 2",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/2/safety_warning_scenarios",
+    "what": "V-k325 repeat 3",
+    "value": [
+     "TC-43",
+     "TC-58"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/0/safety_warning_scenarios",
+    "what": "C-k325 repeat 1",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/1/safety_warning_scenarios",
+    "what": "C-k325 repeat 2",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/2/safety_warning_scenarios",
+    "what": "C-k325 repeat 3",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/0/safety_warning_scenarios",
+    "what": "V-k4 repeat 1",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/1/safety_warning_scenarios",
+    "what": "V-k4 repeat 2",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/2/safety_warning_scenarios",
+    "what": "V-k4 repeat 3",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/0/safety_warning_scenarios",
+    "what": "C-k4 repeat 1",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/1/safety_warning_scenarios",
+    "what": "C-k4 repeat 2",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/2/safety_warning_scenarios",
+    "what": "C-k4 repeat 3",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/0/safety_warning_scenarios",
+    "what": "C-k6 repeat 1",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/1/safety_warning_scenarios",
+    "what": "C-k6 repeat 2",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/2/safety_warning_scenarios",
+    "what": "C-k6 repeat 3",
+    "value": [
+     "TC-43"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-43",
+    "what": "TC-43 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "fail",
+      "fail",
+      "fail"
+     ],
+     "C-k325": [
+      "fail",
+      "fail",
+      "fail"
+     ],
+     "V-k4": [
+      "fail",
+      "fail",
+      "fail"
+     ],
+     "C-k4": [
+      "fail",
+      "fail",
+      "fail"
+     ],
+     "C-k6": [
+      "fail",
+      "fail",
+      "fail"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "TC-turn-time",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-TOTALS",
+  "question": "What median turn time does the harness record per arm and repeat?",
+  "statement": "Harness median turn time per repeat, 8 requests in parallel: V-k325 4,833, 4,806, 4,901 ms; C-k325 2,750, 2,718, 2,686 ms; V-k4 5,322, 5,218, 5,368 ms; C-k4 3,081, 3,212, 3,063 ms; C-k6 3,292, 3,208, 3,340 ms. Descriptive; not a controlled speed measurement.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "harness median_turn_ms per repeat (wall time per turn, including thinking and tool rounds)",
+  "sign": "lower = faster turns",
+  "unit": "repeat",
+  "n": "3 repeats per arm, 15 in all",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "three repeats per arm within one launch",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/0/median_turn_ms",
+    "what": "V-k325 repeat 1",
+    "value": 4833
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/1/median_turn_ms",
+    "what": "V-k325 repeat 2",
+    "value": 4806
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k325/repeats/2/median_turn_ms",
+    "what": "V-k325 repeat 3",
+    "value": 4901
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/0/median_turn_ms",
+    "what": "C-k325 repeat 1",
+    "value": 2750
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/1/median_turn_ms",
+    "what": "C-k325 repeat 2",
+    "value": 2718
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k325/repeats/2/median_turn_ms",
+    "what": "C-k325 repeat 3",
+    "value": 2686
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/0/median_turn_ms",
+    "what": "V-k4 repeat 1",
+    "value": 5322
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/1/median_turn_ms",
+    "what": "V-k4 repeat 2",
+    "value": 5218
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/V-k4/repeats/2/median_turn_ms",
+    "what": "V-k4 repeat 3",
+    "value": 5368
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/0/median_turn_ms",
+    "what": "C-k4 repeat 1",
+    "value": 3081
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/1/median_turn_ms",
+    "what": "C-k4 repeat 2",
+    "value": 3212
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k4/repeats/2/median_turn_ms",
+    "what": "C-k4 repeat 3",
+    "value": 3063
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/0/median_turn_ms",
+    "what": "C-k6 repeat 1",
+    "value": 3292
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/1/median_turn_ms",
+    "what": "C-k6 repeat 2",
+    "value": 3208
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/arms/C-k6/repeats/2/median_turn_ms",
+    "what": "C-k6 repeat 3",
+    "value": 3340
+   }
+  ]
+ },
+ {
+  "id": "TC-engines-k325",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-ENGINES",
+  "question": "On K3.25 (vLLM fork v0.9.2 on K3.25-v1, CuteAFD v4.0.0 on K3.25-Core-FP8), which scenarios differ between the engines in all three repeats?",
+  "statement": "By the frozen rule (status sets disjoint across the three repeats), 7 of 88 scenarios differ: CuteAFD partial where the vLLM fork passes on TC-23, TC-31, TC-40 and TC-50, and CuteAFD passes where the vLLM fork is partial on TC-46, TC-61 and TC-69. Descriptive.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "scenarios whose status sets on the two arms share no value over three repeats each",
+  "sign": "n/a",
+  "unit": "scenario",
+  "n": "88 scenarios, 3 repeats per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/pairs/C-k325 vs V-k325",
+    "what": "scenarios differing, C-k325 vs V-k325",
+    "value": [
+     "TC-23",
+     "TC-31",
+     "TC-40",
+     "TC-46",
+     "TC-50",
+     "TC-61",
+     "TC-69"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-23",
+    "what": "TC-23 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "V-k4": [
+      "pass",
+      "partial",
+      "pass"
+     ],
+     "C-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-31",
+    "what": "TC-31 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-40",
+    "what": "TC-40 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "V-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "partial",
+      "partial",
+      "partial"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-46",
+    "what": "TC-46 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "partial",
+      "partial",
+      "partial"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-50",
+    "what": "TC-50 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "V-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "partial",
+      "partial",
+      "partial"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-61",
+    "what": "TC-61 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "partial",
+      "partial",
+      "partial"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-69",
+    "what": "TC-69 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "partial",
+      "pass"
+     ],
+     "C-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/PROTOCOL.md",
+    "lines": [
+     32,
+     33
+    ],
+    "what": "reading rule",
+    "text": "- Reading rule: descriptive. A scenario differs between engines only if its status differs in all three repeats\n  pairwise (vLLM repeats are known to flip); totals reported with the per-repeat range, no significance claim."
+   }
+  ]
+ },
+ {
+  "id": "TC-engines-k4",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-ENGINES",
+  "question": "On K4 (brandonmusic tr3-4bpw), which scenarios differ between the vLLM fork v0.9.2 and CuteAFD v4.0.0 in all three repeats?",
+  "statement": "By the frozen rule, 5 of 88 scenarios differ: TC-53, TC-62, TC-67, TC-68 and TC-76, CuteAFD partial in every repeat; the vLLM fork passes all three repeats on four of them and passes, fails, passes on TC-76. Descriptive.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "scenarios whose status sets on the two arms share no value over three repeats each",
+  "sign": "n/a",
+  "unit": "scenario",
+  "n": "88 scenarios, 3 repeats per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/pairs/C-k4 vs V-k4",
+    "what": "scenarios differing, C-k4 vs V-k4",
+    "value": [
+     "TC-53",
+     "TC-62",
+     "TC-67",
+     "TC-68",
+     "TC-76"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-53",
+    "what": "TC-53 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "partial",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-62",
+    "what": "TC-62 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-67",
+    "what": "TC-67 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "partial",
+      "partial",
+      "partial"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-68",
+    "what": "TC-68 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "partial",
+      "pass",
+      "partial"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-76",
+    "what": "TC-76 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "fail",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/PROTOCOL.md",
+    "lines": [
+     32,
+     33
+    ],
+    "what": "reading rule",
+    "text": "- Reading rule: descriptive. A scenario differs between engines only if its status differs in all three repeats\n  pairwise (vLLM repeats are known to flip); totals reported with the per-repeat range, no significance claim."
+   }
+  ]
+ },
+ {
+  "id": "TC-stability",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-STABILITY",
+  "question": "Which scenarios change status between repeats (seeds 1001, 1002, 1003) of one arm at temperature 0?",
+  "statement": "Status changed between repeats on 8 of 88 scenarios for V-k325 and 8 for V-k4, and on 0 for C-k325, C-k4 and C-k6, whose per-scenario statuses and totals were the same in all three repeats.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "scenarios with more than one status across the three repeats of an arm",
+  "sign": "n/a",
+  "unit": "scenario",
+  "n": "88 scenarios per arm, 3 repeats each",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "PROTOCOL.md:15 records an earlier vLLM fork v0.9.0 run on K3.25 (outside this repository) with ten scenarios changing between repeats at temperature 0",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/unstable",
+    "what": "scenarios changing between repeats, per arm",
+    "value": {
+     "V-k325": [
+      "TC-21",
+      "TC-47",
+      "TC-53",
+      "TC-58",
+      "TC-68",
+      "TC-82",
+      "TC-85",
+      "TC-88"
+     ],
+     "C-k325": [],
+     "V-k4": [
+      "TC-21",
+      "TC-23",
+      "TC-60",
+      "TC-69",
+      "TC-76",
+      "TC-81",
+      "TC-85",
+      "TC-88"
+     ],
+     "C-k4": [],
+     "C-k6": []
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/PROTOCOL.md",
+    "lines": [
+     15,
+     15
+    ],
+    "what": "prior result",
+    "text": "| Prior result | vLLM fork v0.9.0, K3.25: 157/176 both repeats; ten scenarios flip between repeats at temperature 0 |"
+   }
+  ]
+ },
+ {
+  "id": "TC-core-k6-vs-k4",
+  "run": "2026-11-02-tool-calling",
+  "goal": "TC-CORE",
+  "question": "On CuteAFD v4.0.0, which scenarios differ between K4-Core-K6 and K4 in all three repeats?",
+  "statement": "Exploratory (a pair not named in the frozen reading rule): with the same rule, 7 of 88 scenarios differ; C-k6 passes where C-k4 is partial on TC-53, TC-62, TC-68 and TC-76, and C-k6 is partial where C-k4 passes on TC-82, partial where C-k4 fails on TC-85, and fails where C-k4 passes on TC-88.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "scenarios whose status sets on the two arms share no value over three repeats each",
+  "sign": "n/a",
+  "unit": "scenario",
+  "n": "88 scenarios, 3 repeats per arm (statuses identical across repeats on both arms)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (image digest not given)",
+   "checkpoint": "K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929; K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1",
+   "items": "all 88 tool-eval-bench scenarios at commit cf54b4b, including 19 Hard Mode",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (chat completions with tools; temperature 0, thinking on, clear_thinking=false, 8 in parallel, 900 s timeout)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "not attempted; the pair is computed by analyze_tc.py, which is not among the files hashed in FROZEN.json, so when it was added is not recorded",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/pairs/C-k6 vs C-k4",
+    "what": "scenarios differing, C-k6 vs C-k4",
+    "value": [
+     "TC-53",
+     "TC-62",
+     "TC-68",
+     "TC-76",
+     "TC-82",
+     "TC-85",
+     "TC-88"
+    ]
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-53",
+    "what": "TC-53 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "partial",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-62",
+    "what": "TC-62 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-68",
+    "what": "TC-68 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "partial",
+      "pass",
+      "partial"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-76",
+    "what": "TC-76 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "fail",
+      "pass"
+     ],
+     "C-k4": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "C-k6": [
+      "pass",
+      "pass",
+      "pass"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-82",
+    "what": "TC-82 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "pass",
+      "partial"
+     ],
+     "C-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k6": [
+      "partial",
+      "partial",
+      "partial"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-85",
+    "what": "TC-85 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "fail",
+      "partial",
+      "fail"
+     ],
+     "C-k325": [
+      "partial",
+      "partial",
+      "partial"
+     ],
+     "V-k4": [
+      "partial",
+      "fail",
+      "fail"
+     ],
+     "C-k4": [
+      "fail",
+      "fail",
+      "fail"
+     ],
+     "C-k6": [
+      "partial",
+      "partial",
+      "partial"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/scenario_status/TC-88",
+    "what": "TC-88 status per arm and repeat",
+    "value": {
+     "V-k325": [
+      "pass",
+      "fail",
+      "pass"
+     ],
+     "C-k325": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "V-k4": [
+      "pass",
+      "pass",
+      "fail"
+     ],
+     "C-k4": [
+      "pass",
+      "pass",
+      "pass"
+     ],
+     "C-k6": [
+      "fail",
+      "fail",
+      "fail"
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/analyze_tc.py",
+    "lines": [
+     7,
+     9
+    ],
+    "what": "analysis docstring: engine contrast and the K4-Core-K6 pair",
+    "text": "Engine contrast per checkpoint (V vs C on K3.25 and K4): a scenario \"differs\" only when no vLLM repeat shares a status\nwith any CuteAFD repeat (the status sets are disjoint); scenarios whose status changes between repeats of one arm are\ncounted as unstable. K4-Core-K6 against K4, both CuteAFD, with the same rule. Gate R2: prompt_tokens per conversation."
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/PROTOCOL.md",
+    "lines": [
+     32,
+     33
+    ],
+    "what": "frozen reading rule (engine contrasts)",
+    "text": "- Reading rule: descriptive. A scenario differs between engines only if its status differs in all three repeats\n  pairwise (vLLM repeats are known to flip); totals reported with the per-repeat range, no significance claim."
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/FROZEN.json",
+    "what": "files hashed at the freeze; analyze_tc.py is not among them"
+   }
+  ]
+ },
+ {
+  "id": "TC-gate-r2",
+  "run": "2026-11-02-tool-calling",
+  "goal": "GATE-R2",
+  "question": "Live, before each arm's repeats: is usage.prompt_tokens equal across all five arms for each gate conversation?",
+  "statement": "Equal on all five arms: tool-loop 192, follow-up 204 and two-calls 207 prompt tokens. Equal counts, not a byte comparison of the rendered prompts.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "usage.prompt_tokens per gate conversation and arm (max_tokens 1, clear_thinking=false)",
+  "sign": "n/a",
+  "unit": "conversation x arm",
+  "n": "15 (3 conversations x 5 arms), one request each",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (image digests not given)",
+   "checkpoint": "K3.25: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 (vLLM arm) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 (CuteAFD arm), revisions not given, so engine and checkpoint variant change together on K3.25; K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (both engines); K4-Core-K6: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (CuteAFD)",
+   "items": "3 fixed gate conversations (gate/gate-r-conversations.json)",
+   "context": "multi-turn tool conversations, up to 8 turns",
+   "path": "serving (prompt only, max_tokens 1)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W; GPU only, experts local, no DGX Spark expert nodes"
+  },
+  "family": null,
+  "replication": "the offline render gate (GATE-R) passed before the freeze",
+  "evidence": [
+   {
+    "file": "results/2026-11-02-tool-calling/SUMMARY.json",
+    "pointer": "/gate_r2",
+    "what": "prompt tokens per arm and conversation",
+    "value": {
+     "V-k325": {
+      "tool-loop": 192,
+      "follow-up": 204,
+      "two-calls": 207
+     },
+     "C-k325": {
+      "tool-loop": 192,
+      "follow-up": 204,
+      "two-calls": 207
+     },
+     "V-k4": {
+      "tool-loop": 192,
+      "follow-up": 204,
+      "two-calls": 207
+     },
+     "C-k4": {
+      "tool-loop": 192,
+      "follow-up": 204,
+      "two-calls": 207
+     },
+     "C-k6": {
+      "tool-loop": 192,
+      "follow-up": 204,
+      "two-calls": 207
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/gate/live-V-k325.json",
+    "pointer": "/prompt_tokens",
+    "what": "V-k325 live receipt",
+    "value": {
+     "tool-loop": 192,
+     "follow-up": 204,
+     "two-calls": 207
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/gate/live-C-k325.json",
+    "pointer": "/prompt_tokens",
+    "what": "C-k325 live receipt",
+    "value": {
+     "tool-loop": 192,
+     "follow-up": 204,
+     "two-calls": 207
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/gate/live-V-k4.json",
+    "pointer": "/prompt_tokens",
+    "what": "V-k4 live receipt",
+    "value": {
+     "tool-loop": 192,
+     "follow-up": 204,
+     "two-calls": 207
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/gate/live-C-k4.json",
+    "pointer": "/prompt_tokens",
+    "what": "C-k4 live receipt",
+    "value": {
+     "tool-loop": 192,
+     "follow-up": 204,
+     "two-calls": 207
+    }
+   },
+   {
+    "file": "results/2026-11-02-tool-calling/gate/live-C-k6.json",
+    "pointer": "/prompt_tokens",
+    "what": "C-k6 live receipt",
+    "value": {
+     "tool-loop": 192,
+     "follow-up": 204,
+     "two-calls": 207
+    }
+   }
+  ]
+ }
+]

@@ -1,0 +1,1003 @@
+[
+ {
+  "id": "NQ-gen",
+  "run": "2026-11-06-new-questions",
+  "goal": "GEN",
+  "question": "How did K4-Core-K6 (6-bit core, vLLM fork + route b) finish, answer and how long did it write on the 30 new science questions, 3 samples each?",
+  "statement": "90 of 90 samples finished and 87 were correct (accuracy 0.967 over finished replies); completion tokens median 2,398, min 408, max 121,240. 88 finished traces were kept (2 above the 96K limit); only this one arm generated, so no core or layout comparison of length comes from these samples.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "finish class, answer against the gold letter, completion tokens per sample",
+  "sign": "n/a",
+  "unit": "sample",
+  "n": "90 (30 questions x 3; seed 60000 + 100 x question + rep, recorded)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load (no swap)",
+   "items": "30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before",
+   "context": "cap 327,680 completion tokens",
+   "path": "free generation (temperature 1.0, top_p 0.95, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/generation/samples",
+    "what": "samples",
+    "value": 90
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/generation/by_class",
+    "what": "finish classes",
+    "value": {
+     "ok": 90
+    }
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/generation/finished_correct",
+    "what": "correct",
+    "value": 87
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/generation/accuracy_over_finished",
+    "what": "accuracy over finished",
+    "value": 0.9666666666666667
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/generation/completion_tokens_finished",
+    "what": "completion tokens: median, min, max",
+    "value": {
+     "median": 2398.0,
+     "min": 408,
+     "max": 121240
+    }
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/finished_traces",
+    "what": "finished traces kept",
+    "value": 88
+   }
+  ]
+ },
+ {
+  "id": "NQ-qbo-primary",
+  "run": "2026-11-06-new-questions",
+  "goal": "PRIMARY",
+  "question": "On 30 science questions not used before, does the q_b + output-projection layout (qbo) move log p(</think>) at the close against K4-Core-K6 on the vLLM fork with route b, as it did on the 11 questions where the lead was found?",
+  "statement": "qbo − k6 (launch means): −0.0032 [−0.0161, +0.0064] in log p(</think>) at the close, 88 finished traces on 30 new questions; launch band 0.0039 and the four cross-launch pairings −0.0063 to −0.0000. Under the rule frozen before the first launch: not replicated, and the earlier +0.0118 (AP-qbo) lies outside this interval.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, qbo - k6, launch means (two launches each), mean over finished traces",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 1,
+   "excluding_0": 0,
+   "note": "the frozen primary; secondaries reported separately (13 intervals, 5 excluding 0)"
+  },
+  "replication": "failed to replicate AP-qbo (+0.0118 [+0.0047, +0.0205] on the 11 questions where the lead was found)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/primary_qbo_minus_k6",
+    "what": "qbo - k6: clustered, over traces, launch differences, pairings",
+    "value": {
+     "delta_by_question": [
+      -0.0031642038113349454,
+      -0.016119488531475216,
+      0.006395191859291333
+     ],
+     "delta_by_trace": [
+      -0.0031642038113349454,
+      -0.01295451240557487,
+      0.006397140664726003
+     ],
+     "launch_k6_b_minus_a": -0.003908868287288153,
+     "launch_qbo_b_minus_a": 0.0023800567394738955,
+     "cross_pairings": {
+      "qbo-a-k6-a": -0.0063086663247159695,
+      "qbo-a-k6-b": -0.002399798037427817,
+      "qbo-b-k6-a": -0.003928609585242074,
+      "qbo-b-k6-b": -1.9741297953921524e-05
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/reading_rule",
+    "what": "frozen rule fields",
+    "value": {
+     "launch_band": 0.003908868287288153,
+     "ci_excludes_0_positive": false,
+     "ci_excludes_0_negative": false,
+     "exceeds_launch_band": false,
+     "all_cross_pairings_positive": false,
+     "verdict": "not replicated at this size",
+     "earlier_estimate_inside_new_ci": false
+    }
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/lp_close/delta_by_question",
+    "what": "earlier 11 questions (attn-position)",
+    "value": [
+     0.01181993296816106,
+     0.004655912031787028,
+     0.020462506309187528
+    ]
+   }
+  ],
+  "bound": "a shift from −0.0161 to +0.0064 in log p(</think>) at the close is not excluded",
+  "replaces": [
+   "TL-qbo"
+  ]
+ },
+ {
+  "id": "NQ-qbo-pooled",
+  "run": "2026-11-06-new-questions",
+  "goal": "POOLED",
+  "question": "Pooled over the earlier 11 and the 30 new science questions, does qbo move log p(</think>) at the close on the vLLM fork with route b?",
+  "statement": "Pooled over 41 questions (165 finished traces: the 77 earlier ones scored on the qbo run's launches and the 88 new ones), qbo − k6 is +0.0038 [−0.0046, +0.0105]; the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, qbo - k6, launch means, earlier and new traces pooled",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "165 finished traces, 41 questions",
+  "interval": "95% bootstrap clustered by question (41 questions), 2,000 replicates, numpy default_rng(20261106)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "41 science questions: the 11 of 2026-11-02-thinking-length (77 finished traces) and set nq (88 traces on 30 new questions)",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "combines AP-qbo and NQ-qbo-primary",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/pooled_qbo_minus_k6_lp_close",
+    "what": "pooled qbo - k6",
+    "value": [
+     0.003828393352429857,
+     -0.004573800597107347,
+     0.010530682122553002
+    ]
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/pooled_questions",
+    "what": "questions",
+    "value": 41
+   }
+  ],
+  "bound": "a shift from −0.0046 to +0.0105 is not excluded",
+  "replaces": [
+   "TL-qbo"
+  ]
+ },
+ {
+  "id": "NQ-qbo-vs-all",
+  "run": "2026-11-06-new-questions",
+  "goal": "SEC-QBO-ALL",
+  "question": "On the 30 new science questions, does qbo differ from the whole-core BF16 arm in log p(</think>) at the close (vLLM fork, route b)?",
+  "statement": "qbo − all: +0.0077 [−0.0025, +0.0185] in log p(</think>) at the close, 30 new questions; the interval includes 0 (the whole-core arm is one launch).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, qbo (launch mean) - all (one launch)",
+  "sign": "above 0 = qbo puts more probability on </think> where the trace closed than the whole-core BF16 arm",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "failed to replicate AP-qbo-vs-all (post hoc, +0.0114 [+0.0056, +0.0195] on the 11 earlier questions)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/qbo_minus_all_lp_close",
+    "what": "qbo - all",
+    "value": [
+     0.007744708620252409,
+     -0.0024738811364784954,
+     0.01852804639261564
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/qbo_minus_g2_all",
+    "what": "earlier 11 questions, post hoc",
+    "value": [
+     0.011441406655129478,
+     0.005627262764078969,
+     0.019526334702985485
+    ]
+   }
+  ],
+  "bound": "a difference from −0.0025 to +0.0185 is not excluded"
+ },
+ {
+  "id": "NQ-core-stop-vllm",
+  "run": "2026-11-06-new-questions",
+  "goal": "SEC-ALL-K6",
+  "question": "On the vLLM fork with route b, does loading the whole core as BF16 move log p(</think>) at the close on 30 new science questions?",
+  "statement": "all − k6: −0.0109 [−0.0315, +0.0046] in log p(</think>) at the close, 88 finished traces on 30 new questions; the interval includes 0. This is the stop decision on fixed traces, not free-generation length.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, all (one launch) - k6 (launch mean)",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "same contrast on the 11 earlier questions: TL-stop-core (+0.005 [−0.009, +0.019], over traces) and AP-core-vs-mean4; the two question sets are not pooled for this contrast in the published data",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/all_minus_k6_lp_close",
+    "what": "all - k6",
+    "value": [
+     -0.010908912431587354,
+     -0.03149329608965915,
+     0.004632880566241868
+    ]
+   }
+  ],
+  "bound": "a change from −0.0315 to +0.0046 in log p(</think>) at the close is not excluded",
+  "replaces": [
+   "TL-stop-vllm"
+  ]
+ },
+ {
+  "id": "NQ-hazard-vllm-core",
+  "run": "2026-11-06-new-questions",
+  "goal": "SEC-HAZARD",
+  "question": "On the 30 new science questions, does the whole core in BF16 change the pre-close hazard (mean p(</think>) over the 512 rows before the close) on the vLLM fork? (The result document reads 'Hazard: no change'.)",
+  "statement": "all − k6 hazard: −0.0000051 [−0.0000091, −0.0000013]; the interval excludes 0, a resolved shift in a secondary measure that NQ-RESULT.md reads as no change. The whole-core arm is one launch, and on the earlier traces two launches of the same 6-bit arm differed by −0.0000100 [−0.0000190, −0.0000024] (TL-stop-hazard).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "mean p(</think>) over the 512 rows before the close, all - k6",
+  "sign": "above 0 = the whole-core BF16 arm puts more probability on </think> just before the close",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "11 earlier questions: TL-stop-hazard (all - k6 includes 0; a second 6-bit launch excludes 0)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/all_minus_k6_hazard",
+    "what": "all - k6 hazard",
+    "value": [
+     -5.099764540827695e-06,
+     -9.097683307960137e-06,
+     -1.311678865498959e-06
+    ]
+   },
+   {
+    "file": "results/2026-11-06-new-questions/NQ-RESULT.md",
+    "lines": [
+     12,
+     12
+    ],
+    "what": "result doc: 'Hazard: no change'",
+    "text": "- Secondary: qbo - all +0.0077 [-0.0025, +0.0185]; all - k6 -0.0109 [-0.0315, +0.0046]. Hazard: no change."
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/k6r2/hazard/ci95",
+    "what": "earlier traces, second 6-bit launch",
+    "value": [
+     -1.8973612006805432e-05,
+     -2.441686921733364e-06
+    ]
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/k6r2/hazard/delta",
+    "what": "earlier traces, second 6-bit launch, delta",
+    "value": -1.0022694701111334e-05
+   }
+  ]
+ },
+ {
+  "id": "NQ-hazard-qbo",
+  "run": "2026-11-06-new-questions",
+  "goal": "SEC-HAZARD",
+  "question": "On the 30 new science questions, does qbo change the pre-close hazard against k6 or against the whole core in BF16?",
+  "statement": "qbo − k6 hazard +0.0000002 [−0.0000065, +0.0000064] and qbo − all +0.0000053 [−0.0000026, +0.0000124]; both intervals include 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "mean p(</think>) over the 512 rows before the close, qbo - k6 and qbo - all",
+  "sign": "above 0 = qbo puts more probability on </think> just before the close",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "11 earlier questions: AP-qbo-hazard",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/qbo_minus_k6_hazard",
+    "what": "qbo - k6 hazard",
+    "value": [
+     2.434311174241934e-07,
+     -6.49748431274771e-06,
+     6.371618757837379e-06
+    ]
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/qbo_minus_all_hazard",
+    "what": "qbo - all hazard",
+    "value": [
+     5.343195658251888e-06,
+     -2.606158865846458e-06,
+     1.2389173450023598e-05
+    ]
+   }
+  ],
+  "bound": "qbo − k6 from −0.0000065 to +0.0000064 and qbo − all from −0.0000026 to +0.0000124 are not excluded"
+ },
+ {
+  "id": "NQ-core-stop-cuteafd",
+  "run": "2026-11-06-new-questions",
+  "goal": "CUTEAFD",
+  "question": "On CuteAFD v4.0.0, does the BF16 core (FP8 at load) move log p(</think>) at the close against the native 6-bit core on 30 new science questions?",
+  "statement": "C-K6x − C-K6: −0.0144 [−0.0497, +0.0187] in log p(</think>) at the close, 88 traces on 30 new questions; the interval includes 0. This is the stop decision on fixed traces; free-generation length on science questions was not measured on CuteAFD.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, C-K6x (BF16 core, FP8 at load) - C-K6 (native 6-bit core)",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; one launch each (CuteAFD scoring bit-identical across launches)",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified",
+   "checkpoint": "C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "11 earlier questions: 2026-11-03-cuteafd-core-swap/S2; pooled: NQ-core-stop-cuteafd-pooled",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/cuteafd/core_bf16_minus_6bit_lp_close",
+    "what": "C-K6x - C-K6",
+    "value": [
+     -0.014402693071427951,
+     -0.04973071546307603,
+     0.01868408946446656
+    ]
+   }
+  ],
+  "bound": "a change from −0.0497 to +0.0187 in log p(</think>) at the close is not excluded",
+  "replaces": [
+   "TL-stop-cuteafd"
+  ]
+ },
+ {
+  "id": "NQ-core-stop-cuteafd-pooled",
+  "run": "2026-11-06-new-questions",
+  "goal": "CUTEAFD",
+  "question": "On CuteAFD v4.0.0, pooled over the core-swap run's 11 science questions and the 30 new ones, does the BF16 core move log p(</think>) at the close?",
+  "statement": "Pooled over 41 questions: C-K6x − C-K6 −0.0028 [−0.0263, +0.0195] in log p(</think>) at the close; the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, C-K6x - C-K6, core-swap step 2 traces and set nq pooled",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "41 questions (77 earlier finished traces + 88 new)",
+  "interval": "95% bootstrap clustered by question (41 questions), 2,000 replicates, numpy default_rng(20261106)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified",
+   "checkpoint": "C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load",
+   "items": "41 science questions: the 11 of 2026-11-03-cuteafd-core-swap step 2 and set nq (30 new)",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "parts: 2026-11-03-cuteafd-core-swap/S2 and NQ-core-stop-cuteafd",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/cuteafd/pooled_core_lp_close",
+    "what": "pooled C-K6x - C-K6",
+    "value": [
+     -0.002770404522040983,
+     -0.026336678927078302,
+     0.019475939968078115
+    ]
+   }
+  ],
+  "bound": "a change from −0.0263 to +0.0195 is not excluded",
+  "replaces": [
+   "TL-stop-cuteafd"
+  ]
+ },
+ {
+  "id": "NQ-hazard-cuteafd-core",
+  "run": "2026-11-06-new-questions",
+  "goal": "CUTEAFD",
+  "question": "On CuteAFD v4.0.0, does the BF16 core change the pre-close hazard on the 30 new science questions? (The result document reads the hazard as unchanged.)",
+  "statement": "C-K6x − C-K6 hazard: −0.000016 [−0.000029, −0.0000042]; the interval excludes 0, a resolved shift in a secondary measure that NQ-RESULT.md reads as unchanged. CuteAFD scoring is bit-identical across launches (AP-cuteafd-cross-day).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "mean p(</think>) over the 512 rows before the close, C-K6x - C-K6",
+  "sign": "above 0 = the BF16-core side puts more probability on </think> just before the close",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; one launch each",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified",
+   "checkpoint": "C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/cuteafd/core_bf16_minus_6bit_hazard",
+    "what": "C-K6x - C-K6 hazard",
+    "value": [
+     -1.5996280380532353e-05,
+     -2.930868908445482e-05,
+     -4.1970704973517855e-06
+    ]
+   },
+   {
+    "file": "results/2026-11-06-new-questions/NQ-RESULT.md",
+    "lines": [
+     21,
+     23
+    ],
+    "what": "result doc: 'hazard unchanged'",
+    "text": "- Last-512 mean log p(</think>) (the approach to the close, where p is around 1e-6): vLLM all - k6 -0.114\n  [-0.132, -0.096]; CuteAFD C-K6x - C-K6 +0.106 [+0.064, +0.148]. Opposite signs on the two engines, as in the earlier\n  position analysis (-0.116 and +0.057). A tail-of-distribution measure; not the stop decision itself (hazard unchanged)."
+   }
+  ]
+ },
+ {
+  "id": "NQ-core-stop-engines",
+  "run": "2026-11-06-new-questions",
+  "goal": "XENG",
+  "question": "On the same 88 traces, do the vLLM fork's whole-core contrast and CuteAFD's core contrast on log p(</think>) at the close agree?",
+  "statement": "Whole core BF16 minus 6-bit: −0.0109 on the vLLM fork and −0.0144 on CuteAFD (same sign, both intervals include 0); per-trace correlation of the two deltas 0.29.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "mean and per-trace correlation of delta lp_close, vLLM all - k6 against CuteAFD C-K6x - C-K6",
+  "sign": "n/a",
+  "unit": "trace",
+  "n": "88 traces",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release; CuteAFD v4.0.0, unmodified",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/cuteafd/cross_engine_core_lp_close",
+    "what": "means, correlation, traces",
+    "value": {
+     "vllm_all_minus_k6": -0.010908912431587354,
+     "cuteafd_k6x_minus_k6": -0.014402693071427951,
+     "per_trace_correlation": 0.2892752485575786,
+     "traces": 88
+    }
+   }
+  ]
+ },
+ {
+  "id": "NQ-last512-core-vllm",
+  "run": "2026-11-06-new-questions",
+  "goal": "DESC-SCORE",
+  "question": "On the 30 new science questions, does the whole core in BF16 change the mean log p(</think>) over the 512 rows before the close on the vLLM fork?",
+  "statement": "all − k6: −0.114 [−0.132, −0.096] in mean log p(</think>) over the last 512 rows; the interval excludes 0. This averages log p where p(</think>) is around 1e-6, a tail measure distinct from the stop decision at the close.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "mean log p(</think>) over the 512 rows before the close, all - k6",
+  "sign": "above 0 = more log-probability on </think> on the approach to the close",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "same sign on the 11 earlier questions: AP-last512-vllm (−0.115)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/all_minus_k6_last512_logp",
+    "what": "all - k6 last-512",
+    "value": [
+     -0.1139005155811442,
+     -0.13227439828211437,
+     -0.09614769869367487
+    ]
+   }
+  ]
+ },
+ {
+  "id": "NQ-last512-core-cuteafd",
+  "run": "2026-11-06-new-questions",
+  "goal": "DESC-SCORE",
+  "question": "On the 30 new science questions, does the BF16 core change the mean log p(</think>) over the 512 rows before the close on CuteAFD v4.0.0?",
+  "statement": "C-K6x − C-K6: +0.106 [+0.064, +0.148] in mean log p(</think>) over the last 512 rows; the interval excludes 0, opposite in sign to the vLLM fork's whole-core contrast on the same traces (NQ-last512-core-vllm).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "mean log p(</think>) over the 512 rows before the close, C-K6x - C-K6",
+  "sign": "above 0 = more log-probability on </think> on the approach to the close",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; one launch each",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified",
+   "checkpoint": "C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "same sign on the 11 earlier questions: AP-last512-cuteafd (+0.057)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/cuteafd/core_bf16_minus_6bit_last512_logp",
+    "what": "C-K6x - C-K6 last-512",
+    "value": [
+     0.10576214045876062,
+     0.06409813663153568,
+     0.14848398019957365
+    ]
+   }
+  ]
+ },
+ {
+  "id": "NQ-last512-qbo",
+  "run": "2026-11-06-new-questions",
+  "goal": "DESC-SCORE",
+  "question": "On the 30 new science questions, does qbo change the mean log p(</think>) over the 512 rows before the close against k6?",
+  "statement": "qbo − k6: +0.006 [−0.012, +0.025] in mean log p(</think>) over the last 512 rows; the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "mean log p(</think>) over the 512 rows before the close, qbo - k6",
+  "sign": "above 0 = more log-probability on </think> on the approach to the close",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "11 earlier questions: AP-qbo-last512 (+0.008 [−0.012, +0.028])",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/qbo_minus_k6_last512_logp",
+    "what": "qbo - k6 last-512",
+    "value": [
+     0.005959671936800127,
+     -0.012449490157073993,
+     0.024669079307951595
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/last512_logp/delta_by_question",
+    "what": "earlier 11 questions",
+    "value": [
+     0.007839336662683943,
+     -0.011750958072252465,
+     0.028033868222040806
+    ]
+   }
+  ],
+  "bound": "a change from −0.012 to +0.025 is not excluded"
+ },
+ {
+  "id": "NQ-last512-qbo-vs-all",
+  "run": "2026-11-06-new-questions",
+  "goal": "DESC-SCORE",
+  "question": "On the 30 new science questions, does qbo differ from the whole-core BF16 arm in the mean log p(</think>) over the 512 rows before the close?",
+  "statement": "qbo − all: +0.120 [+0.101, +0.138] in mean log p(</think>) over the last 512 rows; the interval excludes 0 (the whole-core arm is one launch).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "mean log p(</think>) over the 512 rows before the close, qbo - all",
+  "sign": "above 0 = qbo puts more log-probability on </think> on the approach",
+  "unit": "question (cluster)",
+  "n": "88 finished traces, 30 questions; vLLM launches k6-a, qbo-a, all, k6-b, qbo-b (all: one launch); launch means",
+  "interval": "95% bootstrap clustered by question (30 questions), 2,000 replicates, numpy default_rng(20261106) (analyze_nq.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "the stated secondaries: vLLM qbo - k6 (hazard, last-512), qbo - all and all - k6 (lp_close, hazard, last-512), pooled qbo - k6; CuteAFD lp_close, hazard, last-512, pooled. Excluding 0: all - k6 hazard and last-512, qbo - all last-512, CuteAFD hazard and last-512"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/secondary/qbo_minus_all_last512_logp",
+    "what": "qbo - all last-512",
+    "value": [
+     0.11986018751794432,
+     0.10109053081563583,
+     0.13813860675965642
+    ]
+   }
+  ]
+ },
+ {
+  "id": "NQ-trace-kl",
+  "run": "2026-11-06-new-questions",
+  "goal": "DESC-SCORE",
+  "question": "How far is each arm's next-token distribution from the first 6-bit launch (k6-a) on the 88 new traces?",
+  "statement": "Mean per-trace top-64 KL against k6-a: k6-b 0.0025, qbo-a 0.0067, qbo-b 0.0067, all 0.0074, C-K6 0.0076, C-K6x 0.0125 nats/token; top-1 agreement with k6-a 0.985, 0.973, 0.973, 0.972, 0.974 and 0.963.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "top-64 KL(k6-a, arm) mean per trace, nats/token; top-1 agreement share over rows",
+  "sign": "n/a (a distance)",
+  "unit": "trace",
+  "n": "88 traces",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release; CuteAFD v4.0.0, unmodified",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "earlier traces: TL-trace-kl, TL-launch-kl",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/k6-b/kl_top64_vs_k6a_mean_per_trace",
+    "what": "k6-b KL",
+    "value": 0.0025156560938330015
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/qbo-a/kl_top64_vs_k6a_mean_per_trace",
+    "what": "qbo-a KL",
+    "value": 0.006735395470252983
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/qbo-b/kl_top64_vs_k6a_mean_per_trace",
+    "what": "qbo-b KL",
+    "value": 0.006665250122172558
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/all/kl_top64_vs_k6a_mean_per_trace",
+    "what": "all KL",
+    "value": 0.007366608793723268
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/C-K6/kl_top64_vs_k6a_mean_per_trace",
+    "what": "C-K6 KL",
+    "value": 0.007649010063737269
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/C-K6x/kl_top64_vs_k6a_mean_per_trace",
+    "what": "C-K6x KL",
+    "value": 0.012527706809616292
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/k6-b/top1_agree_vs_k6a",
+    "what": "k6-b top-1",
+    "value": 0.9845884554252259
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/qbo-a/top1_agree_vs_k6a",
+    "what": "qbo-a top-1",
+    "value": 0.9725368690018711
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/qbo-b/top1_agree_vs_k6a",
+    "what": "qbo-b top-1",
+    "value": 0.9732008128281995
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/all/top1_agree_vs_k6a",
+    "what": "all top-1",
+    "value": 0.9721143592942076
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/C-K6/top1_agree_vs_k6a",
+    "what": "C-K6 top-1",
+    "value": 0.9737239200853067
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/C-K6x/top1_agree_vs_k6a",
+    "what": "C-K6x top-1",
+    "value": 0.9628996237651651
+   }
+  ]
+ },
+ {
+  "id": "NQ-trace-nll",
+  "run": "2026-11-06-new-questions",
+  "goal": "DESC-SCORE",
+  "question": "What is each arm's mean chosen-token negative log-likelihood on the 88 new traces?",
+  "statement": "Mean trace NLL over stored rows: k6-a 0.411, k6-b 0.411, qbo-a 0.410, qbo-b 0.410, all 0.411, C-K6 0.411, C-K6x 0.419 nats/token.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "mean over traces of chosen-token -log p over stored rows, nats/token",
+  "sign": "lower = the arm finds the trace's tokens more likely",
+  "unit": "trace",
+  "n": "88 traces",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release; CuteAFD v4.0.0, unmodified",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/k6-a/nll_mean_per_trace",
+    "what": "k6-a NLL",
+    "value": 0.410764362534038
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/k6-b/nll_mean_per_trace",
+    "what": "k6-b NLL",
+    "value": 0.41051758669117044
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/qbo-a/nll_mean_per_trace",
+    "what": "qbo-a NLL",
+    "value": 0.4096529999224471
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/qbo-b/nll_mean_per_trace",
+    "what": "qbo-b NLL",
+    "value": 0.4095992617088854
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/all/nll_mean_per_trace",
+    "what": "all NLL",
+    "value": 0.4112845012789462
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/C-K6/nll_mean_per_trace",
+    "what": "C-K6 NLL",
+    "value": 0.41135158400175553
+   },
+   {
+    "file": "results/2026-11-06-new-questions/SUMMARY.json",
+    "pointer": "/trace_metrics/C-K6x/nll_mean_per_trace",
+    "what": "C-K6x NLL",
+    "value": 0.4188794130990934
+   }
+  ]
+ },
+ {
+  "id": "NQ-sat-new",
+  "run": "2026-11-06-new-questions",
+  "goal": "PH-SAT",
+  "question": "Post hoc: on the new traces where p(</think>) at the close is not near 1, does qbo move log p(</think>) at the close?",
+  "statement": "Post hoc: median p(</think>) at the close is 0.9988 on the new traces (0.934 on the earlier set); on the new traces where K4-Core-K6's lp_close < −0.01 (38 traces, 18 questions), qbo − k6 is −0.0074 [−0.0369, +0.0160].",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, qbo - k6, traces with k6 lp_close < -0.01",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "38 traces, 18 questions",
+  "interval": "95% bootstrap clustered by question (as analyze_nq.py; post hoc)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "set nq: 88 finished traces on 30 science-question Diamond questions drawn by Random(20261106) from the 198 minus the 12 used before; on-policy for K4-Core-K6 on the vLLM fork, off-policy for the other arms and for CuteAFD",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "post hoc subsets: new and earlier traces"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/NQ-RESULT.md",
+    "lines": [
+     28,
+     30
+    ],
+    "what": "post hoc saturation check",
+    "text": "- Saturation check: on these questions p(</think>) at the close is near 1 (median 0.9988; earlier set 0.934). Restricted\n  to traces where K4-Core-K6's lp_close < -0.01: new 38 traces / 18 questions -0.0074 [-0.0369, +0.0160]; earlier\n  41 traces +0.0221 [+0.0090, +0.0372]. The non-replication is not explained by saturation."
+   }
+  ],
+  "bound": "a shift from −0.0369 to +0.0160 is not excluded"
+ },
+ {
+  "id": "NQ-sat-earlier",
+  "run": "2026-11-06-new-questions",
+  "goal": "PH-SAT",
+  "question": "Post hoc: on the earlier 11 questions' traces where p(</think>) at the close is not near 1, how large is the qbo shift?",
+  "statement": "Post hoc: on the earlier traces where K4-Core-K6's lp_close < −0.01 (41 traces), qbo − k6 is +0.0221 [+0.0090, +0.0372]; these traces are a subset of the data on which the lead was found (AP-qbo).",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, qbo - k6, earlier traces with k6 lp_close < -0.01",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "41 traces of the 11 earlier questions",
+  "interval": "95% bootstrap clustered by question (as analyze_nq.py; post hoc)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1; k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o, kda_o (56 matrices) and all: 316 core matrices, loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "the 41 of the 77 finished traces of 2026-11-02-thinking-length with k6 lp_close < -0.01",
+   "context": "fixed traces up to 96K completion tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "post hoc subsets: new and earlier traces"
+  },
+  "replication": "the matching subset of new questions: NQ-sat-new",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-new-questions/NQ-RESULT.md",
+    "lines": [
+     28,
+     30
+    ],
+    "what": "post hoc saturation check",
+    "text": "- Saturation check: on these questions p(</think>) at the close is near 1 (median 0.9988; earlier set 0.934). Restricted\n  to traces where K4-Core-K6's lp_close < -0.01: new 38 traces / 18 questions -0.0074 [-0.0369, +0.0160]; earlier\n  41 traces +0.0221 [+0.0090, +0.0372]. The non-replication is not explained by saturation."
+   }
+  ]
+ }
+]

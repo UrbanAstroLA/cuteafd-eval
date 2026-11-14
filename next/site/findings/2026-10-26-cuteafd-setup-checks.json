@@ -1,0 +1,654 @@
+[
+ {
+  "id": "SC-bytes",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "BYTES",
+  "question": "Are the base tensors of the Core-FP8 checkpoint d31ebc92 byte-identical to the local K3.25-v1 0490d2f7 snapshot, as Core-FP8's stitch provenance records?",
+  "statement": "150,047 of 150,047 base tensors in Core-FP8's stitch provenance hash-equal to the local K3.25-v1 snapshot (140,944,474,104 bytes), with 0 mismatches, 0 missing and 0 local tensors outside the provenance; the other 358 provenance entries come from the FP8 source (179 weights and their block scales).",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "sha256 of each tensor's raw bytes, local K3.25-v1 snapshot against Core-FP8's published stitch provenance; counts of equal, mismatched and missing tensors",
+  "sign": "n/a",
+  "unit": "tensor",
+  "n": "150,047 base tensors (150,226 local tensors in 18 shards; 150,405 provenance entries)",
+  "interval": "none (deterministic check)",
+  "scope": {
+   "engine": "none (checkpoint files read on CPU)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (local snapshot) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92",
+   "items": "every tensor of the 18 local K3.25-v1 shards against provenance-d31ebc92.json (part of the checkpoint repository, not copied into this run)",
+   "context": "n/a",
+   "path": "files as stored (not as run)",
+   "hardware": "CPU only (no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (deterministic)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/shards_hashed",
+    "what": "shards hashed",
+    "value": 18
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/local_tensors",
+    "what": "local tensors",
+    "value": 150226
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/stitch_tensors",
+    "what": "provenance entries",
+    "value": 150405
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/stitch_from_base",
+    "what": "provenance entries from the base",
+    "value": 150047
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/stitch_from_fp8",
+    "what": "provenance entries from the FP8 source",
+    "value": 358
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/base_identical",
+    "what": "base tensors hash-equal",
+    "value": 150047
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/base_identical_bytes",
+    "what": "bytes hash-equal",
+    "value": 140944474104
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/base_mismatch",
+    "what": "mismatches",
+    "value": []
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/base_missing_locally",
+    "what": "missing locally",
+    "value": []
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/bytecheck/report-local-0490d2f7.json",
+    "pointer": "/local_not_in_stitch_count",
+    "what": "local tensors not in the provenance",
+    "value": 0
+   }
+  ]
+ },
+ {
+  "id": "SC-fp8-distance",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "FP8",
+  "question": "For the 179 projection tensors Core-FP8 replaced, how far is the official FP8, dequantized, from K3.25-v1's BF16?",
+  "statement": "Relative Frobenius norm of (dequantized official FP8 − K3.25-v1 BF16), pooled over the 179 replaced projection tensors: 0.16%; per tensor 0.14% to 0.18%.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "||dequant(FP8) − BF16||_F / ||BF16||_F, pooled over tensors and per tensor (E4M3 codes x FP32 128x128 block scale_inv)",
+  "sign": "higher = farther from the BF16 weights; 0 = identical",
+  "unit": "tensor",
+  "n": "179 tensors",
+  "interval": "none (deterministic check)",
+  "scope": {
+   "engine": "none (checkpoint files read on CPU)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (local snapshot) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92",
+   "items": "the 179 projection tensors Core-FP8 replaced (dense MLPs of layers 0-2, shared experts and the attention projections listed in report.json)",
+   "context": "n/a",
+   "path": "files as stored (not as run)",
+   "hardware": "CPU only (no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (deterministic)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/summary/tensors",
+    "what": "tensors",
+    "value": 179
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/summary/rel_fro_err_all",
+    "what": "pooled relative Frobenius norm",
+    "value": 0.0016067951842889524
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/tensors/173/rel_fro_err_official_vs_bf16",
+    "what": "smallest per-tensor value",
+    "value": 0.001407404663041234
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/tensors/46/rel_fro_err_official_vs_bf16",
+    "what": "largest per-tensor value",
+    "value": 0.001780385966412723
+   }
+  ]
+ },
+ {
+  "id": "SC-fp8-recipe",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "FP8",
+  "question": "Does a plain E4M3 amax/448 128x128 block quantization of K3.25-v1's BF16 reproduce the official FP8 bytes of the 179 tensors Core-FP8 replaced?",
+  "statement": "Own E4M3 quantization (amax/448, 128x128 blocks) of the BF16 matches 99.99998% of the official FP8 codes (lowest tensor 99.9998%); 37.2% of block scales are bit-equal, and the largest relative scale difference in any tensor is below 2^-23, which the run reads as within one FP32 ulp.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "fraction of E4M3 codes and of FP32 block scales equal between own quantization and the official FP8; largest |own − official| / official scale per tensor",
+  "sign": "1 = every code (or scale) equal",
+  "unit": "tensor",
+  "n": "179 tensors",
+  "interval": "none (deterministic check)",
+  "scope": {
+   "engine": "none (checkpoint files read on CPU)",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (local snapshot) and wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc92",
+   "items": "the 179 projection tensors Core-FP8 replaced",
+   "context": "n/a",
+   "path": "files as stored (not as run)",
+   "hardware": "CPU only (no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (deterministic)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/summary/own_quant_codes_equal_frac",
+    "what": "codes equal, all tensors",
+    "value": 0.9999998498421449
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/tensors/157/own_quant_codes_equal_frac",
+    "what": "lowest per-tensor code match",
+    "value": 0.9999979734420776
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/summary/own_quant_scales_equal_frac",
+    "what": "scales bit-equal, all tensors",
+    "value": 0.3720515324519231
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/fp8check/report.json",
+    "pointer": "/tensors/0/own_vs_official_scale_max_rel",
+    "what": "largest relative scale difference over the 179 tensors (2^-23 = 1.19e-7)",
+    "value": 1.1126199694899697e-07
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/README.md",
+    "lines": [
+     12,
+     15
+    ],
+    "what": "result as stated",
+    "text": "**FP8 projections (`fp8check/`).** For the 179 replaced tensors: the official FP8, dequantized, differs from\nK3.25-v1's BF16 by 0.16% (relative Frobenius norm). Quantizing the BF16 tensors to E4M3 with\namax/448 scales over 128×128 blocks reproduces 99.99998% of the official codes, with\nscales within one FP32 ulp (only 37.2% bit-equal)."
+   }
+  ]
+ },
+ {
+  "id": "SC-paths",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "PATHS",
+  "question": "Which CuteAFD v3.0.1 code paths serve 2 RTX GPUs with local experts and no Sparks (attention placement and DSA index cache)?",
+  "statement": "From source (CuteAFD v3.0.1, not run): on two GPUs the automatic attention placement is `context` (token-split MLA, compact index cache); `heads` (per-token key cache) is chosen only explicitly, and the v3 2-RTX release card reads head split. Both index-cache variants were read; the `layers` placement was not audited separately.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "which placement and index-cache variant the source selects for 2 RTX, local experts",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     15,
+     26
+    ],
+    "what": "placement table and notes",
+    "text": "## Which code paths serve 2 RTX, local experts, no Sparks\n\nThe answer depends on the attention placement, so it is settled first.\n\n| Placement | How it is selected | DSA index cache served | Evidence |\n|---|---|---|---|\n| `context` (token-split MLA) | **auto on two GPUs**; fails closed if the image lacks its programs | compact (per-sequence open-pool tails) | `rust/crates/cuteafd-loader/src/placement/families/glm5_flash.rs:57-75` (\"Auto is `context` on two GPUs\"); `rust/crates/cuteafd-daemon/src/families/glm5_flash/mod.rs:1383-1390` (`Context => Compact`) |\n| `heads` (head split) | explicit `ATTENTION_PLACEMENT=heads` | keys (per-token key, gate row) | same `mod.rs:1388` (`Heads if split => Keys`); `python/tools/aot/export_b12x_dsv4_aot.py:441` (\"The head split keeps the per-token index keys\") |\n| `layers` | explicit only | whatever was requested; the launcher passes keys on a split | `mod.rs:1389`; `scripts/launch/run-family.sh:2018-2030` |\n\n- The v3 2-RTX release card is `benchmarks/glm5_flash/2026-10-18-…-2rtx-glm53f-exl3-max/report.json`. It reads \"2 RTX (head split) · experts on the coordinator\".\n- Both index-cache variants were audited below. The `layers` placement uses the same programs as `heads` and was not audited separately."
+   }
+  ]
+ },
+ {
+  "id": "SC-d1",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "D1",
+  "question": "Does CuteAFD v3.0.1 keep all 512 selected index pools (the vLLM-engine issue D1 dropped column 511)?",
+  "statement": "From source: all 512 selected pools are expanded, plus the open tail pool, into a 2,112-slot row on every path read, and rows of exactly 512 pools take the dense branch; audit verdict: handled correctly. Not audited: whether the b12x top-k kernel's selected set is exact.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     32,
+     32
+    ],
+    "what": "summary row",
+    "text": "| **D1**: keeps 511 of 512 selected pools (drops column 511) | **handled correctly**: all 512 selected pools are expanded, plus the open tail pool, into a 2,112-slot row | `si:b12x/integration/cuteafd/_glmf_kernels.py:1058-1077` (`if j < Int64(self.pools)` … `lengths[row] = Int32(filled + tail)`); `engine.rs:89-90` (`SPARSE_TOPK = 2112`, \"2048 + 3\") |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     57,
+     74
+    ],
+    "what": "detail, verdict, not audited",
+    "text": "**CuteAFD counterpart.**\n- `engine.rs:24-26`: \"The indexer selects every earlier token up to 2051 tokens; past that the top 512 pools (glmf_index_topk) expand to tokens plus the open tail pool.\"\n- Selection width: `engine.rs:89-90` defines `SPARSE_TOPK: usize = 2112`, documented as \"2048 + 3, padded to 64\". The geometry is `si:…/_common.py:359-361`: `sparse_topk = ceil((index_topk + index_kpool - 1) / 64) * 64`.\n- Heads placement, and prefill under every placement: `engine.rs:4689-4704` runs `index_topk_{mode}_{cap}` into `pools`, then `index_expand`.\n- `si:…/_glmf_kernels.py:1003-1077` (`GlmfIndexExpand`):\n  - rows with `count <= dense_limit` (2,051) select every earlier token (`:1047`);\n  - longer rows loop `j < self.pools` (512) and expand each pool to its four record slots (`:1058-1068`);\n  - then the open tail pool `count - tail_start` (0-3 tokens) is appended after `filled = pools * kpool` (`:1070-1075`);\n  - `lengths = filled + tail` (`:1077`).\n  - No column is discarded, so output order cannot matter.\n- Context decode (the 2-GPU default): `engine/context.rs:15-19` describes \"merge into the global top-512 by (score desc, logical asc)\".\n  - `si:…/context_split.py:236-280` (`_CandidateMerge`): \"A + reverse(B) is bitonic … Its first compare-exchange retains exactly the global best K pairs\" (`:237-238`), with K = 512.\n  - Each GPU then expands its share in `si:…/_glmf_kernels.py:1080-1172` (`GlmfIndexExpandOwned`): `picked = local_lengths * 4` plus the tail on its owner (`:1155-1172`). \"Shard unions equal the full selection.\"\n- The exactly-512-pools case: 512 complete pools means 2,048-2,051 tokens, which is at or below `dense_limit` = 2,051. Those rows take the dense branch and select every token.\n\n**Verdict: handled correctly.** The 512-pool selection is kept whole on every path read. The tail tokens have their own columns.\n\n**Not audited.** Whether the b12x top-k kernel's selected *set* is exact: the GLM index top-k is `dsv4_indexer._TopK`, called from `si:…/glm_indexer.py`. That is outside D1. The vLLM investigation measured the set exact apart from ties on its own b12x kernels, and this audit did not compare CuteAFD's kernel revision with those."
+   }
+  ]
+ },
+ {
+  "id": "SC-d2",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "D2",
+  "question": "Does CuteAFD v3.0.1 have a counterpart of the vLLM-engine issue D2 (index tail ring written without positions)?",
+  "statement": "From source: there is no tail ring or generic mapping fallback; every slot is addressed from the row's own position and its sequence's pages, and a position outside them is an error. Audit verdict: not applicable (different design).",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     33,
+     33
+    ],
+    "what": "summary row",
+    "text": "| **D2**: tail ring written without positions (null block, foreign blocks) | **not applicable (different design)**: there is no tail-ring view or generic mapping fallback; every slot comes from the row's own position | `engine.rs:653-665` (`record`, `pool_slot` from `position`), `engine.rs:3226-3240` (`rows()` per position); compact tails take `positions`/`seq_first`/`kda_slots` (`engine.rs:4615-4622`) |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     83,
+     98
+    ],
+    "what": "detail and verdict",
+    "text": "**CuteAFD counterpart.** CuteAFD has no tail ring and no per-group block-table mapping.\n- **Keys cache** (heads):\n  - Every token's key and gate row is stored at the row's own MLA record slot (`si:…/_glmf_kernels.py:911-918`, \"stored … at `token_keys[slots[row]]` (negative slots skip)\").\n  - Pools read it back by record slot (`:966`).\n- **Compact cache** (context, one GPU):\n  - The open pool's at most three rows live in a per-sequence tail inside the sequence's KDA slot region (`engine.rs:20-23`; `TAIL_BYTES` at `engine.rs:176-179`).\n  - The producer receives `positions`, `kda_slots` and `seq_first` explicitly (`engine.rs:4615-4622`; kernel `si:…/_glmf_kernels.py:1293-1476`).\n- **Slot addressing** is computed on the host from the row's position and its own sequence's pages:\n  - `engine.rs:653-656`: `record(position)` = `pages[position / 64] * 64 + position % 64`.\n  - `engine.rs:659-665`: `pool_slot(position)` is -1 unless `position % 4 == 3`.\n  - `engine.rs:3226-3240`: `rows()` pushes `positions`, `kv_slots`, `pool_slots`, `kda_slots`, `seq_first` and `cache_lengths = (position + 1) / 4` per row.\n  - A position outside the sequence's pages is an error (`.context(\"position past the sequence's pages\")`), not a fallback.\n\n**Verdict: not applicable (different design).** The function the vLLM tail ring serves is carried out by position-addressed, per-sequence storage.\n- In speculative steps, the compact tails stay unchanged during verify.\n- `GlmfIndexTailCommit` (`si:…/_glmf_kernels.py:1479-1545`) rebuilds them from the kept rows."
+   }
+  ]
+ },
+ {
+  "id": "SC-d3",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "D3",
+  "question": "Are router logits computed in FP32 in CuteAFD v3.0.1 (the vLLM-engine issue D3 computed them in BF16 on SM12x)?",
+  "statement": "From source: BF16 operands, FP32 accumulation and an FP32 store on both GEMM routes, with bias and selection in FP32; `moe_router_dtype` is not read, so FP32 is unconditional. Audit verdict: handled correctly; no numerical comparison was run.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     34,
+     34
+    ],
+    "what": "summary row",
+    "text": "| **D3**: router logits computed in bf16 on SM12x | **handled correctly**: BF16 operands, FP32 accumulation and an FP32 store on both GEMM routes; the bias is added and selection runs in FP32 | `si:…/glmf.py:1249` (`RoutedBf16Projection(e, h, out_dtype=cutlass.Float32)`); `si:b12x/gemm/bf16_gemv/_skinny.py:201`, `si:…/_prefill.py:408`; `native/shared/cuda/expert_router.cu:80,85,103` |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     106,
+     125
+    ],
+    "what": "detail and verdict",
+    "text": "**CuteAFD counterpart.**\n- Call site: `engine.rs:4779-4787` (`moe_front`), and `engine.rs:2484-2492` for the second rank under a split.\n  - `router_scores` writes `router_logits`, which is `experts * 4` bytes per row (FP32).\n  - `router_select(…, routed_scale, true /* sigmoid */, …)` follows.\n- Program: `si:…/glmf.py:1246-1270`.\n  - `_RouterScores` uses `RoutedBf16Projection(e, h, out_dtype=cutlass.Float32)` (`:1249`).\n  - Its doc: \"FP32 router logits `x @ gate^T` (BF16 operands, FP32 accumulation)\" (`:1260`).\n- Both routes keep FP32 to the store:\n  - Skinny GEMV, up to 160 rows for N = 288: `si:b12x/gemm/bf16_gemv/_skinny.py:191-203`. The FP32 `total` is converted to `out_dtype` (Float32) and stored (`:201`).\n  - TMA tensor-core GEMM above 160 rows: `si:…/_prefill.py:213-214` accepts a Float32 output, and `:408` stores `acc[index].to(output.element_type)` from FP32 accumulators.\n- Selection: `native/shared/cuda/expert_router.cu:73-113`, `select_fast_kernel<true,true>` (dispatched at `:296`).\n  - FP32 sigmoid of the FP32 logit (`:80`).\n  - FP32 `score + e_score_correction_bias` for ranking (`:85`).\n  - The weight is the unbiased sigmoid score read back from memory (`:103`), normalised and scaled by `routed_scaling_factor` (`:111`).\n- Operand dtypes:\n  - `weights.rs:588-589` loads `mlp.gate.weight` as stored and `e_score_correction_bias` widened to FP32.\n  - The local K3.25 headers show `mlp.gate.weight` BF16 `[288, 4096]` and `e_score_correction_bias` F32 `[288]`, so the GEMM operands are the checkpoint's own BF16.\n- CuteAFD does not read `moe_router_dtype` (no reference in `rust/` or `python/` for this family). The FP32 path is unconditional.\n\n**Verdict: handled correctly.** The computation is the upstream fp32-output form: BF16 operands, FP32 accumulation, FP32 logits. Only the summation order differs from `torch.mm`. This verdict is from source; no numerical comparison was run."
+   }
+  ]
+ },
+ {
+  "id": "SC-d4",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "D4",
+  "question": "Does the routed SwiGLU limit reach CuteAFD v3.0.1's compiled expert kernels (the vLLM-engine issue D4 did not pass it)?",
+  "statement": "From source, for local EXL3 routed experts: the limit is compiled at 10 and checked at startup (a package without it is refused); shared and dense MLPs also clamp at 10. Audit verdict: handled correctly. Not read: the clamp inside b12x mixed_trellis; whether activations reach 10 was not measured.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     35,
+     35
+    ],
+    "what": "summary row",
+    "text": "| **D4**: routed SwiGLU limit not passed | **handled correctly** for local EXL3 routed experts: compiled at 10, and the runtime refuses a package without it. Shared and dense MLPs are also clamped at 10 | `python/tools/aot/package_exl3_aot.py:238-242`; `python/tools/aot/export_b12x_exl3_aot.py:214`; `rust/crates/cuteafd-daemon/src/shared/experts/exl3/execution.rs:551`; `si:…/glmf.py:1133` |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     131,
+     150
+    ],
+    "what": "detail, verdict, not read",
+    "text": "**CuteAFD counterpart: local EXL3 routed experts on RTX.**\n- **Export.**\n  - `python/tools/aot/package_exl3_aot.py:236-242`: `SWIGLU_LIMITS = {'glm': None, 'qwen4': None}` and `swiglu_limit(geometry)` returns `SWIGLU_LIMITS.get(geometry, 10.0)`. The GLM 5.3 Flash geometry is `glmf` (`rust/crates/cuteafd-core/src/expert_geometry.rs:242`), so it gets 10.0.\n  - `python/tools/aot/export_b12x_exl3_aot.py:117` defaults `swiglu_limit=10.0`, and `:214` passes `swiglu_limit=swiglu_limit` into the options of `compile_mixed_trellis` (`:230`). That is the same b12x entry point the vLLM fix patched.\n  - The manifest records it (`:281`).\n- **Runtime guard.**\n  - `rust/crates/cuteafd-daemon/src/shared/experts/exl3/execution.rs:546-553`, in `with_modules`, the constructor every EXL3 execution goes through, including local RTX `shared/experts/local.rs:314` and TP2 `shared/experts/rtx/exl3.rs:445`.\n  - It requires `meta.swiglu_limit == cuteafd_core::expert_geometry().swiglu_limit()`, or startup fails with \"EXL3 export/residency geometry mismatch\".\n  - The expected value is `expert_geometry.rs:251-253`: `Some(10.0)` for every shape except GLM 5, MiMo and Qwen 4.\n  - The manifest field is `Option<f32>` (`execution.rs:179`), so a package without the key reads as `None` and is refused.\n  - The same key is part of the reduction-plan signature (`execution.rs:118`).\n- **Shared expert and dense MLPs.**\n  - `si:…/glmf.py:1133`: `GlmSwiGLU(self.i, limit=g.swiglu_limit)`, used by the BF16, FP8 and W8 variants (`:1124-1190`).\n  - `si:…/_glm_kernels.py:551-553`: `gate = fmin(gate, limit)`; `up = fmax(fmin(up, limit), -limit)`.\n  - The geometry is `si:…/_common.py:315`, `swiglu_limit: float = 10.0`.\n  - The head-split half geometry keeps it (`python/tools/aot/export_b12x_dsv4_aot.py:711-713` changes heads and intermediates only).\n\n**Verdict: handled correctly.** The limit reaches the compiled routed-expert kernels, and the runtime enforces it.\n\n**Not read.** The clamp's implementation inside b12x `mixed_trellis`. Whether activations reach 10 was not measured here; it was not measured in the vLLM investigation either."
+   }
+  ]
+ },
+ {
+  "id": "SC-d5",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "D5",
+  "question": "Can a CuteAFD v3.0.1 workspace referenced by a captured CUDA graph be reallocated (the vLLM-engine issue D5: workspace not locked after capture)?",
+  "statement": "From source: step workspaces are fixed-capacity, allocated before capture and never replaced, and no resize path was found in glm5_flash/engine.rs or the drafter. Audit verdict: not applicable (different design); not exhaustive: EXL3 shared arenas, peer-exchange buffers and token I/O were not audited.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     36,
+     36
+    ],
+    "what": "summary row",
+    "text": "| **D5**: workspace not locked after graph capture | **not applicable (different design)**: step workspaces are fixed-capacity, allocated before capture, and never replaced. No resize path was found (not exhaustive, see detail) | `engine.rs:1834` (\"Allocate fixed workspaces before measuring the graph executables\"), `engine.rs:3085-3091`, `engine.rs:3062-3063` |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     156,
+     169
+    ],
+    "what": "detail, verdict, limit",
+    "text": "**CuteAFD counterpart.**\n- Decode is captured per segment (`engine.rs:4221-4290`). Replay assumes \"the graph's pointers are persistent engine buffers of that rank\" (`:4234`).\n- The capture itself states: \"capture records this stream's launches; nothing in a segment synchronizes the host or allocates\" (`:4250-4251`).\n- The decode workspace:\n  - is allocated once at the configured decode capacity, only when absent (`engine.rs:3080-3093`, `if cell.borrow().is_none()`);\n  - is allocated before startup capture (`engine.rs:1833-1836`, \"Allocate fixed workspaces before measuring the graph executables' physical memory\");\n  - cannot be installed a second time (`engine.rs:3056-3066`, \"step workspaces already allocated\").\n- `prepare_serving_workspaces` (`engine.rs:1805-1813`) allocates the decode workspaces, prefill lanes and drafter workspace before readiness.\n- Prefill lanes can only be appended (`engine.rs:3097-3115`), and prefill runs eagerly.\n- The DFlash2 drafter is eager: \"Eager per-round launch\" (`rust/crates/cuteafd-daemon/src/families/glm5/dflash.rs:966-967`). Its workspace is recreated only if smaller than the step (`:951-955`), and it is always sized at `max_sequences`.\n\n**Verdict: not applicable (different design).** There is no growable shared workspace, so there is nothing to lock. Within `glm5_flash/engine.rs` and the drafter, no path reallocates a buffer that a captured graph references.\n\n**Limit of this audit.** Not every shared component was audited for lazily grown device buffers referenced inside decode segments: the EXL3 shared arenas, peer-exchange buffers and token I/O."
+   }
+  ]
+ },
+ {
+  "id": "SC-d6",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "D6",
+  "question": "Can stale warm-up block ids reach CuteAFD v3.0.1's tables (the vLLM-engine issue D6)?",
+  "statement": "From source: tables are rebuilt from the placement every step, padding and warm-up rows carry -1 slots that the writers skip, and per-sequence state is reset or restored before first use. Audit verdict: not applicable (different design).",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     37,
+     37
+    ],
+    "what": "summary row",
+    "text": "| **D6**: stale warm-up tail block ids | **not applicable (different design)**: tables are rebuilt from the placement every step; padding and warm-up rows carry -1 slots; a KDA/tail slot is zeroed before a sequence's first step | `rust/crates/cuteafd-daemon/src/shared/decode_graph.rs:63-65`; `engine.rs:3582-3592`; `engine.rs:2758-2760`, `2860-2868` |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     175,
+     184
+    ],
+    "what": "detail and verdict",
+    "text": "**CuteAFD counterpart.**\n- There is no persistent per-runner-row block table. Each step's tables are built on the host from the sequences' placements and uploaded before the step (`engine.rs:3582-3592`, `put_tables`). Under context, they are uploaded \"after both streams drained\" (`engine/context.rs:32-33`).\n- Padding rows, and the all-masked startup graph captures (`engine.rs:1569-1575`, `startup_tables`), use `masked_row` (`rust/crates/cuteafd-daemon/src/shared/decode_graph.rs:63-65`):\n  - `position: -1, kv_slot: -1, pool_slot: -1, state_slot: -1`.\n  - The writers skip negative slots (`si:…/_glmf_kernels.py:911-912`; pool keys only for `pool >= 0`, `:965`, `:1381`).\n  - `GlmfIndexExpand` gives a negative position an empty selection (`count <= dense_limit` with count 0).\n- A new sequence's KDA state and compact tails are zeroed before its first step: `start()` (`engine.rs:2758-2760`) calls `reset_slot` (`:2860-2868`), from `prefill_step` when `start == 0` (`engine.rs:3297-3298`).\n- A prefix restore copies a captured mark, including the tails, into the sequence's own slot (`prefix.rs:413-423`).\n\n**Verdict: not applicable (different design).** No warm-up state is carried in slot tables, and every per-sequence state region is reset or restored before use."
+   }
+  ]
+ },
+ {
+  "id": "SC-d7",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "D7",
+  "question": "Does CuteAFD v3.0.1's index-K prefill writer handle chunk starts that are not pool-aligned (the vLLM-engine issue D7)?",
+  "statement": "From source, in both index caches: a pool that straddles a chunk start reads the sequence's own stored keys (keys cache) or its own tail (compact cache), never other sequences' rows. Audit verdict: handled correctly.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     38,
+     38
+    ],
+    "what": "summary row",
+    "text": "| **D7**: index-K prefill writer assumes pool-aligned chunk starts | **handled correctly** in both index caches. Keys: a pool reads the sequence's own persistent token keys by record slot. Compact: members before the step are read from the sequence's tail | `si:…/_glmf_kernels.py:966` (keys); `si:…/_glmf_kernels.py:1375-1390` (`before = at < first` → tail) |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     192,
+     208
+    ],
+    "what": "detail and verdict",
+    "text": "**CuteAFD counterpart, keys cache (heads).**\n- `GlmfPoolKeys` (`si:…/_glmf_kernels.py:922-1000`): \"The pool is the row's own token and the three before it (record slots `slots[row] - 3 .. slots[row]`: a pool never crosses a 64-row page)\".\n- `first = slots[token] - 3` (`:966`). Members come from `token_keys` at the sequence's own record slots, not from neighbouring batch rows.\n- Those keys persist from the earlier chunk or step (`GlmfIndexPost`, `:908-919`), and the post runs before the pool in the same program (`si:…/glmf.py:1362-1363`).\n- Record slots are per-sequence (`engine.rs:653-656`). A 4-aligned pool lies in one 64-row page, so its four slots are contiguous.\n\n**Compact cache (context, one GPU).**\n- `GlmfPoolKeysTail` (`si:…/_glmf_kernels.py:1293-1476`): \"the ones in this step from its key | gate rows …, the ones before it from the tail of its sequence's KDA slot\" (`:1296-1301`).\n- `held = start % 4` (`:1375`). For each member, `before = at < first` (the sequence's first step row) selects `tail + TAIL_HEADER + t * KEY_ROW_BYTES` (`:1385-1391`).\n- Other sequences' rows are never read, because the boundary is `seq_first`, not the batch.\n\n**Prefix cache.**\n- A restore point can be any `kda_len` (`prefix.rs:32-35`, exact frontiers).\n- A fork copies a partial tail unit's rows, including token keys in keys mode, and its complete pools (`prefix.rs:439-463`; header `:8-9`).\n- Compact tails travel in the KDA mark (`prefix.rs:11-16`).\n\n**Verdict: handled correctly.** Unaligned chunk starts can occur: restores at any length, and prefill after decode. Each straddling pool has a defined source: the sequence's own stored keys, or its own tail."
+   }
+  ]
+ },
+ {
+  "id": "SC-e1-mechanism",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "E1",
+  "question": "Do CuteAFD v3.0.1's router weights or logits depend on batch size (the vLLM observation E1)?",
+  "statement": "From source: the E1 mechanism ((s+b)−b rebuild above 1,024 rows) does not apply, since the weight is read from the stored unbiased score and no branch depends on the row count. Whether logits are bit-identical across the 160/161-row GEMV/GEMM route switch could not be determined from source.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "audit verdict from reading the source",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "the route-switch part was measured afterwards on one GPU: E1-route-logits, E1-route-selection (2026-10-26-e1-router-route)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     39,
+     39
+    ],
+    "what": "summary row",
+    "text": "| **E1**: router weights vary with batch size (fp32 `(s+b)−b` rebuild above 1,024 rows) | **not applicable (different design)** for that mechanism. **Cannot determine** whether router *logits* are bitwise identical across the GEMV/GEMM switch at 160/161 rows | `native/shared/cuda/expert_router.cu:103` (weight read from the unbiased score); `si:…/_skinny.py:232,456` (switch at 160 rows) |"
+   },
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     216,
+     226
+    ],
+    "what": "detail and verdict",
+    "text": "**CuteAFD counterpart.**\n- **Selection and weights:** `native/shared/cuda/expert_router.cu:73-113`. One CTA of 512 threads per row. The weight takes `selected[rank]=scores[row*experts+i]` (`:103`), the stored unbiased sigmoid score, not a rebuilt one. No branch depends on the row count.\n- **Logits:** `RoutedBf16Projection.__call__` switches route on the live row count (`si:…/_skinny.py:453-465`). For N = 288 the skinny GEMV serves up to 160 rows (`skinny_max_rows`, `:225-232`) and the TMA tensor-core GEMM serves more.\n  - Decode and verify steps of 64 or 128 rows fall on the skinny side. Prefill chunks above 160 rows fall on the TMA side.\n  - The two routes use different FP32 summation orders. The source makes no bit-equality claim across them; it makes one only within the TMA tile variants (`:288-291`) and within skinny row tiles (`:235-238`).\n  - `engine.rs:4767-4771` (`moe_front` doc) runs the router scores over each packed sequence's own rows; `docs/models/glm5_flash.md:123-126` gives the reason: \"as its own pass would\". `docs/models/glm5_flash.md:395-397` states that batch-invariant prefill and verify are deferred.\n\n**Verdict.**\n- The E1 mechanism ((s+b)−b above 1,024 rows): **not applicable (different design)**.\n- Router-logit bit equality across the 160/161-row route switch: **cannot determine from source**.\n- Measured afterwards on one GPU: see `results/2026-10-26-e1-router-route/` in this repository."
+   }
+  ]
+ },
+ {
+  "id": "SC-swiglu",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "SWIGLU",
+  "question": "Which of CuteAFD v3.0.1's MLP clamps and related keys are read from the checkpoint's config.json?",
+  "statement": "From source: routed experts, shared expert and dense MLPs clamp at 10 from compiled constants, none reads `swiglu_limit` from config.json, and no equality check was found, so a checkpoint declaring another value would not be detected (the local K3.25 declares 10.0). `routed_scaling_factor`, `index_topk` and `index_kpool` are read; `moe_router_dtype` is not.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "which consumers read swiglu_limit and related keys from config.json",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "not attempted (source reading only)",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     232,
+     247
+    ],
+    "what": "table, notes and related keys",
+    "text": "| Consumer | Clamp applied | Source of the value | Reads `config.json`? |\n|---|---|---|---|\n| Routed experts, local EXL3 (RTX, TP1 or TP2) | 10 | EXL3 export default per geometry (`package_exl3_aot.py:238-242`; `export_b12x_exl3_aot.py:117,214`), checked against the expert-shape constant (`expert_geometry.rs:251-253`; `exl3/execution.rs:551`) | No |\n| Shared expert (I = 2048) and dense MLPs (layers 0-2, I = 12288) | 10: gate ≤ 10, up ∈ [−10, 10] | `si:…/_common.py:315` → `glmf.py:1133` → `_glm_kernels.py:551-553`, baked at AOT export | No |\n| DFlash2 drafter | none; it has no experts | dense Qwen3-style MLP (local `incoai/GLM-5.3-Flash-DFlash2/config.json`: `model_type` qwen3, `intermediate_size` 12288, no `swiglu_limit`); `native/families/glm5/cuda/glm_dflash.cu:154-160` is an unclamped `silu(g)*u` | n/a (its config has no such key) |\n\n- `config.json`'s `swiglu_limit` is parsed into `GlmNextConfig.swiglu_limit` (`rust/crates/cuteafd-loader/src/families/glm5_flash/config.rs:110`, `unwrap_or(0.0)`). It is printed in plan notes (`rust/crates/cuteafd-loader/src/plan/families/glm.rs:312-315`).\n- No GLM Flash engine code that consumes it, and no check that it equals the compiled 10, was found: `grep '\\.swiglu_limit'` in `rust/` finds only the EXL3 and FP8 guards and test fixtures.\n- The local K3.25 checkpoint carries `swiglu_limit: 10.0`, so compiled and declared values agree for this checkpoint. A checkpoint declaring another value would not be detected.\n\nRelated keys:\n- `routed_scaling_factor` is read (`config.rs:109`) and used as the selection scale (`engine.rs:4787`).\n- `scoring_func`, `n_group` and `norm_topk_prob` are validated: an `ensure!` requires normalized sigmoid with no groups (`config.rs:89-91`).\n- `moe_router_dtype` (`\"float32\"` in the checkpoint) is not read; FP32 logits are unconditional (D3).\n- `e_score_correction_bias` is loaded as FP32 (`weights.rs:589`).\n- `index_topk` (2048) and `index_kpool` (4) are read (`config.rs:120-121`). The programs are compiled for the same constants (`si:…/_common.py:305-306`), and the pool kernels refuse any `kpool != 4` (`si:…/_glmf_kernels.py:937`, `:1316`, `:1494`)."
+   }
+  ]
+ },
+ {
+  "id": "SC-audit-limits",
+  "run": "2026-10-26-cuteafd-setup-checks",
+  "goal": "AUDIT-LIMITS",
+  "question": "What did the CuteAFD v3.0.1 source audit not cover?",
+  "statement": "Source only: no behaviour measured, the released image not inspected, and the submodule read at its pinned commit without verifying that the image was built from it. Not read: b12x internals (index top-k, mixed_trellis expert kernels), FP8 and NVFP4 local expert paths, Spark worker paths and the `layers` placement.",
+  "class": "accounting",
+  "status": "source reading",
+  "quantity": "coverage of the source audit",
+  "sign": "n/a",
+  "unit": "code path",
+  "n": "n/a (source reading)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 (commit 9098781f), source read only, not run; sparkinfer submodule d3c13652",
+   "checkpoint": "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1 @ 0490d2f7 (config.json and safetensors headers only)",
+   "items": "the code paths named in the question",
+   "context": "n/a (source reading)",
+   "path": "source reading; no behaviour measured, released image not inspected",
+   "hardware": "none (source reading, no GPU)"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-26-cuteafd-setup-checks/source-audit/audit-vllm-items.md",
+    "lines": [
+     249,
+     253
+    ],
+    "what": "limits of this audit",
+    "text": "## Limits of this audit\n\n- Source only. No behaviour was measured, and the released image was not inspected.\n- The submodule files were read at the pinned commit. That the image was built from the same commit was not verified.\n- Not read: b12x internals (the `dsv4_indexer` top-k, the `mixed_trellis` routed-expert kernels), the FP8 and NVFP4 local expert paths (not this configuration), Spark worker paths (not this configuration), and the `layers` placement."
+   }
+  ]
+ }
+]

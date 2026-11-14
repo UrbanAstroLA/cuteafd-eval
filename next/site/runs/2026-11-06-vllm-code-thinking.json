@@ -1,0 +1,266 @@
+{
+ "id": "2026-11-06-vllm-code-thinking",
+ "date": "2026-11-06",
+ "title": "Code thinking length on the vLLM fork: K4-Core-K6's 6-bit core against its BF16 core, 16 code prompts x 4 seeds",
+ "kind": "measurement",
+ "question": "On the vLLM fork with the route-b loader, where only the core's weight values differ between arms, does K4-Core-K6's 6-bit core change code thinking length against the original BF16 core, and does the result agree with CuteAFD's?",
+ "engines": [
+  "tpurtell vLLM fork v0.9.2-experimental + route-b loader (local loader modification, not a tpurtell release), image 5fc05b7c"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1df9c4a109bbbdafb60dc19df9fac019d (V-K6: 6-bit core rebuilt to BF16 at load)",
+  "zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb (V-BF16: all 316 core tensors via the local loader swap; not a producer release)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W)",
+ "protocol": {
+  "file": "protocol/PROTOCOL.md",
+  "frozen": "2026-11-06, before the first launch (protocol/FROZEN.json)",
+  "amendments": []
+ },
+ "goals": [
+  {
+   "id": "PRIMARY",
+   "question": "On the vLLM fork, where the 6-bit core is dequantized to BF16 at load and runs on the same kernels as a BF16 core, does K4-Core-K6's 6-bit core change code thinking length against the original BF16 core (V-K6 / V-BF16, 12 new prompts)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:17-19 (frozen 2026-11-06 before the first launch)",
+   "design": {
+    "instrument": "free generation with the CuteAFD code study's driver imported unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean log ratio over seed pairs where both finished)",
+    "arms": [
+     "V-K6 (K4-Core-K6, 6-bit core rebuilt to BF16 at load by route b)",
+     "V-BF16 (K4-Core-K6 with all 316 core tensors loaded from the BF16 release)"
+    ],
+    "items": "p4-p15 (12 new code prompts of the CuteAFD study)",
+    "unit": "prompt",
+    "n": "12 prompts, 47 pairs",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, the same as the CuteAFD study; one launch per arm",
+    "interval": "95% bootstrap over prompts (4,000, seed 20261106); detected when the interval excludes 1"
+   },
+   "files": [
+    "VCT-RESULT.md",
+    "analysis/VCT-RESULT.json",
+    "analysis/analyze_vct.py",
+    "code/chain-vct.sh",
+    "code/drivers/code_thinking_v.py"
+   ],
+   "result_docs": [
+    "VCT-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "V-K6 / V-BF16 1.00 [0.96, 1.04] over prompts (47 pairs; 8 of 12 prompts above 1, sign test p = 0.39): not detected. One pair unpaired (p12 r0: V-BF16 capped while looping). vLLM fork v0.9.2-experimental + route b.",
+   "findings": [
+    "VC-core-code"
+   ]
+  },
+  {
+   "id": "SECONDARY",
+   "question": "Secondary sets: all 16 prompts and the four Block L prompts.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:19 (secondary: all 16, p0-p3, pair intervals, sign counts)",
+   "design": {
+    "instrument": "free generation with the CuteAFD code study's driver imported unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean log ratio over seed pairs where both finished)",
+    "arms": [
+     "V-K6 (K4-Core-K6, 6-bit core rebuilt to BF16 at load by route b)",
+     "V-BF16 (K4-Core-K6 with all 316 core tensors loaded from the BF16 release)"
+    ],
+    "items": "all p0-p15; p0-p3",
+    "unit": "prompt",
+    "n": "16 / 4 prompts (63 / 16 pairs)",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, the same as the CuteAFD study; one launch per arm",
+    "interval": "95% bootstrap over prompts (4,000, seed 20261106); detected when the interval excludes 1"
+   },
+   "files": [],
+   "result_docs": [
+    "VCT-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "All 16: 1.00 [0.95, 1.06] (10 of 16 above 1, p = 0.45). p0-p3: 1.01 [0.85, 1.19] (2 of 4, p = 1.0). Not detected.",
+   "findings": [
+    "VC-core-code-all16",
+    "VC-core-code-blockl"
+   ]
+  },
+  {
+   "id": "ENGINES",
+   "question": "Does the core's effect on code thinking length agree between the engines (vLLM log ratio minus CuteAFD log ratio, paired by prompt)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:21-25 (engine comparison and its readings, stated before the run)",
+   "design": {
+    "instrument": "ratio of ratios: exp(vLLM log(V-K6 / V-BF16) - CuteAFD log(C-K6 / C-K6x)), paired by prompt",
+    "arms": [
+     "vLLM V-K6 / V-BF16",
+     "CuteAFD C-K6 / C-K6x (results/2026-11-05-code-thinking)"
+    ],
+    "items": "p4-p15 (primary); all 16",
+    "unit": "prompt",
+    "n": "12 / 16 prompts",
+    "repeats": "4 seeds per prompt per arm on each engine",
+    "interval": "95% bootstrap over prompts"
+   },
+   "files": [],
+   "result_docs": [
+    "VCT-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "vLLM ratio / CuteAFD ratio 0.79 [0.75, 0.83] on p4-p15; all 16 0.75 [0.69, 0.81]; the interval excludes 1 below. Under the reading stated before the run, the run reads the CuteAFD code gap as going with CuteAFD's serving of the core (native kernels, or its FP8-at-load reference), not the weight values alone.",
+   "findings": [
+    "VC-engines"
+   ]
+  },
+  {
+   "id": "DESC",
+   "question": "Descriptive per arm: finish, all-tests-pass, share of tests passed, median reasoning tokens, decode speed.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:26-27 (descriptive, not part of any rule)",
+   "design": {
+    "instrument": "free generation with the CuteAFD code study's driver imported unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean log ratio over seed pairs where both finished)",
+    "arms": [
+     "V-K6 (K4-Core-K6, 6-bit core rebuilt to BF16 at load by route b)",
+     "V-BF16 (K4-Core-K6 with all 316 core tensors loaded from the BF16 release)"
+    ],
+    "items": "all 16 prompts",
+    "unit": "prompt",
+    "n": "64 replies per arm",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, the same as the CuteAFD study; one launch per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "VCT-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Finished 64/64 (V-K6), 63/64 (V-BF16, 1 capped looping). Median reasoning tokens 62,853 vs 61,129; decode 103.9 vs 103.7 tok/s. All tests pass 53 vs 58 of finished; mean share of tests passed 0.955 vs 0.957. Descriptive.",
+   "findings": [
+    "VC-tests",
+    "VC-desc"
+   ]
+  },
+  {
+   "id": "XENG",
+   "question": "Post hoc: which of the four code configurations (two engines x two cores) thinks differently, on the same prompts and seeds?",
+   "added": "post hoc",
+   "added_source": "VCT-RESULT.md:25 ('Post hoc (not in the frozen rule): which CuteAFD arm differs'); analysis/cross_engine.py",
+   "design": {
+    "instrument": "cross-engine ratios: per (prompt, rep) with both finished, log ratio averaged within prompt then over prompts",
+    "arms": [
+     "C-K6",
+     "C-K6x",
+     "V-K6",
+     "V-BF16"
+    ],
+    "items": "p4-p15; all 16",
+    "unit": "prompt",
+    "n": "12 / 16 prompts",
+    "repeats": "seed-matched (seeds do not reproduce samples across engines)",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "analysis/cross_engine.json",
+    "analysis/cross_engine.py"
+   ],
+   "result_docs": [
+    "VCT-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Post hoc, descriptive. p4-p15: C-K6 / V-K6 1.04, C-K6 / V-BF16 1.04, C-K6x / V-BF16 0.82 (0 of 12 prompts above 1), C-K6x / V-K6 0.82; all 16: 1.04, 1.04, 0.78, 0.78. Medians: C-K6 63,732; V-K6 62,853; V-BF16 61,129; C-K6x 50,412. The run describes CuteAFD's FP8-at-load BF16 core as the configuration that thinks shorter.",
+   "findings": [
+    "VC-xeng-ck6x",
+    "VC-xeng-ck6"
+   ]
+  },
+  {
+   "id": "FP8PATH",
+   "question": "Source reading: what changes on CuteAFD v4.0.0 besides the core's weights when the core is BF16 instead of native 6-bit?",
+   "added": "source reading",
+   "added_source": "CUTEAFD-FP8-PATH.md:1 ('source reading, no GPU; 2026-11-06'); README.md:10",
+   "design": {
+    "instrument": "reading of the tagged tpurtell/cuteafd v4.0.0 source and the core-swap run's server logs (no GPU)",
+    "arms": [
+     "C-K6 (native 6-bit core)",
+     "C-K6x (BF16 core)",
+     "C-K4"
+    ],
+    "items": "launcher run-family.sh, daemon mod.rs / weights.rs, loader resident.rs; s1 server logs (not published)",
+    "unit": "setting",
+    "n": "n/a",
+    "repeats": "n/a",
+    "interval": "none (source reading)"
+   },
+   "files": [
+    "CUTEAFD-FP8-PATH.md"
+   ],
+   "result_docs": [
+    "CUTEAFD-FP8-PATH.md"
+   ],
+   "status": "done",
+   "headline": "Source and log reading: with the BF16 core the launcher's auto settings put the KDA projections (row128 FP8, including f_a/g_a/b packed into the FP8 operand) and the vocabulary head in FP8, and prefill runs MLA and FFN with FP8 activations; with the native 6-bit core the daemon turns KDA FP8 and the FP8 head off. MLA, dense and shared-expert projections are FP8-only on the BF16 path. Which of these goes with the shorter reasoning is not separated by this reading.",
+   "findings": [
+    "VC-fp8-path"
+   ]
+  },
+  {
+   "id": "FP8PATH-SHARD",
+   "question": "Follow-up source reading: does switching KDA FP8 off on two GPUs change anything else?",
+   "added": "source reading",
+   "added_source": "CUTEAFD-FP8-PATH.md:41 ('Added 2026-11-07')",
+   "design": {
+    "instrument": "reading of the tagged tpurtell/cuteafd v4.0.0 source and the core-swap run's server logs (no GPU)",
+    "arms": [
+     "C-K6 (native 6-bit core)",
+     "C-K6x (BF16 core)",
+     "C-K4"
+    ],
+    "items": "launcher run-family.sh, daemon mod.rs / weights.rs, loader resident.rs; s1 server logs (not published)",
+    "unit": "setting",
+    "n": "n/a",
+    "repeats": "n/a",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "CUTEAFD-FP8-PATH.md"
+   ],
+   "status": "done",
+   "headline": "On a two-GPU head split the launcher's auto also adds token-row KDA output ownership unless KDA FP8 is off (run-family.sh:2366); the daemon accepts it only with --kda-fp8 row128 or channel (mod.rs:1296-1299) and clears it for a native 6-bit core (mod.rs:1716-1722). So GLM5_FLASH_KDA_FP8=off also returns KDA to the partials split path.",
+   "findings": [
+    "VC-fp8-path-shard"
+   ]
+  },
+  {
+   "id": "FP8PATH-CONTEXT",
+   "question": "Design context: what reasons does the engine's author give for these defaults?",
+   "added": "source reading",
+   "added_source": "CUTEAFD-FP8-PATH.md:6 ('Design context (added 2026-11-08)')",
+   "design": {
+    "instrument": "reading of the tagged tpurtell/cuteafd v4.0.0 source and the core-swap run's server logs (no GPU)",
+    "arms": [
+     "C-K6 (native 6-bit core)",
+     "C-K6x (BF16 core)",
+     "C-K4"
+    ],
+    "items": "launcher run-family.sh, daemon mod.rs / weights.rs, loader resident.rs; s1 server logs (not published)",
+    "unit": "setting",
+    "n": "n/a",
+    "repeats": "n/a",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "CUTEAFD-FP8-PATH.md"
+   ],
+   "status": "done",
+   "headline": "The settings are the launcher's defaults with reasons in its comment (run-family.sh:2337-2351): row128 KDA and FP8 head on both layouts; token-row KDA output ownership on the two-GPU split to avoid rounding half-K BF16 partials. The model notes and the --kda-fp8 option text describe BF16 KDA as the two-GPU default; the documents differ, and the launcher's choice is what runs.",
+   "findings": [
+    "VC-fp8-path-context"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "SUMMARY.json",
+  "protocol/PROTOCOL.md",
+  "protocol/FROZEN.json",
+  "analysis/samples.csv"
+ ]
+}

@@ -1,0 +1,1340 @@
+{
+ "about": "Independent recomputations from the per-reply and per-window tables, carried from the site's earlier findings file. tools/verify.py reruns each and requires the recorded result; carried_by names the current findings that state the same quantity.",
+ "checks": [
+  {
+   "id": "TL-code-vllm-core",
+   "carried_by": [
+    "VC-core-code"
+   ],
+   "recompute": {
+    "kind": "seed_paired_ratio",
+    "data": "results/2026-11-06-vllm-code-thinking/analysis/samples.csv",
+    "a": "V-K6",
+    "b": "V-BF16",
+    "prompts": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ],
+    "script": "results/2026-11-06-vllm-code-thinking/analysis/analyze_vct.py",
+    "bootstrap": {
+     "draws": 4000,
+     "seed": 20261106,
+     "unit": "prompt",
+     "rng": "Python random.Random"
+    }
+   },
+   "result": {
+    "name": "reasoning tokens, V-K6 / V-BF16, 12 new code prompts",
+    "value": 1.0017226377706787,
+    "ci95": [
+     0.9625130236807816,
+     1.0406239068083998
+    ],
+    "ci_over": "prompts",
+    "detected": false,
+    "pairs": 47,
+    "prompts": 12,
+    "prompts_above_1": 8
+   }
+  },
+  {
+   "id": "TL-code-cuteafd-core",
+   "carried_by": [
+    "CT-core-code"
+   ],
+   "recompute": {
+    "kind": "seed_paired_ratio",
+    "data": "results/2026-11-05-code-thinking/analysis/samples.csv",
+    "a": "C-K6",
+    "b": "C-K6x",
+    "prompts": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ],
+    "script": "results/2026-11-05-code-thinking/analysis/analyze_ct.py",
+    "bootstrap": {
+     "draws": 4000,
+     "seed": 20261105,
+     "unit": "prompt",
+     "rng": "Python random.Random"
+    }
+   },
+   "result": {
+    "name": "reasoning tokens, C-K6 / C-K6x, 12 new code prompts",
+    "value": 1.2624662456554547,
+    "ci95": [
+     1.236515516161589,
+     1.2893401000597893
+    ],
+    "ci_over": "prompts",
+    "detected": true,
+    "pairs": 48,
+    "prompts": 12,
+    "prompts_above_1": 12
+   }
+  },
+  {
+   "id": "TL-code-fp8-arm",
+   "carried_by": [
+    "VC-xeng-ck6x",
+    "VC-xeng-ck6"
+   ],
+   "recompute": {
+    "kind": "cross_engine_ratio",
+    "data_a": "results/2026-11-05-code-thinking/analysis/samples.csv",
+    "a": "C-K6x",
+    "data_b": "results/2026-11-06-vllm-code-thinking/analysis/samples.csv",
+    "b": "V-BF16",
+    "prompts": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ],
+    "script": "results/2026-11-06-vllm-code-thinking/analysis/cross_engine.py"
+   },
+   "result": {
+    "name": "C-K6x / V-BF16, cross_engine_ratio (see definitions)",
+    "value": 0.8235197364122174,
+    "ci95": null,
+    "prompts": 12,
+    "prompts_above_1": 0,
+    "medians_of_finished": {
+     "V-K6": 62853.0,
+     "V-BF16": 61129,
+     "C-K6": 63731.5,
+     "C-K6x": 50411.5
+    }
+   }
+  },
+  {
+   "id": "TL-code-tests",
+   "carried_by": [
+    "CT-tests",
+    "VC-tests"
+   ],
+   "recompute": {
+    "kind": "count_all_pass",
+    "data": [
+     "results/2026-11-05-code-thinking/analysis/samples.csv",
+     "results/2026-11-06-vllm-code-thinking/analysis/samples.csv"
+    ]
+   },
+   "result": {
+    "name": "finished replies passing all hidden tests",
+    "value": {
+     "C-K6": 50,
+     "C-K6x": 49,
+     "V-K6": 53,
+     "V-BF16": 58
+    },
+    "of_finished": {
+     "C-K6": 64,
+     "C-K6x": 64,
+     "V-K6": 64,
+     "V-BF16": 63
+    },
+    "requests_per_arm": 64
+   }
+  },
+  {
+   "id": "TL-fp8-ablation",
+   "carried_by": [
+    "FA-kda-step",
+    "FA-head-step",
+    "FA-prefill-step",
+    "FA-kda-vs-native",
+    "FA-gap-share",
+    "FA-remainder"
+   ],
+   "recompute": {
+    "kind": "seed_paired_ratio",
+    "data_a": "results/2026-11-06-cuteafd-fp8-ablation/analysis/samples.csv",
+    "a": "F-kda",
+    "data_b": "results/2026-11-05-code-thinking/analysis/samples.csv",
+    "b": "C-K6x",
+    "prompts": [
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ],
+    "script": "results/2026-11-06-cuteafd-fp8-ablation/analysis/analyze_fa.py",
+    "bootstrap": {
+     "draws": 4000,
+     "seed": 20261106,
+     "unit": "prompt",
+     "rng": "Python random.Random"
+    }
+   },
+   "result": {
+    "name": "reasoning tokens, F-kda / C-K6x (KDA setting off: projections FP8 -> BF16, KDA output sharding off), 12 new code prompts",
+    "value": 1.3094869328074288,
+    "ci95": [
+     1.2439019261184592,
+     1.3755986477392443
+    ],
+    "ci_over": "prompts",
+    "detected": true,
+    "pairs": 48,
+    "prompts": 12,
+    "prompts_above_1": 12
+   }
+  },
+  {
+   "id": "TL-code-pass-pairs",
+   "carried_by": [
+    "FA-pass-ck6-ck6x",
+    "FA-pass-fpre",
+    "FA-pass-kda",
+    "FA-pass-vbf16",
+    "FA-pass-others",
+    "FA-pass-share"
+   ],
+   "recompute": {
+    "kind": "pass_pairs",
+    "data": [
+     "results/2026-11-05-code-thinking/analysis/samples.csv",
+     "results/2026-11-06-vllm-code-thinking/analysis/samples.csv",
+     "results/2026-11-06-cuteafd-fp8-ablation/analysis/samples.csv"
+    ],
+    "script": "results/2026-11-06-cuteafd-fp8-ablation/analysis/pass_pairs.py",
+    "bootstrap": {
+     "draws": 4000,
+     "seed": 20261108,
+     "unit": "prompt",
+     "rng": "Python random.Random"
+    }
+   },
+   "result": {
+    "name": "all-pass difference, first arm minus second, share of paired finished replies",
+    "value": {
+     "V-K6 vs C-K6": 0.046875,
+     "V-K6 vs C-K6x": 0.0625,
+     "V-BF16 vs C-K6": 0.14285714285714285,
+     "V-BF16 vs C-K6x": 0.14285714285714285,
+     "V-BF16 vs V-K6": 0.07936507936507936,
+     "C-K6 vs C-K6x": 0.015625,
+     "F-kda vs C-K6x": 0.09375,
+     "F-kda vs C-K6": 0.078125,
+     "F-head vs C-K6x": 0.078125,
+     "F-head vs C-K6": 0.0625,
+     "F-pre vs C-K6x": 0.1746031746031746,
+     "F-pre vs C-K6": 0.15873015873015872,
+     "V-K6 vs F-kda": -0.03125
+    },
+    "contrasts_examined": 13
+   }
+  },
+  {
+   "id": "CP-hqa-vs-anchor",
+   "carried_by": [
+    "CP-hqa-vs-anchor"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "anchor",
+    "b": "hqa",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ]
+    }
+   },
+   "result": {
+    "name": "field score, hqa - anchor, single message, all lengths",
+    "value": 0.0,
+    "ci95": [
+     -0.0122,
+     0.012
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 60
+   }
+  },
+  {
+   "id": "CP-compact-vs-anchor",
+   "carried_by": [
+    "CP-compact-vs-anchor"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "anchor",
+    "b": "compact",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ]
+    }
+   },
+   "result": {
+    "name": "field score, compact - anchor, single message, all lengths",
+    "value": -0.0096,
+    "ci95": [
+     -0.0263,
+     0.0063
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 60
+   }
+  },
+  {
+   "id": "CP-hqa-vs-compact",
+   "carried_by": [
+    "CP-hqa-vs-compact"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "compact",
+    "b": "hqa",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ]
+    }
+   },
+   "result": {
+    "name": "field score, hqa - compact, single message, all lengths",
+    "value": 0.0096,
+    "ci95": [
+     -0.0047,
+     0.0253
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 60
+   }
+  },
+  {
+   "id": "CP-ledger-long-context",
+   "carried_by": [
+    "CP-ledger-long-context"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "pooled",
+    "data": "results/2026-11-10-context-probe/analysis/samples.csv",
+    "a": "anchor",
+    "b": "compact",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "64k",
+     "128k"
+    ],
+    "family": "ledger",
+    "strict": false,
+    "script": "results/2026-11-10-context-probe/analysis/posthoc.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 7,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9750
+     ]
+    }
+   },
+   "result": {
+    "name": "ledger field score, compact - anchor, 64K and 127K pooled, single message",
+    "value": -0.0625,
+    "ci95": [
+     -0.1266,
+     0.0016
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 20,
+    "every_field_right": {
+     "single": [
+      -0.1375,
+      -0.2625,
+      -0.025,
+      20
+     ],
+     "single+turns": [
+      -0.1167,
+      -0.2167,
+      -0.0167,
+      20
+     ]
+    }
+   }
+  },
+  {
+   "id": "CP-reference-exlr8-k4",
+   "carried_by": [
+    "CP-reference-exlr8-k4"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv"
+    ],
+    "a": "compact",
+    "b": "exlr8-k4",
+    "passes": [
+     "single-rep0",
+     "single-rep1"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/reference.py",
+    "result": "exlr8-k4 - compact",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "draw": "items sorted by id; each draw is statistics.fmean of n values vals[rng.randrange(n)], one randrange call per element; the 10,000 draws are sorted and read at the two indices",
+     "definition": "definitions.context_probe.item_paired_difference_frozen"
+    }
+   },
+   "result": {
+    "exlr8-k4 - anchor": {
+     "name": "field score, exlr8-k4 - anchor, single message, four lengths, two passes",
+     "value": 0.0063,
+     "ci95": [
+      -0.0068,
+      0.019
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    },
+    "exlr8-k4 - hqa": {
+     "name": "field score, exlr8-k4 - hqa, single message, four lengths, two passes",
+     "value": 0.0063,
+     "ci95": [
+      -0.0081,
+      0.0193
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    },
+    "exlr8-k4 - compact": {
+     "name": "field score, exlr8-k4 - compact, single message, four lengths, two passes",
+     "value": 0.0159,
+     "ci95": [
+      0.0036,
+      0.0294
+     ],
+     "ci_over": "items",
+     "detected": true,
+     "items": 60
+    }
+   }
+  },
+  {
+   "id": "CP-fourpass-hqa-vs-anchor",
+   "carried_by": [
+    "CP-fourpass-hqa-vs-anchor"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv"
+    ],
+    "a": "anchor",
+    "b": "hqa",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/fourpass.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_difference_frozen"
+    }
+   },
+   "result": {
+    "name": "field score, hqa - anchor, single message, four lengths, four passes",
+    "value": 0.0031,
+    "ci95": [
+     -0.0055,
+     0.0116
+    ],
+    "ci_over": "items",
+    "detected": false,
+    "items": 60
+   }
+  },
+  {
+   "id": "CP-fourpass-compact-127k",
+   "carried_by": [
+    "CP-fourpass-compact-127k"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv"
+    ],
+    "a": "compact",
+    "b": "hqa",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/fourpass.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_difference_frozen"
+    },
+    "result": "hqa - compact, 127K"
+   },
+   "result": {
+    "hqa - compact, 127K": {
+     "name": "field score, hqa - compact, single message, 127K, four passes",
+     "value": 0.0375,
+     "ci95": [
+      0.0042,
+      0.0729
+     ],
+     "ci_over": "items",
+     "detected": true,
+     "items": 60
+    },
+    "compact - anchor, 127K": {
+     "name": "field score, compact - anchor, single message, 127K, four passes",
+     "value": -0.0307,
+     "ci95": [
+      -0.0703,
+      0.0078
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    },
+    "hqa - compact, all lengths": {
+     "name": "field score, hqa - compact, single message, four lengths, four passes",
+     "value": 0.013,
+     "ci95": [
+      0.0017,
+      0.0242
+     ],
+     "ci_over": "items",
+     "detected": true,
+     "items": 60
+    },
+    "compact - anchor, all lengths": {
+     "name": "field score, compact - anchor, single message, four lengths, four passes",
+     "value": -0.0099,
+     "ci95": [
+      -0.0215,
+      0.0016
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    }
+   }
+  },
+  {
+   "id": "CP-fourpass-exlr8-k4",
+   "carried_by": [
+    "CP-fourpass-exlr8-k4"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv"
+    ],
+    "a": "compact",
+    "b": "exlr8-k4",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "4k",
+     "16k",
+     "64k",
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/fourpass.py",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_difference_frozen"
+    },
+    "result": "exlr8-k4 - compact"
+   },
+   "result": {
+    "exlr8-k4 - compact": {
+     "name": "field score, exlr8-k4 - compact, single message, four lengths, four passes",
+     "value": 0.009,
+     "ci95": [
+      -0.0026,
+      0.0206
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    },
+    "exlr8-k4 - hqa": {
+     "name": "field score, exlr8-k4 - hqa, single message, four lengths, four passes",
+     "value": -0.004,
+     "ci95": [
+      -0.0156,
+      0.0066
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    },
+    "exlr8-k4 - anchor": {
+     "name": "field score, exlr8-k4 - anchor, single message, four lengths, four passes",
+     "value": -0.0009,
+     "ci95": [
+      -0.0116,
+      0.0087
+     ],
+     "ci_over": "items",
+     "detected": false,
+     "items": 60
+    }
+   }
+  },
+  {
+   "id": "CP-bf16-distance",
+   "carried_by": [
+    "CP-bf16-distance"
+   ],
+   "recompute": {
+    "kind": "window_ratio_bootstrap",
+    "data": "results/2026-11-10-context-probe/bf16ref/BF16REF.json",
+    "windows": "/fidelity_set_windows",
+    "bootstrap": {
+     "replicates": 5000,
+     "seed": 20260829,
+     "rng": "SplitMix64",
+     "unit": "window",
+     "percentiles": [
+      2.5,
+      97.5
+     ],
+     "interpolation": "linear",
+     "draw": "windows sorted by id; each replicate draws one window index per window, with replacement (rejection sampling on the 64-bit output, then modulo), and takes sum of window sums / sum of window positions; the same stream serves a difference b - a, whose window sum is positions x (mean KL of b - mean KL of a)",
+     "definition": "definitions.context_probe.fidelity_set_coarse_kl"
+    },
+    "checks": [
+     {
+      "b": "anchor",
+      "pointer": "/arms/anchor/fidelity_set/kl"
+     },
+     {
+      "b": "hqa",
+      "pointer": "/arms/hqa/fidelity_set/kl"
+     },
+     {
+      "b": "compact",
+      "pointer": "/arms/compact/fidelity_set/kl"
+     },
+     {
+      "b": "exlr8-k4",
+      "pointer": "/arms/exlr8-k4/fidelity_set/kl"
+     },
+     {
+      "b": "hqa",
+      "a": "anchor",
+      "pointer": "/differences/hqa - anchor/fidelity_set/overall"
+     },
+     {
+      "b": "compact",
+      "a": "anchor",
+      "pointer": "/differences/compact - anchor/fidelity_set/overall"
+     },
+     {
+      "b": "compact",
+      "a": "hqa",
+      "pointer": "/differences/compact - hqa/fidelity_set/overall"
+     },
+     {
+      "b": "exlr8-k4",
+      "a": "anchor",
+      "pointer": "/differences/exlr8-k4 - anchor/fidelity_set/overall"
+     },
+     {
+      "b": "exlr8-k4",
+      "a": "hqa",
+      "pointer": "/differences/exlr8-k4 - hqa/fidelity_set/overall"
+     },
+     {
+      "b": "exlr8-k4",
+      "a": "compact",
+      "pointer": "/differences/exlr8-k4 - compact/fidelity_set/overall"
+     }
+    ]
+   },
+   "result": {
+    "name": "KL from the BF16 model, fidelity set, generated positions [estimate, 2.5%, 97.5%] per configuration",
+    "value": {
+     "anchor": 0.032816759,
+     "hqa": 0.030226181,
+     "compact": 0.031399445,
+     "exlr8-k4": 0.036034492
+    },
+    "ci95": {
+     "anchor": [
+      0.027497969,
+      0.037718898
+     ],
+     "hqa": [
+      0.025497097,
+      0.034352905
+     ],
+     "compact": [
+      0.026316321,
+      0.035880283
+     ],
+     "exlr8-k4": [
+      0.03003981,
+      0.041613023
+     ]
+    },
+    "ci_over": "windows",
+    "teacher_panel": {
+     "anchor": [
+      0.032047934,
+      0.024112207,
+      0.041850976
+     ],
+     "hqa": [
+      0.031620155,
+      0.02380132,
+      0.041028997
+     ],
+     "compact": [
+      0.029699118,
+      0.023590257,
+      0.036408059
+     ],
+     "exlr8-k4": [
+      0.030506658,
+      0.02436394,
+      0.037372209
+     ]
+    },
+    "for_scale_not_measured_in_this_stage": {
+     "official_fp8_model_fidelity_set": 0.0216,
+     "k3.25_on_cuteafd_v3.0.1_fidelity_set": 0.048444655,
+     "k3.25_on_cuteafd_v3.0.1_teacher_panel": 0.047556257
+    }
+   }
+  },
+  {
+   "id": "CP-fourpass-endings",
+   "carried_by": [
+    "CP-fourpass-endings"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "value": "unfinished",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv"
+    ],
+    "a": "hqa",
+    "b": "compact",
+    "family": "join",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/endings.py",
+    "result": "compact - hqa",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_unfinished_share"
+    }
+   },
+   "result": {
+    "name": "unfinished join replies at 127K, four passes, per configuration",
+    "value": {
+     "anchor": 4,
+     "hqa": 2,
+     "compact": 10,
+     "exlr8-k4": 1
+    },
+    "of": 80,
+    "by_pass": {
+     "anchor": [
+      3,
+      1,
+      0,
+      0
+     ],
+     "hqa": [
+      0,
+      2,
+      0,
+      0
+     ],
+     "compact": [
+      1,
+      2,
+      4,
+      3
+     ],
+     "exlr8-k4": [
+      0,
+      0,
+      1,
+      0
+     ]
+    },
+    "paired_share_difference": {
+     "compact - hqa": 0.1,
+     "compact - anchor": 0.075
+    },
+    "ci95": {
+     "compact - hqa": [
+      0.025,
+      0.175
+     ],
+     "compact - anchor": [
+      -0.0125,
+      0.1625
+     ]
+    },
+    "ci_over": "items",
+    "score_gap_127k": {
+     "hqa - compact": {
+      "all": 0.0375,
+      "join": 0.0354
+     },
+     "anchor - compact": {
+      "all": 0.0307,
+      "join": 0.0266
+     }
+    },
+    "compact - hqa": {
+     "name": "share of unfinished join replies at 127K, compact - hqa, four passes",
+     "value": 0.1,
+     "ci95": [
+      0.025,
+      0.175
+     ],
+     "items": 20,
+     "ci_over": "items"
+    }
+   }
+  },
+  {
+   "id": "CP-k325-tasks",
+   "carried_by": [
+    "CP-k325-tasks"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv",
+     "results/2026-11-10-context-probe/analysis/samples-amend2.csv"
+    ],
+    "a": "anchor",
+    "b": "k325-fp8",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/amend2.py",
+    "result": "k325-fp8 - anchor",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_difference_frozen"
+    }
+   },
+   "result": {
+    "name": "field score at 127K, k325-fp8 - each of the four, single message, four passes",
+    "value": {
+     "k325-fp8 - anchor": -0.051,
+     "k325-fp8 - hqa": -0.0578,
+     "k325-fp8 - compact": -0.0203,
+     "k325-fp8 - exlr8-k4": -0.0536
+    },
+    "ci95": {
+     "k325-fp8 - anchor": [
+      -0.0865,
+      -0.0172
+     ],
+     "k325-fp8 - hqa": [
+      -0.0953,
+      -0.0229
+     ],
+     "k325-fp8 - compact": [
+      -0.0594,
+      0.0198
+     ],
+     "k325-fp8 - exlr8-k4": [
+      -0.088,
+      -0.0203
+     ]
+    },
+    "ci_over": "items",
+    "score_127k": {
+     "anchor": 0.9177,
+     "hqa": 0.9245,
+     "compact": 0.887,
+     "exlr8-k4": 0.9203,
+     "k325-fp8": 0.8667
+    },
+    "k325-fp8 - anchor": {
+     "name": "field score at 127K, k325-fp8 - anchor, four passes",
+     "value": -0.051,
+     "ci95": [
+      -0.0865,
+      -0.0172
+     ],
+     "items": 60,
+     "ci_over": "items",
+     "detected": true
+    }
+   }
+  },
+  {
+   "id": "CP-k325-endings",
+   "carried_by": [
+    "CP-k325-endings"
+   ],
+   "recompute": {
+    "kind": "item_paired_difference",
+    "estimator": "frozen",
+    "data": [
+     "results/2026-11-10-context-probe/analysis/samples.csv",
+     "results/2026-11-10-context-probe/analysis/samples-reference.csv",
+     "results/2026-11-10-context-probe/analysis/samples-extension.csv",
+     "results/2026-11-10-context-probe/analysis/samples-amend2.csv"
+    ],
+    "a": "anchor",
+    "b": "k325-fp8",
+    "passes": [
+     "single-rep0",
+     "single-rep1",
+     "single-rep2",
+     "single-rep3"
+    ],
+    "lengths": [
+     "128k"
+    ],
+    "script": "results/2026-11-10-context-probe/analysis/amend2.py",
+    "result": "k325-fp8 - anchor",
+    "bootstrap": {
+     "draws": 10000,
+     "seed": 5,
+     "unit": "item",
+     "rng": "Python random.Random",
+     "indices": [
+      250,
+      9749
+     ],
+     "definition": "definitions.context_probe.item_paired_unfinished_share"
+    },
+    "value": "unfinished",
+    "family": "join"
+   },
+   "result": {
+    "name": "unfinished join replies at 127K, four passes, per configuration",
+    "value": {
+     "anchor": 4,
+     "hqa": 2,
+     "compact": 10,
+     "exlr8-k4": 1,
+     "k325-fp8": 11
+    },
+    "of": 80,
+    "by_pass": {
+     "anchor": [
+      3,
+      1,
+      0,
+      0
+     ],
+     "hqa": [
+      0,
+      2,
+      0,
+      0
+     ],
+     "compact": [
+      1,
+      2,
+      4,
+      3
+     ],
+     "exlr8-k4": [
+      0,
+      0,
+      1,
+      0
+     ],
+     "k325-fp8": [
+      4,
+      3,
+      2,
+      2
+     ]
+    },
+    "paired_share_difference": {
+     "k325-fp8 - anchor": 0.0875,
+     "k325-fp8 - hqa": 0.1125,
+     "k325-fp8 - compact": 0.0125,
+     "k325-fp8 - exlr8-k4": 0.125
+    },
+    "ci95": {
+     "k325-fp8 - anchor": [
+      0.025,
+      0.15
+     ],
+     "k325-fp8 - hqa": [
+      0.0375,
+      0.2
+     ],
+     "k325-fp8 - compact": [
+      -0.1,
+      0.1125
+     ],
+     "k325-fp8 - exlr8-k4": [
+      0.0625,
+      0.1875
+     ]
+    },
+    "ci_over": "items",
+    "score_gap_127k": {
+     "k325-fp8 - anchor": {
+      "all": -0.051,
+      "join": -0.0318,
+      "ledger": -0.0198,
+      "trace": 0.0005
+     },
+     "k325-fp8 - hqa": {
+      "all": -0.0578,
+      "join": -0.0406,
+      "ledger": -0.0188,
+      "trace": 0.0016
+     },
+     "k325-fp8 - compact": {
+      "all": -0.0203,
+      "join": -0.0052,
+      "ledger": -0.0135,
+      "trace": -0.0016
+     },
+     "k325-fp8 - exlr8-k4": {
+      "all": -0.0536,
+      "join": -0.0432,
+      "ledger": -0.0161,
+      "trace": 0.0057
+     }
+    },
+    "k325-fp8 - anchor": {
+     "name": "share of unfinished join replies at 127K, k325-fp8 - anchor, four passes",
+     "value": 0.0875,
+     "ci95": [
+      0.025,
+      0.15
+     ],
+     "items": 20,
+     "ci_over": "items"
+    }
+   }
+  },
+  {
+   "id": "CP-k325-bf16-distance",
+   "carried_by": [
+    "CP-k325-bf16-distance"
+   ],
+   "recompute": {
+    "kind": "window_ratio_bootstrap",
+    "data": "results/2026-11-10-context-probe/bf16ref/BF16REF-AMEND2.json",
+    "windows": "/fidelity_set_windows",
+    "bootstrap": {
+     "replicates": 5000,
+     "seed": 20260829,
+     "rng": "SplitMix64",
+     "unit": "window",
+     "percentiles": [
+      2.5,
+      97.5
+     ],
+     "interpolation": "linear",
+     "draw": "windows sorted by id; each replicate draws one window index per window, with replacement (rejection sampling on the 64-bit output, then modulo), and takes sum of window sums / sum of window positions; the same stream serves a difference b - a, whose window sum is positions x (mean KL of b - mean KL of a)",
+     "definition": "definitions.context_probe.fidelity_set_coarse_kl"
+    },
+    "windows_with": [
+     {
+      "data": "results/2026-11-10-context-probe/bf16ref/BF16REF.json",
+      "windows": "/fidelity_set_windows"
+     }
+    ],
+    "checks": [
+     {
+      "b": "k325-fp8",
+      "pointer": "/arms/k325-fp8/fidelity_set/kl"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "anchor",
+      "pointer": "/differences/k325-fp8 - anchor/fidelity_set/overall"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "hqa",
+      "pointer": "/differences/k325-fp8 - hqa/fidelity_set/overall"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "compact",
+      "pointer": "/differences/k325-fp8 - compact/fidelity_set/overall"
+     },
+     {
+      "b": "k325-fp8",
+      "a": "exlr8-k4",
+      "pointer": "/differences/k325-fp8 - exlr8-k4/fidelity_set/overall"
+     }
+    ]
+   },
+   "result": {
+    "name": "KL from the BF16 model, fidelity set, generated positions, k325-fp8 [estimate, 2.5%, 97.5%]",
+    "value": 0.048479076,
+    "ci95": [
+     0.041145436,
+     0.054734572
+    ],
+    "ci_over": "windows",
+    "teacher_panel": [
+     0.047556257,
+     0.036409951,
+     0.060460366
+    ],
+    "difference_from_each_of_the_four_fidelity_set": {
+     "k325-fp8 - anchor": [
+      0.015662316,
+      0.01208763,
+      0.019443583
+     ],
+     "k325-fp8 - hqa": [
+      0.018252895,
+      0.014861374,
+      0.021620406
+     ],
+     "k325-fp8 - compact": [
+      0.017079631,
+      0.01362709,
+      0.020794126
+     ],
+     "k325-fp8 - exlr8-k4": [
+      0.012444584,
+      0.009736568,
+      0.015323282
+     ]
+    },
+    "difference_from_each_of_the_four_teacher_panel": {
+     "k325-fp8 - anchor": [
+      0.015508323,
+      0.011537581,
+      0.019693279
+     ],
+     "k325-fp8 - hqa": [
+      0.015936101,
+      0.011788964,
+      0.020337021
+     ],
+     "k325-fp8 - compact": [
+      0.017857138,
+      0.012221599,
+      0.024647255
+     ],
+     "k325-fp8 - exlr8-k4": [
+      0.017049599,
+      0.011088859,
+      0.023840753
+     ]
+    },
+    "the_four_fidelity_set": {
+     "anchor": 0.032816759,
+     "hqa": 0.030226181,
+     "compact": 0.031399445,
+     "exlr8-k4": 0.036034492
+    }
+   }
+  }
+ ]
+}

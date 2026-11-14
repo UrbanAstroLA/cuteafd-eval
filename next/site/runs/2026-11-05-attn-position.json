@@ -1,0 +1,282 @@
+{
+ "id": "2026-11-05-attn-position",
+ "date": "2026-11-05",
+ "title": "Does the core's effect grow with position? Position analysis of the fixed-trace dumps, and the vLLM fork with q_b and the output projections in BF16 together",
+ "kind": "exploratory",
+ "question": "On the 93 fixed science-question traces, does the core's effect on next-token distributions or on the stop decision build up with position, and do q_b and the output projections in BF16 together move the stop decision?",
+ "engines": [
+  "tpurtell vLLM fork v0.9.2-experimental image with the local loader modification (repro/vllm-k6-loader; not a tpurtell release)",
+  "tpurtell/cuteafd v4.0.0 (stored core-swap dumps, the refused C-K6a launch and the C-K6 recheck; image digest as in results/2026-11-03-cuteafd-core-swap)"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (6-bit core; qbo arm with 56 matrices from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb via the local loader swap)",
+  "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180 and brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (stored CuteAFD dumps only)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W)",
+ "protocol": {
+  "file": "NOTE.md",
+  "frozen": "position criteria written before computing (NOTE.md); qbo arm frozen 2026-11-05 before its first launch (protocol/FROZEN-QBO.json)",
+  "amendments": []
+ },
+ "goals": [
+  {
+   "id": "M1",
+   "question": "Does the divergence between arms (top-64 KL to the 6-bit core) grow with position along the trace, for any core group, on either engine?",
+   "added": "exploratory",
+   "added_source": "NOTE.md:10-14 (criteria 'written before computing'); NOTE.md:19-22 (trigger)",
+   "design": {
+    "instrument": "per-row top-64 KL(ref ‖ arm); per-trace OLS slope of KL on log2(position), mean over traces; pooled KL by position bin",
+    "arms": [
+     "vLLM G2 dumps: each group arm vs k6; noise reference k6r2 vs k6",
+     "CuteAFD core-swap step 2 dumps: core (C-K6x vs C-K6), experts (C-K4 vs C-K6x), launch (C-K6r2 vs C-K6)"
+    ],
+    "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not; 11 questions); existing dumps, no new requests",
+    "unit": "trace (slope); question (cluster)",
+    "n": "93 traces, 11 questions",
+    "repeats": "existing launches (vLLM: one per arm + k6r2; CuteAFD: bit-identical launches)",
+    "interval": "95% bootstrap clustered by question"
+   },
+   "files": [
+    "analysis/position.py",
+    "analysis/POSITION.json"
+   ],
+   "result_docs": [
+    "NOTE.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory. Divergence does not grow with position for any group on either engine: every swap arm's KL to the 6-bit core is highest in the first 1K rows, flat from 1K to 64K, lower beyond 64K; attention groups look like the controls; k6r2 and lm_head flat. On CuteAFD, core M1 slope minus experts +0.019 [+0.002, +0.047] (the core's divergence falls less with position than the experts').",
+   "findings": [
+    "AP-kl-slope-vllm",
+    "AP-kl-bins",
+    "AP-kl-slope-cuteafd"
+   ]
+  },
+  {
+   "id": "M2",
+   "question": "Does the stop-decision difference (BF16 side minus 6-bit side, log p(</think>) at the close) grow with trace length?",
+   "added": "exploratory",
+   "added_source": "NOTE.md:15-16 (criteria written before computing)",
+   "design": {
+    "instrument": "per finished trace, delta lp_close regressed on log2(close position)",
+    "arms": [
+     "vLLM G2 dumps: each group arm vs k6; noise reference k6r2 vs k6",
+     "CuteAFD core-swap step 2 dumps: core (C-K6x vs C-K6), experts (C-K4 vs C-K6x), launch (C-K6r2 vs C-K6)"
+    ],
+    "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not; 11 questions); existing dumps, no new requests",
+    "unit": "finished trace; question (cluster)",
+    "n": "77 finished traces, 11 questions",
+    "repeats": "existing launches (vLLM: one per arm + k6r2; CuteAFD: bit-identical launches)",
+    "interval": "95% bootstrap clustered by question"
+   },
+   "files": [],
+   "result_docs": [
+    "NOTE.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory. lp_close slope positive for no group (mla_q_b -0.003, mla_o -0.007; intervals include 0).",
+   "findings": [
+    "AP-lp-close-slope",
+    "AP-g2-mla-q-b-clustered",
+    "AP-g2-o-proj-clustered"
+   ]
+  },
+  {
+   "id": "LEAD",
+   "question": "Does the mean log p(</think>) over the last 512 rows before the close (BF16-core side minus 6-bit) differ, and does it grow with position?",
+   "added": "exploratory",
+   "added_source": "NOTE.md:16 ('Also delta of mean log p(</think>) over the last 512 rows', written before computing); NOTE.md:29-34 (result and caveats)",
+   "design": {
+    "instrument": "delta of mean log p(</think>) over the last 512 rows; its slope per doubling of position",
+    "arms": [
+     "vLLM G2 dumps: each group arm vs k6; noise reference k6r2 vs k6",
+     "CuteAFD core-swap step 2 dumps: core (C-K6x vs C-K6), experts (C-K4 vs C-K6x), launch (C-K6r2 vs C-K6)"
+    ],
+    "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not; 11 questions); existing dumps, no new requests",
+    "unit": "finished trace; question (cluster)",
+    "n": "77 finished traces, 11 questions",
+    "repeats": "existing launches (vLLM: one per arm + k6r2; CuteAFD: bit-identical launches)",
+    "interval": "95% bootstrap clustered by question"
+   },
+   "files": [],
+   "result_docs": [
+    "NOTE.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory; met the trigger written before computing. CuteAFD core (BF16-core side minus 6-bit) +0.057 [+0.011, +0.104], slope +0.033 per doubling [+0.020, +0.046]; experts slope -0.038 [-0.056, -0.015] (opposite). On vLLM the whole-core swap goes the other way (-0.116 [-0.148, -0.092]) and lm_head alone -0.069. The run notes the measure was not in the frozen protocol and weights rows where p(</think>) is ~1e-6.",
+   "findings": [
+    "AP-last512-cuteafd",
+    "AP-last512-vllm"
+   ],
+   "replication": "opposite signs on the two engines again in 2026-11-06-new-questions/DESC-SCORE (vLLM -0.114, CuteAFD +0.106)",
+   "status_note": "NOTE.md:34 and 2026-11-06-new-questions/NQ-RESULT.md:23 give the vLLM whole-core value as -0.116; analysis/POSITION.json /vllm/all/m2_last512_logp_delta is -0.11549, which rounds to -0.115 (the findings use the data value)."
+  },
+  {
+   "id": "C-K6A",
+   "question": "On CuteAFD, does an arm with all 180 attention matrices BF16 (FP8 at load) and the rest of the core 6-bit carry the last-512 position lead (attention = C-K6a - C-K6, rest = C-K6x - C-K6a)?",
+   "added": "follow-up",
+   "added_source": "NOTE.md:36-43 (GPU arm, written before the launch, run on the positive LEAD reading)",
+   "design": {
+    "instrument": "teacher-forced probe, as core-swap step 2",
+    "arms": [
+     "C-K6",
+     "C-K6a (attention BF16/FP8, rest 6-bit)",
+     "C-K6x (stored dumps)"
+    ],
+    "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not; 11 questions)",
+    "unit": "trace",
+    "n": "93",
+    "repeats": "one launch",
+    "interval": "as M1/M2"
+   },
+   "files": [
+    "code/chain-attn.sh"
+   ],
+   "result_docs": [
+    "NOTE.md"
+   ],
+   "status": "not run",
+   "headline": "Refused at load before any request: CuteAFD v4.0.0's native path needs every layer's attention and FFN groups native together ('native Flash requires complete attention and FFN operator groups', weights.rs:777), so no partial core (attention only, or q_b + o_proj) is loadable.",
+   "findings": [],
+   "no_findings_reason": "not run"
+  },
+  {
+   "id": "RECHECK",
+   "question": "Is a fresh C-K6 launch, two days later, bit-identical to the stored core-swap step 2 dumps on the 10 longest traces?",
+   "added": "check",
+   "added_source": "NOTE.md:40-41 (C-K6 recheck, prerequisite for using the stored dumps); NOTE.md:49",
+   "design": {
+    "instrument": "per-row logits hash comparison against stored dumps",
+    "arms": [
+     "C-K6 (2026-11-05 launch)",
+     "C-K6 (2026-11-03 stored dumps)"
+    ],
+    "items": "the 10 longest of the 93 traces",
+    "unit": "row",
+    "n": "18,286 rows, 10 traces",
+    "repeats": "one launch",
+    "interval": "none (exact comparison)"
+   },
+   "files": [
+    "analysis/S2-IDENTITY-CHECK.json"
+   ],
+   "result_docs": [
+    "README.md"
+   ],
+   "status": "done",
+   "headline": "CuteAFD v4.0.0: 10 of 10 traces and 18,286 of 18,286 rows bit-identical to the dumps of two days earlier.",
+   "findings": [
+    "AP-cuteafd-cross-day"
+   ]
+  },
+  {
+   "id": "QBO",
+   "question": "On the vLLM fork, does loading q_b and the output projections (mla_q_b, mla_o, kda_o) as BF16 together, with the rest of the core 6-bit, move log p(</think>) at the close against K4-Core-K6, beyond launch noise?",
+   "added": "follow-up",
+   "added_source": "NOTE.md:51-61 (vLLM arm, written before the launch); frozen before the first launch in protocol/FROZEN-QBO.json",
+   "design": {
+    "instrument": "teacher-forced reduced captures (thinking-length run's swap launch and capture unchanged), score_stop.py",
+    "arms": [
+     "k6 (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "qbo (mla_q_b, mla_o, kda_o: 56 matrices native BF16)"
+    ],
+    "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not; 11 questions)",
+    "unit": "question (primary cluster); trace (secondary)",
+    "n": "77 finished traces, 11 questions",
+    "repeats": "4 launches interleaved: k6-a, qbo-a, k6-b, qbo-b; launch means",
+    "interval": "95% bootstrap clustered by question (primary) and over traces"
+   },
+   "files": [
+    "QBO-RESULT.md",
+    "protocol/FROZEN-QBO.json",
+    "code/chain-qbo.sh",
+    "analysis/analyze_qbo.py",
+    "analysis/QBO.json"
+   ],
+   "result_docs": [
+    "QBO-RESULT.md"
+   ],
+   "status": "done",
+   "status_note": "README.md:14-15 directs reading with 2026-11-06-new-questions, where the shift does not appear on 30 new questions. The arm was frozen before its launch, but the layout it tests was chosen after reading the G2 screen's two lp_close flags (2 of 27 group tests) and was measured on the same 11 questions: a post hoc lead tested on its own data.",
+   "headline": "Frozen reading: lp_close, qbo minus K4-Core-K6 (launch means), +0.0118 [+0.0047, +0.0205] clustered by question; +0.0118 [+0.0009, +0.0225] over traces; within-arm launch differences k6 -0.0018, qbo -0.0007; all four cross-launch pairings positive (+0.0106 to +0.0131): supported under the rule written before the launch. Size about a 1.2% relative change in p(</think>) at the close. vLLM fork v0.9.2-experimental + route b, 11 science-question questions.",
+   "findings": [
+    "AP-qbo"
+   ],
+   "replication": "failed to replicate in 2026-11-06-new-questions/PRIMARY (-0.0032 [-0.0161, +0.0064] on 30 new questions)"
+  },
+  {
+   "id": "QBO-SEC",
+   "question": "Secondaries of the qbo arm: hazard, last-512 mean log p(</think>), and position (KL slope, lp_close slope, last-512 slope).",
+   "added": "follow-up",
+   "added_source": "NOTE.md:59-60 ('Secondary, descriptive'); QBO-RESULT.md:15-19",
+   "design": {
+    "instrument": "teacher-forced reduced captures (thinking-length run's swap launch and capture unchanged), score_stop.py",
+    "arms": [
+     "k6 (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "qbo (mla_q_b, mla_o, kda_o: 56 matrices native BF16)"
+    ],
+    "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not; 11 questions)",
+    "unit": "question (primary cluster); trace (secondary)",
+    "n": "77 finished traces, 11 questions",
+    "repeats": "4 launches interleaved: k6-a, qbo-a, k6-b, qbo-b; launch means",
+    "interval": "as QBO; descriptive"
+   },
+   "files": [],
+   "result_docs": [
+    "QBO-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Hazard: 0.0000 in every pairing. Last-512 mean log p(</think>) +0.008 [-0.012, +0.028], not detected. KL to K4-Core-K6 slope -0.022 per doubling (launch-to-launch +0.0002); lp_close delta slopes -0.003 to +0.001 (intervals include 0); last-512 slope -0.004 to -0.008.",
+   "findings": [
+    "AP-qbo-hazard",
+    "AP-qbo-last512",
+    "AP-qbo-position"
+   ],
+   "status_note": "QBO-RESULT.md:15 reads the hazard as 'no change (0.0000 in every pairing)'; the interval is +0.0000019 [-0.0000088, +0.0000090], which includes 0 (not detected, AP-qbo-hazard)."
+  },
+  {
+   "id": "QBO-PH",
+   "question": "Post hoc: against the mean of all four K4-Core-K6 launches, how do the whole-core BF16 arm, the single-group G2 arms and the qbo launches compare, and does qbo differ from the whole-core swap?",
+   "added": "post hoc",
+   "added_source": "QBO-RESULT.md:21 ('Post hoc (not in the frozen rule)'); analysis/posthoc_qbo_all.py",
+   "design": {
+    "instrument": "re-based lp_close contrasts across the G2 and qbo launches",
+    "arms": [
+     "G2 all",
+     "G2 mla_q_b, mla_o, kda_o",
+     "qbo-a",
+     "qbo-b",
+     "mean of k6, k6r2, k6-a, k6-b"
+    ],
+    "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not; 11 questions)",
+    "unit": "question (cluster)",
+    "n": "77 finished traces, 11 questions",
+    "repeats": "existing launches",
+    "interval": "95% bootstrap clustered by question"
+   },
+   "files": [
+    "analysis/POSTHOC-QBO-ALL.json",
+    "analysis/posthoc_qbo_all.py"
+   ],
+   "result_docs": [
+    "QBO-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Post hoc. Against the mean of four K4-Core-K6 launches: whole-core BF16 +0.0011 [-0.0081, +0.0106]; qbo-a +0.0129, qbo-b +0.0122; mla_q_b +0.0100, mla_o +0.0131, kda_o +0.0053. qbo minus whole-core BF16 +0.0114 [+0.0056, +0.0195] (whole-core arm is a single launch). The run reads the shift as belonging to the mixed configuration, not to more precision.",
+   "findings": [
+    "AP-qbo-vs-all",
+    "AP-core-vs-mean4",
+    "AP-mean4-mla-q-b",
+    "AP-mean4-o-proj",
+    "AP-qbo-vs-mean4"
+   ],
+   "replication": "failed to replicate in 2026-11-06-new-questions/SEC-QBO-ALL (qbo - all +0.0077 [-0.0025, +0.0185])"
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "SUMMARY.json",
+  "NOTE.md"
+ ]
+}

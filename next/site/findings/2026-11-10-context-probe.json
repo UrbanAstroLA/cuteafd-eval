@@ -1,0 +1,5342 @@
+[
+ {
+  "id": "CP-hqa-vs-anchor",
+  "run": "2026-11-10-context-probe",
+  "goal": "CP-HA",
+  "question": "Does hqa score differently from anchor on the graded tasks (single message, two passes, all four lengths pooled)?",
+  "statement": "hqa − anchor: +0.000 [−0.012, +0.012] in field score; the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "field score, hqa - anchor, single message, four lengths pooled, passes 1-2",
+  "sign": "hqa - anchor: above 0 = hqa scored higher",
+  "unit": "item",
+  "n": "60 items; 480 requests per arm",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 30,
+   "excluding_0": 0,
+   "note": "the frozen rule: 3 pairs x 2 cells (single message, eight turns) x 4 lengths and pooled"
+  },
+  "replication": "extended to four passes: CP-fourpass-hqa-vs-anchor",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/frozen_rule/differences/hqa - anchor/single/all",
+    "what": "[estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.0,
+     -0.0122,
+     0.012,
+     60
+    ]
+   }
+  ],
+  "bound": "a difference down to −0.012 is not excluded"
+ },
+ {
+  "id": "CP-compact-vs-anchor",
+  "run": "2026-11-10-context-probe",
+  "goal": "CP-CA",
+  "question": "Does compact score differently from anchor on the graded tasks (single message, two passes, all four lengths pooled)?",
+  "statement": "compact − anchor: −0.010 [−0.026, +0.006] in field score; the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "field score, compact - anchor, single message, four lengths pooled, passes 1-2",
+  "sign": "compact - anchor: above 0 = compact scored higher",
+  "unit": "item",
+  "n": "60 items; 480 requests per arm",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 30,
+   "excluding_0": 0,
+   "note": "the frozen rule: 3 pairs x 2 cells (single message, eight turns) x 4 lengths and pooled"
+  },
+  "replication": "extended to four passes: CP-fourpass-compact-anchor",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/frozen_rule/differences/compact - anchor/single/all",
+    "what": "[estimate, 2.5%, 97.5%, items]",
+    "value": [
+     -0.0096,
+     -0.0263,
+     0.0063,
+     60
+    ]
+   }
+  ],
+  "bound": "a difference down to −0.026 is not excluded"
+ },
+ {
+  "id": "CP-hqa-vs-compact",
+  "run": "2026-11-10-context-probe",
+  "goal": "CP-HC",
+  "question": "Does hqa score differently from compact on the graded tasks (single message, two passes, all four lengths pooled)?",
+  "statement": "hqa − compact: +0.010 [−0.005, +0.025] in field score; the interval includes 0.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "field score, hqa - compact, single message, four lengths pooled, passes 1-2",
+  "sign": "hqa - compact: above 0 = hqa scored higher",
+  "unit": "item",
+  "n": "60 items; 480 requests per arm",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 30,
+   "excluding_0": 0,
+   "note": "the frozen rule: 3 pairs x 2 cells (single message, eight turns) x 4 lengths and pooled"
+  },
+  "replication": "extended to four passes: CP-fourpass-hqa-compact-all",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/frozen_rule/differences/hqa - compact/single/all",
+    "what": "[estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.0096,
+     -0.0047,
+     0.0253,
+     60
+    ]
+   }
+  ],
+  "bound": "a difference down to −0.005 is not excluded"
+ },
+ {
+  "id": "CP-length-effect",
+  "run": "2026-11-10-context-probe",
+  "goal": "L",
+  "question": "How does field score change from 4K to 127K in each of the three probe arms (two passes)?",
+  "statement": "Field score falls from 4K to 127K in every arm: anchor 0.983 to 0.903, hqa 0.981 to 0.912, compact 0.984 to 0.890 (single message, passes 1-2).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "mean field score per arm and length, single message, passes 1-2",
+  "sign": "higher is better; 1 = every field right",
+  "unit": "item",
+  "n": "60 items per length; 120 requests per arm and length",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "four passes and five configurations: CP-length-fourpass",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/anchor/single/4k/score",
+    "what": "anchor, 4k",
+    "value": 0.9833
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/anchor/single/128k/score",
+    "what": "anchor, 128k",
+    "value": 0.9031
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/hqa/single/4k/score",
+    "what": "hqa, 4k",
+    "value": 0.9812
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/hqa/single/128k/score",
+    "what": "hqa, 128k",
+    "value": 0.9125
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/compact/single/4k/score",
+    "what": "compact, 4k",
+    "value": 0.9844
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/compact/single/128k/score",
+    "what": "compact, 128k",
+    "value": 0.8896
+   }
+  ]
+ },
+ {
+  "id": "CP-length-fourpass",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1",
+  "question": "How does field score change from 4K to 127K over four passes, per configuration?",
+  "statement": "Over four passes: anchor 0.985 at 4K and 0.918 at 127K; hqa 0.984 and 0.924; compact 0.981 and 0.887; exlr8-k4 0.983 and 0.920.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "mean field score per configuration at 4K and 127K, single message, four passes",
+  "sign": "higher is better",
+  "unit": "item",
+  "n": "60 items per length; 240 requests per configuration and length",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "same direction in both pass sets (by-length tables)",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/anchor/p1234/4k/score",
+    "what": "anchor, 4k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.9854,
+     0.9766,
+     0.9927,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/anchor/p1234/128k/score",
+    "what": "anchor, 128k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.9177,
+     0.8891,
+     0.9437,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/hqa/p1234/4k/score",
+    "what": "hqa, 4k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.9839,
+     0.9745,
+     0.9917,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/hqa/p1234/128k/score",
+    "what": "hqa, 128k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.9245,
+     0.8969,
+     0.9495,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/compact/p1234/4k/score",
+    "what": "compact, 4k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.9812,
+     0.974,
+     0.988,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/compact/p1234/128k/score",
+    "what": "compact, 128k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.887,
+     0.8505,
+     0.9193,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/exlr8-k4/p1234/4k/score",
+    "what": "exlr8-k4, 4k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.9828,
+     0.974,
+     0.9901,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/exlr8-k4/p1234/128k/score",
+    "what": "exlr8-k4, 128k, [estimate, 2.5%, 97.5%, items]",
+    "value": [
+     0.9203,
+     0.8896,
+     0.9469,
+     60
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-length-finished",
+  "run": "2026-11-10-context-probe",
+  "goal": "L",
+  "question": "At 127K, how do the replies that finished score, leaving out the unfinished ones (scored 0)?",
+  "statement": "Finished replies only, 127K, two passes: anchor 0.942, hqa 0.936, compact 0.928.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "mean field score of finished replies at 127K, single message, passes 1-2",
+  "sign": "higher is better",
+  "unit": "request",
+  "n": "finished replies of 120 per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/anchor/single/128k/score_finished_only",
+    "what": "anchor",
+    "value": 0.942391
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/hqa/single/128k/score_finished_only",
+    "what": "hqa",
+    "value": 0.935897
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/score_by_length/compact/single/128k/score_finished_only",
+    "what": "compact",
+    "value": 0.928261
+   }
+  ]
+ },
+ {
+  "id": "CP-turns-scope",
+  "run": "2026-11-10-context-probe",
+  "goal": "T-SCOPE",
+  "question": "In the eight-turn pass, how much of the final prompt had the model written itself?",
+  "statement": "Median share of the final prompt written by the model in the delivery turns: anchor 9.3% at 4K and 0.35% at 127K; hqa 9.2% at 4K and 0.33% at 127K; compact 9.4% at 4K and 0.32% at 127K. The rest of the history was the delivered records, written by prefill.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "median over sessions of (model-written tokens in delivery turns) / (prompt tokens of the question turn)",
+  "sign": "share of the prompt",
+  "unit": "session",
+  "n": "60 sessions per arm and length",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/model_written_share/anchor/4k/median",
+    "what": "anchor, 4k",
+    "value": 0.0928
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/model_written_share/anchor/128k/median",
+    "what": "anchor, 128k",
+    "value": 0.0035
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/model_written_share/hqa/4k/median",
+    "what": "hqa, 4k",
+    "value": 0.0923
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/model_written_share/hqa/128k/median",
+    "what": "hqa, 128k",
+    "value": 0.0033
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/model_written_share/compact/4k/median",
+    "what": "compact, 4k",
+    "value": 0.0939
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/model_written_share/compact/128k/median",
+    "what": "compact, 128k",
+    "value": 0.0032
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/status",
+    "what": "status of the turn design",
+    "value": "design to be revised; the protocol's advance reading (\"turn check v2 not needed\") is withdrawn"
+   }
+  ]
+ },
+ {
+  "id": "CP-turns-vs-single-long",
+  "run": "2026-11-10-context-probe",
+  "goal": "T",
+  "question": "At 16K to 127K, does delivering the same records over eight turns change field score against one message?",
+  "statement": "Eight turns minus single message, 16K to 127K: all nine intervals include 0; the lowest lower end is −0.074 (hqa, 64K).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "field score, eight-turn pass minus the mean of the two single-message passes, per arm and length",
+  "sign": "above 0 = eight turns scored higher",
+  "unit": "item",
+  "n": "60 items per arm and length",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 12,
+   "excluding_0": 2,
+   "note": "3 arms x 4 lengths; the 2 are at 4K (CP-turns-vs-single-4k)"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/anchor/16k",
+    "what": "anchor, 16k",
+    "value": [
+     -0.0104,
+     -0.05,
+     0.0167,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/anchor/64k",
+    "what": "anchor, 64k",
+    "value": [
+     -0.0083,
+     -0.0656,
+     0.0375,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/anchor/128k",
+    "what": "anchor, 128k",
+    "value": [
+     -0.001,
+     -0.0698,
+     0.0604,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/hqa/16k",
+    "what": "hqa, 16k",
+    "value": [
+     -0.0031,
+     -0.0167,
+     0.0094,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/hqa/64k",
+    "what": "hqa, 64k",
+    "value": [
+     -0.0167,
+     -0.074,
+     0.0302,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/hqa/128k",
+    "what": "hqa, 128k",
+    "value": [
+     0.0125,
+     -0.0469,
+     0.0646,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/compact/16k",
+    "what": "compact, 16k",
+    "value": [
+     -0.0021,
+     -0.0396,
+     0.024,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/compact/64k",
+    "what": "compact, 64k",
+    "value": [
+     -0.0052,
+     -0.0667,
+     0.0479,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/compact/128k",
+    "what": "compact, 128k",
+    "value": [
+     0.0417,
+     -0.0208,
+     0.1,
+     60
+    ]
+   }
+  ],
+  "bound": "a cost down to −0.074 is not excluded"
+ },
+ {
+  "id": "CP-turns-vs-single-4k",
+  "run": "2026-11-10-context-probe",
+  "goal": "T",
+  "question": "At 4K, does delivering the records over eight turns change field score against one message?",
+  "statement": "At 4K, eight turns minus single message: anchor +0.013 [+0.002, +0.024], hqa +0.015 [+0.003, +0.027] (both exclude 0, eight turns higher); compact +0.007 [−0.004, +0.019].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "field score, eight-turn pass minus single-message passes, 4K",
+  "sign": "above 0 = eight turns scored higher",
+  "unit": "item",
+  "n": "60 items per arm",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 12,
+   "excluding_0": 2,
+   "note": "3 arms x 4 lengths"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/anchor/4k",
+    "what": "anchor",
+    "value": [
+     0.0125,
+     0.0021,
+     0.024,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/hqa/4k",
+    "what": "hqa",
+    "value": [
+     0.0146,
+     0.0031,
+     0.0271,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/turns_minus_single/compact/4k",
+    "what": "compact",
+    "value": [
+     0.0073,
+     -0.0042,
+     0.0187,
+     60
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-intermediate-caps",
+  "run": "2026-11-10-context-probe",
+  "goal": "T-CAPS",
+  "question": "In the eight-turn pass, how many delivery turns did not end with the requested acknowledgement or ran to the cap?",
+  "statement": "Of 1,920 delivery turns per arm, not the bare acknowledgement: anchor 4, hqa 6, compact 17; ran to the acknowledgement cap: anchor 0 (0 sessions), hqa 2 (2 sessions), compact 13 (8 sessions).",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "delivery turns per arm by ending",
+  "sign": "counts; lower is fewer",
+  "unit": "delivery turn",
+  "n": "1,920 per arm (240 sessions x 8)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/intermediate_caps/anchor",
+    "what": "anchor",
+    "value": {
+     "delivery_turns": 1920,
+     "sessions": 240,
+     "turns_not_stop": 0,
+     "turns_not_the_acknowledgement": 4,
+     "of_which_finished_with_stop": 4,
+     "sessions_with_one": 0,
+     "most_in_one_session": 0
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/intermediate_caps/hqa",
+    "what": "hqa",
+    "value": {
+     "delivery_turns": 1920,
+     "sessions": 240,
+     "turns_not_stop": 2,
+     "turns_not_the_acknowledgement": 6,
+     "of_which_finished_with_stop": 4,
+     "sessions_with_one": 2,
+     "most_in_one_session": 1
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/turns/intermediate_caps/compact",
+    "what": "compact",
+    "value": {
+     "delivery_turns": 1920,
+     "sessions": 240,
+     "turns_not_stop": 13,
+     "turns_not_the_acknowledgement": 17,
+     "of_which_finished_with_stop": 4,
+     "sessions_with_one": 8,
+     "most_in_one_session": 6
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-kv-pool",
+  "run": "2026-11-10-context-probe",
+  "goal": "KV",
+  "question": "Did the cheaper core settings admit a larger KV pool than the BF16 core in the graded runs?",
+  "statement": "Every arm was admitted the configured maximum, 2,097,152 tokens, in all nine serving launches; resident weights differ (see evidence).",
+  "class": "descriptive",
+  "status": "source reading",
+  "quantity": "KV pool admitted at launch, tokens, from launch logs",
+  "sign": "higher holds more context",
+  "unit": "launch",
+  "n": "9 serving launches",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "serving launches",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/launch/kv_pool_tokens_serving/anchor",
+    "what": "anchor",
+    "value": 2097152
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/launch/kv_pool_tokens_serving/hqa",
+    "what": "hqa",
+    "value": 2097152
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/launch/kv_pool_tokens_serving/compact",
+    "what": "compact",
+    "value": 2097152
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/launch/note",
+    "what": "where a smaller pool was seen",
+    "value": "In the nine serving launches of the graded runs every arm was admitted the configured maximum KV pool. A smaller pool for anchor was seen only in the scoring launches of the exploratory depth profile (concurrency 16). Corrected 2026-11-11: RESULTS.md first gave anchor's scoring-launch pool in the graded-run table."
+   }
+  ]
+ },
+ {
+  "id": "CP-explore-depth",
+  "run": "2026-11-10-context-probe",
+  "goal": "X-DEPTH",
+  "question": "Before the graded runs, was any arm worse than the BF16-core arm at predicting given text at some depth?",
+  "statement": "Depth profile, five arms (anchor, hqa, compact, fp8-compact, the BF16-core checkpoint with the engine's default FP8 conversions), texts to 128K: the run recorded no arm measurably worse than anchor at any depth band. One capture each; the numbers are in the protocol text only.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "Before the graded runs, was any arm worse than the BF16-core arm at predicting given text at some depth",
+  "sign": "n/a",
+  "unit": "capture or request",
+  "n": "as stated",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "exploratory texts, not the task items",
+   "context": "4K to 127K",
+   "path": "prefill and generation",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "what": "protocol sections 10-13 (exploratory checks, numbers in the text)"
+   }
+  ],
+  "replaces": [
+   "CP-exploratory-checks"
+  ]
+ },
+ {
+  "id": "CP-explore-fp8-prefill",
+  "run": "2026-11-10-context-probe",
+  "goal": "X-FP8PRE",
+  "question": "Does GLM5_FLASH_FP8_PREFILL=off change anything on the HQA checkpoint?",
+  "statement": "With GLM5_FLASH_FP8_PREFILL=off every recorded distribution was bit-identical to the default, so it was not made an arm.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "Does GLM5_FLASH_FP8_PREFILL=off change anything on the HQA checkpoint",
+  "sign": "n/a",
+  "unit": "capture or request",
+  "n": "as stated",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "exploratory texts, not the task items",
+   "context": "4K to 127K",
+   "path": "prefill and generation",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "what": "protocol sections 10-13 (exploratory checks, numbers in the text)"
+   }
+  ]
+ },
+ {
+  "id": "CP-explore-launch-repeat",
+  "run": "2026-11-10-context-probe",
+  "goal": "X-LAUNCH",
+  "question": "Do two launches of the same arm give the same scores?",
+  "statement": "Two launches of the same arm gave bit-identical scored rows.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "Do two launches of the same arm give the same scores",
+  "sign": "n/a",
+  "unit": "capture or request",
+  "n": "as stated",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "exploratory texts, not the task items",
+   "context": "4K to 127K",
+   "path": "prefill and generation",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "what": "protocol sections 10-13 (exploratory checks, numbers in the text)"
+   }
+  ]
+ },
+ {
+  "id": "CP-explore-prefix-resume",
+  "run": "2026-11-10-context-probe",
+  "goal": "X-TURN",
+  "question": "Does a prefix-cache resume reproduce a decode replay?",
+  "statement": "Prefix-cache resume against a decode replay: bit-identical in 45 of 46 conversations over four arms; the run attributes the exception to the harness.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "Does a prefix-cache resume reproduce a decode replay",
+  "sign": "n/a",
+  "unit": "capture or request",
+  "n": "as stated",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "exploratory texts, not the task items",
+   "context": "4K to 127K",
+   "path": "prefill and generation",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "what": "protocol sections 10-13 (exploratory checks, numbers in the text)"
+   }
+  ]
+ },
+ {
+  "id": "CP-explore-greedy",
+  "run": "2026-11-10-context-probe",
+  "goal": "X-REPEAT",
+  "question": "Is greedy output the same alone and eight at once?",
+  "statement": "Greedy output alone and with eight requests at once: one text in all 260 requests per arm.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "Is greedy output the same alone and eight at once",
+  "sign": "n/a",
+  "unit": "capture or request",
+  "n": "as stated",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "exploratory texts, not the task items",
+   "context": "4K to 127K",
+   "path": "prefill and generation",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "what": "protocol sections 10-13 (exploratory checks, numbers in the text)"
+   }
+  ]
+ },
+ {
+  "id": "CP-reference-exlr8-k4",
+  "run": "2026-11-10-context-probe",
+  "goal": "REF",
+  "question": "Does the EXLR8 K4 checkpoint score differently from anchor or hqa (two passes, post hoc)?",
+  "statement": "exlr8-k4 − anchor +0.006 [−0.007, +0.019]; exlr8-k4 − hqa +0.006 [−0.008, +0.019]; both intervals include 0.",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "field score, exlr8-k4 - anchor and - hqa, single message, four lengths, passes 1-2",
+  "sign": "above 0 = exlr8-k4 scored higher",
+  "unit": "item",
+  "n": "60 items; 480 requests per configuration",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 84,
+   "excluding_0": 3,
+   "note": "post hoc intervals with the reference checkpoint at two passes; all 3 are exlr8-k4 - compact on field score"
+  },
+  "replication": "four passes: CP-fourpass-exlr8-level",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/reference/paired/exlr8-k4 - anchor/score/all",
+    "what": "vs anchor",
+    "value": [
+     0.0063,
+     -0.0068,
+     0.019,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/reference/paired/exlr8-k4 - hqa/score/all",
+    "what": "vs hqa",
+    "value": [
+     0.0063,
+     -0.0081,
+     0.0193,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/reference/intervals/computed",
+    "what": "intervals computed",
+    "value": 84
+   }
+  ],
+  "bound": "a difference down to −0.008 is not excluded"
+ },
+ {
+  "id": "CP-reference-exlr8-compact",
+  "run": "2026-11-10-context-probe",
+  "goal": "REF",
+  "question": "Does the EXLR8 K4 checkpoint score differently from compact (two passes, post hoc)?",
+  "statement": "exlr8-k4 − compact +0.016 [+0.004, +0.029] over four lengths (excludes 0); found after the results were read, one of 3 intervals of 84 that exclude 0.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "field score, exlr8-k4 - compact, single message, four lengths, passes 1-2",
+  "sign": "above 0 = exlr8-k4 scored higher",
+  "unit": "item",
+  "n": "60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 84,
+   "excluding_0": 3,
+   "note": "post hoc intervals with the reference checkpoint at two passes; all 3 are exlr8-k4 - compact on field score"
+  },
+  "replication": "failed to replicate at passes 3-4: CP-fourpass-exlr8-k4",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/reference/paired/exlr8-k4 - compact/score/all",
+    "what": "vs compact",
+    "value": [
+     0.0159,
+     0.0036,
+     0.0294,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/reference/intervals/excluding_zero",
+    "what": "intervals excluding 0",
+    "value": [
+     {
+      "pair": "exlr8-k4 - compact",
+      "measure": "score",
+      "lengths": "128k",
+      "value": [
+       0.0448,
+       0.0094,
+       0.0854,
+       60
+      ]
+     },
+     {
+      "pair": "exlr8-k4 - compact",
+      "measure": "score",
+      "lengths": "all",
+      "value": [
+       0.0159,
+       0.0036,
+       0.0294,
+       60
+      ]
+     },
+     {
+      "pair": "exlr8-k4 - compact",
+      "measure": "score",
+      "lengths": "64k+128k",
+      "value": [
+       0.0297,
+       0.0063,
+       0.0557,
+       60
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-reference-capture",
+  "run": "2026-11-10-context-probe",
+  "goal": "CAP",
+  "question": "Scoring given texts, is EXLR8 K4's most likely token the given one less often than anchor's?",
+  "statement": "Share of positions whose most likely token is the given one, exlr8-k4 minus anchor: −0.0007 [−0.0037, +0.0023] on the prefill path; the decode-path interval also includes 0.",
+  "class": "not detected",
+  "status": "exploratory",
+  "quantity": "top-1 agreement with the given text, exlr8-k4 - anchor, prefill path",
+  "sign": "above 0 = exlr8-k4 agrees more often",
+  "unit": "run of consecutive positions within each text",
+  "n": "9,728 positions in five texts",
+  "interval": "95% bootstrap over runs of consecutive positions within each text (capture analysis)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "five texts to 128K (not the task items), assistant frame",
+   "context": "to 128K",
+   "path": "prefill and decode capture, no sampling",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/capture/against_text/prefill/arms/exlr8-k4/top1_minus_ref",
+    "what": "prefill",
+    "value": [
+     -0.0007,
+     -0.0037,
+     0.0023
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/capture/against_text/decode/arms/exlr8-k4/top1_minus_ref",
+    "what": "decode",
+    "value": [
+     0.001,
+     -0.0036,
+     0.0057
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/capture/against_text/prefill/rows",
+    "what": "positions",
+    "value": 9728
+   }
+  ],
+  "bound": "a lower agreement down to −0.0037 is not excluded"
+ },
+ {
+  "id": "CP-reference-capture-nll",
+  "run": "2026-11-10-context-probe",
+  "goal": "CAP",
+  "question": "Scoring given texts, how does EXLR8 K4's NLL compare with anchor's, and where does the difference sit?",
+  "statement": "Mean NLL, exlr8-k4 minus anchor: −0.0134 [−0.0199, −0.0070] nats (prefill path). 99 of 9,728 positions carry -91.48 of the -130.40 nat total; the median per-position difference is 0.0, and exlr8-k4 is lower on a share 0.4755 of positions.",
+  "class": "difference",
+  "status": "exploratory",
+  "quantity": "mean NLL of given text, exlr8-k4 - anchor, prefill path",
+  "sign": "below 0 = exlr8-k4 assigns the given text higher probability",
+  "unit": "run of consecutive positions within each text",
+  "n": "9,728 positions in five texts",
+  "interval": "95% bootstrap over runs of consecutive positions within each text (capture analysis)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "five texts to 128K (not the task items), assistant frame",
+   "context": "to 128K",
+   "path": "prefill capture, no sampling",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_minus_ref",
+    "what": "NLL difference",
+    "value": [
+     -0.0134,
+     -0.0199,
+     -0.007
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/capture/against_text/prefill/arms/exlr8-k4/nll_difference_rows",
+    "what": "per-position distribution of the difference",
+    "value": {
+     "sum": -130.4,
+     "mean": -0.0134,
+     "median": 0.0,
+     "rows_over_1_nat": 99,
+     "sum_of_those": -91.48,
+     "mean_without_those": -0.00404,
+     "mean_trimmed_1pct_each_side": -0.00579,
+     "share_rows_arm_better": 0.4755,
+     "share_rows_equal": 0.0,
+     "by_text": {
+      "code": {
+       "rows": 1984,
+       "sum": -115.82,
+       "rows_over_1_nat": 84,
+       "sum_of_those": -87.02,
+       "mean_without_those": -0.01516
+      },
+      "join": {
+       "rows": 1920,
+       "sum": 9.45,
+       "rows_over_1_nat": 3,
+       "sum_of_those": 2.47,
+       "mean_without_those": 0.00364
+      },
+      "ledger": {
+       "rows": 1920,
+       "sum": -0.01,
+       "rows_over_1_nat": 0,
+       "sum_of_those": 0.0,
+       "mean_without_those": -0.0
+      },
+      "prose": {
+       "rows": 1984,
+       "sum": -21.16,
+       "rows_over_1_nat": 12,
+       "sum_of_those": -6.93,
+       "mean_without_those": -0.00722
+      },
+      "trace": {
+       "rows": 1920,
+       "sum": -2.85,
+       "rows_over_1_nat": 0,
+       "sum_of_those": 0.0,
+       "mean_without_those": -0.00148
+      }
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-fourpass-hqa-vs-anchor",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-HA",
+  "question": "Over four passes, does hqa score differently from anchor?",
+  "statement": "hqa − anchor +0.003 [−0.005, +0.012] over four lengths and four passes; passes 1-2 +0.000 [−0.012, +0.012], passes 3-4 +0.006 [−0.010, +0.021]; every interval includes 0.",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "field score, hqa - anchor, single message, four lengths, four passes",
+  "sign": "hqa - anchor: above 0 = hqa scored higher",
+  "unit": "item",
+  "n": "60 items; 960 requests per arm",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "both pass sets include 0 (passes 3-4 are an independent seed block)",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/hqa - anchor/p1234/score/all",
+    "what": "p1234",
+    "value": [
+     0.0031,
+     -0.0055,
+     0.0116,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/hqa - anchor/p12/score/all",
+    "what": "p12",
+    "value": [
+     0.0,
+     -0.0122,
+     0.012,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/hqa - anchor/p34/score/all",
+    "what": "p34",
+    "value": [
+     0.0063,
+     -0.0099,
+     0.0206,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/requests_per_arm",
+    "what": "requests per arm",
+    "value": 960
+   }
+  ],
+  "bound": "a cost down to −0.0055 is not excluded"
+ },
+ {
+  "id": "CP-fourpass-compact-127k",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-COMPACT",
+  "question": "Over four passes at 127K, does hqa score differently from compact?",
+  "statement": "At 127K, hqa − compact +0.037 [+0.004, +0.073] (excludes 0); per pass at 127K hqa scored above compact in all four passes.",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "field score, hqa - compact, single message, 127K, four passes",
+  "sign": "hqa - compact: above 0 = hqa scored higher",
+  "unit": "item",
+  "n": "60 items; 240 requests per arm at 127K",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "same sign in both pass sets; not tested on other items",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/hqa - compact/p1234/score/128k",
+    "what": "127K",
+    "value": [
+     0.0375,
+     0.0042,
+     0.0729,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/hqa/score_by_pass/128k",
+    "what": "hqa by pass",
+    "value": [
+     0.9292,
+     0.8958,
+     0.9271,
+     0.9458
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/compact/score_by_pass/128k",
+    "what": "compact by pass",
+    "value": [
+     0.8854,
+     0.8938,
+     0.8917,
+     0.8771
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-fourpass-hqa-compact-all",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-COMPACT",
+  "question": "Over four passes and all lengths, does hqa score differently from compact?",
+  "statement": "hqa − compact +0.013 [+0.002, +0.024] over four lengths (excludes 0); in neither pass set alone: passes 1-2 +0.010 [−0.005, +0.025], passes 3-4 +0.016 [−0.002, +0.036].",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "field score, hqa - compact, single message, four lengths, four passes",
+  "sign": "hqa - compact: above 0 = hqa scored higher",
+  "unit": "item",
+  "n": "60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "excludes 0 only when the two pass sets are pooled",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/hqa - compact/p1234/score/all",
+    "what": "p1234",
+    "value": [
+     0.013,
+     0.0017,
+     0.0242,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/hqa - compact/p12/score/all",
+    "what": "p12",
+    "value": [
+     0.0096,
+     -0.0047,
+     0.0253,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/hqa - compact/p34/score/all",
+    "what": "p34",
+    "value": [
+     0.0164,
+     -0.0021,
+     0.0357,
+     60
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-fourpass-compact-anchor",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-COMPACT",
+  "question": "Over four passes, does compact score differently from anchor?",
+  "statement": "compact − anchor −0.010 [−0.021, +0.002] over four lengths and −0.031 [−0.070, +0.008] at 127K; both intervals include 0.",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "field score, compact - anchor, single message, four passes",
+  "sign": "compact - anchor: above 0 = compact scored higher",
+  "unit": "item",
+  "n": "60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "both pass sets include 0 over four lengths",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/compact - anchor/p1234/score/all",
+    "what": "four lengths",
+    "value": [
+     -0.0099,
+     -0.0215,
+     0.0016,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/compact - anchor/p1234/score/128k",
+    "what": "127K",
+    "value": [
+     -0.0307,
+     -0.0703,
+     0.0078,
+     60
+    ]
+   }
+  ],
+  "bound": "a cost down to −0.070 at 127K is not excluded"
+ },
+ {
+  "id": "CP-fourpass-ledger",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-COMPACT",
+  "question": "Over four passes, does compact score lower than anchor on ledger (running totals) at 64K and 127K?",
+  "statement": "compact − anchor on ledger at 64K and 127K pooled, four passes: −0.026 [−0.070, +0.019] (includes 0).",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "field score on ledger items, compact - anchor, 64K and 127K pooled, single message, four passes",
+  "sign": "compact - anchor: above 0 = compact scored higher",
+  "unit": "item",
+  "n": "20 ledger items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator); pooled over the two lengths",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "the two-pass post hoc lead (CP-ledger-long-context) did not hold at four passes",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/compact - anchor/p1234/ledger_64k+128k_score",
+    "what": "[estimate, 2.5%, 97.5%, items]",
+    "value": [
+     -0.0258,
+     -0.0703,
+     0.0195,
+     20
+    ]
+   }
+  ],
+  "bound": "a cost down to −0.070 is not excluded"
+ },
+ {
+  "id": "CP-fourpass-exlr8-k4",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-EXLR8",
+  "question": "Did the two-pass lead of exlr8-k4 over compact repeat at passes 3-4?",
+  "statement": "No: exlr8-k4 − compact +0.016 [+0.004, +0.029] at passes 1-2, +0.002 [−0.017, +0.022] at passes 3-4 alone, +0.009 [−0.003, +0.021] over four passes.",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "field score, exlr8-k4 - compact, single message, four lengths",
+  "sign": "above 0 = exlr8-k4 scored higher",
+  "unit": "item",
+  "n": "60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "failed to replicate: the passes 1-2 interval excludes 0, passes 3-4 alone and the four-pass interval include 0",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/exlr8-k4 - compact/p12/score/all",
+    "what": "p12",
+    "value": [
+     0.0159,
+     0.0036,
+     0.0294,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/exlr8-k4 - compact/p34/score/all",
+    "what": "p34",
+    "value": [
+     0.0021,
+     -0.0169,
+     0.0221,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/exlr8-k4 - compact/p1234/score/all",
+    "what": "p1234",
+    "value": [
+     0.009,
+     -0.0026,
+     0.0206,
+     60
+    ]
+   }
+  ],
+  "bound": "a difference down to −0.0026 is not excluded"
+ },
+ {
+  "id": "CP-fourpass-exlr8-level",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-EXLR8",
+  "question": "Over four passes, does exlr8-k4 score differently from anchor or hqa?",
+  "statement": "exlr8-k4 − anchor −0.001 [−0.012, +0.009]; exlr8-k4 − hqa −0.004 [−0.016, +0.007]; both include 0.",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "field score, exlr8-k4 - anchor and - hqa, single message, four lengths, four passes",
+  "sign": "above 0 = exlr8-k4 scored higher",
+  "unit": "item",
+  "n": "60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "agrees with passes 1-2 (CP-reference-exlr8-k4)",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/exlr8-k4 - anchor/p1234/score/all",
+    "what": "vs anchor",
+    "value": [
+     -0.0009,
+     -0.0116,
+     0.0087,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/exlr8-k4 - hqa/p1234/score/all",
+    "what": "vs hqa",
+    "value": [
+     -0.004,
+     -0.0156,
+     0.0066,
+     60
+    ]
+   }
+  ],
+  "bound": "a difference down to −0.0156 is not excluded"
+ },
+ {
+  "id": "CP-fourpass-exlr8-right",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1-EXLR8",
+  "question": "Over four passes, how often does each configuration get every field right?",
+  "statement": "Replies with every field right, of 960: anchor 760, hqa 768, compact 739, exlr8-k4 738. exlr8-k4 − anchor at 64K and 127K pooled, as a share of replies: −0.046 [−0.087, −0.004] (excludes 0; one of 6 of 102).",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "replies with every field right; share difference exlr8-k4 - anchor at 64K+127K",
+  "sign": "above 0 = exlr8-k4 more often fully right",
+  "unit": "item (for the interval)",
+  "n": "960 replies per configuration; 60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/anchor/p1234/all/right",
+    "what": "anchor",
+    "value": 760
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/hqa/p1234/all/right",
+    "what": "hqa",
+    "value": 768
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/compact/p1234/all/right",
+    "what": "compact",
+    "value": 739
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/by_length/exlr8-k4/p1234/all/right",
+    "what": "exlr8-k4",
+    "value": 738
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/paired/exlr8-k4 - anchor/p1234/every_field_right/64k+128k",
+    "what": "share difference",
+    "value": [
+     -0.0458,
+     -0.0875,
+     -0.0042,
+     60
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-fourpass-family",
+  "run": "2026-11-10-context-probe",
+  "goal": "A1",
+  "question": "Across all four-pass intervals, how many exclude 0, and how much did the extra passes narrow them?",
+  "statement": "Of 102 paired intervals per pass set, 4 exclude 0 at passes 1-2, 13 at passes 3-4 alone and 6 at four passes; with no difference anywhere about 5 would. Four-pass half-widths are 0.707 to 0.899 of the two-pass half-widths.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "count of intervals excluding 0; half-width ratio four passes / two passes",
+  "sign": "n/a",
+  "unit": "interval",
+  "n": "102 per pass set",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 102,
+   "excluding_0": 6,
+   "note": "four-pass intervals of amendment 1; 4 of 102 at passes 1-2, 13 at passes 3-4 alone"
+  },
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/intervals/excluding_zero/p12/count",
+    "what": "passes 1-2",
+    "value": 4
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/intervals/excluding_zero/p34/count",
+    "what": "passes 3-4",
+    "value": 13
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/intervals/excluding_zero/p1234/count",
+    "what": "four passes",
+    "value": 6
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/four_pass/half_width_ratio_four_over_two_passes/paired_score_all",
+    "what": "half-width ratios",
+    "value": {
+     "hqa - anchor": 0.707,
+     "compact - anchor": 0.709,
+     "hqa - compact": 0.75,
+     "exlr8-k4 - anchor": 0.787,
+     "exlr8-k4 - hqa": 0.81,
+     "exlr8-k4 - compact": 0.899
+    }
+   }
+  ],
+  "replaces": [
+   "CP-extension-pending"
+  ]
+ },
+ {
+  "id": "CP-ledger-long-context",
+  "run": "2026-11-10-context-probe",
+  "goal": "PH-LC",
+  "question": "At two passes, does compact score lower than anchor on ledger at 64K and 127K pooled (post hoc)?",
+  "statement": "compact − anchor on ledger, 64K and 127K pooled, two passes: −0.062 [−0.127, +0.002] in field score (includes 0) and −0.138 [−0.263, −0.025] in every field right (excludes 0). Chosen after the results were read; 2 of 48 such intervals exclude 0.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "ledger field score and every-field-right share, compact - anchor, 64K+127K, single message, passes 1-2",
+  "sign": "compact - anchor: above 0 = compact scored higher",
+  "unit": "item",
+  "n": "20 ledger items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(7), indices 250 and 9750 (post hoc pooled estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 48,
+   "excluding_0": 2,
+   "note": "both are compact - anchor on ledger every field right (single message; with the eight-turn pass)"
+  },
+  "replication": "four passes, field score: CP-fourpass-ledger (includes 0)",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/post_hoc_long_context/64k+128k/compact - anchor/ledger/score/single",
+    "what": "field score",
+    "value": [
+     -0.0625,
+     -0.1266,
+     0.0016,
+     20
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/post_hoc_long_context/64k+128k/compact - anchor/ledger/every_field_right/single",
+    "what": "every field right",
+    "value": [
+     -0.1375,
+     -0.2625,
+     -0.025,
+     20
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/post_hoc_long_context/64k+128k/compact - anchor/ledger/every_field_right/single+turns",
+    "what": "with the eight-turn pass",
+    "value": [
+     -0.1167,
+     -0.2167,
+     -0.0167,
+     20
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-fourpass-endings",
+  "run": "2026-11-10-context-probe",
+  "goal": "END",
+  "question": "Over four passes, how many replies did not finish, and where?",
+  "statement": "44 of 3,840 replies did not finish (anchor 9, hqa 9, compact 18, exlr8-k4 8), 0 of them with answer text. Join at 127K: anchor 4, hqa 2, compact 10, exlr8-k4 1 of 80; for these four configurations every unfinished join reply is at 127K (k325-fp8, added later, also has 2 at 64K: CP-k325-endings).",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "unfinished replies per configuration, family and length, four passes",
+  "sign": "counts; lower is fewer",
+  "unit": "request",
+  "n": "960 per configuration",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/unfinished/total",
+    "what": "total",
+    "value": 44
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/unfinished/with_answer_text",
+    "what": "with answer text",
+    "value": 0
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/unfinished/by_arm_family_length/anchor",
+    "what": "anchor",
+    "value": {
+     "join": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 4
+     },
+     "ledger": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 2,
+      "128k": 3
+     },
+     "trace": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 0
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/unfinished/by_arm_family_length/hqa",
+    "what": "hqa",
+    "value": {
+     "join": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 2
+     },
+     "ledger": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 4,
+      "128k": 3
+     },
+     "trace": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 0
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/unfinished/by_arm_family_length/compact",
+    "what": "compact",
+    "value": {
+     "join": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 10
+     },
+     "ledger": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 3,
+      "128k": 4
+     },
+     "trace": {
+      "4k": 0,
+      "16k": 1,
+      "64k": 0,
+      "128k": 0
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/unfinished/by_arm_family_length/exlr8-k4",
+    "what": "exlr8-k4",
+    "value": {
+     "join": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 1
+     },
+     "ledger": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 4,
+      "128k": 3
+     },
+     "trace": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-endings-share",
+  "run": "2026-11-10-context-probe",
+  "goal": "END",
+  "question": "At 127K, does compact leave a larger share of join replies unfinished than hqa or anchor?",
+  "statement": "Share of unfinished join replies at 127K, four passes: compact − hqa +0.100 [+0.025, +0.175] (excludes 0); compact − anchor +0.075 [−0.013, +0.163] (includes 0). By pass, compact had 1, 2, 4, 3 and anchor 3, 1, 0, 0.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "share of the item's join replies at 127K that did not finish, compact - hqa and compact - anchor",
+  "sign": "above 0 = compact left more unfinished",
+  "unit": "item",
+  "n": "20 join items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator) (same estimator on the unfinished share)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 60,
+   "excluding_0": 9,
+   "note": "every paired unfinished-share interval computed for the four configurations"
+  },
+  "replication": "passes 1-2 alone show no excess (compact 1 and 2, anchor 3 and 1)",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/paired_unfinished_share/compact - hqa/p1234/unfinished_127k_join",
+    "what": "compact - hqa",
+    "value": [
+     0.1,
+     0.025,
+     0.175,
+     20
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/paired_unfinished_share/compact - anchor/p1234/unfinished_127k_join",
+    "what": "compact - anchor",
+    "value": [
+     0.075,
+     -0.0125,
+     0.1625,
+     20
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/join_127k_unfinished_by_pass/compact",
+    "what": "compact by pass",
+    "value": [
+     1,
+     2,
+     4,
+     3
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/join_127k_unfinished_by_pass/anchor",
+    "what": "anchor by pass",
+    "value": [
+     3,
+     1,
+     0,
+     0
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-endings-finished-join",
+  "run": "2026-11-10-context-probe",
+  "goal": "END",
+  "question": "At 127K, how do the join replies that finished score?",
+  "statement": "Finished join replies at 127K, four passes: 0.989 to 0.997 across the four configurations.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "mean field score of finished join replies at 127K",
+  "sign": "higher is better",
+  "unit": "request",
+  "n": "finished join replies of 80 per configuration",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/score_127k/anchor/p1234/by_family/join/finished_only",
+    "what": "anchor",
+    "value": 0.9951
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/score_127k/hqa/p1234/by_family/join/finished_only",
+    "what": "hqa",
+    "value": 0.9968
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/score_127k/compact/p1234/by_family/join/finished_only",
+    "what": "compact",
+    "value": 0.9893
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/score_127k/exlr8-k4/p1234/by_family/join/finished_only",
+    "what": "exlr8-k4",
+    "value": 0.9921
+   }
+  ]
+ },
+ {
+  "id": "CP-endings-copying",
+  "run": "2026-11-10-context-probe",
+  "goal": "END",
+  "question": "What did the unfinished join replies at 127K spend their reasoning on?",
+  "statement": "In 15 of the 17 unfinished join replies at 127K at least half of the reasoning is the prompt's records copied out in order; in the 16 with a copy run, all eight correct identifiers (13 replies) or seven (3) occur in the reasoning before the run starts. The thresholds (half of the reasoning; a run of 20 lines) were chosen after the replies were read.",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "per-reply share of reasoning that is copied records; copy runs; identifiers found before the run (text match)",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "17 unfinished join replies at 127K (four configurations)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "applied unchanged to k325-fp8: CP-k325-endings",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/join_127k/anchor/p1234",
+    "what": "anchor",
+    "value": {
+     "requests": 80,
+     "unfinished": 4,
+     "with_copy_run": 8,
+     "copy_run_finished": 4,
+     "copy_run_unfinished": 4,
+     "unfinished_without_copy_run": 0,
+     "copy_run_unfinished_all_8_docks_before": 3,
+     "copy_run_unfinished_7_docks_before": 1,
+     "copy_run_finished_score": 1.0,
+     "no_copy_run_finished_score": 0.9948,
+     "items_with_unfinished": 4
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/join_127k/hqa/p1234",
+    "what": "hqa",
+    "value": {
+     "requests": 80,
+     "unfinished": 2,
+     "with_copy_run": 5,
+     "copy_run_finished": 3,
+     "copy_run_unfinished": 2,
+     "unfinished_without_copy_run": 0,
+     "copy_run_unfinished_all_8_docks_before": 0,
+     "copy_run_unfinished_7_docks_before": 2,
+     "copy_run_finished_score": 1.0,
+     "no_copy_run_finished_score": 0.9967,
+     "items_with_unfinished": 2
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/join_127k/compact/p1234",
+    "what": "compact",
+    "value": {
+     "requests": 80,
+     "unfinished": 10,
+     "with_copy_run": 11,
+     "copy_run_finished": 2,
+     "copy_run_unfinished": 9,
+     "unfinished_without_copy_run": 1,
+     "copy_run_unfinished_all_8_docks_before": 9,
+     "copy_run_unfinished_7_docks_before": 0,
+     "copy_run_finished_score": 1.0,
+     "no_copy_run_finished_score": 0.989,
+     "items_with_unfinished": 8
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/join_127k/exlr8-k4/p1234",
+    "what": "exlr8-k4",
+    "value": {
+     "requests": 80,
+     "unfinished": 1,
+     "with_copy_run": 4,
+     "copy_run_finished": 3,
+     "copy_run_unfinished": 1,
+     "unfinished_without_copy_run": 0,
+     "copy_run_unfinished_all_8_docks_before": 1,
+     "copy_run_unfinished_7_docks_before": 0,
+     "copy_run_finished_score": 0.9583,
+     "no_copy_run_finished_score": 0.9934,
+     "items_with_unfinished": 1
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/endings/unfinished_replies",
+    "what": "every unfinished reply with its copied share",
+    "value": [
+     {
+      "arm": "anchor",
+      "pass": 1,
+      "item": "join-103",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80334,
+      "copy_share": 0.95,
+      "repeat_share": 0.002,
+      "run_start_chars": 4264,
+      "reached": 8379,
+      "records": 8662,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "anchor",
+      "pass": 1,
+      "item": "join-104",
+      "length": "128k",
+      "finish": "repetition",
+      "tokens": 25575,
+      "reasoning_chars": 63257,
+      "copy_share": 0.881,
+      "repeat_share": 0.055,
+      "run_start_chars": 5473,
+      "reached": 6593,
+      "records": 8666,
+      "answers_before": 8,
+      "kind": "copying, loop abort"
+     },
+     {
+      "arm": "anchor",
+      "pass": 1,
+      "item": "join-105",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80977,
+      "copy_share": 0.895,
+      "repeat_share": 0.007,
+      "run_start_chars": 8972,
+      "reached": 6958,
+      "records": 8669,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "anchor",
+      "pass": 1,
+      "item": "ledger-109",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 57978,
+      "copy_share": 0.987,
+      "repeat_share": 0.0,
+      "run_start_chars": 753,
+      "reached": 2571,
+      "records": 9949,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "anchor",
+      "pass": 1,
+      "item": "ledger-117",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 67258,
+      "copy_share": 0.183,
+      "repeat_share": 0.143,
+      "run_start_chars": null,
+      "reached": 3923,
+      "records": 5134,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "anchor",
+      "pass": 2,
+      "item": "join-114",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80424,
+      "copy_share": 0.951,
+      "repeat_share": 0.004,
+      "run_start_chars": 4227,
+      "reached": 7783,
+      "records": 8654,
+      "answers_before": 7,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "anchor",
+      "pass": 3,
+      "item": "ledger-114",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 53160,
+      "copy_share": 0.893,
+      "repeat_share": 0.019,
+      "run_start_chars": 4415,
+      "reached": 2189,
+      "records": 9973,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "anchor",
+      "pass": 3,
+      "item": "ledger-116",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 61136,
+      "copy_share": 0.634,
+      "repeat_share": 0.057,
+      "run_start_chars": 13035,
+      "reached": 4169,
+      "records": 5157,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "anchor",
+      "pass": 4,
+      "item": "ledger-104",
+      "length": "128k",
+      "finish": "repetition",
+      "tokens": 26126,
+      "reasoning_chars": 59157,
+      "copy_share": 0.042,
+      "repeat_share": 0.684,
+      "run_start_chars": null,
+      "reached": 9940,
+      "records": 9962,
+      "answers_before": null,
+      "kind": "other, loop abort"
+     },
+     {
+      "arm": "hqa",
+      "pass": 2,
+      "item": "join-105",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 82005,
+      "copy_share": 0.794,
+      "repeat_share": 0.01,
+      "run_start_chars": 13523,
+      "reached": 8669,
+      "records": 8669,
+      "answers_before": 7,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "hqa",
+      "pass": 2,
+      "item": "join-117",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 92123,
+      "copy_share": 0.487,
+      "repeat_share": 0.031,
+      "run_start_chars": 42086,
+      "reached": 8262,
+      "records": 8660,
+      "answers_before": 7,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "hqa",
+      "pass": 2,
+      "item": "ledger-103",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 73622,
+      "copy_share": 0.094,
+      "repeat_share": 0.133,
+      "run_start_chars": null,
+      "reached": 5154,
+      "records": 5154,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "hqa",
+      "pass": 2,
+      "item": "ledger-109",
+      "length": "128k",
+      "finish": "repetition",
+      "tokens": 1330,
+      "reasoning_chars": 6271,
+      "copy_share": 0.0,
+      "repeat_share": 0.0,
+      "run_start_chars": null,
+      "reached": 0,
+      "records": 9949,
+      "answers_before": null,
+      "kind": "other, loop abort"
+     },
+     {
+      "arm": "hqa",
+      "pass": 2,
+      "item": "ledger-114",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 58774,
+      "copy_share": 0.148,
+      "repeat_share": 0.006,
+      "run_start_chars": 44595,
+      "reached": 5171,
+      "records": 5171,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "hqa",
+      "pass": 3,
+      "item": "ledger-105",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 57648,
+      "copy_share": 0.307,
+      "repeat_share": 0.0,
+      "run_start_chars": 48880,
+      "reached": 9978,
+      "records": 9990,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "hqa",
+      "pass": 3,
+      "item": "ledger-109",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 56236,
+      "copy_share": 0.305,
+      "repeat_share": 0.007,
+      "run_start_chars": null,
+      "reached": 5131,
+      "records": 5134,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "hqa",
+      "pass": 3,
+      "item": "ledger-117",
+      "length": "64k",
+      "finish": "repetition",
+      "tokens": 2555,
+      "reasoning_chars": 5026,
+      "copy_share": 0.0,
+      "repeat_share": 0.005,
+      "run_start_chars": null,
+      "reached": 0,
+      "records": 5134,
+      "answers_before": null,
+      "kind": "other, loop abort"
+     },
+     {
+      "arm": "hqa",
+      "pass": 4,
+      "item": "ledger-117",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 50838,
+      "copy_share": 0.011,
+      "repeat_share": 0.002,
+      "run_start_chars": null,
+      "reached": 9868,
+      "records": 9961,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 1,
+      "item": "join-101",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80621,
+      "copy_share": 0.953,
+      "repeat_share": 0.002,
+      "run_start_chars": 3846,
+      "reached": 5382,
+      "records": 8692,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 1,
+      "item": "ledger-102",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 68086,
+      "copy_share": 0.019,
+      "repeat_share": 0.037,
+      "run_start_chars": null,
+      "reached": 9910,
+      "records": 10000,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 1,
+      "item": "ledger-110",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 51404,
+      "copy_share": 0.78,
+      "repeat_share": 0.001,
+      "run_start_chars": 2971,
+      "reached": 5161,
+      "records": 5161,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 1,
+      "item": "ledger-110",
+      "length": "128k",
+      "finish": "repetition",
+      "tokens": 20347,
+      "reasoning_chars": 33278,
+      "copy_share": 0.265,
+      "repeat_share": 0.045,
+      "run_start_chars": null,
+      "reached": 9776,
+      "records": 9983,
+      "answers_before": null,
+      "kind": "other, loop abort"
+     },
+     {
+      "arm": "compact",
+      "pass": 1,
+      "item": "ledger-114",
+      "length": "64k",
+      "finish": "repetition",
+      "tokens": 9252,
+      "reasoning_chars": 21510,
+      "copy_share": 0.045,
+      "repeat_share": 0.146,
+      "run_start_chars": null,
+      "reached": 319,
+      "records": 5171,
+      "answers_before": null,
+      "kind": "other, loop abort"
+     },
+     {
+      "arm": "compact",
+      "pass": 2,
+      "item": "join-116",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80726,
+      "copy_share": 0.946,
+      "repeat_share": 0.006,
+      "run_start_chars": 3814,
+      "reached": 8511,
+      "records": 8661,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 2,
+      "item": "join-119",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80132,
+      "copy_share": 0.957,
+      "repeat_share": 0.005,
+      "run_start_chars": 3674,
+      "reached": 3630,
+      "records": 8679,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 3,
+      "item": "join-103",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80467,
+      "copy_share": 0.919,
+      "repeat_share": 0.002,
+      "run_start_chars": 6733,
+      "reached": 5740,
+      "records": 8662,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 3,
+      "item": "join-111",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80470,
+      "copy_share": 0.95,
+      "repeat_share": 0.0,
+      "run_start_chars": 4007,
+      "reached": 3725,
+      "records": 8670,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 3,
+      "item": "join-115",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80496,
+      "copy_share": 0.94,
+      "repeat_share": 0.001,
+      "run_start_chars": 4818,
+      "reached": 7946,
+      "records": 8640,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 3,
+      "item": "join-117",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 115944,
+      "copy_share": 0.006,
+      "repeat_share": 0.018,
+      "run_start_chars": null,
+      "reached": 7075,
+      "records": 8660,
+      "answers_before": 7,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 3,
+      "item": "ledger-101",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 83387,
+      "copy_share": 0.062,
+      "repeat_share": 0.113,
+      "run_start_chars": null,
+      "reached": 4590,
+      "records": 5149,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 3,
+      "item": "trace-112",
+      "length": "16k",
+      "finish": "repetition",
+      "tokens": 15845,
+      "reasoning_chars": 45273,
+      "copy_share": 0.0,
+      "repeat_share": 0.548,
+      "run_start_chars": null,
+      "reached": 0,
+      "records": 481,
+      "answers_before": null,
+      "kind": "other, loop abort"
+     },
+     {
+      "arm": "compact",
+      "pass": 4,
+      "item": "join-103",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 81384,
+      "copy_share": 0.86,
+      "repeat_share": 0.044,
+      "run_start_chars": 6296,
+      "reached": 8493,
+      "records": 8662,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 4,
+      "item": "join-117",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80643,
+      "copy_share": 0.931,
+      "repeat_share": 0.0,
+      "run_start_chars": 5627,
+      "reached": 4674,
+      "records": 8660,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 4,
+      "item": "join-118",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 81282,
+      "copy_share": 0.881,
+      "repeat_share": 0.026,
+      "run_start_chars": 11602,
+      "reached": 8454,
+      "records": 8673,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 4,
+      "item": "ledger-101",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 88058,
+      "copy_share": 0.061,
+      "repeat_share": 0.026,
+      "run_start_chars": 27806,
+      "reached": 9781,
+      "records": 9965,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "compact",
+      "pass": 4,
+      "item": "ledger-117",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 70641,
+      "copy_share": 0.12,
+      "repeat_share": 0.059,
+      "run_start_chars": 36696,
+      "reached": 9961,
+      "records": 9961,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 1,
+      "item": "ledger-119",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 53822,
+      "copy_share": 0.82,
+      "repeat_share": 0.013,
+      "run_start_chars": 5520,
+      "reached": 4952,
+      "records": 9994,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 2,
+      "item": "ledger-112",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 53480,
+      "copy_share": 0.056,
+      "repeat_share": 0.015,
+      "run_start_chars": 11279,
+      "reached": 2601,
+      "records": 5163,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 3,
+      "item": "join-103",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 80805,
+      "copy_share": 0.877,
+      "repeat_share": 0.014,
+      "run_start_chars": 10171,
+      "reached": 8661,
+      "records": 8662,
+      "answers_before": 8,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 3,
+      "item": "ledger-110",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 45067,
+      "copy_share": 0.898,
+      "repeat_share": 0.002,
+      "run_start_chars": 3767,
+      "reached": 5088,
+      "records": 5161,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 3,
+      "item": "ledger-112",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 64035,
+      "copy_share": 0.164,
+      "repeat_share": 0.003,
+      "run_start_chars": null,
+      "reached": 9947,
+      "records": 9971,
+      "answers_before": null,
+      "kind": "other, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 3,
+      "item": "ledger-117",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 61930,
+      "copy_share": 0.933,
+      "repeat_share": 0.0,
+      "run_start_chars": 3743,
+      "reached": 5134,
+      "records": 5134,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 3,
+      "item": "ledger-119",
+      "length": "128k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 61701,
+      "copy_share": 0.541,
+      "repeat_share": 0.001,
+      "run_start_chars": 15917,
+      "reached": 9977,
+      "records": 9994,
+      "answers_before": null,
+      "kind": "copying, cap"
+     },
+     {
+      "arm": "exlr8-k4",
+      "pass": 4,
+      "item": "ledger-116",
+      "length": "64k",
+      "finish": "cap",
+      "tokens": 32768,
+      "reasoning_chars": 49704,
+      "copy_share": 0.768,
+      "repeat_share": 0.002,
+      "run_start_chars": 4280,
+      "reached": 4492,
+      "records": 5157,
+      "answers_before": null,
+      "kind": "copying, cap"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-bf16-distance",
+  "run": "2026-11-10-context-probe",
+  "goal": "B16",
+  "question": "How far is each of the four configurations from the BF16 model on the fidelity set?",
+  "statement": "Coarse KL from BF16, fidelity set: hqa 0.0302 [0.0255, 0.0344]; compact 0.0314 [0.0263, 0.0359]; anchor 0.0328 [0.0275, 0.0377]; exlr8-k4 0.0360 [0.0300, 0.0416].",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "KL(BF16 || configuration), coarse (top 1,024 + rest), generated positions, nats",
+  "sign": "lower is closer; 0 = identical",
+  "unit": "window",
+  "n": "53 windows with generated positions",
+  "interval": "95% percentile bootstrap over windows, 5,000 replicates, SplitMix64 seed 20260829, linear interpolation",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 30,
+   "excluding_0": 13,
+   "note": "24 fidelity-set and 6 teacher-panel intervals; all 13 on the fidelity set; none selected"
+  },
+  "replication": "exact second launch: CP-bf16-repeat",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/anchor/fidelity_set/kl",
+    "what": "anchor",
+    "value": [
+     0.032816759,
+     0.027497969,
+     0.037718898
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/hqa/fidelity_set/kl",
+    "what": "hqa",
+    "value": [
+     0.030226181,
+     0.025497097,
+     0.034352905
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/compact/fidelity_set/kl",
+    "what": "compact",
+    "value": [
+     0.031399445,
+     0.026316321,
+     0.035880283
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/exlr8-k4/fidelity_set/kl",
+    "what": "exlr8-k4",
+    "value": [
+     0.036034492,
+     0.03003981,
+     0.041613023
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-bf16-teacher",
+  "run": "2026-11-10-context-probe",
+  "goal": "B16",
+  "question": "How far is each of the four configurations from the BF16 model on the teacher panel?",
+  "statement": "Full-vocabulary KL from BF16, teacher panel: anchor 0.0320 [0.0241, 0.0419]; hqa 0.0316 [0.0238, 0.0410]; compact 0.0297 [0.0236, 0.0364]; exlr8-k4 0.0305 [0.0244, 0.0374].",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "KL(BF16 teacher || configuration), full vocabulary, mean over rows, nats",
+  "sign": "lower is closer",
+  "unit": "window",
+  "n": "25 windows",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy default_rng(20260929)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "teacher panel: 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 30,
+   "excluding_0": 13,
+   "note": "24 fidelity-set and 6 teacher-panel intervals; all 13 on the fidelity set; none selected"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/anchor/teacher_panel/kl",
+    "what": "anchor",
+    "value": [
+     0.032047934,
+     0.024112207,
+     0.041850976
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/hqa/teacher_panel/kl",
+    "what": "hqa",
+    "value": [
+     0.031620155,
+     0.02380132,
+     0.041028997
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/compact/teacher_panel/kl",
+    "what": "compact",
+    "value": [
+     0.029699118,
+     0.023590257,
+     0.036408059
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/exlr8-k4/teacher_panel/kl",
+    "what": "exlr8-k4",
+    "value": [
+     0.030506658,
+     0.02436394,
+     0.037372209
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-bf16-hqa-anchor",
+  "run": "2026-11-10-context-probe",
+  "goal": "B16",
+  "question": "Is the BF16-core anchor closer to BF16 than hqa?",
+  "statement": "hqa − anchor: −0.0026 [−0.0042, −0.0011] on the fidelity set (excludes 0; hqa closer) and −0.0004 [−0.0014, +0.0006] on the teacher panel (includes 0).",
+  "class": "difference",
+  "status": "follow-up",
+  "quantity": "KL from BF16, hqa - anchor, paired on the same rows",
+  "sign": "below 0 = hqa closer to BF16",
+  "unit": "window",
+  "n": "53 (fidelity set), 25 (teacher panel)",
+  "interval": "95% percentile bootstrap over windows, 5,000 replicates, SplitMix64 seed 20260829, linear interpolation; teacher panel: 95% percentile bootstrap over windows, 20,000 replicates, numpy default_rng(20260929)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows; teacher panel: 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 30,
+   "excluding_0": 13,
+   "note": "24 fidelity-set and 6 teacher-panel intervals; all 13 on the fidelity set; none selected"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/hqa - anchor/fidelity_set/overall",
+    "what": "fidelity set",
+    "value": [
+     -0.002590578,
+     -0.0042175,
+     -0.001128893
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/hqa - anchor/teacher_panel",
+    "what": "teacher panel",
+    "value": [
+     -0.000427778,
+     -0.001371201,
+     0.000596819
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-bf16-exlr8",
+  "run": "2026-11-10-context-probe",
+  "goal": "B16",
+  "question": "Is exlr8-k4 farther from BF16 than the three probe arms?",
+  "statement": "exlr8-k4 minus each probe arm, fidelity set: anchor +0.0032 [+0.0008, +0.0054]; hqa +0.0058 [+0.0038, +0.0081]; compact +0.0046 [+0.0023, +0.0069] (all exclude 0). Teacher panel: anchor −0.0015 [−0.0056, +0.0018]; hqa −0.0011 [−0.0048, +0.0022]; compact +0.0008 [−0.0011, +0.0026] (all include 0).",
+  "class": "difference",
+  "status": "follow-up",
+  "quantity": "KL from BF16, exlr8-k4 - probe arm, paired on the same rows",
+  "sign": "above 0 = exlr8-k4 farther",
+  "unit": "window",
+  "n": "53 (fidelity set), 25 (teacher panel)",
+  "interval": "95% percentile bootstrap over windows, 5,000 replicates, SplitMix64 seed 20260829, linear interpolation; teacher panel: 95% percentile bootstrap over windows, 20,000 replicates, numpy default_rng(20260929)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows; teacher panel: 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 30,
+   "excluding_0": 13,
+   "note": "24 fidelity-set and 6 teacher-panel intervals; all 13 on the fidelity set; none selected"
+  },
+  "replication": "the two sets disagree; not attempted further",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/exlr8-k4 - anchor/fidelity_set/overall",
+    "what": "fidelity, vs anchor",
+    "value": [
+     0.003217732,
+     0.000848523,
+     0.005391184
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/exlr8-k4 - hqa/fidelity_set/overall",
+    "what": "fidelity, vs hqa",
+    "value": [
+     0.00580831,
+     0.00375005,
+     0.008055948
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/exlr8-k4 - compact/fidelity_set/overall",
+    "what": "fidelity, vs compact",
+    "value": [
+     0.004635047,
+     0.002251654,
+     0.006931331
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/exlr8-k4 - anchor/teacher_panel",
+    "what": "teacher, vs anchor",
+    "value": [
+     -0.001541276,
+     -0.005564741,
+     0.001815194
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/exlr8-k4 - hqa/teacher_panel",
+    "what": "teacher, vs hqa",
+    "value": [
+     -0.001113497,
+     -0.004829104,
+     0.002198407
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/differences/exlr8-k4 - compact/teacher_panel",
+    "what": "teacher, vs compact",
+    "value": [
+     0.00080754,
+     -0.001133572,
+     0.002628248
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-bf16-repeat",
+  "run": "2026-11-10-context-probe",
+  "goal": "B16-REP",
+  "question": "Does a second launch reproduce the BF16-distance measurement exactly?",
+  "statement": "A second launch of each of the four configurations gave a KL difference of 0.0 and the same most likely token on 15,104 of 15,104 generated positions; the float64 port agreed with the engine CLI on 32,768 of 32,768 records per configuration and launch.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "launch-to-launch KL difference; positions with the same most likely token; port vs CLI records",
+  "sign": "n/a",
+  "unit": "position, record",
+  "n": "15,104 positions; 32,768 records",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/anchor/kl_difference",
+    "what": "anchor",
+    "value": 0.0
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/hqa/kl_difference",
+    "what": "hqa",
+    "value": 0.0
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/compact/kl_difference",
+    "what": "compact",
+    "value": 0.0
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/exlr8-k4/kl_difference",
+    "what": "exlr8-k4",
+    "value": 0.0
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/anchor/same_argmax_generated_positions",
+    "what": "anchor",
+    "value": [
+     15104,
+     15104
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/hqa/same_argmax_generated_positions",
+    "what": "hqa",
+    "value": [
+     15104,
+     15104
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/compact/same_argmax_generated_positions",
+    "what": "compact",
+    "value": [
+     15104,
+     15104
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/repeat/by_arm/exlr8-k4/same_argmax_generated_positions",
+    "what": "exlr8-k4",
+    "value": [
+     15104,
+     15104
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-bf16-gate",
+  "run": "2026-11-10-context-probe",
+  "goal": "B16",
+  "question": "Do the four configurations pass the engine CLI's own fidelity gate?",
+  "statement": "All four pass the engine CLI's fidelity gate on the fidelity set (KL at most 0.05, top-1 at least 0.93).",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "the engine CLI's gate on point estimates",
+  "sign": "n/a",
+  "unit": "configuration",
+  "n": "4",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/fidelity_gate",
+    "what": "gate result",
+    "value": "all four pass the engine CLI's own fidelity gate on the fidelity set (KL at most 0.05, top-1 at least 0.93)"
+   }
+  ]
+ },
+ {
+  "id": "CP-bits-per-weight",
+  "run": "2026-11-10-context-probe",
+  "goal": "BPW",
+  "question": "How large is each configuration's language model as stored, in bits per weight?",
+  "statement": "Bits per weight as stored (BF16 = 16): anchor 4.35 (27.2% of BF16, 162.3 GiB); hqa 4.17 (26.1% of BF16, 155.8 GiB); compact 4.10 (25.6% of BF16, 153.2 GiB); exlr8-k4 4.08 (25.5% of BF16, 152.2 GiB); k325-fp8 3.55 (22.2% of BF16, 132.7 GiB).",
+  "class": "accounting",
+  "status": "accounting",
+  "quantity": "stored bits / weights, language model, vision tower excluded",
+  "sign": "lower is smaller; 16 = BF16",
+  "unit": "checkpoint",
+  "n": "5 configurations",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "checkpoint file headers",
+   "context": "n/a",
+   "path": "files as stored (not as run)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/anchor/bits_per_weight",
+    "what": "anchor",
+    "value": 4.3461
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/hqa/bits_per_weight",
+    "what": "hqa",
+    "value": 4.1732
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/compact/bits_per_weight",
+    "what": "compact",
+    "value": 4.1026
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/exlr8-k4/bits_per_weight",
+    "what": "exlr8-k4",
+    "value": 4.0757
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/k325-fp8/bits_per_weight",
+    "what": "k325-fp8",
+    "value": 3.5524
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/anchor/relative_to_bf16",
+    "what": "anchor",
+    "value": 0.2716
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/hqa/relative_to_bf16",
+    "what": "hqa",
+    "value": 0.2608
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/compact/relative_to_bf16",
+    "what": "compact",
+    "value": 0.2564
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/exlr8-k4/relative_to_bf16",
+    "what": "exlr8-k4",
+    "value": 0.2547
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/k325-fp8/relative_to_bf16",
+    "what": "k325-fp8",
+    "value": 0.222
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/anchor/stored_gib",
+    "what": "anchor",
+    "value": 162.29
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/hqa/stored_gib",
+    "what": "hqa",
+    "value": 155.83
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/compact/stored_gib",
+    "what": "compact",
+    "value": 153.2
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/exlr8-k4/stored_gib",
+    "what": "exlr8-k4",
+    "value": 152.19
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/k325-fp8/stored_gib",
+    "what": "k325-fp8",
+    "value": 132.65
+   }
+  ]
+ },
+ {
+  "id": "CP-bits-outside-experts",
+  "run": "2026-11-10-context-probe",
+  "goal": "BPW",
+  "question": "Outside the routed experts, how many bits per weight does each configuration store?",
+  "statement": "The routed experts are 94.9% of the weights. Outside them: anchor 16.00; hqa 9.66; compact 7.25; exlr8-k4 6.55; k325-fp8 13.65.",
+  "class": "accounting",
+  "status": "accounting",
+  "quantity": "stored bits / weights outside the routed experts",
+  "sign": "lower is smaller",
+  "unit": "checkpoint",
+  "n": "5 configurations",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "checkpoint file headers",
+   "context": "n/a",
+   "path": "files as stored (not as run)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/share_of_weights/routed experts",
+    "what": "share of routed experts",
+    "value": 0.949
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/anchor/outside_routed_experts_bits_per_weight",
+    "what": "anchor",
+    "value": 16.0006
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/hqa/outside_routed_experts_bits_per_weight",
+    "what": "hqa",
+    "value": 9.6613
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/compact/outside_routed_experts_bits_per_weight",
+    "what": "compact",
+    "value": 7.2462
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/exlr8-k4/outside_routed_experts_bits_per_weight",
+    "what": "exlr8-k4",
+    "value": 6.5504
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bits_per_weight/arms/k325-fp8/outside_routed_experts_bits_per_weight",
+    "what": "k325-fp8",
+    "value": 13.6541
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-tasks",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2",
+  "question": "At 127K, does k325-fp8 score differently from the four other configurations (four passes)?",
+  "statement": "k325-fp8 minus each, field score at 127K: anchor −0.051 [−0.086, −0.017]; hqa −0.058 [−0.095, −0.023]; compact −0.020 [−0.059, +0.020]; exlr8-k4 −0.054 [−0.088, −0.020]. The intervals against anchor, hqa and exlr8-k4 exclude 0; the one against compact includes it.",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "field score at 127K, k325-fp8 - each configuration, single message, four passes",
+  "sign": "below 0 = k325-fp8 scored lower",
+  "unit": "item",
+  "n": "60 items; 240 requests per configuration at 127K",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 76,
+   "excluding_0": 23,
+   "note": "amendment 2 task intervals for k325-fp8: 21 with k325-fp8 lower, 2 higher; no correction"
+  },
+  "replication": "not attempted; k325-fp8's passes ran after the other configurations' and were not interleaved with them",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - anchor/score/128k",
+    "what": "anchor",
+    "value": [
+     -0.051,
+     -0.0865,
+     -0.0172,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - hqa/score/128k",
+    "what": "hqa",
+    "value": [
+     -0.0578,
+     -0.0953,
+     -0.0229,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - compact/score/128k",
+    "what": "compact",
+    "value": [
+     -0.0203,
+     -0.0594,
+     0.0198,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/score/128k",
+    "what": "exlr8-k4",
+    "value": [
+     -0.0536,
+     -0.088,
+     -0.0203,
+     60
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-tasks-short",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2",
+  "question": "At 4K and 16K, does k325-fp8 score differently from the four other configurations?",
+  "statement": "k325-fp8 minus each, 4K and 16K pooled: anchor +0.005 [−0.003, +0.012]; hqa +0.001 [−0.006, +0.009]; compact +0.007 [−0.000, +0.015]; exlr8-k4 +0.004 [−0.003, +0.010]; every interval includes 0.",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "field score at 4K+16K, k325-fp8 - each configuration, four passes",
+  "sign": "below 0 = k325-fp8 scored lower",
+  "unit": "item",
+  "n": "60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 76,
+   "excluding_0": 23,
+   "note": "amendment 2 task intervals for k325-fp8: 21 with k325-fp8 lower, 2 higher; no correction"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - anchor/score/4k+16k",
+    "what": "anchor",
+    "value": [
+     0.0049,
+     -0.0026,
+     0.0117,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - hqa/score/4k+16k",
+    "what": "hqa",
+    "value": [
+     0.0013,
+     -0.006,
+     0.0089,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - compact/score/4k+16k",
+    "what": "compact",
+    "value": [
+     0.0073,
+     -0.0003,
+     0.0151,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/score/4k+16k",
+    "what": "exlr8-k4",
+    "value": [
+     0.0036,
+     -0.0026,
+     0.0102,
+     60
+    ]
+   }
+  ],
+  "bound": "a cost down to −0.0060 is not excluded"
+ },
+ {
+  "id": "CP-k325-tasks-all",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2",
+  "question": "Over all four lengths, does k325-fp8 score differently from the four other configurations?",
+  "statement": "k325-fp8 minus each, four lengths pooled: anchor −0.013 [−0.025, −0.001]; hqa −0.016 [−0.030, −0.003]; compact −0.003 [−0.017, +0.010]; exlr8-k4 −0.012 [−0.023, −0.001].",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "field score, four lengths pooled, k325-fp8 - each configuration, four passes",
+  "sign": "below 0 = k325-fp8 scored lower",
+  "unit": "item",
+  "n": "60 items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 76,
+   "excluding_0": 23,
+   "note": "amendment 2 task intervals for k325-fp8: 21 with k325-fp8 lower, 2 higher; no correction"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - anchor/score/all",
+    "what": "anchor",
+    "value": [
+     -0.0129,
+     -0.0253,
+     -0.0009,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - hqa/score/all",
+    "what": "hqa",
+    "value": [
+     -0.016,
+     -0.0298,
+     -0.0025,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - compact/score/all",
+    "what": "compact",
+    "value": [
+     -0.003,
+     -0.0165,
+     0.0104,
+     60
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired/k325-fp8 - exlr8-k4/score/all",
+    "what": "exlr8-k4",
+    "value": [
+     -0.012,
+     -0.023,
+     -0.0007,
+     60
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-endings",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2-END",
+  "question": "How many of k325-fp8's replies did not finish, and where?",
+  "statement": "22 of 960 replies did not finish, 0 with answer text: join at 127K 11 of 80, join at 64K 2, ledger at 64K 4 and at 127K 5.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "unfinished replies by family and length, k325-fp8, four passes",
+  "sign": "counts; lower is fewer",
+  "unit": "request",
+  "n": "960",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/unfinished/total",
+    "what": "total",
+    "value": 22
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/unfinished/with_answer_text",
+    "what": "with answer text",
+    "value": 0
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/unfinished/by_family_length/k325-fp8",
+    "what": "by family and length",
+    "value": {
+     "join": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 2,
+      "128k": 11
+     },
+     "ledger": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 4,
+      "128k": 5
+     },
+     "trace": {
+      "4k": 0,
+      "16k": 0,
+      "64k": 0,
+      "128k": 0
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/unfinished/by_kind",
+    "what": "by kind of ending",
+    "value": {
+     "copying, cap": 17,
+     "copying, loop abort": 0,
+     "other, cap": 4,
+     "other, loop abort": 1
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-endings-share",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2-END",
+  "question": "At 127K, does k325-fp8 leave a larger share of join replies unfinished than the others?",
+  "statement": "k325-fp8 minus each, share of unfinished join replies at 127K: anchor +0.087 [+0.025, +0.150]; hqa +0.113 [+0.037, +0.200]; compact +0.013 [−0.100, +0.113]; exlr8-k4 +0.125 [+0.062, +0.188].",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "share of the item's join replies at 127K that did not finish, k325-fp8 - each",
+  "sign": "above 0 = k325-fp8 left more unfinished",
+  "unit": "item",
+  "n": "20 join items",
+  "interval": "95% percentile bootstrap over items, 10,000 draws, random.Random(5), sorted draws at indices 250 and 9749 (the protocol's estimator) (same estimator on the unfinished share)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "60 synthetic graded items (20 each of join, ledger, trace), each rendered at 4K, 16K, 64K and 127K tokens",
+   "context": "4K to 127K",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 20,
+   "excluding_0": 9,
+   "note": "share intervals listed for k325-fp8; no correction"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - anchor/unfinished_127k_join",
+    "what": "anchor",
+    "value": [
+     0.0875,
+     0.025,
+     0.15,
+     20
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - hqa/unfinished_127k_join",
+    "what": "hqa",
+    "value": [
+     0.1125,
+     0.0375,
+     0.2,
+     20
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - compact/unfinished_127k_join",
+    "what": "compact",
+    "value": [
+     0.0125,
+     -0.1,
+     0.1125,
+     20
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/paired_unfinished_share/k325-fp8 - exlr8-k4/unfinished_127k_join",
+    "what": "exlr8-k4",
+    "value": [
+     0.125,
+     0.0625,
+     0.1875,
+     20
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-bf16-distance",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2-B16",
+  "question": "How far is k325-fp8 from the BF16 model?",
+  "statement": "k325-fp8: 0.0485 [0.0411, 0.0547] coarse KL on the fidelity set and 0.0476 [0.0364, 0.0605] full-vocabulary KL on the teacher panel.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "KL from BF16 on the two reference sets, k325-fp8",
+  "sign": "lower is closer",
+  "unit": "window",
+  "n": "53 (fidelity set), 25 (teacher panel)",
+  "interval": "95% percentile bootstrap over windows, 5,000 replicates, SplitMix64 seed 20260829, linear interpolation; teacher panel: 95% percentile bootstrap over windows, 20,000 replicates, numpy default_rng(20260929)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows; teacher panel: 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the same checkpoint on CuteAFD v3.0.1: CP-k325-earlier-release",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/fidelity_set/kl",
+    "what": "fidelity set",
+    "value": [
+     0.048479076,
+     0.041145436,
+     0.054734572
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/teacher_panel/kl",
+    "what": "teacher panel",
+    "value": [
+     0.047556257,
+     0.036409951,
+     0.060460366
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-bf16-diffs",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2-B16",
+  "question": "Is k325-fp8 farther from BF16 than each of the four other configurations?",
+  "statement": "k325-fp8 minus each, paired on the same rows. Fidelity set: anchor +0.0157 [+0.0121, +0.0194]; hqa +0.0183 [+0.0149, +0.0216]; compact +0.0171 [+0.0136, +0.0208]; exlr8-k4 +0.0124 [+0.0097, +0.0153]. Teacher panel: anchor +0.0155 [+0.0115, +0.0197]; hqa +0.0159 [+0.0118, +0.0203]; compact +0.0179 [+0.0122, +0.0246]; exlr8-k4 +0.0170 [+0.0111, +0.0238]. All 20 intervals computed (16 fidelity set, 4 teacher panel) exclude 0.",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "KL from BF16, k325-fp8 - each configuration",
+  "sign": "above 0 = k325-fp8 farther",
+  "unit": "window",
+  "n": "53 (fidelity set), 25 (teacher panel)",
+  "interval": "95% percentile bootstrap over windows, 5,000 replicates, SplitMix64 seed 20260829, linear interpolation; teacher panel: 95% percentile bootstrap over windows, 20,000 replicates, numpy default_rng(20260929)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows; teacher panel: 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 20,
+   "excluding_0": 20,
+   "note": "overall and three context buckets per pair on the fidelity set, overall on the teacher panel"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - anchor/fidelity_set/overall",
+    "what": "fidelity, vs anchor",
+    "value": [
+     0.015662316,
+     0.01208763,
+     0.019443583
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - hqa/fidelity_set/overall",
+    "what": "fidelity, vs hqa",
+    "value": [
+     0.018252895,
+     0.014861374,
+     0.021620406
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - compact/fidelity_set/overall",
+    "what": "fidelity, vs compact",
+    "value": [
+     0.017079631,
+     0.01362709,
+     0.020794126
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - exlr8-k4/fidelity_set/overall",
+    "what": "fidelity, vs exlr8-k4",
+    "value": [
+     0.012444584,
+     0.009736568,
+     0.015323282
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - anchor/teacher_panel",
+    "what": "teacher, vs anchor",
+    "value": [
+     0.015508323,
+     0.011537581,
+     0.019693279
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - hqa/teacher_panel",
+    "what": "teacher, vs hqa",
+    "value": [
+     0.015936101,
+     0.011788964,
+     0.020337021
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - compact/teacher_panel",
+    "what": "teacher, vs compact",
+    "value": [
+     0.017857138,
+     0.012221599,
+     0.024647255
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/differences/k325-fp8 - exlr8-k4/teacher_panel",
+    "what": "teacher, vs exlr8-k4",
+    "value": [
+     0.017049599,
+     0.011088859,
+     0.023840753
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-gate",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2-B16",
+  "question": "Does k325-fp8 pass the engine CLI's own fidelity gate?",
+  "statement": "It passes on point estimates: KL 0.0485 (at most 0.05), top-1 0.9332 (at least 0.93), confident top-1 0.9630 (at least 0.96), top-3 containment 0.9948 (at least 0.97); the upper end of the KL interval, 0.0547, is above 0.05.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "the engine CLI's gate on point estimates",
+  "sign": "n/a",
+  "unit": "configuration",
+  "n": "1",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/fidelity_gate",
+    "what": "gate result",
+    "value": "passes the engine CLI's own fidelity gate on the fidelity set, four thresholds on point estimates: KL 0.0485 (at most 0.05), top-1 0.9332 (at least 0.93), confident top-1 0.9630 (at least 0.96), top-3 containment 0.9948 (at least 0.97); the upper end of the KL interval, 0.0547, is above 0.05"
+   }
+  ]
+ },
+ {
+  "id": "CP-k325-earlier-release",
+  "run": "2026-11-10-context-probe",
+  "goal": "A2-B16",
+  "question": "Does the same checkpoint measure the same distance on CuteAFD v3.0.1 and v5.0.0?",
+  "statement": "The K3.25-Core-FP8 checkpoint measured 0.0484 (fidelity set) and 0.0476 (teacher panel) on CuteAFD v3.0.1 on 2026-10-26, against 0.0485 and 0.0476 on v5.0.0.",
+  "class": "descriptive",
+  "status": "check",
+  "quantity": "KL from BF16 on two engine releases, same checkpoint",
+  "sign": "n/a",
+  "unit": "window",
+  "n": "as the two sets",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0, unmodified launcher (coordinator image sha256:6194637e...)",
+   "checkpoint": "anchor (derived BF16-core checkpoint), hqa and compact (wrldsuksgo2mars K4-Core-K6-HQA @ e0ecc3d5); exlr8-k4 (kindlingai EXLR8 K4 @ 867580ab); k325-fp8 (K3.25-Core-FP8)",
+   "items": "fidelity set: 64 windows, 15,104 generated positions in 53 windows; teacher panel: 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/earlier_release",
+    "what": "the v3.0.1 figures",
+    "value": {
+     "about": "the same checkpoint on CuteAFD v3.0.1, measured 2026-10-26; same sets and measures (bf16ref/BF16REF.json, yardsticks)",
+     "fidelity_set_kl": 0.048444655,
+     "teacher_panel_kl": 0.047556257
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/fidelity_set/kl",
+    "what": "v5.0.0 fidelity set",
+    "value": [
+     0.048479076,
+     0.041145436,
+     0.054734572
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/amendment_2/bf16_distance/arms/k325-fp8/teacher_panel/kl",
+    "what": "v5.0.0 teacher panel",
+    "value": [
+     0.047556257,
+     0.036409951,
+     0.060460366
+    ]
+   }
+  ]
+ },
+ {
+  "id": "CP-start-checks",
+  "run": "2026-11-10-context-probe",
+  "goal": "X-START",
+  "question": "Before the graded runs: does each arm launch, are score rows repeatable within one launch, and does a reply round-trip into the next turn?",
+  "statement": "Exploratory checks, one launch each: decode-path capture repeated 64 of 64 rows hash-equal and cold prefill at 22K 32 of 32; the next turn reproduced prompt + generated exactly and the cache restored 22,431 of 22,452 tokens.",
+  "class": "accounting",
+  "status": "exploratory",
+  "quantity": "rows hash-equal between two captures in one launch; tokens restored from the prefix cache",
+  "sign": "n/a",
+  "unit": "row / token",
+  "n": "64 decode rows, 32 prefill rows, one 22,452-token turn",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "capture texts and one conversation",
+   "context": "to 22K",
+   "path": "prefill and decode capture; serving",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "within one launch only; launch-to-launch repeatability is CP's bf16_distance repeat",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "lines": [
+     216,
+     224
+    ],
+    "what": "pre-run checks",
+    "text": "- **Loads.** `hqa` ready in about 60 s, pool 2,097,152 tokens, 94.2 / 93.2 GiB used. `anchor` ready in about\n  80 s, pool 1,318,400 tokens, BF16 head, no FP8. Other arms are first launched by step A.\n- **Row alignment.** From the dumps, row p holds the distribution that selects `ids[p]`: mean log-probability at\n  shift 0 is −5.1 (decode path) / −4.6 (prefill path), against −11.6 to −14.9 at shifts ±1 and ±2. Rows are\n  normalised.\n- **Determinism within a launch.** Decode-path capture twice: 64 of 64 rows hash-equal. Cold prefill twice at\n  22K: 32 of 32 rows hash-equal.\n- **Reply round trip.** `generated` ends with the stop token (`<|user|>`, 154827); the next turn's rendered prompt\n  reproduces prompt + generated exactly, and the cache restored 22,431 of 22,452 tokens."
+   }
+  ]
+ },
+ {
+  "id": "CP-pilot-settings",
+  "run": "2026-11-10-context-probe",
+  "goal": "X-PILOT",
+  "question": "What did the pilot fix for the graded runs, and what resolution did it state before the measured data?",
+  "statement": "Exploratory pilot (hqa, 18 items, two passes; nothing here is a measured result): field score 0.979 / 0.990 / 0.972 / 0.823 at 4K / 16K / 64K / 127K and a flip floor of 11 of 72. Fixed for the freeze: reply cap 32,768, acknowledgement cap 4,096, concurrency 8, parts=8; stated before the measured data: ledger resolves roughly ±0.14 in one cell and ±0.07 pooled over lengths.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "pilot field score by length; flip count; frozen settings; stated resolution",
+  "sign": "n/a",
+  "unit": "request",
+  "n": "36 requests per length (18 items x 2 passes)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "pilot items, indices 0-5 per family (18 items)",
+   "context": "4K to 127K",
+   "path": "generation (graded tasks, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the measured runs report their own flip floor (CP-flip-floor)",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "lines": [
+     386,
+     390
+    ],
+    "what": "pilot table",
+    "text": "**`hqa`, single, two passes pooled (36 requests per length)**\n\n| | 4K | 16K | 64K | 127K |\n|---|---|---|---|---|\n| field score | 0.979 | 0.990 | 0.972 | 0.823 |"
+   },
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "lines": [
+     407,
+     409
+    ],
+    "what": "pilot flip floor",
+    "text": "\n**Flip floor in the pilot** (`hqa`, pass 0 against pass 1, every field correct): 2, 3, 2 and 4 of 18 at the four\nlengths, 11 of 72 in all (`ledger` 6, `trace` 4, `join` 1). `single` pass 0 against `turns` disagrees in 11 of"
+   },
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "lines": [
+     418,
+     418
+    ],
+    "what": "frozen settings",
+    "text": "- Reply cap 32,768; acknowledgement cap 4,096; concurrency 8 for every arm; `parts=8`. The `parts=32` secondary"
+   },
+   {
+    "file": "results/2026-11-10-context-probe/protocol/PROTOCOL.md",
+    "lines": [
+     433,
+     435
+    ],
+    "what": "stated resolution",
+    "text": "`trace` at 127K. The pooled-over-families figure in §5 (6 to 7 points per cell) therefore overstates what one\nfamily resolves: with 20 `ledger` items per cell the resolution within that family is roughly ±0.14 in one cell\nand ±0.07 pooled over lengths. Every table is reported by family as well as pooled, and a pooled null is not read"
+   }
+  ]
+ },
+ {
+  "id": "CP-flip-floor",
+  "run": "2026-11-10-context-probe",
+  "goal": "CP-FLIP",
+  "question": "Does changing the arm change more every-field-right outcomes than rerunning the same arm with new seeds?",
+  "statement": "Share of the 240 (item, length) pairs whose every-field-right outcome changed, two single-message passes: same arm, pass 1 against pass 2, anchor 0.229, hqa 0.229, compact 0.246; between arms, hqa vs anchor 0.192 and 0.233, compact vs anchor 0.204 and 0.221, hqa vs compact 0.179 and 0.229. No between-arm exact McNemar p is below 0.05 (smallest 0.053).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "discordant share of every-field-right outcomes; exact McNemar p per pass",
+  "sign": "higher = more outcomes changed",
+  "unit": "(item, length) pair",
+  "n": "240 pairs per comparison",
+  "interval": "exact McNemar test per pass (no interval)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "60 synthetic items (join, ledger, trace; 20 each), indices 100-119, each at 4K, 16K, 64K and 127K",
+   "context": "4K to 127K",
+   "path": "generation (graded tasks, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 6,
+   "excluding_0": 0,
+   "note": "6 between-arm tests (3 pairs x 2 passes); none p < 0.05"
+  },
+  "replication": "four passes: CP-fourpass-* findings",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/frozen_rule/flips_single",
+    "what": "flip shares and exact p",
+    "value": {
+     "hqa - anchor": {
+      "between": {
+       "rep0": {
+        "pairs": 240,
+        "a_only": 17,
+        "b_only": 29,
+        "discordant": 0.1917,
+        "p_exact": 0.1038
+       },
+       "rep1": {
+        "pairs": 240,
+        "a_only": 34,
+        "b_only": 22,
+        "discordant": 0.2333,
+        "p_exact": 0.1409
+       }
+      },
+      "floor": {
+       "a rep0|rep1": {
+        "pairs": 240,
+        "a_only": 22,
+        "b_only": 33,
+        "discordant": 0.2292,
+        "p_exact": 0.177
+       },
+       "b rep0|rep1": {
+        "pairs": 240,
+        "a_only": 34,
+        "b_only": 21,
+        "discordant": 0.2292,
+        "p_exact": 0.1048
+       }
+      }
+     },
+     "compact - anchor": {
+      "between": {
+       "rep0": {
+        "pairs": 240,
+        "a_only": 25,
+        "b_only": 24,
+        "discordant": 0.2042,
+        "p_exact": 1.0
+       },
+       "rep1": {
+        "pairs": 240,
+        "a_only": 34,
+        "b_only": 19,
+        "discordant": 0.2208,
+        "p_exact": 0.0534
+       }
+      },
+      "floor": {
+       "a rep0|rep1": {
+        "pairs": 240,
+        "a_only": 22,
+        "b_only": 33,
+        "discordant": 0.2292,
+        "p_exact": 0.177
+       },
+       "b rep0|rep1": {
+        "pairs": 240,
+        "a_only": 31,
+        "b_only": 28,
+        "discordant": 0.2458,
+        "p_exact": 0.7948
+       }
+      }
+     },
+     "hqa - compact": {
+      "between": {
+       "rep0": {
+        "pairs": 240,
+        "a_only": 15,
+        "b_only": 28,
+        "discordant": 0.1792,
+        "p_exact": 0.066
+       },
+       "rep1": {
+        "pairs": 240,
+        "a_only": 26,
+        "b_only": 29,
+        "discordant": 0.2292,
+        "p_exact": 0.7877
+       }
+      },
+      "floor": {
+       "a rep0|rep1": {
+        "pairs": 240,
+        "a_only": 31,
+        "b_only": 28,
+        "discordant": 0.2458,
+        "p_exact": 0.7948
+       },
+       "b rep0|rep1": {
+        "pairs": 240,
+        "a_only": 34,
+        "b_only": 21,
+        "discordant": 0.2292,
+        "p_exact": 0.1048
+       }
+      }
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-family-scores",
+  "run": "2026-11-10-context-probe",
+  "goal": "FAM",
+  "question": "How does each task family score by arm at 64K and 127K (single message, two passes)?",
+  "statement": "Field score at 127K, anchor / hqa / compact: join 0.897 / 0.947 / 0.912, ledger 0.847 / 0.841 / 0.787, trace 0.966 / 0.950 / 0.969; ledger at 64K 0.891 / 0.850 / 0.825.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "mean field score per family, arm and length (unfinished replies score 0)",
+  "sign": "higher = more fields correct",
+  "unit": "request",
+  "n": "40 requests per cell (20 items x 2 passes)",
+  "interval": "none (descriptive); per-family differences with intervals are CP-ledger-explore",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "60 synthetic items (join, ledger, trace; 20 each), indices 100-119, each at 4K, 16K, 64K and 127K",
+   "context": "4K to 127K",
+   "path": "generation (graded tasks, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "four passes: SUMMARY.json /four_pass/by_family",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/by_family",
+    "what": "per-family scores",
+    "value": {
+     "anchor": {
+      "join": {
+       "4k": {
+        "score": 0.9969,
+        "every_field_right": [
+         39,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.996875
+       },
+       "16k": {
+        "score": 0.9906,
+        "every_field_right": [
+         37,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.990625
+       },
+       "64k": {
+        "score": 0.9969,
+        "every_field_right": [
+         39,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.996875
+       },
+       "128k": {
+        "score": 0.8969,
+        "every_field_right": [
+         35,
+         40
+        ],
+        "unfinished": 4,
+        "score_finished_only": 0.996528
+       }
+      },
+      "ledger": {
+       "4k": {
+        "score": 0.9781,
+        "every_field_right": [
+         34,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.978125
+       },
+       "16k": {
+        "score": 0.9656,
+        "every_field_right": [
+         31,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.965625
+       },
+       "64k": {
+        "score": 0.8906,
+        "every_field_right": [
+         19,
+         40
+        ],
+        "unfinished": 1,
+        "score_finished_only": 0.913462
+       },
+       "128k": {
+        "score": 0.8469,
+        "every_field_right": [
+         14,
+         40
+        ],
+        "unfinished": 1,
+        "score_finished_only": 0.86859
+       }
+      },
+      "trace": {
+       "4k": {
+        "score": 0.975,
+        "every_field_right": [
+         32,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.975
+       },
+       "16k": {
+        "score": 0.975,
+        "every_field_right": [
+         32,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.975
+       },
+       "64k": {
+        "score": 0.9812,
+        "every_field_right": [
+         35,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.98125
+       },
+       "128k": {
+        "score": 0.9656,
+        "every_field_right": [
+         32,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.965625
+       }
+      }
+     },
+     "hqa": {
+      "join": {
+       "4k": {
+        "score": 0.9969,
+        "every_field_right": [
+         39,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.996875
+       },
+       "16k": {
+        "score": 0.9938,
+        "every_field_right": [
+         38,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.99375
+       },
+       "64k": {
+        "score": 0.9938,
+        "every_field_right": [
+         38,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.99375
+       },
+       "128k": {
+        "score": 0.9469,
+        "every_field_right": [
+         37,
+         40
+        ],
+        "unfinished": 2,
+        "score_finished_only": 0.996711
+       }
+      },
+      "ledger": {
+       "4k": {
+        "score": 0.9812,
+        "every_field_right": [
+         35,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.98125
+       },
+       "16k": {
+        "score": 0.975,
+        "every_field_right": [
+         33,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.975
+       },
+       "64k": {
+        "score": 0.85,
+        "every_field_right": [
+         14,
+         40
+        ],
+        "unfinished": 2,
+        "score_finished_only": 0.894737
+       },
+       "128k": {
+        "score": 0.8406,
+        "every_field_right": [
+         14,
+         40
+        ],
+        "unfinished": 1,
+        "score_finished_only": 0.862179
+       }
+      },
+      "trace": {
+       "4k": {
+        "score": 0.9656,
+        "every_field_right": [
+         32,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.965625
+       },
+       "16k": {
+        "score": 0.9781,
+        "every_field_right": [
+         34,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.978125
+       },
+       "64k": {
+        "score": 0.9875,
+        "every_field_right": [
+         36,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.9875
+       },
+       "128k": {
+        "score": 0.95,
+        "every_field_right": [
+         29,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.95
+       }
+      }
+     },
+     "compact": {
+      "join": {
+       "4k": {
+        "score": 0.9969,
+        "every_field_right": [
+         39,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.996875
+       },
+       "16k": {
+        "score": 0.9906,
+        "every_field_right": [
+         37,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.990625
+       },
+       "64k": {
+        "score": 0.9969,
+        "every_field_right": [
+         39,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.996875
+       },
+       "128k": {
+        "score": 0.9125,
+        "every_field_right": [
+         33,
+         40
+        ],
+        "unfinished": 3,
+        "score_finished_only": 0.986486
+       }
+      },
+      "ledger": {
+       "4k": {
+        "score": 0.975,
+        "every_field_right": [
+         32,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.975
+       },
+       "16k": {
+        "score": 0.9625,
+        "every_field_right": [
+         31,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.9625
+       },
+       "64k": {
+        "score": 0.825,
+        "every_field_right": [
+         12,
+         40
+        ],
+        "unfinished": 2,
+        "score_finished_only": 0.868421
+       },
+       "128k": {
+        "score": 0.7875,
+        "every_field_right": [
+         10,
+         40
+        ],
+        "unfinished": 2,
+        "score_finished_only": 0.828947
+       }
+      },
+      "trace": {
+       "4k": {
+        "score": 0.9812,
+        "every_field_right": [
+         34,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.98125
+       },
+       "16k": {
+        "score": 0.9719,
+        "every_field_right": [
+         31,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.971875
+       },
+       "64k": {
+        "score": 0.975,
+        "every_field_right": [
+         33,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.975
+       },
+       "128k": {
+        "score": 0.9688,
+        "every_field_right": [
+         32,
+         40
+        ],
+        "unfinished": 0,
+        "score_finished_only": 0.96875
+       }
+      }
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-ledger-explore",
+  "run": "2026-11-10-context-probe",
+  "goal": "LEDGER",
+  "question": "On the ledger family alone, do the arms differ at 64K and 127K (two single-message passes)?",
+  "statement": "Exploratory, ledger only (20 items), b − a: compact − anchor −0.066 [−0.153, +0.013] at 64K and −0.059 [−0.147, +0.034] at 127K; hqa − anchor −0.041 [−0.138, +0.047] at 64K; every interval includes 0.",
+  "bound": "a ledger loss down to −0.153 (compact − anchor, 64K) is not excluded",
+  "class": "not detected",
+  "status": "exploratory",
+  "quantity": "per-item mean field-score difference, b − a, ledger family",
+  "sign": "below 0 = b scores lower than a",
+  "unit": "item",
+  "n": "20 items",
+  "interval": "95% percentile bootstrap over items, 10,000 resamples, seed 20261111",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "ledger family, 20 items",
+   "context": "64K and 127K",
+   "path": "generation (graded tasks, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 12,
+   "excluding_0": 0,
+   "note": "3 pairs x 4 lengths, single message; outside the frozen rule"
+  },
+  "replication": "four passes: CP-fourpass-ledger",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/ledger_exploratory/differences/single",
+    "what": "ledger differences",
+    "value": {
+     "hqa - anchor": {
+      "4k": [
+       0.0031,
+       -0.0187,
+       0.0219,
+       20
+      ],
+      "16k": [
+       0.0094,
+       -0.0094,
+       0.0312,
+       20
+      ],
+      "64k": [
+       -0.0406,
+       -0.1375,
+       0.0469,
+       20
+      ],
+      "128k": [
+       -0.0063,
+       -0.05,
+       0.0375,
+       20
+      ]
+     },
+     "compact - anchor": {
+      "4k": [
+       -0.0031,
+       -0.025,
+       0.0187,
+       20
+      ],
+      "16k": [
+       -0.0031,
+       -0.0219,
+       0.0156,
+       20
+      ],
+      "64k": [
+       -0.0656,
+       -0.1531,
+       0.0125,
+       20
+      ],
+      "128k": [
+       -0.0594,
+       -0.1469,
+       0.0344,
+       20
+      ]
+     },
+     "hqa - compact": {
+      "4k": [
+       0.0063,
+       -0.0063,
+       0.0219,
+       20
+      ],
+      "16k": [
+       0.0125,
+       -0.0094,
+       0.0375,
+       20
+      ],
+      "64k": [
+       0.025,
+       -0.0437,
+       0.1031,
+       20
+      ],
+      "128k": [
+       0.0531,
+       -0.0437,
+       0.1531,
+       20
+      ]
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-ledger-leftout",
+  "run": "2026-11-10-context-probe",
+  "goal": "LEDGER",
+  "question": "Do wrong ledger fields that match left-out events differ by arm?",
+  "statement": "Exploratory heuristic count of wrong ledger fields matching one or two left-out events, 64K + 127K, pass 1 / pass 2 / 8 turns: anchor 17 / 16 / 9, hqa 16 / 17 / 9, compact 17 / 25 / 13; compact's two passes differ from each other by as much as from the other arms.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "count of wrong answer fields classified as left-out-event slips",
+  "sign": "n/a",
+  "unit": "answer field",
+  "n": "608 to 624 finished fields per arm (single passes)",
+  "interval": "none (descriptive; the classifier is a heuristic)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "ledger family, 20 items",
+   "context": "64K and 127K",
+   "path": "generation (graded tasks, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/ledger_exploratory/left_out_event_fields_64k_128k",
+    "what": "counts",
+    "value": {
+     "anchor": {
+      "single-rep0": 17,
+      "single-rep1": 16,
+      "turns-p8-rep0": 9
+     },
+     "hqa": {
+      "single-rep0": 16,
+      "single-rep1": 17,
+      "turns-p8-rep0": 9
+     },
+     "compact": {
+      "single-rep0": 17,
+      "single-rep1": 25,
+      "turns-p8-rep0": 13
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/ledger_exploratory/wrong_fields_single_64k_128k",
+    "what": "wrong / finished fields",
+    "value": {
+     "anchor": {
+      "wrong": 68,
+      "finished_fields": 624
+     },
+     "hqa": {
+      "wrong": 75,
+      "finished_fields": 616
+     },
+     "compact": {
+      "wrong": 92,
+      "finished_fields": 608
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/exploratory/ledger_errors.json",
+    "what": "per-pass classification"
+   }
+  ]
+ },
+ {
+  "id": "CP-desc-thinking",
+  "run": "2026-11-10-context-probe",
+  "goal": "DESC",
+  "question": "How long was the thinking, and how long was the first token, by arm and length (single message, two passes)?",
+  "statement": "Median thinking characters at 4K / 16K / 64K / 127K: anchor 7289 / 7266 / 8714 / 11366, hqa 6538 / 6888 / 8966 / 9636, compact 6657 / 7697 / 8478 / 9786; median time to first token at 127K 21.8, 25.1 and 25.5 s. Speeds are per stream under a mixed concurrency-8 load and are not an arm comparison.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median reasoning characters per request; median time to first token",
+  "sign": "n/a",
+  "unit": "request",
+  "n": "120 requests per arm and length",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "60 synthetic items (join, ledger, trace; 20 each), indices 100-119, each at 4K, 16K, 64K and 127K",
+   "context": "4K to 127K",
+   "path": "generation (graded tasks, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "four passes: SUMMARY.json /four_pass/descriptive_speed",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/analysis/POSTHOC.json",
+    "pointer": "/score_by_length/anchor/single",
+    "what": "anchor by length",
+    "value": {
+     "4k": {
+      "requests": 120,
+      "score": 0.9833,
+      "every_field_right": 0.875,
+      "finish": {
+       "stop": 120
+      },
+      "unfinished": 0,
+      "score_finished_only": 0.983333,
+      "reasoning_chars_median": 7289.0,
+      "completion_tokens_median": 3343.5,
+      "decode_tok_s_median": 40.5205,
+      "ttft_s_median": 0.7231
+     },
+     "16k": {
+      "requests": 120,
+      "score": 0.9771,
+      "every_field_right": 0.8333,
+      "finish": {
+       "stop": 120
+      },
+      "unfinished": 0,
+      "score_finished_only": 0.977083,
+      "reasoning_chars_median": 7265.5,
+      "completion_tokens_median": 3700.0,
+      "decode_tok_s_median": 36.605,
+      "ttft_s_median": 2.7544500000000003
+     },
+     "64k": {
+      "requests": 120,
+      "score": 0.9563,
+      "every_field_right": 0.775,
+      "finish": {
+       "stop": 119,
+       "cap": 1
+      },
+      "unfinished": 1,
+      "score_finished_only": 0.964286,
+      "reasoning_chars_median": 8714.0,
+      "completion_tokens_median": 4162.0,
+      "decode_tok_s_median": 37.693,
+      "ttft_s_median": 11.09455
+     },
+     "128k": {
+      "requests": 120,
+      "score": 0.9031,
+      "every_field_right": 0.675,
+      "finish": {
+       "stop": 115,
+       "cap": 4,
+       "repetition": 1
+      },
+      "unfinished": 5,
+      "score_finished_only": 0.942391,
+      "reasoning_chars_median": 11366.5,
+      "completion_tokens_median": 5518.0,
+      "decode_tok_s_median": 40.489000000000004,
+      "ttft_s_median": 21.8027
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/analysis/POSTHOC.json",
+    "pointer": "/score_by_length/hqa/single",
+    "what": "hqa by length",
+    "value": {
+     "4k": {
+      "requests": 120,
+      "score": 0.9812,
+      "every_field_right": 0.8833,
+      "finish": {
+       "stop": 120
+      },
+      "unfinished": 0,
+      "score_finished_only": 0.98125,
+      "reasoning_chars_median": 6538.0,
+      "completion_tokens_median": 3061.0,
+      "decode_tok_s_median": 34.426,
+      "ttft_s_median": 0.8196
+     },
+     "16k": {
+      "requests": 120,
+      "score": 0.9823,
+      "every_field_right": 0.875,
+      "finish": {
+       "stop": 120
+      },
+      "unfinished": 0,
+      "score_finished_only": 0.982292,
+      "reasoning_chars_median": 6888.0,
+      "completion_tokens_median": 3808.0,
+      "decode_tok_s_median": 32.269000000000005,
+      "ttft_s_median": 3.167
+     },
+     "64k": {
+      "requests": 120,
+      "score": 0.9437,
+      "every_field_right": 0.7333,
+      "finish": {
+       "stop": 118,
+       "cap": 2
+      },
+      "unfinished": 2,
+      "score_finished_only": 0.959746,
+      "reasoning_chars_median": 8965.5,
+      "completion_tokens_median": 4671.0,
+      "decode_tok_s_median": 34.73650000000001,
+      "ttft_s_median": 12.74145
+     },
+     "128k": {
+      "requests": 120,
+      "score": 0.9125,
+      "every_field_right": 0.6667,
+      "finish": {
+       "stop": 117,
+       "cap": 2,
+       "repetition": 1
+      },
+      "unfinished": 3,
+      "score_finished_only": 0.935897,
+      "reasoning_chars_median": 9636.0,
+      "completion_tokens_median": 4834.0,
+      "decode_tok_s_median": 35.4435,
+      "ttft_s_median": 25.0826
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/analysis/POSTHOC.json",
+    "pointer": "/score_by_length/compact/single",
+    "what": "compact by length",
+    "value": {
+     "4k": {
+      "requests": 120,
+      "score": 0.9844,
+      "every_field_right": 0.875,
+      "finish": {
+       "stop": 120
+      },
+      "unfinished": 0,
+      "score_finished_only": 0.984375,
+      "reasoning_chars_median": 6657.0,
+      "completion_tokens_median": 3030.5,
+      "decode_tok_s_median": 36.697,
+      "ttft_s_median": 0.83305
+     },
+     "16k": {
+      "requests": 120,
+      "score": 0.975,
+      "every_field_right": 0.825,
+      "finish": {
+       "stop": 120
+      },
+      "unfinished": 0,
+      "score_finished_only": 0.975,
+      "reasoning_chars_median": 7697.0,
+      "completion_tokens_median": 3664.0,
+      "decode_tok_s_median": 33.024,
+      "ttft_s_median": 3.2073
+     },
+     "64k": {
+      "requests": 120,
+      "score": 0.9323,
+      "every_field_right": 0.7,
+      "finish": {
+       "stop": 118,
+       "cap": 1,
+       "repetition": 1
+      },
+      "unfinished": 2,
+      "score_finished_only": 0.948093,
+      "reasoning_chars_median": 8478.5,
+      "completion_tokens_median": 4461.5,
+      "decode_tok_s_median": 33.72,
+      "ttft_s_median": 12.930700000000002
+     },
+     "128k": {
+      "requests": 120,
+      "score": 0.8896,
+      "every_field_right": 0.625,
+      "finish": {
+       "stop": 115,
+       "cap": 4,
+       "repetition": 1
+      },
+      "unfinished": 5,
+      "score_finished_only": 0.928261,
+      "reasoning_chars_median": 9785.5,
+      "completion_tokens_median": 5276.0,
+      "decode_tok_s_median": 36.876999999999995,
+      "ttft_s_median": 25.4545
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "CP-desc-position",
+  "run": "2026-11-10-context-probe",
+  "goal": "DESC",
+  "question": "Does accuracy depend on how far back the evidence sits?",
+  "statement": "Accuracy by evidence-position bin stays within about 0.05 at every length in every arm; the 0.10-0.25 bin is the lowest of the three at 64K and 127K in every arm.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "field score by evidence-position bin",
+  "sign": "n/a",
+  "unit": "request",
+  "n": "120 requests per arm and length",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "60 synthetic items (join, ledger, trace; 20 each), indices 100-119, each at 4K, 16K, 64K and 127K",
+   "context": "4K to 127K",
+   "path": "generation (graded tasks, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/RESULTS.md",
+    "lines": [
+     155,
+     157
+    ],
+    "what": "position bins",
+    "text": "Speeds are per stream under a mixed concurrency-8 load and are confounded with what else was in the batch; they\nare not an arm comparison. Evidence position: accuracy by position bin stays within about 0.05 at every length in\nevery arm; the [0.10-0.25] bin is the lowest of the three at 64K and 127K in every arm."
+   }
+  ]
+ },
+ {
+  "id": "CP-trade-memory",
+  "run": "2026-11-10-context-probe",
+  "goal": "TRADE",
+  "question": "What does the memory saved by hqa and compact consist of, and where did it go in the serving launches?",
+  "statement": "Weights outside the experts, both GPUs: anchor 15,138, hqa 10,872, compact 8,304, exlr8-k4 7,496 MiB. anchor to hqa returns 4,266 MiB, 756 of it the output head (which the attention-mode setting does not select); hqa to compact a further 2,568 MiB. Memory left under the cap rises by 3,096 and then 2,458 MiB; every serving launch admitted the configured KV pool of 2,097,152 tokens, so the saving stayed unused.",
+  "class": "accounting",
+  "status": "accounting",
+  "quantity": "MiB of weights, workspaces and memory left under the engine's cap, from launch logs",
+  "sign": "n/a",
+  "unit": "launch",
+  "n": "one serving launch per arm and pass",
+  "interval": "none (accounting)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "serving launches of the graded runs",
+   "context": "configured maximum 262,144",
+   "path": "serving",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the logs are not published; figures as recorded in SUMMARY.json",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/trade_offs/columns",
+    "what": "per-arm columns",
+    "value": {
+     "anchor": {
+      "outside_the_experts": "BF16 core and head",
+      "weights_outside_experts_mib_both_gpus": 15138,
+      "layer_weights_outside_experts_mib_per_gpu": 6359,
+      "coordinator_weights_gib": 6.2098,
+      "resident_weights_mib_both_gpus": 166026,
+      "kl_from_bf16_fidelity_set": 0.032816759,
+      "kl_from_bf16_teacher_panel": 0.032047934,
+      "score_four_passes_all_lengths": 0.9555,
+      "score_four_passes_127k": 0.9177,
+      "every_field_right_of_960": 760,
+      "unfinished_of_960": 9,
+      "decode_tok_s_127k_median": 39.5,
+      "first_token_s_127k_median": 21.8
+     },
+     "hqa": {
+      "outside_the_experts": "BF16 q_b_proj and o_proj, rest K6",
+      "weights_outside_experts_mib_both_gpus": 10872,
+      "layer_weights_outside_experts_mib_per_gpu": 4604,
+      "coordinator_weights_gib": 4.4958,
+      "resident_weights_mib_both_gpus": 161758,
+      "kl_from_bf16_fidelity_set": 0.030226181,
+      "kl_from_bf16_teacher_panel": 0.031620155,
+      "score_four_passes_all_lengths": 0.9586,
+      "score_four_passes_127k": 0.9245,
+      "every_field_right_of_960": 768,
+      "unfinished_of_960": 9,
+      "decode_tok_s_127k_median": 35.0,
+      "first_token_s_127k_median": 25.1
+     },
+     "compact": {
+      "outside_the_experts": "K6 core and head",
+      "weights_outside_experts_mib_both_gpus": 8304,
+      "layer_weights_outside_experts_mib_per_gpu": 3320,
+      "coordinator_weights_gib": 3.2419,
+      "resident_weights_mib_both_gpus": 159190,
+      "kl_from_bf16_fidelity_set": 0.031399445,
+      "kl_from_bf16_teacher_panel": 0.029699118,
+      "score_four_passes_all_lengths": 0.9456,
+      "score_four_passes_127k": 0.887,
+      "every_field_right_of_960": 739,
+      "unfinished_of_960": 18,
+      "decode_tok_s_127k_median": 37.2,
+      "first_token_s_127k_median": 25.4
+     },
+     "exlr8-k4": {
+      "outside_the_experts": "its own checkpoint (section 9)",
+      "weights_outside_experts_mib_both_gpus": 7496,
+      "layer_weights_outside_experts_mib_per_gpu": 2890,
+      "coordinator_weights_gib": 2.822,
+      "resident_weights_mib_both_gpus": 162081,
+      "kl_from_bf16_fidelity_set": 0.036034492,
+      "kl_from_bf16_teacher_panel": 0.030506658,
+      "score_four_passes_all_lengths": 0.9546,
+      "score_four_passes_127k": 0.9203,
+      "every_field_right_of_960": 738,
+      "unfinished_of_960": 8,
+      "decode_tok_s_127k_median": 32.8,
+      "first_token_s_127k_median": 34.2
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/trade_offs/anchor_to_hqa_parts",
+    "what": "anchor to hqa",
+    "value": {
+     "layers_mib_per_gpu": 1755,
+     "head_mib": {
+      "anchor": 1210,
+      "hqa": 454
+     },
+     "token_embedding_mib": 1210,
+     "head_difference_mib": 756,
+     "sum_mib": 4266,
+     "note": "log figures: twice the per-GPU layer difference plus the difference between the two output heads; the token embedding table is the same size in the three probe arms. ATTENTION_MODE does not select the head"
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/trade_offs/weights_outside_experts_mib_back",
+    "what": "returned",
+    "value": {
+     "anchor_to_hqa": 4266,
+     "hqa_to_compact": 2568
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/trade_offs/left_under_memory_cap_mib_back",
+    "what": "left under cap",
+    "value": {
+     "anchor_to_hqa": 3096,
+     "hqa_to_compact": 2458
+    }
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/trade_offs/kv_pool_tokens_every_serving_launch",
+    "what": "KV pool",
+    "value": 2097152
+   }
+  ]
+ },
+ {
+  "id": "CP-repro",
+  "run": "2026-11-10-context-probe",
+  "goal": "REPRO",
+  "question": "Do the published numbers recompute from the per-request table, and do the items regenerate from their seeds?",
+  "statement": "From a clean copy of the folder on 2026-11-11, posthoc.py gave the same output; the 240 rendered items regenerated from the published script match their content and file hashes 240 of 240.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "recomputation identity; item hash matches",
+  "sign": "n/a",
+  "unit": "item",
+  "n": "240 rendered items",
+  "interval": "none (accounting)",
+  "scope": {
+   "engine": "CuteAFD v5.0.0",
+   "checkpoint": "K4-Core-K6-HQA (anchor, hqa, compact readings)",
+   "items": "measured item set",
+   "context": "4K to 127K",
+   "path": "analysis",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "tools/verify.py rechecks the cited numbers on every build",
+  "evidence": [
+   {
+    "file": "results/2026-11-10-context-probe/README.md",
+    "lines": [
+     112,
+     115
+    ],
+    "what": "recompute",
+    "text": "\n1. **Recompute.** `python3 analysis/posthoc.py` (standard library only) rebuilds the scores, differences and intervals from\n   `analysis/samples.csv` and writes `analysis/POSTHOC.json`; `python3 tools/verify.py` at the repository root checks\n   `docs/findings.json` against the same table. Run from a clean copy of this folder on 2026-11-11: same output."
+   },
+   {
+    "file": "results/2026-11-10-context-probe/README.md",
+    "lines": [
+     121,
+     125
+    ],
+    "what": "regenerate",
+    "text": "   follow from its per-window table; `tools/verify.py` recomputes the ones `docs/findings.json` cites.\n2. **Rebuild the inputs.** `python3 drivers/gen_tasks.py --out <dir> --items 20 --first 100` regenerates the 240 rendered\n   items from their seeds. It needs the `tokenizers` package and the model's `tokenizer.json` (set `TOKENIZER` at the top of the\n   script; its SHA-256 is checked). Compare `content_sha256` and `file_sha256` with `items/measured/index.json`. Regenerated\n   from the published script on 2026-11-11: 240 of 240 match."
+   }
+  ]
+ },
+ {
+  "id": "CP-panel-tilt",
+  "run": "2026-11-10-context-probe",
+  "goal": "B16",
+  "question": "Which checkpoint's experts can the teacher panel favour in the v5 study?",
+  "statement": "The teacher panel comes from the K4 producer's evidence set (brandonmusic), so it can favour that checkpoint's experts. The v5 probe arms carry K4-Core-K6's experts, calibrated on another panel (agentic-quant-panel-v1): compact's teacher-panel KL, 0.0297, equals K4-Core-K6's on CuteAFD v4.0.0 to the last digit. The run's statement that the panel can favour the experts the probe arms carry is not supported by the published files.",
+  "class": "source reading",
+  "status": "check",
+  "quantity": "provenance of the teacher panel and of the probe arms' experts, as published",
+  "sign": "n/a",
+  "unit": "checkpoint",
+  "n": "two checkpoints (K4, K4-Core-K6)",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and v5.0.0",
+   "checkpoint": "K4 (brandonmusic tr3-4bpw); K4-Core-K6 and K4-Core-K6-HQA (wrldsuksgo2mars)",
+   "items": "teacher panel, 25 windows",
+   "context": "2,048-token windows",
+   "path": "reference data",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "corrects RESULTS.md section 10 (lines 635-639) of this run; see K4-pa-provenance",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/checkpoints/K4",
+    "what": "K4 producer and calibration",
+    "value": {
+     "producer": "brandonmusic",
+     "experts_bits": 4,
+     "core": "BF16 (CuteAFD converts to FP8 at load)",
+     "disk_gb": 176,
+     "method": "EXL3/TR3 (ShapleyMCG licence); the model card does not describe calibration data or objective",
+     "calibration": "not described on the model card; the producer's K4 evidence set (GLM-5.3-Flash-ShapleyMCG-K4-Evidence, calibration/windows/panel.json, sha256 6bafe328...) lists 640 windows labelled fit, conditional-fit, selection and confirmation; read here as K4's calibration windows"
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/checkpoints/K4-Core-K6",
+    "what": "K4-Core-K6 producer and calibration",
+    "value": {
+     "producer": "wrldsuksgo2mars (tpurtell)",
+     "experts_bits": 4,
+     "core": "6-bit EXL3",
+     "disk_gb": 166,
+     "method": "EXL3, Hessian-based",
+     "calibration": "agentic-quant-panel-v1 (same file as K3.25)"
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/checkpoints_cuteafd/K4-Core-K6 - K4/kl/b",
+    "what": "K4-Core-K6 teacher KL, v4.0.0",
+    "value": 0.029699118315845728
+   },
+   {
+    "file": "results/2026-11-10-context-probe/SUMMARY.json",
+    "pointer": "/bf16_distance/arms/compact/teacher_panel/kl",
+    "what": "compact teacher KL, v5.0.0",
+    "value": [
+     0.029699118,
+     0.023590257,
+     0.036408059
+    ]
+   },
+   {
+    "file": "results/2026-11-10-context-probe/RESULTS.md",
+    "lines": [
+     635,
+     639
+    ],
+    "what": "the statement corrected",
+    "text": "  its own provenance. The fidelity set is the engine author's; its relation to the calibration data of either\n  checkpoint is not known. The teacher panel is drawn from the corpus the producer of the K4 experts published and\n  can favour the experts the three probe arms carry (stated in the plan before the first request); a tilt of that\n  kind would run toward the probe arms on that panel, which is the set where the four are level; it does not bear\n  on the fidelity set, where `exlr8-k4` is farther. Whole-checkpoint difference."
+   }
+  ]
+ }
+]

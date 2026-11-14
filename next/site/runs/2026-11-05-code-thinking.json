@@ -1,0 +1,179 @@
+{
+ "id": "2026-11-05-code-thinking",
+ "date": "2026-11-05",
+ "title": "Code thinking length on CuteAFD: K4-Core-K6's 6-bit core against its BF16 core, 16 code prompts x 4 seeds",
+ "kind": "measurement",
+ "question": "On code tasks on CuteAFD v4.0.0, does K4-Core-K6 with its native 6-bit core think longer than the same checkpoint with its BF16 core converted to FP8 at load?",
+ "engines": [
+  "tpurtell/cuteafd v4.0.0 (coordinator image index sha256:e257bc61...), unmodified launcher"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1df9c4a109bbbdafb60dc19df9fac019d",
+  "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180 (local derived checkpoint, not a producer release; built by results/2026-11-03-cuteafd-core-swap/prep/build_derived.py)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local",
+ "protocol": {
+  "file": "protocol/PROTOCOL.md",
+  "frozen": "2026-11-05, before the first request (protocol/FROZEN.json)",
+  "amendments": []
+ },
+ "goals": [
+  {
+   "id": "PROMPTS",
+   "question": "Twelve new code projects (p4-p15) written before any request: does each reference implementation pass its hidden tests?",
+   "added": "check",
+   "added_source": "protocol/PROTOCOL.md:16-20 (prompts); README.md:13-15",
+   "design": {
+    "instrument": "pytest in the code sandbox (code/tools/check_ref.py)",
+    "arms": [
+     "reference implementations"
+    ],
+    "items": "16 projects: p0-p3 Block L code projects (byte-identical), p4-p15 written 2026-11-05",
+    "unit": "project",
+    "n": "16",
+    "repeats": "one check",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "prompts/*",
+    "code/build_prompts.py",
+    "code/tools/check_ref.py"
+   ],
+   "result_docs": [
+    "README.md"
+   ],
+   "status": "done",
+   "headline": "Each reference implementation passes its tests (README.md, PROTOCOL.md); p0-p3 are the Block L projects unchanged, p4-p15 new and the primary set.",
+   "findings": [
+    "CT-prompts"
+   ]
+  },
+  {
+   "id": "PRIMARY",
+   "question": "On the 12 new code prompts, does K4-Core-K6 with its native 6-bit core think longer than the same checkpoint with the BF16 core (FP8 at load) on CuteAFD v4.0.0?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:6-7,32-33 (frozen 2026-11-05 before the first request)",
+   "design": {
+    "instrument": "free generation via the frozen v4 Block L stage-L3 driver (cap 130,048, 2 concurrent, thinking on, model default sampling); reasoning tokens by re-tokenization with the Block L analyzer; ratio = exp(mean seed-paired log(C-K6 / C-K6x))",
+    "arms": [
+     "C-K6 (K4-Core-K6, native 6-bit core)",
+     "C-K6x (derived BF16-core checkpoint, BF16 converted to FP8 at load; same experts)"
+    ],
+    "items": "p4-p15 (12 new prompts)",
+    "unit": "prompt (primary); seed pair (secondary)",
+    "n": "12 prompts, 48 pairs",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, the same on both arms; one launch per arm",
+    "interval": "95% bootstrap over prompts (4,000 replicates, seed 20261105); detected when the interval excludes 1; sign test over prompts"
+   },
+   "files": [
+    "CT-RESULT.md",
+    "analysis/CT-RESULT.json",
+    "analysis/analyze_ct.py",
+    "code/chain-ct.sh",
+    "code/drivers/code_thinking.py"
+   ],
+   "result_docs": [
+    "CT-RESULT.md"
+   ],
+   "status": "done",
+   "status_note": "Reading revised by later runs: results/2026-11-06-vllm-code-thinking (same prompts on the vLLM fork: V-K6 / V-BF16 1.00 [0.96, 1.04], not detected; engine comparison 0.79 [0.75, 0.83]) and results/2026-11-06-cuteafd-fp8-ablation (switching off the BF16-core arm's FP8 KDA setting: F-kda / C-K6x 1.31 [1.24, 1.38]). The vLLM run describes the 1.26x as the FP8-at-load BF16 core thinking about 20% shorter than the other three configurations. CT-RESULT.md:32 ('The core accounts for the code gap seen in Block L') and :35 ('the native 6-bit core makes code replies think about 26% longer') predate these runs. CT-RESULT.md:37 says science-question free generation and the stop decision showed no core difference on CuteAFD; on CuteAFD only the stop decision was measured on science-question traces (core-swap S2, not detected, CS-stop-core); science-question free generation was measured only on the vLLM fork, on one question (2026-11-02-thinking-length G4).",
+   "headline": "C-K6 / C-K6x 1.26 [1.24, 1.29] over prompts (pairs [1.20, 1.33]); 12 of 12 prompts above 1, sign test p = 0.0005: detected. All 128 replies finished; none capped. CuteAFD v4.0.0; 'BF16 core' is BF16 converted to FP8 at load.",
+   "findings": [
+    "CT-core-code"
+   ],
+   "superseded_by": "2026-11-06-vllm-code-thinking/ENGINES and 2026-11-06-cuteafd-fp8-ablation/STEPS (reading of the cause; the measured ratio stands)"
+  },
+  {
+   "id": "SECONDARY",
+   "question": "Secondary sets: all 16 prompts, and the four Block L prompts alone (against Block L 1.43 and core-swap step 1 1.25).",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:34",
+   "design": {
+    "instrument": "free generation via the frozen v4 Block L stage-L3 driver (cap 130,048, 2 concurrent, thinking on, model default sampling); reasoning tokens by re-tokenization with the Block L analyzer; ratio = exp(mean seed-paired log(C-K6 / C-K6x))",
+    "arms": [
+     "C-K6 (K4-Core-K6, native 6-bit core)",
+     "C-K6x (derived BF16-core checkpoint, BF16 converted to FP8 at load; same experts)"
+    ],
+    "items": "all p0-p15; p0-p3",
+    "unit": "prompt (primary); seed pair (secondary)",
+    "n": "16 / 4 prompts",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, the same on both arms; one launch per arm",
+    "interval": "95% bootstrap over prompts and over pairs"
+   },
+   "files": [],
+   "result_docs": [
+    "CT-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "All 16: 1.33 [1.27, 1.40] (16 of 16 above 1, p = 3e-5). p0-p3: 1.56 [1.52, 1.62] (4 of 4, p = 0.125). C-K6 longer in 58 of 64 pairs; single pairs range 0.86 to 2.62.",
+   "findings": [
+    "CT-core-code-all16",
+    "CT-core-code-blockl"
+   ]
+  },
+  {
+   "id": "TESTS",
+   "question": "Do the two arms differ in hidden-test outcomes on code?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:35-36 (descriptive per arm: all-tests-pass share)",
+   "design": {
+    "instrument": "free generation via the frozen v4 Block L stage-L3 driver (cap 130,048, 2 concurrent, thinking on, model default sampling); reasoning tokens by re-tokenization with the Block L analyzer; ratio = exp(mean seed-paired log(C-K6 / C-K6x))",
+    "arms": [
+     "C-K6 (K4-Core-K6, native 6-bit core)",
+     "C-K6x (derived BF16-core checkpoint, BF16 converted to FP8 at load; same experts)"
+    ],
+    "items": "all 16 prompts",
+    "unit": "prompt (primary); seed pair (secondary)",
+    "n": "64 replies per arm",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, the same on both arms; one launch per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "CT-RESULT.md"
+   ],
+   "status": "done",
+   "status_note": "Corrected in CT-RESULT.md:24-27: analysis/CT-RESULT.json reports all_tests_pass_of_finished 0 for both arms (code checks still pending in the files it reads); the figures come from the analyzer's L-analysis.json (not published). The frozen ratio is unaffected. Paired test comparisons across all arms: 2026-11-06-cuteafd-fp8-ablation/PASS-PAIRS (post hoc).",
+   "headline": "All tests pass on 50 of 64 (C-K6) and 49 of 64 (C-K6x); mean share of tests passed 0.945 and 0.936; the arms agree on all-pass in 51 of 64 pairs. Descriptive.",
+   "findings": [
+    "CT-tests"
+   ]
+  },
+  {
+   "id": "DESC",
+   "question": "Descriptive per arm: median reasoning tokens, median decode speed, finished replies whose end repeats earlier text.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:35-36",
+   "design": {
+    "instrument": "free generation via the frozen v4 Block L stage-L3 driver (cap 130,048, 2 concurrent, thinking on, model default sampling); reasoning tokens by re-tokenization with the Block L analyzer; ratio = exp(mean seed-paired log(C-K6 / C-K6x))",
+    "arms": [
+     "C-K6 (K4-Core-K6, native 6-bit core)",
+     "C-K6x (derived BF16-core checkpoint, BF16 converted to FP8 at load; same experts)"
+    ],
+    "items": "all 16 prompts",
+    "unit": "prompt (primary); seed pair (secondary)",
+    "n": "64 replies per arm",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, the same on both arms; one launch per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "CT-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Median reasoning tokens C-K6 63,732, C-K6x 50,412; median decode tok/s 115 and 122. Finished replies with a terminal repetition onset: C-K6 51, C-K6x 44 of 64 (all finished, not loops).",
+   "findings": [
+    "CT-desc"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "SUMMARY.json",
+  "protocol/PROTOCOL.md",
+  "protocol/FROZEN.json",
+  "analysis/samples.csv"
+ ]
+}

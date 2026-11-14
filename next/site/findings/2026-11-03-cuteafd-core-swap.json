@@ -1,0 +1,1216 @@
+[
+ {
+  "id": "CS-prep-core-bytes",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "PREP",
+  "question": "Are the 316 core tensors of the derived BF16-core checkpoint byte-identical to K4's, so that C-K6x and C-K4 share the core bytes?",
+  "statement": "316 of 316 core tensors in the derived checkpoint are byte-identical to K4's; the derived checkpoint has 150,250 tensors (1,264 EXL3 core tensors removed, 316 BF16 core tensors added).",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "per-tensor hash match, derived checkpoint core against K4 core",
+  "sign": "n/a",
+  "unit": "tensor",
+  "n": "316 core tensors",
+  "interval": "none (exact comparison)",
+  "scope": {
+   "engine": "none (file check)",
+   "checkpoint": "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180 (local derived checkpoint, not a producer release) and K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929)",
+   "items": "316 core tensors",
+   "context": "n/a",
+   "path": "files as stored",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/prep/core-hash.json",
+    "pointer": "/summary",
+    "what": "tensors compared, identical, differing",
+    "value": {
+     "tensors": 316,
+     "identical": 316,
+     "differ": []
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/derived_checkpoint/tensors",
+    "what": "tensors in the derived checkpoint",
+    "value": 150250
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/derived_checkpoint/removed_exl3_core_tensors",
+    "what": "EXL3 core tensors removed",
+    "value": 1264
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/derived_checkpoint/added_bf16_core_tensors",
+    "what": "BF16 core tensors added",
+    "value": 316
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/prep/build_derived.py",
+    "what": "build script"
+   }
+  ]
+ },
+ {
+  "id": "CS-launch-identity",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2-ID",
+  "question": "On CuteAFD v4.0.0, do two launches of the same arm (K4-Core-K6, native 6-bit core) give bit-identical teacher-forced rows?",
+  "statement": "Second launch of C-K6 against the first: 93 of 93 traces and 93,670 of 93,670 scored rows bit-identical by the per-row logits hash.",
+  "class": "accounting",
+  "status": "protocol",
+  "quantity": "per-row logits hash, C-K6r2 against C-K6",
+  "sign": "n/a",
+  "unit": "row",
+  "n": "93,670 rows in 93 traces",
+  "interval": "none (exact comparison)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "repeated two days later on 10 traces, 18,286 of 18,286 rows identical (2026-11-05-attn-position/RECHECK); a replayed free-generation reply was identical (FA-control). The vLLM fork's launch-to-launch result belongs to 2026-11-02-thinking-length.",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/S2-IDENTITY.json",
+    "pointer": "",
+    "what": "traces and rows compared and identical",
+    "value": {
+     "traces": 93,
+     "traces_bit_identical": 93,
+     "rows": 93670,
+     "rows_bit_identical": 93670,
+     "differing_traces": []
+    }
+   }
+  ],
+  "replaces": [
+   "TL-identity"
+  ]
+ },
+ {
+  "id": "CS-stop-core",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2",
+  "question": "On CuteAFD v4.0.0, on fixed science-question traces, does K4-Core-K6's native 6-bit core, against the BF16-core checkpoint (same routed experts) change log p(</think>) where the trace closed?",
+  "statement": "C-K6 − C-K6x, log p(</think>) at the close: −0.011 [−0.039, +0.017] over 77 finished traces; below 0 = the native 6-bit core arm less ready to stop where the trace closed. C-K6x was above C-K6 on 35 of 77 traces.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, C-K6 − C-K6x (nats), paired by trace",
+  "sign": "above 0 = the native 6-bit core arm gives the close a higher log-probability",
+  "unit": "trace",
+  "n": "77 finished traces",
+  "interval": "95% bootstrap over traces, 2,000 replicates (the thinking-length run's score_stop.py, unchanged); the two C-K6 launches are bit-identical, so the rule is the interval excluding 0",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 9,
+   "excluding_0": 2,
+   "note": "3 contrasts (core, experts, total) x 3 stop measures (log p at the close, mean p over the 512 rows before it, max p on unfinished traces); the two that exclude 0 are max p for experts and total"
+  },
+  "replication": "the vLLM fork's whole-core swap on the same traces: 2026-11-02-thinking-length/G2-STOP",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/core/lp_close",
+    "what": "[delta, 95% interval]",
+    "value": {
+     "delta": -0.010523639534401266,
+     "ci95": [
+      -0.03898435930451727,
+      0.01700793874911437
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_trace_lp_close_sign/C-K6x_above_C-K6",
+    "what": "traces, of 77",
+    "value": 35
+   }
+  ],
+  "bound": "a difference down to −0.039 or up to +0.017 is not excluded"
+ },
+ {
+  "id": "CS-stop-experts",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2",
+  "question": "On CuteAFD v4.0.0, on fixed science-question traces, does K4-Core-K6's routed experts, against K4's (same core bytes and arithmetic) change log p(</think>) where the trace closed?",
+  "statement": "C-K6x − C-K4, log p(</think>) at the close: +0.004 [−0.025, +0.031] over 77 finished traces; below 0 = the arm with K4-Core-K6's experts less ready to stop where the trace closed. C-K4 was above C-K6x on 38 of 77 traces.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, C-K6x − C-K4 (nats), paired by trace",
+  "sign": "above 0 = the arm with K4-Core-K6's experts gives the close a higher log-probability",
+  "unit": "trace",
+  "n": "77 finished traces",
+  "interval": "95% bootstrap over traces, 2,000 replicates (the thinking-length run's score_stop.py, unchanged); the two C-K6 launches are bit-identical, so the rule is the interval excluding 0",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 9,
+   "excluding_0": 2,
+   "note": "3 contrasts (core, experts, total) x 3 stop measures (log p at the close, mean p over the 512 rows before it, max p on unfinished traces); the two that exclude 0 are max p for experts and total"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/experts/lp_close",
+    "what": "[delta, 95% interval]",
+    "value": {
+     "delta": 0.0036346911836918987,
+     "ci95": [
+      -0.02461819497189676,
+      0.031183516740145627
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_trace_lp_close_sign/C-K4_above_C-K6x",
+    "what": "traces, of 77",
+    "value": 38
+   }
+  ],
+  "bound": "a difference down to −0.025 or up to +0.031 is not excluded"
+ },
+ {
+  "id": "CS-stop-total",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2",
+  "question": "On CuteAFD v4.0.0, on fixed science-question traces, does K4-Core-K6 as a whole, against K4 change log p(</think>) where the trace closed?",
+  "statement": "C-K6 − C-K4, log p(</think>) at the close: −0.007 [−0.044, +0.026] over 77 finished traces; below 0 = K4-Core-K6 less ready to stop where the trace closed.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "log p(</think>) at the close, C-K6 − C-K4 (nats), paired by trace",
+  "sign": "above 0 = K4-Core-K6 gives the close a higher log-probability",
+  "unit": "trace",
+  "n": "77 finished traces",
+  "interval": "95% bootstrap over traces, 2,000 replicates (the thinking-length run's score_stop.py, unchanged); the two C-K6 launches are bit-identical, so the rule is the interval excluding 0",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 9,
+   "excluding_0": 2,
+   "note": "3 contrasts (core, experts, total) x 3 stop measures (log p at the close, mean p over the 512 rows before it, max p on unfinished traces); the two that exclude 0 are max p for experts and total"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/total/lp_close",
+    "what": "[delta, 95% interval]",
+    "value": {
+     "delta": -0.006888948350709367,
+     "ci95": [
+      -0.043546156995656116,
+      0.026399050318319826
+     ]
+    }
+   }
+  ],
+  "bound": "a difference down to −0.044 or up to +0.026 is not excluded"
+ },
+ {
+  "id": "CS-stop-hazard",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2",
+  "question": "On CuteAFD v4.0.0, on fixed science-question traces, does the core, the routed experts or both change p(</think>) over the 512 rows before the close?",
+  "statement": "Mean p(</think>) over the 512 rows before the close, K4-Core-K6's side minus the other: core +0.0000096 [−0.0000078, +0.0000284], experts −0.0000017 [−0.0000214, +0.0000162], total +0.0000079 [−0.0000128, +0.0000282]; all include 0. Per-arm means are 0.000276 (C-K6), 0.000266 (C-K6x) and 0.000268 (C-K4).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "mean p(</think>) over the 512 rows before the close; core C-K6 − C-K6x, experts C-K6x − C-K4, total C-K6 − C-K4",
+  "sign": "above 0 = K4-Core-K6's side closer to stopping before the close",
+  "unit": "trace",
+  "n": "77 finished traces",
+  "interval": "95% bootstrap over traces, 2,000 replicates (the thinking-length run's score_stop.py, unchanged); the two C-K6 launches are bit-identical, so the rule is the interval excluding 0",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 9,
+   "excluding_0": 2,
+   "note": "3 contrasts (core, experts, total) x 3 stop measures (log p at the close, mean p over the 512 rows before it, max p on unfinished traces); the two that exclude 0 are max p for experts and total"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/core/hazard",
+    "what": "core [delta, 95% interval]",
+    "value": {
+     "delta": 9.581198068770012e-06,
+     "ci95": [
+      -7.809993193442315e-06,
+      2.8433458959132818e-05
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/experts/hazard",
+    "what": "experts",
+    "value": {
+     "delta": -1.6737651194131549e-06,
+     "ci95": [
+      -2.142998368447574e-05,
+      1.620865651541305e-05
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/total/hazard",
+    "what": "total",
+    "value": {
+     "delta": 7.907432949356856e-06,
+     "ci95": [
+      -1.2776450913190104e-05,
+      2.8227420116209632e-05
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_arm/C-K6/hazard_mean",
+    "what": "C-K6 mean",
+    "value": 0.0002755200730157663
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_arm/C-K6x/hazard_mean",
+    "what": "C-K6x mean",
+    "value": 0.0002659388749469963
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_arm/C-K4/hazard_mean",
+    "what": "C-K4 mean",
+    "value": 0.0002676126400664095
+   }
+  ],
+  "bound": "differences from −0.0000214 to +0.0000284 are not excluded (per-arm means about 0.00027)"
+ },
+ {
+  "id": "CS-stop-top1",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2",
+  "question": "On CuteAFD v4.0.0, how often is </think> the top token where a fixed science-question trace closed, per arm?",
+  "statement": "</think> was the top-1 token at the close on 0.909 of the 77 finished traces in every arm (C-K6, C-K6x, C-K4 and the second C-K6 launch).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "share of finished traces with </think> top-1 at the close",
+  "sign": "n/a",
+  "unit": "trace",
+  "n": "77 finished traces per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the vLLM fork gives 0.909 on every arm of its swap (2026-11-02-thinking-length/G2-STOP)",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_arm/C-K6/close_top1_share",
+    "what": "C-K6",
+    "value": 0.9090909090909091
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_arm/C-K6x/close_top1_share",
+    "what": "C-K6x",
+    "value": 0.9090909090909091
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_arm/C-K4/close_top1_share",
+    "what": "C-K4",
+    "value": 0.9090909090909091
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/per_arm/C-K6r2/close_top1_share",
+    "what": "C-K6r2",
+    "value": 0.9090909090909091
+   }
+  ]
+ },
+ {
+  "id": "CS-maxp-frozen",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2",
+  "question": "On CuteAFD v4.0.0, on the 16 unfinished science-question traces, does the core, the routed experts or both change the per-trace maximum p(</think>)?",
+  "statement": "Max p(</think>) on unfinished traces, K4-Core-K6's side minus the other: experts −0.000041 [−0.000071, −0.000015] and total −0.000034 [−0.000069, −0.000005] exclude 0 (C-K4 higher), core +0.000007 [−0.000001, +0.000016] includes 0. A post hoc check in the same run (CS-maxp-first-row) finds this measure sits on each trace's first scored row.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "per-trace max p(</think>) on unfinished traces; core C-K6 − C-K6x, experts C-K6x − C-K4, total C-K6 − C-K4",
+  "sign": "above 0 = K4-Core-K6's side gives a higher maximum",
+  "unit": "trace",
+  "n": "16 unfinished traces (5 of them from question 13)",
+  "interval": "95% bootstrap over traces, 2,000 replicates (the thinking-length run's score_stop.py, unchanged); the two C-K6 launches are bit-identical, so the rule is the interval excluding 0",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 9,
+   "excluding_0": 2,
+   "note": "3 contrasts (core, experts, total) x 3 stop measures (log p at the close, mean p over the 512 rows before it, max p on unfinished traces); the two that exclude 0 are max p for experts and total"
+  },
+  "replication": "qualified post hoc by CS-maxp-first-row; the vLLM fork's captures show the same first-row pattern (2026-11-02-thinking-length/G2-MAXP)",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/experts/max_p_think",
+    "what": "experts [delta, 95% interval]",
+    "value": {
+     "delta": -4.104067171773601e-05,
+     "ci95": [
+      -7.125335702154945e-05,
+      -1.517758401982462e-05
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/total/max_p_think",
+    "what": "total",
+    "value": {
+     "delta": -3.4387359670189066e-05,
+     "ci95": [
+      -6.942652459192714e-05,
+      -5.095015663065437e-06
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/contrasts/core/max_p_think",
+    "what": "core",
+    "value": {
+     "delta": 6.6533120475469525e-06,
+     "ci95": [
+      -1.3353041579429777e-06,
+      1.609372531191938e-05
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "CS-maxp-first-row",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2-MAXP",
+  "question": "Post hoc: on the unfinished traces, where does the per-trace max p(</think>) fall, and does an arm order remain without that row?",
+  "statement": "Post hoc: the max falls on the first scored row in 46 of 48 trace-arms (180 of 192 on the vLLM fork's captures of the same traces); on question 13 (5 of the 16 traces) the max is 0.000149 for C-K4 against 0.000024 for C-K6x. With the first row removed, per-question max p is of the order of 1e-6 and the arm order changes between questions (C-K4 highest on questions 81, 127 and 88, lowest on 13 and 79).",
+  "class": "descriptive",
+  "status": "post hoc",
+  "quantity": "row of the per-trace max p(</think>); per-question max p with and without the first scored row",
+  "sign": "n/a",
+  "unit": "trace-arm",
+  "n": "48 trace-arms (16 unfinished traces x 3 arms)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "16 unfinished science-question traces of the 93",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "same pattern on the vLLM fork: 2026-11-02-thinking-length/G2-MAXP",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/POST-HOC-S2.json",
+    "pointer": "/argmax_at_first_row",
+    "what": "trace-arms with the max at the first row",
+    "value": 46
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/POST-HOC-S2.json",
+    "pointer": "/of",
+    "what": "trace-arms",
+    "value": 48
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/post_hoc_max_p/vllm_g2_argmax_at_first_row",
+    "what": "the vLLM fork's captures",
+    "value": [
+     180,
+     192
+    ]
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/POST-HOC-S2.json",
+    "pointer": "/by_doc",
+    "what": "per question: max p, max p after the first row",
+    "value": {
+     "d81": {
+      "C-K6": {
+       "max_p": 6.449235113668682e-05,
+       "max_p_after_first": 6.699119342671885e-07,
+       "mean_p_after_first": 2.2986394897911665e-09
+      },
+      "C-K6x": {
+       "max_p": 1.349231423804746e-05,
+       "max_p_after_first": 6.229583293420985e-07,
+       "mean_p_after_first": 1.9570740806075324e-09
+      },
+      "C-K4": {
+       "max_p": 3.914129164801094e-05,
+       "max_p_after_first": 7.677449092322064e-07,
+       "mean_p_after_first": 2.3674267172434246e-09
+      },
+      "traces": 2
+     },
+     "d13": {
+      "C-K6": {
+       "max_p": 1.6484262191742293e-05,
+       "max_p_after_first": 2.299639870131928e-06,
+       "mean_p_after_first": 1.1212214323184213e-08
+      },
+      "C-K6x": {
+       "max_p": 2.3971425691127166e-05,
+       "max_p_after_first": 2.106580896556648e-06,
+       "mean_p_after_first": 1.0628601904155679e-08
+      },
+      "C-K4": {
+       "max_p": 0.00014895834243674327,
+       "max_p_after_first": 1.832103375277364e-06,
+       "mean_p_after_first": 1.0061868736283762e-08
+      },
+      "traces": 5
+     },
+     "d79": {
+      "C-K6": {
+       "max_p": 3.64028206492616e-05,
+       "max_p_after_first": 6.993347502170748e-07,
+       "mean_p_after_first": 3.347489102413857e-09
+      },
+      "C-K6x": {
+       "max_p": 2.739153099852714e-05,
+       "max_p_after_first": 6.259357024060689e-07,
+       "mean_p_after_first": 3.0198133135812638e-09
+      },
+      "C-K4": {
+       "max_p": 2.224411084108094e-05,
+       "max_p_after_first": 5.865382344731021e-07,
+       "mean_p_after_first": 3.1454955735148776e-09
+      },
+      "traces": 3
+     },
+     "d127": {
+      "C-K6": {
+       "max_p": 1.1145643424657273e-05,
+       "max_p_after_first": 4.540538138907009e-07,
+       "mean_p_after_first": 2.743661446447517e-09
+      },
+      "C-K6x": {
+       "max_p": 3.208968768533256e-06,
+       "max_p_after_first": 4.312513155070797e-07,
+       "mean_p_after_first": 2.9457434883481057e-09
+      },
+      "C-K4": {
+       "max_p": 8.056053683373355e-07,
+       "max_p_after_first": 5.038914250860238e-07,
+       "mean_p_after_first": 3.0583908123726624e-09
+      },
+      "traces": 3
+     },
+     "d88": {
+      "C-K6": {
+       "max_p": 1.4963967155400085e-06,
+       "max_p_after_first": 9.94758951526163e-07,
+       "mean_p_after_first": 4.7629807042717566e-09
+      },
+      "C-K6x": {
+       "max_p": 4.481448868932853e-06,
+       "max_p_after_first": 8.795831817231292e-07,
+       "mean_p_after_first": 3.997400811236725e-09
+      },
+      "C-K4": {
+       "max_p": 5.504968738497878e-06,
+       "max_p_after_first": 1.1962847160854683e-06,
+       "mean_p_after_first": 4.35639896243971e-09
+      },
+      "traces": 3
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/post_hoc_s2.py",
+    "what": "script"
+   }
+  ]
+ },
+ {
+  "id": "CS-kl64",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2-KL",
+  "question": "On CuteAFD v4.0.0, how far apart are the arms' next-token distributions on the fixed science-question traces?",
+  "statement": "Top-64 KL between arms over all scored rows (nats per token): core (C-K6 vs C-K6x) 0.0127; experts 0.0203 (C-K4 vs C-K6x) and 0.0212 (C-K6x vs C-K4); total (C-K6 vs C-K4) 0.0259.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "top-64 KL between arms, mean over all rows (a lower bound on full-vocabulary KL)",
+  "sign": "higher = farther apart",
+  "unit": "row",
+  "n": "93,670 rows per arm in 93 traces",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/kl64_all_rows",
+    "what": "KL per contrast",
+    "value": {
+     "core_C-K6_vs_C-K6x": 0.012663564285346875,
+     "experts_C-K4_vs_C-K6x": 0.020300830581163776,
+     "experts_C-K6x_vs_C-K4": 0.021188816336954592,
+     "total_C-K6_vs_C-K4": 0.025941483109194967
+    }
+   }
+  ]
+ },
+ {
+  "id": "CS-probe-timing",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S2",
+  "question": "How long does CuteAFD v4.0.0 take to score the fixed traces teacher-forced through its probe endpoint?",
+  "statement": "The longest trace (95,362 tokens) was scored in 88.43 s; the 93 traces took 2,828 to 2,962 s per arm.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "wall time per probe and per arm",
+  "sign": "n/a",
+  "unit": "probe",
+  "n": "93 probes per arm, 4 arms (including the second launch)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "93 fixed science-question traces generated on the vLLM fork (77 finished, 16 not), token ids teacher-forced; 93,670 scored rows per arm",
+   "context": "traces up to 95,362 tokens",
+   "path": "prefill (teacher-forced probe: cold, no speculation, top-64 plus p(</think>) at every scored row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step2/probe_timing",
+    "what": "longest trace and seconds per arm",
+    "value": {
+     "longest_trace": "tr029-d127-fin",
+     "longest_prompt_tokens": 95362,
+     "longest_seconds": 88.43,
+     "seconds_per_arm": {
+      "C-K6": 2962,
+      "C-K6x": 2850,
+      "C-K4": 2828,
+      "C-K6r2": 2880
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/s2-probes.csv",
+    "what": "per-probe timing"
+   }
+  ]
+ },
+ {
+  "id": "CS-s1-core",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1",
+  "question": "On CuteAFD v4.0.0, in free generation on code and prose prompts, does K4-Core-K6 with its native 6-bit core think longer than the same checkpoint with its BF16 core as CuteAFD serves it (converted to FP8 at load, with the launcher's FP8 KDA, head and prefill defaults; same routed experts)?",
+  "statement": "C-K6 / C-K6x reasoning tokens 1.16, 95% interval over the 8 prompts [0.98, 1.36] (frozen primary; includes 1), over the 32 seed pairs [1.01, 1.31] (secondary); above 1 = the native 6-bit core arm thought longer. By content: code 1.25, prose 1.08 (4 prompts each).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, C-K6 / C-K6x, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the native 6-bit core arm thought longer",
+  "unit": "prompt (primary); seed pair (secondary)",
+  "n": "8 prompts, 32 seed pairs (all 64 replies finished)",
+  "interval": "95% bootstrap over the 8 prompts (frozen primary) and over the 32 seed pairs (secondary), analysis/analyze_s1.py; detected when the prompt interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "8 Block L prompts (4 code, 4 prose), 4 replies per prompt per arm (2 runs x 2 reps), 32 new seeds shared across arms",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 0,
+   "note": "three contrasts (core, experts, total) under the frozen prompt-level rule (ratios: the null is 1); at the secondary pair level 2 of 3 exclude 1 (core, total)"
+  },
+  "replication": "code part followed up on 12 new code prompts: CT-core-code (detected); on the vLLM fork, where the arms differ only in weight values: VC-core-code (not detected); the BF16-core arm's length moves with its KDA setting: FA-kda-step",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/contrasts/core",
+    "what": "ratio, intervals, by content, per prompt",
+    "value": {
+     "a": "C-K6",
+     "b": "C-K6x",
+     "pairs": 32,
+     "prompts": 8,
+     "ratio": 1.159326393820424,
+     "ratio_ci95_prompts": [
+      0.9817961739390177,
+      1.3574043158503433
+     ],
+     "ratio_ci95_pairs": [
+      1.009575892392539,
+      1.311095009743299
+     ],
+     "detected": false,
+     "ratio_by_content": {
+      "code": 1.2500027827709763,
+      "prose": 1.0752277562368604
+     },
+     "per_prompt": {
+      "code-p0": 1.2411406470575956,
+      "code-p1": 1.3728525269201743,
+      "code-p2": 1.086331403510564,
+      "code-p3": 1.3189754095362198,
+      "prose-p0": 1.2094649415271117,
+      "prose-p1": 1.6473987509174133,
+      "prose-p2": 0.9120896707823768,
+      "prose-p3": 0.7354824490050105
+     }
+    }
+   }
+  ],
+  "bound": "a ratio down to 0.98 or up to 1.36 is not excluded"
+ },
+ {
+  "id": "CS-s1-experts",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1-EXPERTS",
+  "question": "On CuteAFD v4.0.0, in free generation on code and prose prompts, do K4-Core-K6's routed experts, against K4's, change thinking length when the core bytes and core arithmetic are the same (routed experts compared as two whole quantizations)?",
+  "statement": "C-K6x / C-K4 reasoning tokens 0.99, 95% interval over the 8 prompts [0.93, 1.05] (frozen primary; includes 1), over the 32 seed pairs [0.87, 1.12] (secondary); above 1 = the arm with K4-Core-K6's experts thought longer. By content: code 1.02, prose 0.97 (4 prompts each).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, C-K6x / C-K4, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the arm with K4-Core-K6's experts thought longer",
+  "unit": "prompt (primary); seed pair (secondary)",
+  "n": "8 prompts, 32 seed pairs (all 64 replies finished)",
+  "interval": "95% bootstrap over the 8 prompts (frozen primary) and over the 32 seed pairs (secondary), analysis/analyze_s1.py; detected when the prompt interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "8 Block L prompts (4 code, 4 prose), 4 replies per prompt per arm (2 runs x 2 reps), 32 new seeds shared across arms",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 0,
+   "note": "three contrasts (core, experts, total) under the frozen prompt-level rule (ratios: the null is 1); at the secondary pair level 2 of 3 exclude 1 (core, total)"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/contrasts/experts",
+    "what": "ratio, intervals, by content, per prompt",
+    "value": {
+     "a": "C-K6x",
+     "b": "C-K4",
+     "pairs": 32,
+     "prompts": 8,
+     "ratio": 0.9914513231467459,
+     "ratio_ci95_prompts": [
+      0.9282911230756301,
+      1.0509195766409591
+     ],
+     "ratio_ci95_pairs": [
+      0.8742887090338731,
+      1.1238099944987965
+     ],
+     "detected": false,
+     "ratio_by_content": {
+      "code": 1.016173168115667,
+      "prose": 0.9673309205676105
+     },
+     "per_prompt": {
+      "code-p0": 1.0847993880255606,
+      "code-p1": 1.0700781675503581,
+      "code-p2": 1.0752267148818586,
+      "code-p3": 0.854291158915159,
+      "prose-p0": 0.9574548170936527,
+      "prose-p1": 0.8780796811021115,
+      "prose-p2": 1.0885228976820214,
+      "prose-p3": 0.9567764902390316
+     }
+    }
+   }
+  ],
+  "bound": "a ratio down to 0.93 or up to 1.05 is not excluded",
+  "replaces": [
+   "TL-experts"
+  ]
+ },
+ {
+  "id": "CS-s1-total",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1-TOTAL",
+  "question": "On CuteAFD v4.0.0, in free generation on code and prose prompts, does K4-Core-K6 think longer than K4 on new seeds (repeating the Block L comparison)?",
+  "statement": "C-K6 / C-K4 reasoning tokens 1.15, 95% interval over the 8 prompts [0.97, 1.32] (frozen primary; includes 1), over the 32 seed pairs [1.02, 1.29] (secondary); above 1 = K4-Core-K6 thought longer. By content: code 1.27, prose 1.04 (4 prompts each).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, C-K6 / C-K4, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = K4-Core-K6 thought longer",
+  "unit": "prompt (primary); seed pair (secondary)",
+  "n": "8 prompts, 32 seed pairs (all 64 replies finished)",
+  "interval": "95% bootstrap over the 8 prompts (frozen primary) and over the 32 seed pairs (secondary), analysis/analyze_s1.py; detected when the prompt interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "8 Block L prompts (4 code, 4 prose), 4 replies per prompt per arm (2 runs x 2 reps), 32 new seeds shared across arms",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 0,
+   "note": "three contrasts (core, experts, total) under the frozen prompt-level rule (ratios: the null is 1); at the secondary pair level 2 of 3 exclude 1 (core, total)"
+  },
+  "replication": "repeats on new seeds the Block L comparison read post hoc in CS-blockl-code-prose (smaller here)",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/contrasts/total",
+    "what": "ratio, intervals, by content, per prompt",
+    "value": {
+     "a": "C-K6",
+     "b": "C-K4",
+     "pairs": 32,
+     "prompts": 8,
+     "ratio": 1.1494156871122045,
+     "ratio_ci95_prompts": [
+      0.9744085923375305,
+      1.322094241656109
+     ],
+     "ratio_ci95_pairs": [
+      1.0216142661700376,
+      1.2935838319110187
+     ],
+     "detected": false,
+     "ratio_by_content": {
+      "code": 1.2702192879217826,
+      "prose": 1.0401010552604484
+     },
+     "per_prompt": {
+      "code-p0": 1.3463886143817283,
+      "code-p1": 1.469059516323619,
+      "code-p2": 1.1680525462696625,
+      "code-p3": 1.1267890311932935,
+      "prose-p0": 1.158008034371026,
+      "prose-p1": 1.4465473698535791,
+      "prose-p2": 0.9928304913858739,
+      "prose-p3": 0.7036923161914215
+     }
+    }
+   }
+  ],
+  "bound": "a ratio down to 0.97 or up to 1.32 is not excluded"
+ },
+ {
+  "id": "CS-blockl-code-prose",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1-BLOCKL",
+  "question": "Post hoc: in the CuteAFD v4.0.0 Block L run that raised the question, how much longer did K4-Core-K6 think than K4 on code and prose prompts?",
+  "statement": "Post hoc read of a run not designed for it, K4-Core-K6 / K4 reasoning tokens: code 1.43 [1.20, 1.59] and prose 1.19 [1.06, 1.39] (4 prompts, 16 seed pairs each); above 1 = K4-Core-K6 thought longer. On new seeds the same comparison gave code 1.27 and prose 1.04 (CS-s1-total).",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "reasoning tokens, K4-Core-K6 / K4, exp(mean seed-paired log ratio), by content",
+  "sign": "above 1 = K4-Core-K6 thought longer",
+  "unit": "prompt",
+  "n": "code 4 prompts / 16 pairs; prose 4 prompts / 16 pairs",
+  "interval": "95% bootstrap over prompts (analysis/block_l_posthoc.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1) and K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), as served by CuteAFD (K4's core converted to FP8 at load)",
+   "items": "Block L prompts of the 2026-10-30-cuteafd-v4 run, 2 runs with the same seeds per checkpoint",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 2,
+   "note": "four contents (code, prose, JSON, math problems); ratios, the null is 1"
+  },
+  "replication": "smaller on new seeds in the same run (CS-s1-total); the run notes that reading a difference because it stood out predicts a smaller value on repeat",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/BLOCK-L-POSTHOC.json",
+    "pointer": "/by_content/code",
+    "what": "code",
+    "value": {
+     "pairs": 16,
+     "prompts": 4,
+     "ratio": 1.4280950532934014,
+     "ratio_ci95_prompts": [
+      1.2024705909683864,
+      1.585694032289204
+     ],
+     "per_prompt": {
+      "p0": 1.6112907785017423,
+      "p1": 1.102413012337344,
+      "p2": 1.5005322885263161,
+      "p3": 1.5605039125064888
+     },
+     "prompts_above_1": 4
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/BLOCK-L-POSTHOC.json",
+    "pointer": "/by_content/prose",
+    "what": "prose",
+    "value": {
+     "pairs": 16,
+     "prompts": 4,
+     "ratio": 1.1923174312197227,
+     "ratio_ci95_prompts": [
+      1.0554819037190084,
+      1.3934164486033171
+     ],
+     "per_prompt": {
+      "p0": 1.0814310384464625,
+      "p1": 1.5162645001248802,
+      "p2": 1.1964402705728256,
+      "p3": 1.030155423205429
+     },
+     "prompts_above_1": 4
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/contrasts/total/ratio_by_content",
+    "what": "new seeds, C-K6 / C-K4 by content",
+    "value": {
+     "code": 1.2702192879217826,
+     "prose": 1.0401010552604484
+    }
+   }
+  ]
+ },
+ {
+  "id": "CS-blockl-json-math",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1-BLOCKL",
+  "question": "Post hoc: in the same Block L run, how did K4-Core-K6 compare with K4 in reasoning length on JSON and math-problem prompts (the run's 'reasoning' content)?",
+  "statement": "Post hoc, same read: JSON 1.07 [0.99, 1.21] on 3 prompts and 12 seed pairs (the fourth JSON prompt has no seed pair with both replies finished under the cap), math problems 1.05 [0.85, 1.39] on 4 prompts and 16 pairs; both intervals include 1.",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "reasoning tokens, K4-Core-K6 / K4, exp(mean seed-paired log ratio), by content",
+  "sign": "above 1 = K4-Core-K6 thought longer",
+  "unit": "prompt",
+  "n": "JSON 3 prompts / 12 pairs; math problems 4 prompts / 16 pairs (60 pairs over the four contents)",
+  "interval": "95% bootstrap over prompts (analysis/block_l_posthoc.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1) and K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), as served by CuteAFD (K4's core converted to FP8 at load)",
+   "items": "Block L prompts of the 2026-10-30-cuteafd-v4 run, 2 runs with the same seeds per checkpoint",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 2,
+   "note": "four contents (code, prose, JSON, math problems); ratios, the null is 1"
+  },
+  "replication": "not repeated (step 1 ran code and prose only). protocol/PROTOCOL.md:11 says 4 prompts per content; the data have 3 for JSON (JSON prompt 3: none of its 4 seed pairs has both replies finished, analysis/samples.csv)",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/BLOCK-L-POSTHOC.json",
+    "pointer": "/by_content/json",
+    "what": "JSON",
+    "value": {
+     "pairs": 12,
+     "prompts": 3,
+     "ratio": 1.0699963094864526,
+     "ratio_ci95_prompts": [
+      0.9869343524041816,
+      1.2069835177419754
+     ],
+     "per_prompt": {
+      "p0": 0.9869343524041816,
+      "p1": 1.0283885532631694,
+      "p2": 1.2069835177419754
+     },
+     "prompts_above_1": 2
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/BLOCK-L-POSTHOC.json",
+    "pointer": "/by_content/reasoning",
+    "what": "math problems ('reasoning')",
+    "value": {
+     "pairs": 16,
+     "prompts": 4,
+     "ratio": 1.0510474121583093,
+     "ratio_ci95_prompts": [
+      0.8514701576588856,
+      1.3859624918310474
+     ],
+     "per_prompt": {
+      "p0": 0.9685395288959157,
+      "p1": 1.5618147479369886,
+      "p2": 0.8071749642933648,
+      "p3": 0.9994813071888757
+     },
+     "prompts_above_1": 1
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/BLOCK-L-POSTHOC.json",
+    "pointer": "/pairs",
+    "what": "pairs over all contents",
+    "value": 60
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/BLOCK-L-POSTHOC.json",
+    "pointer": "/requests_without_a_finished_pair",
+    "what": "requests without a finished pair",
+    "value": 4
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/analysis/samples.csv",
+    "what": "per reply, incl. the Block L rows (JSON prompt 3 capped replies)"
+   }
+  ],
+  "bound": "ratios from 0.99 to 1.21 (JSON) and from 0.85 to 1.39 (math problems) are not excluded"
+ },
+ {
+  "id": "CS-s1-finish",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1-FINISH",
+  "question": "In the core swap's free generation on CuteAFD v4.0.0, how did replies finish in each arm?",
+  "statement": "All 96 replies (32 per arm) finished under the 130,048-token cap: 0 capped, 0 loops. Finished replies with a terminal repetition onset (not loops): C-K6 14, C-K6x 12, C-K4 8 of 32.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "finish class per reply",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "32 replies per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "8 Block L prompts (4 code, 4 prose), 4 replies per prompt per arm (2 runs x 2 reps), 32 new seeds shared across arms",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/per_arm/C-K6",
+    "what": "C-K6",
+    "value": {
+     "requests": 32,
+     "finished": 32,
+     "capped": 0,
+     "capped_looping": 0,
+     "finished_with_terminal_repetition": 14,
+     "median_reasoning_tokens": {
+      "code": 36858.0,
+      "prose": 17673.0
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/per_arm/C-K6x",
+    "what": "C-K6x",
+    "value": {
+     "requests": 32,
+     "finished": 32,
+     "capped": 0,
+     "capped_looping": 0,
+     "finished_with_terminal_repetition": 12,
+     "median_reasoning_tokens": {
+      "code": 31551.0,
+      "prose": 18279.0
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/per_arm/C-K4",
+    "what": "C-K4",
+    "value": {
+     "requests": 32,
+     "finished": 32,
+     "capped": 0,
+     "capped_looping": 0,
+     "finished_with_terminal_repetition": 8,
+     "median_reasoning_tokens": {
+      "code": 33672.5,
+      "prose": 18666.0
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "CS-s1-median-tokens",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1",
+  "question": "In the core swap's free generation on CuteAFD v4.0.0, what were the median reasoning lengths per arm and content?",
+  "statement": "Median reasoning tokens, code / prose: C-K6 36,858 / 17,673; C-K6x 31,551 / 18,279; C-K4 33,672.5 / 18,666.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median reasoning tokens per arm and content",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "16 replies per content per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "8 Block L prompts (4 code, 4 prose), 4 replies per prompt per arm (2 runs x 2 reps), 32 new seeds shared across arms",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/per_arm/C-K6/median_reasoning_tokens",
+    "what": "C-K6",
+    "value": {
+     "code": 36858.0,
+     "prose": 17673.0
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/per_arm/C-K6x/median_reasoning_tokens",
+    "what": "C-K6x",
+    "value": {
+     "code": 31551.0,
+     "prose": 18279.0
+    }
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/per_arm/C-K4/median_reasoning_tokens",
+    "what": "C-K4",
+    "value": {
+     "code": 33672.5,
+     "prose": 18666.0
+    }
+   }
+  ]
+ },
+ {
+  "id": "CS-s1-speed",
+  "run": "2026-11-03-cuteafd-core-swap",
+  "goal": "S1-SPEED",
+  "question": "In the core swap's free generation on CuteAFD v4.0.0, what decode speed did each arm reach?",
+  "statement": "Exploratory (not among the protocol's step-1 measures): median decode tok/s, code / prose: C-K6 120.9 / 79.0, C-K6x 129.8 / 87.8, C-K4 129.4 / 88.0.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "median decode tokens per second per reply",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "16 replies per content per arm, 2 concurrent",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "8 Block L prompts (4 code, 4 prose), 4 replies per prompt per arm (2 runs x 2 reps), 32 new seeds shared across arms",
+   "context": "short prompts; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/decode_tok_s_median",
+    "what": "median decode tok/s per arm and content",
+    "value": {
+     "C-K6": {
+      "code": 120.88999999999999,
+      "prose": 78.965
+     },
+     "C-K6x": {
+      "code": 129.76,
+      "prose": 87.755
+     },
+     "C-K4": {
+      "code": 129.365,
+      "prose": 88.00999999999999
+     }
+    }
+   }
+  ]
+ }
+]

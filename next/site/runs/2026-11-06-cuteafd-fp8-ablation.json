@@ -1,0 +1,340 @@
+{
+ "id": "2026-11-06-cuteafd-fp8-ablation",
+ "date": "2026-11-06",
+ "title": "Which part of CuteAFD's FP8 path shortens code reasoning: KDA FP8, FP8 head and FP8 prefill switched off cumulatively",
+ "kind": "measurement",
+ "question": "On CuteAFD v4.0.0, which of the FP8 settings applied to the BF16-core checkpoint (KDA projections, vocabulary head, prefill activations) goes with its shorter code reasoning against the native 6-bit core?",
+ "engines": [
+  "tpurtell/cuteafd v4.0.0 (coordinator image index sha256:e257bc61...), unmodified launcher"
+ ],
+ "checkpoints": [
+  "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180 (F arms; local derived checkpoint, not a producer release; built by results/2026-11-03-cuteafd-core-swap/prep/build_derived.py)",
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (C-K6, data from results/2026-11-05-code-thinking)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local",
+ "protocol": {
+  "file": "protocol/PROTOCOL.md",
+  "frozen": "2026-11-06, before any request (protocol/FROZEN.json)",
+  "amendments": []
+ },
+ "goals": [
+  {
+   "id": "LAUNCH-CHECK",
+   "question": "Does each F launch run with the intended kda_fp8 / fp8_head / fp8_prefill settings before any request?",
+   "added": "check",
+   "added_source": "protocol/PROTOCOL.md:18-19 (the arm is not run otherwise)",
+   "design": {
+    "instrument": "server log at launch",
+    "arms": [
+     "F-kda (GLM5_FLASH_KDA_FP8=off)",
+     "F-head (+ GLM5_FLASH_FP8_HEAD=off)",
+     "F-pre (+ GLM5_FLASH_FP8_PREFILL=off)"
+    ],
+    "items": "3 launches + control",
+    "unit": "launch",
+    "n": "4",
+    "repeats": "one each",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Every launch showed the expected kda_fp8 / fp8_head / fp8_prefill in its server log before any request (logs not published).",
+   "findings": [
+    "FA-launch-check"
+   ]
+  },
+  {
+   "id": "CONTROL",
+   "question": "Does the engine reproduce the code study's run: a replay of C-K6x p3 r3 on the unchanged configuration?",
+   "added": "check",
+   "added_source": "protocol/PROTOCOL.md:23-25 (control, descriptive)",
+   "design": {
+    "instrument": "one replayed request",
+    "arms": [
+     "F-ctrl (= C-K6x config)"
+    ],
+    "items": "p3 r3",
+    "unit": "reply",
+    "n": "1",
+    "repeats": "one",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Identical in reasoning and content to the 2026-11-05 reply (60,617 reasoning characters each).",
+   "findings": [
+    "FA-control"
+   ]
+  },
+  {
+   "id": "STEPS",
+   "question": "Switching CuteAFD's FP8 settings off cumulatively on the BF16-core checkpoint, which step changes code reasoning length: KDA projections (F-kda / C-K6x), head (F-head / F-kda), prefill activations (F-pre / F-head)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:26-29 (frozen 2026-11-06 before any request)",
+   "design": {
+    "instrument": "free generation with the code study's driver unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean seed-paired log ratio)",
+    "arms": [
+     "C-K6x (code study, 2026-11-05: KDA FP8, head FP8, prefill FP8)",
+     "F-kda (GLM5_FLASH_KDA_FP8=off)",
+     "F-head (+ GLM5_FLASH_FP8_HEAD=off)",
+     "F-pre (+ GLM5_FLASH_FP8_PREFILL=off)"
+    ],
+    "items": "p4-p15 (12 new code prompts)",
+    "unit": "prompt",
+    "n": "12 prompts (47 pairs where F-pre is involved)",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, shared with the code study's arms; one launch per F arm",
+    "interval": "95% bootstrap over prompts (4,000, seed 20261106); detected when the interval excludes 1"
+   },
+   "files": [
+    "FA-RESULT.md",
+    "analysis/FA-RESULT.json",
+    "analysis/analyze_fa.py",
+    "code/chain-fa.sh",
+    "code/drivers/fp8_ablation.py"
+   ],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "KDA step F-kda / C-K6x 1.31 [1.24, 1.38], detected (12 of 12 prompts); head step F-head / F-kda 1.02 [0.97, 1.07], not detected; prefill step F-pre / F-head 0.99 [0.97, 1.02], not detected (47 pairs). CuteAFD v4.0.0, BF16-core derived checkpoint; switching KDA FP8 off also turns off KDA output sharding on the two-GPU split, and the run does not separate the two.",
+   "findings": [
+    "FA-kda-step",
+    "FA-head-step",
+    "FA-prefill-step"
+   ]
+  },
+  {
+   "id": "GAP",
+   "question": "Is the gap to the native 6-bit core closed at F-kda, and what share of the gap does each detected step account for?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:30-33 (gap closed; attribution)",
+   "design": {
+    "instrument": "free generation with the code study's driver unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean seed-paired log ratio)",
+    "arms": [
+     "C-K6x (code study, 2026-11-05: KDA FP8, head FP8, prefill FP8)",
+     "F-kda (GLM5_FLASH_KDA_FP8=off)",
+     "F-head (+ GLM5_FLASH_FP8_HEAD=off)",
+     "F-pre (+ GLM5_FLASH_FP8_PREFILL=off)",
+     "C-K6 (code study: native 6-bit core)"
+    ],
+    "items": "p4-p15",
+    "unit": "prompt",
+    "n": "12 prompts",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, shared with the code study's arms; one launch per F arm",
+    "interval": "95% bootstrap over prompts (4,000, seed 20261106); detected when the interval excludes 1; gap share log(X / C-K6x) / log(C-K6 / C-K6x), bootstrapped"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Reference gap C-K6 / C-K6x 1.26 [1.24, 1.29]. C-K6 / F-kda 0.96 [0.92, 1.01] includes 1 and F-kda / C-K6x excludes 1 above: gap closed at F-kda. Only the KDA step is detected; its gap share 1.16 [0.95, 1.37].",
+   "findings": [
+    "FA-kda-vs-native",
+    "FA-gap-share"
+   ]
+  },
+  {
+   "id": "REMAINDER",
+   "question": "With all three settings off, does the BF16-core arm still differ from the native 6-bit core (C-K6 / F-pre, C-K6 / F-head)?",
+   "added": "post hoc",
+   "added_source": "protocol/PROTOCOL.md:32-33 (remainder clause written for a remaining shortfall); FA-RESULT.md:23-27 (reading the overshoot is post hoc)",
+   "design": {
+    "instrument": "free generation with the code study's driver unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean seed-paired log ratio)",
+    "arms": [
+     "F-head (+ GLM5_FLASH_FP8_HEAD=off)",
+     "F-pre (+ GLM5_FLASH_FP8_PREFILL=off)",
+     "C-K6 (code study: native 6-bit core)"
+    ],
+    "items": "p4-p15; all 16 as check",
+    "unit": "prompt",
+    "n": "12 prompts",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, shared with the code study's arms; one launch per F arm",
+    "interval": "95% bootstrap over prompts (4,000, seed 20261106); detected when the interval excludes 1"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "C-K6 / F-pre 0.95 [0.91, 0.98] (47 pairs) and C-K6 / F-head 0.94 [0.91, 0.97] exclude 1 below: the BF16-core arm thinks about 6% longer than the native core, not shorter. Post hoc reading; not detected at F-kda, nor on all 16 prompts (C-K6 / F-pre 0.97 [0.94, 1.01], C-K6 / F-head 0.98 [0.94, 1.02]). Not located.",
+   "findings": [
+    "FA-remainder"
+   ]
+  },
+  {
+   "id": "SECONDARY",
+   "question": "Secondary set: the step contrasts on all 16 prompts.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:27-28 (secondary: all 16)",
+   "design": {
+    "instrument": "free generation with the code study's driver unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean seed-paired log ratio)",
+    "arms": [
+     "C-K6x (code study, 2026-11-05: KDA FP8, head FP8, prefill FP8)",
+     "F-kda (GLM5_FLASH_KDA_FP8=off)",
+     "F-head (+ GLM5_FLASH_FP8_HEAD=off)",
+     "F-pre (+ GLM5_FLASH_FP8_PREFILL=off)",
+     "C-K6 (code study: native 6-bit core)"
+    ],
+    "items": "all p0-p15",
+    "unit": "prompt",
+    "n": "16 prompts",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, shared with the code study's arms; one launch per F arm",
+    "interval": "95% bootstrap over prompts (4,000, seed 20261106); detected when the interval excludes 1"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "KDA step 1.38 [1.29, 1.47], detected; head 0.99 [0.94, 1.04] and prefill 1.00 [0.97, 1.03], not detected.",
+   "findings": [
+    "FA-kda-step-all16",
+    "FA-head-prefill-all16"
+   ]
+  },
+  {
+   "id": "DESC",
+   "question": "Descriptive per arm: finish, all-tests-pass, share passed, median reasoning tokens, decode speed, and the KV pool at launch.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:36-38 (descriptive, not part of the rule); FA-RESULT.md:32-48",
+   "design": {
+    "instrument": "free generation with the code study's driver unchanged (cap 130,048, 2 in flight, thinking on); reasoning tokens by re-tokenization; ratio = exp(mean seed-paired log ratio)",
+    "arms": [
+     "C-K6x (code study, 2026-11-05: KDA FP8, head FP8, prefill FP8)",
+     "F-kda (GLM5_FLASH_KDA_FP8=off)",
+     "F-head (+ GLM5_FLASH_FP8_HEAD=off)",
+     "F-pre (+ GLM5_FLASH_FP8_PREFILL=off)",
+     "C-K6 (code study: native 6-bit core)"
+    ],
+    "items": "all 16 prompts",
+    "unit": "prompt",
+    "n": "64 replies per arm",
+    "repeats": "4 replies per prompt per arm; seed 2,026,110,500 + 100 x prompt + rep, shared with the code study's arms; one launch per F arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Median reasoning tokens C-K6x 50,412; F-kda 64,089; F-head 67,890; F-pre 68,145; C-K6 63,732. F-pre 63 finished, 1 capped (looping, p7 r0). Decode cost of switching off: about 4% (KDA), 7% (KDA + head), 8% (all three) vs C-K6x. KV pool at launch: F-ctrl 1,931,264; F-kda 1,414,656; F-head and F-pre 1,215,488 tokens.",
+   "findings": [
+    "FA-desc-length",
+    "FA-desc-speed",
+    "FA-kv-pool",
+    "FA-desc-tests"
+   ]
+  },
+  {
+   "id": "DESIGN-CONTEXT",
+   "question": "What are the switched-off settings in CuteAFD v4.0.0's design, and what reasons does the engine's author give for them?",
+   "added": "source reading",
+   "added_source": "FA-RESULT.md:63 ('Design context (added 2026-11-08)')",
+   "design": {
+    "instrument": "reading of the tagged v4.0.0 source and docs",
+    "arms": [
+     "launcher comment",
+     "model notes",
+     "--kda-fp8 option text"
+    ],
+    "items": "run-family.sh:2337-2351; docs/models/glm5_flash.md:163-210; mod.rs:189-197",
+    "unit": "document",
+    "n": "3",
+    "repeats": "n/a",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "status_note": "The same design context was added to results/2026-11-06-vllm-code-thinking/CUTEAFD-FP8-PATH.md (VC-fp8-path-context).",
+   "headline": "The settings are the launcher's defaults: row128 FP8 KDA and FP8 head on both layouts; on the two-GPU head split, token-row KDA output ownership. The model notes and the option text describe BF16 KDA as the two-GPU default; the launcher comment and code select row128, which every launch logged. The cited author checks are teacher-forced on 512 positions.",
+   "findings": [
+    "FA-design-context"
+   ]
+  },
+  {
+   "id": "WHERE",
+   "question": "Where in the engine does the code-length difference arise: prefill or generation?",
+   "added": "source reading",
+   "added_source": "FA-RESULT.md:79 ('Where in the engine (judgement from source and measurements; not isolated by its own run, added 2026-11-08)')",
+   "design": {
+    "instrument": "source reading (engine.rs line references) combined with this run's measurements",
+    "arms": [
+     "n/a"
+    ],
+    "items": "tpurtell/cuteafd v4.0.0 engine.rs, launcher",
+    "unit": "n/a",
+    "n": "n/a",
+    "repeats": "n/a",
+    "interval": "none (judgement)"
+   },
+   "files": [],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Judgement, not a measurement: most likely on the generation path (decode and speculative verify); prefill not excluded. Prompts are 1,155-1,758 tokens against medians of 50-68K reasoning tokens. Open: KDA in prefill vs generation; plain decode vs speculative verify; KDA format vs output sharding.",
+   "findings": [
+    "FA-where"
+   ]
+  },
+  {
+   "id": "PASS-PAIRS",
+   "question": "Post hoc: across the code-thinking arms of both engines, does passing all hidden tests differ in paired replies?",
+   "added": "post hoc",
+   "added_source": "FA-RESULT.md:94 ('Post hoc: hidden tests across arms (added 2026-11-08; not in any frozen rule)'); analysis/pass_pairs.py",
+   "design": {
+    "instrument": "all-pass and share-passed differences in pairs (same prompt and seed, both finished)",
+    "arms": [
+     "V-K6",
+     "V-BF16 (vLLM fork, 2026-11-06-vllm-code-thinking)",
+     "C-K6",
+     "C-K6x",
+     "F-kda",
+     "F-head",
+     "F-pre"
+    ],
+    "items": "all 16 code prompts; 13 contrasts",
+    "unit": "prompt",
+    "n": "16 prompts, 63-64 pairs per contrast",
+    "repeats": "as each source run",
+    "interval": "95% bootstrap over the 16 prompts (4,000, seed 20261108); Bonferroni intervals for 13 looks"
+   },
+   "files": [
+    "analysis/PASS-PAIRS.json",
+    "analysis/pass_pairs.py"
+   ],
+   "result_docs": [
+    "FA-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Post hoc, 13 contrasts. 5 of 13 all-pass intervals exclude 0, all with the F arms or V-BF16 passing more often than C-K6/C-K6x (e.g. F-kda vs C-K6x +9.4 [+1.6, +18.8]); 2 after Bonferroni (F-pre vs C-K6x +17.5, Bonferroni [+4.8, +34.4]; F-pre vs C-K6 +15.9, [+3.2, +32.8]). C-K6 vs C-K6x +1.6 [-7.8, +10.9], not detected. F arms ran a day after the C arms; V arms are another engine; one prompt family.",
+   "findings": [
+    "FA-pass-ck6-ck6x",
+    "FA-pass-fpre",
+    "FA-pass-kda",
+    "FA-pass-vbf16",
+    "FA-pass-others",
+    "FA-pass-share"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "SUMMARY.json",
+  "protocol/PROTOCOL.md",
+  "protocol/FROZEN.json",
+  "analysis/samples.csv"
+ ]
+}

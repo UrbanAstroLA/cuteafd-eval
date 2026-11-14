@@ -1,0 +1,1705 @@
+[
+ {
+  "id": "FA-launch-check",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "LAUNCH-CHECK",
+  "question": "Did each F launch run with the intended KDA, head and prefill settings before any request?",
+  "statement": "Every launch showed the expected kda_fp8, fp8_head and fp8_prefill settings in its server log before any request (as stated in the run's result; logs not published).",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "launch settings in the server log",
+  "sign": "n/a",
+  "unit": "launch",
+  "n": "4 launches (3 F arms and the control)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off",
+   "items": "launch logs",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/FA-RESULT.md",
+    "lines": [
+     4,
+     5
+    ],
+    "what": "launch check",
+    "text": "(Block L analyzer, unchanged; not published, its per-reply fields are in `analysis/samples.csv`). Run 2026-11-06 22:25 to 2026-11-07 15:41, CuteAFD v4.0.0, BF16-core checkpoint. Every launch\nshowed the expected `kda_fp8` / `fp8_head` / `fp8_prefill` in its server log before any request. C-K6x and C-K6 are the"
+   }
+  ]
+ },
+ {
+  "id": "FA-control",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "CONTROL",
+  "question": "Does CuteAFD v4.0.0 reproduce a code-study reply a day later on the unchanged configuration?",
+  "statement": "A replay of C-K6x p3 r3 (seed 2026110803) on the unchanged configuration was identical in reasoning and content to the code study's reply (60,617 reasoning characters each); the original ran with a second request in flight, the replay alone.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "text identity of one replayed reply",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "1 reply",
+  "interval": "none (exact comparison)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "p3 r3",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "teacher-forced launch identity on the same engine: CS-launch-identity",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/control",
+    "what": "control replay",
+    "value": {
+     "request": "p3 r3 (seed 2026110803)",
+     "reasoning_identical": true,
+     "content_identical": true,
+     "reasoning_chars": [
+      60617,
+      60617
+     ],
+     "note": "descriptive: the original ran 2 requests in flight, the replay runs alone"
+    }
+   }
+  ]
+ },
+ {
+  "id": "FA-kda-step",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "STEPS",
+  "question": "On CuteAFD v4.0.0 with the BF16-core checkpoint, does switching the KDA launch setting off (GLM5_FLASH_KDA_FP8=off: KDA projections from row128 FP8 to BF16 and, on this two-GPU split, KDA output sharding off) change code reasoning length?",
+  "statement": "F-kda / C-K6x reasoning tokens 1.31 [1.24, 1.38] on the 12 new prompts (48 seed pairs, 12 of 12 prompts above 1); above 1 = the arm with the KDA setting off thought longer. The setting changes both the KDA projection format and KDA output sharding, and the run does not separate the two.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "reasoning tokens, F-kda / C-K6x, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the arm with the KDA setting off thought longer",
+  "unit": "prompt",
+  "n": "12 prompts, 48 seed pairs (4 seeds per prompt); one launch per F arm; C-K6x and C-K6 are the code study's replies of the day before, paired by seed",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 5,
+   "note": "the 8 primary-set contrasts in SUMMARY.json (3 cumulative steps, the reference gap, 4 comparisons with C-K6 or C-K6x); ratios, the null is 1"
+  },
+  "replication": "all 16 prompts: FA-kda-step-all16; not repeated on another checkpoint, launch or GPU layout",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6x",
+    "what": "step: KDA projections BF16",
+    "value": {
+     "what": "step: KDA projections BF16",
+     "pairs": 48,
+     "prompts": 12,
+     "ratio": 1.3094869328074288,
+     "ratio_ci95_prompts": [
+      1.2439019261184592,
+      1.3755986477392443
+     ],
+     "detected": true,
+     "prompts_above_1": 12,
+     "per_prompt": {
+      "p4": 1.4674720558299201,
+      "p5": 1.5157146435775275,
+      "p6": 1.2718518358739057,
+      "p7": 1.408082405133378,
+      "p8": 1.3686574244118117,
+      "p9": 1.094093891930797,
+      "p10": 1.1904389709679706,
+      "p11": 1.2828860095192318,
+      "p12": 1.2058051624002015,
+      "p13": 1.4195085837456876,
+      "p14": 1.3077150291681712,
+      "p15": 1.2467785332558352
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-vllm-code-thinking/CUTEAFD-FP8-PATH.md",
+    "what": "what the setting changes (source reading)"
+   }
+  ],
+  "replaces": [
+   "TL-fp8-ablation"
+  ]
+ },
+ {
+  "id": "FA-head-step",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "STEPS",
+  "question": "On CuteAFD v4.0.0 with the BF16-core checkpoint and the KDA setting already off, does switching the FP8 vocabulary head off change code reasoning length?",
+  "statement": "F-head / F-kda 1.02 [0.97, 1.07] on the 12 new prompts (48 seed pairs, 7 of 12 prompts above 1); the interval includes 1. Measured with the KDA setting already off (cumulative design).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, F-head / F-kda, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the arm with the setting off thought longer",
+  "unit": "prompt",
+  "n": "12 prompts, 48 seed pairs; one launch per F arm",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 5,
+   "note": "the 8 primary-set contrasts in SUMMARY.json (3 cumulative steps, the reference gap, 4 comparisons with C-K6 or C-K6x); ratios, the null is 1"
+  },
+  "replication": "all 16 prompts: FA-head-prefill-all16",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/F-head ~1 F-kda",
+    "what": "step",
+    "value": {
+     "what": "step: head BF16",
+     "pairs": 48,
+     "prompts": 12,
+     "ratio": 1.020481110889175,
+     "ratio_ci95_prompts": [
+      0.9729657491576675,
+      1.0692105864421966
+     ],
+     "detected": false,
+     "prompts_above_1": 7,
+     "per_prompt": {
+      "p4": 0.9622276601727725,
+      "p5": 0.9408636800325318,
+      "p6": 1.0573252972703708,
+      "p7": 0.8743236691172162,
+      "p8": 1.073048552276478,
+      "p9": 1.2078963694588045,
+      "p10": 1.1234477779476273,
+      "p11": 1.0027915903517315,
+      "p12": 1.0425903531916387,
+      "p13": 0.9803802962933587,
+      "p14": 0.9473442712442405,
+      "p15": 1.0778182011106652
+     }
+    }
+   }
+  ],
+  "bound": "a ratio down to 0.97 or up to 1.07 is not excluded",
+  "replaces": [
+   "TL-fp8-ablation"
+  ]
+ },
+ {
+  "id": "FA-prefill-step",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "STEPS",
+  "question": "On CuteAFD v4.0.0 with the BF16-core checkpoint, KDA and head already BF16, does switching FP8 prefill activations off change code reasoning length?",
+  "statement": "F-pre / F-head 0.99 [0.97, 1.02] on the 12 new prompts (47 seed pairs, 6 of 12 prompts above 1); the interval includes 1. The switch covers MLA and FFN prefill activations only, not KDA, with KDA and head already BF16.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, F-pre / F-head, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the arm with the setting off thought longer",
+  "unit": "prompt",
+  "n": "12 prompts, 47 seed pairs; one launch per F arm",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 5,
+   "note": "the 8 primary-set contrasts in SUMMARY.json (3 cumulative steps, the reference gap, 4 comparisons with C-K6 or C-K6x); ratios, the null is 1"
+  },
+  "replication": "all 16 prompts: FA-head-prefill-all16",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/F-pre ~1 F-head",
+    "what": "step",
+    "value": {
+     "what": "step: prefill activations unquantized",
+     "pairs": 47,
+     "prompts": 12,
+     "ratio": 0.991078549022432,
+     "ratio_ci95_prompts": [
+      0.9658211216835336,
+      1.0174290359223386
+     ],
+     "detected": false,
+     "prompts_above_1": 6,
+     "per_prompt": {
+      "p4": 1.0113208168947563,
+      "p5": 0.9739629467004982,
+      "p6": 1.018944700156362,
+      "p7": 1.0254935812942394,
+      "p8": 0.9043842616557872,
+      "p9": 1.0542996463945697,
+      "p10": 0.9731152459102759,
+      "p11": 1.0101324812920922,
+      "p12": 0.924097203995609,
+      "p13": 1.0628833387276602,
+      "p14": 0.9897738483721343,
+      "p15": 0.9658046464337424
+     }
+    }
+   }
+  ],
+  "bound": "a ratio down to 0.97 or up to 1.02 is not excluded",
+  "replaces": [
+   "TL-fp8-ablation"
+  ]
+ },
+ {
+  "id": "FA-kda-vs-native",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "GAP",
+  "question": "On CuteAFD v4.0.0, with the KDA setting off, does the BF16-core arm still think shorter on code than the native 6-bit core?",
+  "statement": "F-kda / C-K6 1.04 [0.99, 1.09] on the 12 new prompts (48 seed pairs); above 1 = the BF16-core arm with the KDA setting off thought longer than the native core. With F-kda / C-K6x excluding 1 above, this meets the protocol's 'gap closed at F-kda' condition.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, F-kda / C-K6 (FA-RESULT.md reports the inverse, C-K6 / F-kda)",
+  "sign": "above 1 = F-kda thought longer than the native 6-bit core",
+  "unit": "prompt",
+  "n": "12 prompts, 48 seed pairs; one launch per F arm; C-K6x and C-K6 are the code study's replies of the day before, paired by seed",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 5,
+   "note": "the 8 primary-set contrasts in SUMMARY.json (3 cumulative steps, the reference gap, 4 comparisons with C-K6 or C-K6x); ratios, the null is 1"
+  },
+  "replication": "all 16 prompts: F-kda / C-K6 1.04 [0.99, 1.08], also includes 1 (SUMMARY.json)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6",
+    "what": "F-kda / C-K6",
+    "value": {
+     "what": "",
+     "pairs": 48,
+     "prompts": 12,
+     "ratio": 1.037245104424603,
+     "ratio_ci95_prompts": [
+      0.9880058441319257,
+      1.0870059067802742
+     ],
+     "detected": false,
+     "prompts_above_1": 7,
+     "per_prompt": {
+      "p4": 1.1085434310828381,
+      "p5": 1.1120802099476783,
+      "p6": 0.989879338976976,
+      "p7": 1.1900646072674774,
+      "p8": 1.139577799329877,
+      "p9": 0.8665939908681805,
+      "p10": 0.9692363715694574,
+      "p11": 1.0009768403782058,
+      "p12": 0.9799534451985367,
+      "p13": 1.1178852434810358,
+      "p14": 1.0285428478660084,
+      "p15": 0.9892285887133349
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/F-kda ~1 C-K6x",
+    "what": "F-kda / C-K6x",
+    "value": {
+     "what": "step: KDA projections BF16",
+     "pairs": 48,
+     "prompts": 12,
+     "ratio": 1.3094869328074288,
+     "ratio_ci95_prompts": [
+      1.2439019261184592,
+      1.3755986477392443
+     ],
+     "detected": true,
+     "prompts_above_1": 12,
+     "per_prompt": {
+      "p4": 1.4674720558299201,
+      "p5": 1.5157146435775275,
+      "p6": 1.2718518358739057,
+      "p7": 1.408082405133378,
+      "p8": 1.3686574244118117,
+      "p9": 1.094093891930797,
+      "p10": 1.1904389709679706,
+      "p11": 1.2828860095192318,
+      "p12": 1.2058051624002015,
+      "p13": 1.4195085837456876,
+      "p14": 1.3077150291681712,
+      "p15": 1.2467785332558352
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/FA-RESULT.md",
+    "lines": [
+     17,
+     17
+    ],
+    "what": "the inverse as published",
+    "text": "| C-K6 / F-kda | 0.96 | [0.92, 1.01] | no |"
+   }
+  ],
+  "bound": "a ratio down to 0.99 or up to 1.09 is not excluded",
+  "replaces": [
+   "TL-fp8-ablation"
+  ]
+ },
+ {
+  "id": "FA-gap-share",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "GAP",
+  "question": "What share of the code study's ratio C-K6 / C-K6x does the KDA step account for?",
+  "statement": "log(F-kda / C-K6x) / log(C-K6 / C-K6x) = 1.16 [0.95, 1.37] on the 12 new prompts against a reference gap C-K6 / C-K6x of 1.26 [1.24, 1.29]; 1 = the whole gap, above 1 = past the native core. The interval excludes 0 and includes 1.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "gap share of the KDA step (log scale)",
+  "sign": "0 = none of the gap, 1 = all of it, above 1 = past the native core",
+  "unit": "prompt",
+  "n": "12 prompts",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); the share is bootstrapped over prompts",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "gap shares of F-kda, F-head and F-pre (cumulative); those of F-head and F-pre also exclude 1 above"
+  },
+  "replication": "all 16 prompts: 1.12 [0.97, 1.28] (SUMMARY.json)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/gap_share/primary_p4_p15/F-kda",
+    "what": "gap share",
+    "value": {
+     "share": 1.1569001085348238,
+     "ci95_prompts": [
+      0.9482646349986026,
+      1.3676292853186862
+     ],
+     "prompts": 12
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/C-K6 ~1 C-K6x",
+    "what": "reference gap (this run's bootstrap seed)",
+    "value": {
+     "what": "reference: the code study's gap",
+     "pairs": 48,
+     "prompts": 12,
+     "ratio": 1.2624662456554547,
+     "ratio_ci95_prompts": [
+      1.2357367761566287,
+      1.2903238618370365
+     ],
+     "detected": true,
+     "prompts_above_1": 12,
+     "per_prompt": {
+      "p4": 1.3237839986084046,
+      "p5": 1.362954425426597,
+      "p6": 1.284855422064212,
+      "p7": 1.1831982873320586,
+      "p8": 1.2010214881481927,
+      "p9": 1.2625219000592192,
+      "p10": 1.2282235849654777,
+      "p11": 1.2816340576216634,
+      "p12": 1.2304718844637643,
+      "p13": 1.2698160137845749,
+      "p14": 1.2714249405179194,
+      "p15": 1.2603543280906278
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/gap_share/all_p0_p15/F-kda",
+    "what": "all 16",
+    "value": {
+     "share": 1.1240195215824391,
+     "ci95_prompts": [
+      0.9740741176980668,
+      1.2824751945789636
+     ],
+     "prompts": 16
+    }
+   }
+  ],
+  "replaces": [
+   "TL-fp8-ablation"
+  ]
+ },
+ {
+  "id": "FA-remainder",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "REMAINDER",
+  "question": "Post hoc: with the KDA and head settings off (and prefill), does the BF16-core arm think longer on code than the native 6-bit core?",
+  "statement": "Post hoc (the protocol's remainder clause was written for a shortfall): C-K6 / F-pre 0.95 [0.91, 0.98] (47 pairs) and C-K6 / F-head 0.94 [0.91, 0.97] exclude 1 below on the 12 new prompts, so those arms thought longer than the native core. On all 16 prompts C-K6 / F-pre is 0.97 [0.94, 1.01] and includes 1.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "reasoning tokens, C-K6 / F-pre and C-K6 / F-head",
+  "sign": "below 1 = the F arm thought longer than the native 6-bit core",
+  "unit": "prompt",
+  "n": "12 prompts, 47-48 seed pairs; one launch per F arm; C-K6x and C-K6 are the code study's replies of the day before, paired by seed",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 5,
+   "note": "the 8 primary-set contrasts in SUMMARY.json (3 cumulative steps, the reference gap, 4 comparisons with C-K6 or C-K6x); ratios, the null is 1"
+  },
+  "replication": "not attempted; not located (head step not detected on its own, FA-head-step)",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/C-K6 ~1 F-pre",
+    "what": "C-K6 / F-pre",
+    "value": {
+     "what": "remaining gap to the native 6-bit core",
+     "pairs": 47,
+     "prompts": 12,
+     "ratio": 0.946274621681549,
+     "ratio_ci95_prompts": [
+      0.9130632160036982,
+      0.978788844063485
+     ],
+     "detected": true,
+     "prompts_above_1": 2,
+     "per_prompt": {
+      "p4": 0.9270016420740497,
+      "p5": 0.9812840704694674,
+      "p6": 0.9376883115157849,
+      "p7": 0.8401452872296417,
+      "p8": 0.9042398677461461,
+      "p9": 0.90613016858842,
+      "p10": 0.9437416683080848,
+      "p11": 0.986249852353233,
+      "p12": 1.0591639668676653,
+      "p13": 0.8584650191240077,
+      "p14": 1.0368926677229162,
+      "p15": 0.9711102482883015
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/primary_p4_p15/F-head ~1 C-K6",
+    "what": "F-head / C-K6 (inverse of C-K6 / F-head)",
+    "value": {
+     "what": "",
+     "pairs": 48,
+     "prompts": 12,
+     "ratio": 1.0584890364275772,
+     "ratio_ci95_prompts": [
+      1.0306161585005333,
+      1.0930781044706301
+     ],
+     "detected": true,
+     "prompts_above_1": 11,
+     "per_prompt": {
+      "p4": 1.0666711518907366,
+      "p5": 1.0463158788227234,
+      "p6": 1.0466244663456292,
+      "p7": 1.0405016539126397,
+      "p8": 1.2228223077773395,
+      "p9": 1.0467557353644916,
+      "p10": 1.0888864479457276,
+      "p11": 1.0037711576681123,
+      "p12": 1.0216900085409055,
+      "p13": 1.0959526662259111,
+      "p14": 0.9743841746550995,
+      "p15": 1.0662085779742485
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/FA-RESULT.md",
+    "lines": [
+     18,
+     19
+    ],
+    "what": "C-K6 / F-head and C-K6 / F-pre as published",
+    "text": "| C-K6 / F-head | 0.94 | [0.91, 0.97] | yes |\n| C-K6 / F-pre | 0.95 | [0.91, 0.98] | yes (47 pairs) |"
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/all_p0_p15/C-K6 ~1 F-pre",
+    "what": "all 16",
+    "value": {
+     "what": "remaining gap to the native 6-bit core",
+     "pairs": 63,
+     "prompts": 16,
+     "ratio": 0.9725742325790553,
+     "ratio_ci95_prompts": [
+      0.9363942108390388,
+      1.0088683117818686
+     ],
+     "detected": false,
+     "prompts_above_1": 5,
+     "per_prompt": {
+      "p0": 1.0651623826658168,
+      "p1": 1.0176909129499376,
+      "p2": 0.9915053039472288,
+      "p3": 1.1488271281515132,
+      "p4": 0.9270016420740497,
+      "p5": 0.9812840704694674,
+      "p6": 0.9376883115157849,
+      "p7": 0.8401452872296417,
+      "p8": 0.9042398677461461,
+      "p9": 0.90613016858842,
+      "p10": 0.9437416683080848,
+      "p11": 0.986249852353233,
+      "p12": 1.0591639668676653,
+      "p13": 0.8584650191240077,
+      "p14": 1.0368926677229162,
+      "p15": 0.9711102482883015
+     }
+    }
+   }
+  ],
+  "replaces": [
+   "TL-fp8-ablation"
+  ]
+ },
+ {
+  "id": "FA-kda-step-all16",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "SECONDARY",
+  "question": "On all 16 code prompts, does switching the KDA setting off change the BF16-core arm's reasoning length?",
+  "statement": "All 16 prompts: F-kda / C-K6x 1.38 [1.29, 1.47], 16 of 16 prompts above 1 (64 seed pairs).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "reasoning tokens, F-kda / C-K6x",
+  "sign": "above 1 = the arm with the KDA setting off thought longer",
+  "unit": "prompt",
+  "n": "16 prompts, 64 seed pairs",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 3,
+   "note": "the same 8 contrasts on all 16 prompts; ratios, the null is 1"
+  },
+  "replication": "primary set: FA-kda-step",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/all_p0_p15/F-kda ~1 C-K6x",
+    "what": "all 16",
+    "value": {
+     "what": "step: KDA projections BF16",
+     "pairs": 64,
+     "prompts": 16,
+     "ratio": 1.379002286134901,
+     "ratio_ci95_prompts": [
+      1.2946480194984606,
+      1.4681551919215066
+     ],
+     "detected": true,
+     "prompts_above_1": 16,
+     "per_prompt": {
+      "p0": 1.4140374830134101,
+      "p1": 1.6485439773554855,
+      "p2": 1.8559977214459442,
+      "p3": 1.5548441096800276,
+      "p4": 1.4674720558299201,
+      "p5": 1.5157146435775275,
+      "p6": 1.2718518358739057,
+      "p7": 1.408082405133378,
+      "p8": 1.3686574244118117,
+      "p9": 1.094093891930797,
+      "p10": 1.1904389709679706,
+      "p11": 1.2828860095192318,
+      "p12": 1.2058051624002015,
+      "p13": 1.4195085837456876,
+      "p14": 1.3077150291681712,
+      "p15": 1.2467785332558352
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "FA-head-prefill-all16",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "SECONDARY",
+  "question": "On all 16 code prompts, do the head and prefill steps change the BF16-core arm's reasoning length?",
+  "statement": "All 16 prompts: head step F-head / F-kda 0.99 [0.94, 1.04] and prefill step F-pre / F-head 1.00 [0.97, 1.03]; both intervals include 1.",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "reasoning tokens, F-head / F-kda and F-pre / F-head",
+  "sign": "above 1 = the arm with the setting off thought longer",
+  "unit": "prompt",
+  "n": "16 prompts, 64 and 63 seed pairs",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261106 (analysis/analyze_fa.py, frozen); detected when the interval excludes 1",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 8,
+   "excluding_0": 3,
+   "note": "the same 8 contrasts on all 16 prompts; ratios, the null is 1"
+  },
+  "replication": "primary set: FA-head-step, FA-prefill-step",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/all_p0_p15/F-head ~1 F-kda",
+    "what": "head step, all 16",
+    "value": {
+     "what": "step: head BF16",
+     "pairs": 64,
+     "prompts": 16,
+     "ratio": 0.985919226433975,
+     "ratio_ci95_prompts": [
+      0.9376394556766972,
+      1.0369575538469813
+     ],
+     "detected": false,
+     "prompts_above_1": 8,
+     "per_prompt": {
+      "p0": 1.0016645898804146,
+      "p1": 0.876875990812629,
+      "p2": 0.7779323708429426,
+      "p3": 0.9145330109998445,
+      "p4": 0.9622276601727725,
+      "p5": 0.9408636800325318,
+      "p6": 1.0573252972703708,
+      "p7": 0.8743236691172162,
+      "p8": 1.073048552276478,
+      "p9": 1.2078963694588045,
+      "p10": 1.1234477779476273,
+      "p11": 1.0027915903517315,
+      "p12": 1.0425903531916387,
+      "p13": 0.9803802962933587,
+      "p14": 0.9473442712442405,
+      "p15": 1.0778182011106652
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/reading/contrasts/all_p0_p15/F-pre ~1 F-head",
+    "what": "prefill step, all 16",
+    "value": {
+     "what": "step: prefill activations unquantized",
+     "pairs": 63,
+     "prompts": 16,
+     "ratio": 1.0016210695877963,
+     "ratio_ci95_prompts": [
+      0.9726806790331557,
+      1.0301884262796717
+     ],
+     "detected": false,
+     "prompts_above_1": 9,
+     "per_prompt": {
+      "p0": 1.002358742153044,
+      "p1": 1.1241637594739111,
+      "p2": 1.085523519168106,
+      "p3": 0.9317887544130892,
+      "p4": 1.0113208168947563,
+      "p5": 0.9739629467004982,
+      "p6": 1.018944700156362,
+      "p7": 1.0254935812942394,
+      "p8": 0.9043842616557872,
+      "p9": 1.0542996463945697,
+      "p10": 0.9731152459102759,
+      "p11": 1.0101324812920922,
+      "p12": 0.924097203995609,
+      "p13": 1.0628833387276602,
+      "p14": 0.9897738483721343,
+      "p15": 0.9658046464337424
+     }
+    }
+   }
+  ],
+  "bound": "ratios from 0.94 to 1.04 (head) and from 0.97 to 1.03 (prefill) are not excluded"
+ },
+ {
+  "id": "FA-desc-length",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "DESC",
+  "question": "On CuteAFD v4.0.0, what median code reasoning length did each arm of the FP8 ablation reach?",
+  "statement": "Median reasoning tokens: C-K6x 50,411.5; F-kda 64,089; F-head 67,890; F-pre 68,145; C-K6 63,731.5. Every reply finished except one F-pre reply (p7 r0), capped while looping.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median reasoning tokens per arm; finish classes",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "64 replies per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6x/median_reasoning_tokens",
+    "what": "C-K6x",
+    "value": 50411.5
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-kda/median_reasoning_tokens",
+    "what": "F-kda",
+    "value": 64089.0
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-head/median_reasoning_tokens",
+    "what": "F-head",
+    "value": 67890.0
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-pre/median_reasoning_tokens",
+    "what": "F-pre",
+    "value": 68145
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6/median_reasoning_tokens",
+    "what": "C-K6",
+    "value": 63731.5
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-pre/capped_looping",
+    "what": "F-pre capped while looping",
+    "value": 1
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/FA-RESULT.md",
+    "lines": [
+     38,
+     38
+    ],
+    "what": "F-pre row",
+    "text": "| F-pre | 63 | 1 (1), p7 r0 | 68,145 | 59 of 63 | 0.950 | 111.6 |"
+   }
+  ]
+ },
+ {
+  "id": "FA-desc-speed",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "DESC",
+  "question": "On CuteAFD v4.0.0, what decode speed did each arm of the FP8 ablation reach?",
+  "statement": "Median decode tok/s: C-K6x 121.8, F-kda 116.5, F-head 113.6, F-pre 111.6, C-K6 115.1.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "median decode tokens per second per reply",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "64 replies per arm, 2 in flight",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6x/median_decode_tok_s",
+    "what": "C-K6x",
+    "value": 121.79698546341342
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-kda/median_decode_tok_s",
+    "what": "F-kda",
+    "value": 116.46146401994832
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-head/median_decode_tok_s",
+    "what": "F-head",
+    "value": 113.57062372561302
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-pre/median_decode_tok_s",
+    "what": "F-pre",
+    "value": 111.62446965819363
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6/median_decode_tok_s",
+    "what": "C-K6",
+    "value": 115.12466408055093
+   }
+  ]
+ },
+ {
+  "id": "FA-kv-pool",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "DESC",
+  "question": "On CuteAFD v4.0.0 with the BF16-core checkpoint on two GPUs, how large is the KV pool at launch with each setting switched off?",
+  "statement": "KV pool at launch: 1,931,264 tokens with the default settings (F-ctrl, the C-K6x configuration), 1,414,656 with KDA BF16 (F-kda), 1,215,488 with KDA and head BF16 (F-head and F-pre).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "KV pool tokens reported by the server log at launch",
+  "sign": "n/a",
+  "unit": "launch",
+  "n": "4 launches",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off",
+   "items": "launch logs (not published)",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/kv_pool_tokens_at_launch",
+    "what": "pool tokens per launch",
+    "value": {
+     "source": "each launch's server log ('GLM Flash admission ... pool N tokens'); logs not published",
+     "F-ctrl": 1931264,
+     "F-kda": 1414656,
+     "F-head": 1215488,
+     "F-pre": 1215488
+    }
+   }
+  ]
+ },
+ {
+  "id": "FA-desc-tests",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "DESC",
+  "question": "On CuteAFD v4.0.0, how often did each arm of the FP8 ablation pass all hidden tests?",
+  "statement": "All tests pass, of finished replies: C-K6x 49, F-kda 55, F-head 54, F-pre 59 of 63, C-K6 50 (others of 64); mean share of tests passed 0.936, 0.963, 0.950, 0.950 and 0.945.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "all-tests-pass count and mean share of tests passed",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "63-64 finished replies per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 in flight",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "paired comparisons, post hoc: FA-pass-* findings",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6x/all_tests_pass_of_finished",
+    "what": "C-K6x all_tests_pass_of_finished",
+    "value": 49
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6x/mean_share_tests_passed",
+    "what": "C-K6x mean_share_tests_passed",
+    "value": 0.9358709604492521
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-kda/all_tests_pass_of_finished",
+    "what": "F-kda all_tests_pass_of_finished",
+    "value": 55
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-kda/mean_share_tests_passed",
+    "what": "F-kda mean_share_tests_passed",
+    "value": 0.9634721151599099
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-head/all_tests_pass_of_finished",
+    "what": "F-head all_tests_pass_of_finished",
+    "value": 54
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-head/mean_share_tests_passed",
+    "what": "F-head mean_share_tests_passed",
+    "value": 0.9503951160559907
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-pre/all_tests_pass_of_finished",
+    "what": "F-pre all_tests_pass_of_finished",
+    "value": 59
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/F-pre/mean_share_tests_passed",
+    "what": "F-pre mean_share_tests_passed",
+    "value": 0.9504024621212122
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6/all_tests_pass_of_finished",
+    "what": "C-K6 all_tests_pass_of_finished",
+    "value": 50
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/per_arm/C-K6/mean_share_tests_passed",
+    "what": "C-K6 mean_share_tests_passed",
+    "value": 0.9449532917619592
+   }
+  ]
+ },
+ {
+  "id": "FA-design-context",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "DESIGN-CONTEXT",
+  "question": "What are the switched-off settings in CuteAFD v4.0.0's design, and what do its documents say about them?",
+  "statement": "At v4.0.0 the switched-off settings are the launcher's defaults: row128 FP8 KDA and an FP8 head on both layouts and, on the two-GPU head split, token-row KDA output ownership; the model notes and the --kda-fp8 option text describe BF16 KDA as the two-GPU default, while the launcher selects row128, which every launch here logged. The checks cited in those documents are teacher-forced on 512 positions; this run measures free generation of long reasoning.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "design context of the switched settings",
+  "sign": "n/a",
+  "unit": "document",
+  "n": "3 documents",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "launcher comment, model notes, --kda-fp8 option text (v4.0.0)",
+   "context": "n/a",
+   "path": "launch settings",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the same reading in VC-fp8-path-context",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/FA-RESULT.md",
+    "lines": [
+     63,
+     77
+    ],
+    "what": "design context (added 2026-11-08)",
+    "text": "## Design context (added 2026-11-08)\nThe settings switched off here are the launcher's defaults, with reasons stated by the engine's author. At v4.0.0:\n- The launcher comment above the GLM 5.3 Flash precision block (`scripts/launch/run-family.sh:2337-2351`): row128 KDA (FP8,\n  one scale per row and 128 input columns) and an FP8 head on both layouts; on the two-GPU head split, token-row KDA output\n  ownership, added because it avoids rounding the two GPUs' half-K BF16 partial outputs (its dated check: single-request\n  decode +7.6%, paired top-1 453 -> 460 of 512, KL +0.0008).\n- The model notes (`docs/models/glm5_flash.md:163-210`, \"Default precision\"): the trade of single-request decode speed\n  (+9.0% on 1 RTX + 2 Sparks) against top-1 and KL on 512 teacher-forced positions, and that the speculation check \"does\n  not establish byte-identical speculative output\".\n- The `--kda-fp8` option text (`rust/crates/cuteafd-daemon/src/families/glm5_flash/mod.rs:189-197`): row128 costs top-1 on\n  its check and doubles verify-vs-decode rounding, enough to flip greedy output under speculation.\n- The model notes and the option text describe BF16 KDA as the default on the two-GPU split; the launcher comment and code\n  select row128, which every launch here logged. The documents differ; the launcher's choice is what runs.\nThe cited checks are teacher-forced on 512 positions; this run measures free generation of long reasoning with speculative\ndecoding."
+   }
+  ]
+ },
+ {
+  "id": "FA-where",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "WHERE",
+  "question": "Where in CuteAFD v4.0.0 does the code-length difference that moves with the KDA setting arise: prefill or generation?",
+  "statement": "Not measured; a reading of the source and of this run's sizes: prompts are 1,155-1,758 tokens against median reasoning of 50-68K tokens, speculative verify steps run on the decode programs, which read the FP8 KDA copies, KDA output sharding is not limited to prefill, and the KDA setting also changes the KDA projections in prefill, whose recurrent state seeds every later token. Prefill against generation, plain decode against speculative verify, and KDA format against output sharding are not separated (the run's document judges the generation path more likely).",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "engine path of the KDA setting's effect",
+  "sign": "n/a",
+  "unit": "n/a",
+  "n": "n/a",
+  "interval": "none (judgement from source and measurements)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; C-K4: K4 (brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929), BF16 core converted to FP8 at load",
+   "items": "tagged v4.0.0 engine.rs and launcher; this run's prompt and reply lengths",
+   "context": "n/a",
+   "path": "launch settings",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/FA-RESULT.md",
+    "lines": [
+     79,
+     92
+    ],
+    "what": "where in the engine (added 2026-11-08)",
+    "text": "## Where in the engine (judgement from source and measurements; not isolated by its own run, added 2026-11-08)\nJudged most likely on the generation path (decode and speculative verify); prefill is not excluded.\n- Prompts are 1,155-1,758 tokens; median reasoning is 50-68K tokens per arm, so prefill is about 2-3% of the tokens.\n- Speculative verify steps run on the decode programs (`engine.rs:4660`, `:4686`: \"speculative steps are\n  decode-shaped\"); with FP8 KDA, decode rows read the FP8 copies and KDA output sharding is not limited to prefill\n  (`engine.rs:3844-3847`, `:4666-4695`).\n- Not excluded: the KDA setting also changes the KDA projections in prefill, and the recurrent state the prompt leaves\n  seeds every later token. The prefill-activation switch (F-pre) covers the MLA and MLP activations only, not the KDA\n  projections (the launcher's default list is mla,ffn), so it does not bear on this.\n- FP8 MLA projections (MLA q_b and o_proj included) run on decode rows in every F arm and the gap still closes.\n- Teacher-forced results elsewhere in this investigation (stop decision, KL) run through the prefill programs on\n  science-question traces; they do not measure this path on code.\nOpen: KDA in prefill against generation; plain decode against speculative verify (with FP8 KDA, decode rows up to 64 take\nthe FP8 GEMV and wider verify steps W8A16); KDA format against output sharding."
+   }
+  ],
+  "replaces": [
+   "TL-fp8-where"
+  ]
+ },
+ {
+  "id": "FA-pass-ck6-ck6x",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "PASS-PAIRS",
+  "question": "Post hoc: in paired replies, does passing all hidden tests differ between CuteAFD's native 6-bit core arm and its BF16-core arm on the code prompts?",
+  "statement": "Post hoc: C-K6 − C-K6x all-pass difference +1.6 points [−7.8, +10.9] over 64 paired replies (7 pairs where only C-K6 passes, 6 where only C-K6x does); share-passed difference +0.9 points [−3.6, +5.6].",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "all-tests-pass difference, C-K6 − C-K6x, share of paired finished replies (points)",
+  "sign": "above 0 = C-K6 passed more often",
+  "unit": "prompt (pairs averaged within prompt)",
+  "n": "16 prompts; 63-64 pairs per contrast (same prompt and seed, both replies finished)",
+  "interval": "95% bootstrap over the 16 prompts, 4,000 draws, seed 20261108 (analysis/pass_pairs.py); Bonferroni intervals for 13 looks from 20,000 draws",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling); hidden tests run on each finished reply",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "13 all-pass contrasts, every one looked at, post hoc; 5 exclude 0 at 95%, 2 with the Bonferroni interval for 13 looks"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/C-K6 vs C-K6x/all_pass_difference",
+    "what": "C-K6 vs C-K6x",
+    "value": {
+     "mean": 0.015625,
+     "ci95_prompts": [
+      -0.078125,
+      0.109375
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.125,
+       0.171875
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/C-K6 vs C-K6x/only_first_passes",
+    "what": "C-K6 vs C-K6x",
+    "value": 7
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/C-K6 vs C-K6x/only_second_passes",
+    "what": "C-K6 vs C-K6x",
+    "value": 6
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/C-K6 vs C-K6x/share_passed_difference",
+    "what": "C-K6 vs C-K6x",
+    "value": {
+     "mean": 0.009082331312707135,
+     "ci95_prompts": [
+      -0.03649215367965367,
+      0.055716831072206895
+     ],
+     "excludes_0": false
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/analysis/PASS-PAIRS.json",
+    "what": "all contrasts"
+   }
+  ],
+  "bound": "a difference down to −7.8 or up to +10.9 points is not excluded",
+  "replaces": [
+   "TL-code-pass-pairs"
+  ]
+ },
+ {
+  "id": "FA-pass-fpre",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "PASS-PAIRS",
+  "question": "Post hoc: in paired replies, does the BF16-core arm with all three FP8 settings off (F-pre) pass all hidden tests more often than the code study's two CuteAFD arms?",
+  "statement": "Post hoc: F-pre − C-K6x +17.5 points [+7.8, +28.6], Bonferroni for 13 looks [+4.8, +34.4]; F-pre − C-K6 +15.9 [+6.3, +27.0], Bonferroni [+3.2, +32.8] (63 pairs each). The F arm ran a day after the C arms, on one prompt family.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "all-tests-pass difference, F-pre − C-K6x and F-pre − C-K6 (points)",
+  "sign": "above 0 = F-pre passed more often",
+  "unit": "prompt (pairs averaged within prompt)",
+  "n": "16 prompts; 63-64 pairs per contrast (same prompt and seed, both replies finished)",
+  "interval": "95% bootstrap over the 16 prompts, 4,000 draws, seed 20261108 (analysis/pass_pairs.py); Bonferroni intervals for 13 looks from 20,000 draws",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling); hidden tests run on each finished reply",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "13 all-pass contrasts, every one looked at, post hoc; 5 exclude 0 at 95%, 2 with the Bonferroni interval for 13 looks"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-pre vs C-K6x/all_pass_difference",
+    "what": "F-pre vs C-K6x",
+    "value": {
+     "mean": 0.1746031746031746,
+     "ci95_prompts": [
+      0.078125,
+      0.2857142857142857
+     ],
+     "excludes_0": true,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       0.047619047619047616,
+       0.34375
+      ],
+      "excludes_0": true
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-pre vs C-K6/all_pass_difference",
+    "what": "F-pre vs C-K6",
+    "value": {
+     "mean": 0.15873015873015872,
+     "ci95_prompts": [
+      0.06349206349206349,
+      0.2698412698412698
+     ],
+     "excludes_0": true,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       0.031746031746031744,
+       0.328125
+      ],
+      "excludes_0": true
+     }
+    }
+   }
+  ],
+  "replaces": [
+   "TL-code-pass-pairs"
+  ]
+ },
+ {
+  "id": "FA-pass-kda",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "PASS-PAIRS",
+  "question": "Post hoc: in paired replies, does the KDA step (F-kda against C-K6x) change how often code replies pass all hidden tests?",
+  "statement": "Post hoc: F-kda − C-K6x +9.4 points [+1.6, +18.8] (64 pairs; 10 where only F-kda passes, 4 where only C-K6x does); the Bonferroni interval for 13 looks, [−1.6, +21.9], includes 0.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "all-tests-pass difference, F-kda − C-K6x (points)",
+  "sign": "above 0 = F-kda passed more often",
+  "unit": "prompt (pairs averaged within prompt)",
+  "n": "16 prompts; 63-64 pairs per contrast (same prompt and seed, both replies finished)",
+  "interval": "95% bootstrap over the 16 prompts, 4,000 draws, seed 20261108 (analysis/pass_pairs.py); Bonferroni intervals for 13 looks from 20,000 draws",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling); hidden tests run on each finished reply",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "13 all-pass contrasts, every one looked at, post hoc; 5 exclude 0 at 95%, 2 with the Bonferroni interval for 13 looks"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-kda vs C-K6x/all_pass_difference",
+    "what": "F-kda vs C-K6x",
+    "value": {
+     "mean": 0.09375,
+     "ci95_prompts": [
+      0.015625,
+      0.1875
+     ],
+     "excludes_0": true,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.015625,
+       0.21875
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-kda vs C-K6x/only_first_passes",
+    "what": "F-kda vs C-K6x",
+    "value": 10
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-kda vs C-K6x/only_second_passes",
+    "what": "F-kda vs C-K6x",
+    "value": 4
+   }
+  ],
+  "replaces": [
+   "TL-code-pass-pairs"
+  ]
+ },
+ {
+  "id": "FA-pass-vbf16",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "PASS-PAIRS",
+  "question": "Post hoc, across engines: in paired replies, does the vLLM fork's BF16 core pass all hidden tests more often than the two CuteAFD code-study arms?",
+  "statement": "Post hoc: V-BF16 − C-K6 +14.3 points [+1.6, +28.1] and V-BF16 − C-K6x +14.3 [+3.1, +26.2] (63 pairs each); both Bonferroni intervals for 13 looks include 0 ([−3.2, +34.9] and [−1.6, +31.7]).",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "all-tests-pass difference, V-BF16 − C-K6 and V-BF16 − C-K6x (points)",
+  "sign": "above 0 = V-BF16 passed more often",
+  "unit": "prompt (pairs averaged within prompt)",
+  "n": "16 prompts; 63-64 pairs per contrast (same prompt and seed, both replies finished)",
+  "interval": "95% bootstrap over the 16 prompts, 4,000 draws, seed 20261108 (analysis/pass_pairs.py); Bonferroni intervals for 13 looks from 20,000 draws",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling); hidden tests run on each finished reply",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "13 all-pass contrasts, every one looked at, post hoc; 5 exclude 0 at 95%, 2 with the Bonferroni interval for 13 looks"
+  },
+  "replication": "not attempted; the engines also differ in kernels and sampler",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-BF16 vs C-K6/all_pass_difference",
+    "what": "V-BF16 vs C-K6",
+    "value": {
+     "mean": 0.14285714285714285,
+     "ci95_prompts": [
+      0.015873015873015872,
+      0.28125
+     ],
+     "excludes_0": true,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.031746031746031744,
+       0.3492063492063492
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-BF16 vs C-K6x/all_pass_difference",
+    "what": "V-BF16 vs C-K6x",
+    "value": {
+     "mean": 0.14285714285714285,
+     "ci95_prompts": [
+      0.03125,
+      0.26229508196721313
+     ],
+     "excludes_0": true,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.015625,
+       0.31666666666666665
+      ],
+      "excludes_0": false
+     }
+    }
+   }
+  ],
+  "replaces": [
+   "TL-code-pass-pairs"
+  ]
+ },
+ {
+  "id": "FA-pass-others",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "PASS-PAIRS",
+  "question": "Post hoc: in paired replies, which other code-arm contrasts show a difference in passing all hidden tests?",
+  "statement": "Post hoc, all-pass differences in points whose 95% intervals include 0: V-K6 − C-K6 +4.7 [−7.8, +18.8]; V-K6 − C-K6x +6.2 [−4.7, +17.2]; V-BF16 − V-K6 +7.9 [−3.1, +19.4]; F-kda − C-K6 +7.8 [+0.0, +17.2]; F-head − C-K6x +7.8 [−3.1, +20.3]; F-head − C-K6 +6.2 [−3.1, +17.2]; V-K6 − F-kda −3.1 [−14.1, +9.4].",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "all-tests-pass difference, first arm − second (points)",
+  "sign": "above 0 = the first arm passed more often",
+  "unit": "prompt (pairs averaged within prompt)",
+  "n": "16 prompts; 63-64 pairs per contrast (same prompt and seed, both replies finished)",
+  "interval": "95% bootstrap over the 16 prompts, 4,000 draws, seed 20261108 (analysis/pass_pairs.py); Bonferroni intervals for 13 looks from 20,000 draws",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling); hidden tests run on each finished reply",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 5,
+   "note": "13 all-pass contrasts, every one looked at, post hoc; 5 exclude 0 at 95%, 2 with the Bonferroni interval for 13 looks"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-K6 vs C-K6/all_pass_difference",
+    "what": "V-K6 vs C-K6",
+    "value": {
+     "mean": 0.046875,
+     "ci95_prompts": [
+      -0.078125,
+      0.1875
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.140625,
+       0.234375
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-K6 vs C-K6x/all_pass_difference",
+    "what": "V-K6 vs C-K6x",
+    "value": {
+     "mean": 0.0625,
+     "ci95_prompts": [
+      -0.046875,
+      0.171875
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.09375,
+       0.234375
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-BF16 vs V-K6/all_pass_difference",
+    "what": "V-BF16 vs V-K6",
+    "value": {
+     "mean": 0.07936507936507936,
+     "ci95_prompts": [
+      -0.03125,
+      0.1935483870967742
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.078125,
+       0.26666666666666666
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-kda vs C-K6/all_pass_difference",
+    "what": "F-kda vs C-K6",
+    "value": {
+     "mean": 0.078125,
+     "ci95_prompts": [
+      0,
+      0.171875
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.03125,
+       0.203125
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-head vs C-K6x/all_pass_difference",
+    "what": "F-head vs C-K6x",
+    "value": {
+     "mean": 0.078125,
+     "ci95_prompts": [
+      -0.03125,
+      0.203125
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.0625,
+       0.265625
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-head vs C-K6/all_pass_difference",
+    "what": "F-head vs C-K6",
+    "value": {
+     "mean": 0.0625,
+     "ci95_prompts": [
+      -0.03125,
+      0.171875
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.078125,
+       0.203125
+      ],
+      "excludes_0": false
+     }
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-K6 vs F-kda/all_pass_difference",
+    "what": "V-K6 vs F-kda",
+    "value": {
+     "mean": -0.03125,
+     "ci95_prompts": [
+      -0.140625,
+      0.09375
+     ],
+     "excludes_0": false,
+     "bonferroni_ci": {
+      "looks": 13,
+      "interval": [
+       -0.203125,
+       0.140625
+      ],
+      "excludes_0": false
+     }
+    }
+   }
+  ],
+  "bound": "differences up to +20.3 points (F-head − C-K6x) and down to −14.1 points (V-K6 − F-kda) are not excluded",
+  "replaces": [
+   "TL-code-pass-pairs"
+  ]
+ },
+ {
+  "id": "FA-pass-share",
+  "run": "2026-11-06-cuteafd-fp8-ablation",
+  "goal": "PASS-PAIRS",
+  "question": "Post hoc: in paired replies, does the share of hidden tests passed differ between the code arms?",
+  "statement": "Post hoc: of 13 share-passed contrasts, one interval excludes 0, V-BF16 − C-K6x +3.6 points [+0.2, +7.9]; the other 12 include 0.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "share-of-tests-passed difference, first arm − second (points)",
+  "sign": "above 0 = the first arm passed a larger share",
+  "unit": "prompt (pairs averaged within prompt)",
+  "n": "16 prompts; 63-64 pairs per contrast (same prompt and seed, both replies finished)",
+  "interval": "95% bootstrap over the 16 prompts, 4,000 draws, seed 20261108 (analysis/pass_pairs.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...); vLLM fork v0.9.2-experimental with the route-b loader (a local loader modification, not a release of the fork), image 5fc05b7c",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; F arms: derived BF16-core checkpoint (as C-K6x) with launch settings switched off cumulatively: F-kda GLM5_FLASH_KDA_FP8=off; F-head + GLM5_FLASH_FP8_HEAD=off; F-pre + GLM5_FLASH_FP8_PREFILL=off; V-K6: K4-Core-K6 @ 5d3fffe1, 6-bit core rebuilt to BF16 at load; V-BF16: K4-Core-K6 with all 316 core tensors loaded from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling); hidden tests run on each finished reply",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 13,
+   "excluding_0": 1,
+   "note": "13 share-passed contrasts, post hoc"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-BF16 vs C-K6x/share_passed_difference",
+    "what": "V-BF16 vs C-K6x",
+    "value": {
+     "mean": 0.036250705659341416,
+     "ci95_prompts": [
+      0.002489301345376455,
+      0.07894284755441441
+     ],
+     "excludes_0": true
+    }
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-K6 vs C-K6/share_passed_difference/excludes_0",
+    "what": "V-K6 vs C-K6",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-K6 vs C-K6x/share_passed_difference/excludes_0",
+    "what": "V-K6 vs C-K6x",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-BF16 vs C-K6/share_passed_difference/excludes_0",
+    "what": "V-BF16 vs C-K6",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-BF16 vs C-K6x/share_passed_difference/excludes_0",
+    "what": "V-BF16 vs C-K6x",
+    "value": true
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-BF16 vs V-K6/share_passed_difference/excludes_0",
+    "what": "V-BF16 vs V-K6",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/C-K6 vs C-K6x/share_passed_difference/excludes_0",
+    "what": "C-K6 vs C-K6x",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-kda vs C-K6x/share_passed_difference/excludes_0",
+    "what": "F-kda vs C-K6x",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-kda vs C-K6/share_passed_difference/excludes_0",
+    "what": "F-kda vs C-K6",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-head vs C-K6x/share_passed_difference/excludes_0",
+    "what": "F-head vs C-K6x",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-head vs C-K6/share_passed_difference/excludes_0",
+    "what": "F-head vs C-K6",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-pre vs C-K6x/share_passed_difference/excludes_0",
+    "what": "F-pre vs C-K6x",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/F-pre vs C-K6/share_passed_difference/excludes_0",
+    "what": "F-pre vs C-K6",
+    "value": false
+   },
+   {
+    "file": "results/2026-11-06-cuteafd-fp8-ablation/SUMMARY.json",
+    "pointer": "/post_hoc_pass_pairs_across_arms/contrasts/V-K6 vs F-kda/share_passed_difference/excludes_0",
+    "what": "V-K6 vs F-kda",
+    "value": false
+   }
+  ],
+  "replaces": [
+   "TL-code-pass-pairs"
+  ]
+ }
+]

@@ -1,0 +1,1202 @@
+{
+ "id": "2026-10-26-cuteafd-vs-vllm",
+ "date": "2026-10-26",
+ "title": "CuteAFD v3.0.1 vs tpurtell's vLLM fork v0.9.2: precision, throughput, long output",
+ "kind": "measurement",
+ "question": "How do tpurtell's CuteAFD v3.0.1 and his vLLM fork v0.9.2, each as shipped on GLM-5.3-Flash EXL3 K3.25 with identical expert bytes on 2 RTX PRO 6000 Max-Q, compare in teacher-anchored precision, serving throughput and long-output behaviour under a frozen protocol?",
+ "engines": [
+  "tpurtell/glm-5.3-flash-ext3-2x-rtx (vLLM fork) v0.9.2, tag f18f51f5, image ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx:v0.9.2 index sha256:ea0430aa (arm V1; runs V1, V1r, V2)",
+  "tpurtell/cuteafd v3.0.1 (9098781f), image ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0 (arms C1, C0)"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1@0490d2f708b12145f6516555ab066aaeb401cd21 (V1; C0 with GLM5_FLASH_FP8_MODEL_ID=off)",
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8@d31ebc921f1f098b4a56d37aaccb3cdef4096184 (C1)",
+  "incoai/GLM-5.3-Flash-DFlash2@bf582e4eacc1810f76656d1811693ff6c6737d2a (drafter: vLLM 3 draft tokens, CuteAFD adaptive)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W), driver 595.84",
+ "protocol": {
+  "file": "protocol/PROTOCOL.md",
+  "frozen": "2026-10-26T17:32:12-0700",
+  "amendments": [
+   "A1: 2026-10-26 ~17:15, before freeze, while CuteAFD Block Q captures ran: Q2 divergence as full-vocabulary KL and JS; Q2 floor on 6 windows; CuteAFD P-B rows from tpurtell's CLI dumps; trailing context rows question",
+   "A2: 2026-10-26, before freeze and any T or L request: thinking on for every T and L cell; temperature 1.0, top_p 0.95; prompt set and drivers frozen by hash",
+   "FOLLOWUPS F1-F2: 2026-10-26, after Block Q results, before running (protocol/FOLLOWUPS.md:1-36)",
+   "FOLLOWUPS F1-A1: 2026-10-27 ~00:30, before any F1 request: speed subset per F1 arm and F1-base",
+   "FOLLOWUPS post-audit: 2026-10-27 ~01:15, before those requests: F1 note, drift subset, GPU telemetry, F3, draft acceptance"
+  ]
+ },
+ "goals": [
+  {
+   "id": "Q-PA",
+   "question": "On panel P-A (BF16 teacher, 25 x 2K windows), how far is each engine from the teacher in full-vocabulary KL, paired CuteAFD against vLLM?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:49-56 (Block Q, panel P-A)",
+   "design": {
+    "instrument": "score_pa.py (frozen; fp64 full-vocabulary KL), captures via vLLM prompt-logprob plugin and CuteAFD glmf-teacher-kl.py (whole window through the scoring path, A1.3)",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "brandonmusic BF16 teacher panel (GLM-5.3-Flash-ShapleyMCG-K4-Evidence @ 32afb887): 25 windows x 2,048 tokens, all 2,047 rows; identity in q/pa/PROVENANCE.json",
+    "unit": "window",
+    "n": "25 windows (51,175 rows)",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "95% paired bootstrap over windows (numpy, 20,000 draws, seed 20260929)"
+   },
+   "files": [
+    "q/pa/pa-C1.json",
+    "q/pa/pa-V1.json",
+    "q/pa/pa-pair-V1-vs-C1.json",
+    "q/pa/PROVENANCE.json",
+    "q/logs/pa.log"
+   ],
+   "result_docs": [
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "P-A full-vocabulary KL from the BF16 teacher: vLLM fork v0.9.2 (V1) 0.0458, CuteAFD v3.0.1 on Core-FP8 (C1) 0.0476; CuteAFD − vLLM +0.0017 [+0.0006, +0.0028]. NLL (teacher 1.0627): V1 1.0731, C1 1.0730, difference ≈ 0.",
+   "findings": [
+    "V3-pa-engine",
+    "V3-pa-nll",
+    "V3-pa-top1"
+   ]
+  },
+  {
+   "id": "Q-PB",
+   "question": "On panel P-B (tpurtell's cuteafd-fidelity, 0.5K-14.4K), how far is each engine from the BF16 reference on generated rows, paired CuteAFD against vLLM?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:49-56 (Block Q, panel P-B; generated rows primary)",
+   "design": {
+    "instrument": "score_pb.py (frozen port of tpurtell's rule, reference.rs:285-317; 0 differences from his CLI on 32,768 positions); CuteAFD rows from his CLI's own dumps (A1.3), vLLM rows from its chunked prefill",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "after F3: mean of the three vLLM runs V1, V1r, V2"
+    ],
+    "items": "tpurtell's cuteafd-fidelity panel, config glm5_flash-v2_20261005_bf16root @ a7e7d1b4: 64 windows, last 512 rows each (32,768 positions); 15,104 generated rows are primary; reference top-1,024 + tail from zai-org/GLM-5.3-Flash-BF16",
+    "unit": "window",
+    "n": "64 windows, 53 of them with generated rows (15,104 generated rows)",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "95% paired bootstrap over windows (SplitMix64, 5,000 draws, seed 20260829)"
+   },
+   "files": [
+    "q/pb/pb-C1.json",
+    "q/pb/pb-V1.json",
+    "q/pb/pb-pair-V1-C1.json",
+    "q/logs/pb-C1.log",
+    "q/logs/pb-V1.log",
+    "q/logs/pb-pair-V1-C1.log"
+   ],
+   "result_docs": [
+    "q/RESULTS-Q.md",
+    "SUMMARY.md"
+   ],
+   "status": "done",
+   "status_note": "Headline baseline changed from V1 alone to the vLLM run mean (RESULTS-Q.md:15-17, then F3).",
+   "headline": "Generated rows, CuteAFD v3.0.1 − vLLM fork v0.9.2: against the first vLLM run V1, coarse KL +0.0027 [+0.0007, +0.0046], NLL +0.0168 [+0.0121, +0.0211], top-1 −0.51 pts [−0.85, −0.16]. Corrected after the audit (I1) to pair against the mean of the vLLM runs, because vLLM's multi-chunk prefill is not run-to-run deterministic: against the mean of three vLLM runs over two launches (F3), KL +0.0033 [+0.0016, +0.0049], top-1 −0.46 pts [−0.73, −0.17].",
+   "findings": [
+    "V3-pb-all",
+    "V3-pb-top1",
+    "V3-pb-nll"
+   ],
+   "superseded_by": "F3"
+  },
+  {
+   "id": "Q-PB-BAR",
+   "question": "Do both engines pass tpurtell's calibrated absolute bar for the P-B set (generated rows, prefill-shaped)?",
+   "added": "post hoc",
+   "added_source": "q/RESULTS-Q.md:52-55 (reported with the headline; the bar is not named in protocol/PROTOCOL.md)",
+   "design": {
+    "instrument": "tpurtell's absolute bar for this set: KL ≤ 0.05, top-1 ≥ 93%, confident top-1 ≥ 96%, top-3 ≥ 97%",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "tpurtell's cuteafd-fidelity panel, config glm5_flash-v2_20261005_bf16root @ a7e7d1b4: 64 windows, last 512 rows each (32,768 positions); 15,104 generated rows are primary; reference top-1,024 + tail from zai-org/GLM-5.3-Flash-BF16",
+    "unit": "panel (whole generated-row set)",
+    "n": "15,104 generated rows",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "none (threshold comparison)"
+   },
+   "files": [],
+   "result_docs": [
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "Both engines pass; CuteAFD v3.0.1 narrowly (0.0484 / 93.33% / 96.31% / 99.48%). For scale, tpurtell's published baseline for the official FP8 model on the same set is KL 0.0216 / top-1 95.77% (quoted, not measured here). The panel's paired bar is read separately in M4.",
+   "findings": [
+    "V3-pb-bar"
+   ]
+  },
+  {
+   "id": "Q-PB-BUCKET",
+   "question": "On P-B generated rows, how does the CuteAFD − vLLM difference vary across the panel's context buckets (0-2K / 2-8K / 8-16K) and blocks?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:54-56 (per window, per block, per bucket, overall)",
+   "design": {
+    "instrument": "as Q-PB",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "vLLM run mean (V1, V1r; then V1, V1r, V2)"
+    ],
+    "items": "tpurtell's cuteafd-fidelity panel, config glm5_flash-v2_20261005_bf16root @ a7e7d1b4: 64 windows, last 512 rows each (32,768 positions); 15,104 generated rows are primary; reference top-1,024 + tail from zai-org/GLM-5.3-Flash-BF16; buckets and blocks are the panel's own labels",
+    "unit": "window",
+    "n": "0-2K 19 windows (4,035 rows), 2-8K 16 windows (3,547 rows), 8-16K 18 windows (7,522 rows)",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "95% paired bootstrap over windows (SplitMix64, 5,000 draws, seed 20260829)"
+   },
+   "files": [],
+   "result_docs": [
+    "q/RESULTS-Q.md",
+    "SUMMARY.md"
+   ],
+   "status": "done",
+   "status_note": "Buckets were a pre-declared reporting dimension; headlining the bucket rather than the block was post hoc framing (audit U1). The first reading 'grows with context' was narrowed by U1.",
+   "headline": "CuteAFD v3.0.1 − mean of three vLLM fork v0.9.2 runs: 8-16K KL +0.0054 [+0.0034, +0.0074], top-1 −0.81 pts [−1.22, −0.44]; 0-2K KL +0.0017 [−0.0006, +0.0044] and 2-8K +0.0007 [−0.0029, +0.0032]: not detected. The 8-16K bucket is block B (long code reading: all 12 windows, 82% of the bucket's rows), so the run does not separate length from content; against V1, NLL is also higher for CuteAFD below 8K (+0.0069 [+0.0031, +0.0110], +0.0073 [+0.0015, +0.0128]), and the 2-8K top-1 +0.39 pts against V1 does not hold against V1r.",
+   "findings": [
+    "V3-pb-longcode",
+    "V3-pb-short",
+    "V3-pb-mid",
+    "V3-pb-top1-buckets",
+    "V3-pb-nll-buckets"
+   ],
+   "superseded_by": "U1"
+  },
+  {
+   "id": "Q-PB-CTX",
+   "question": "Are the large KL values on P-B's trailing context rows in tool-call windows reference-side or engine-side?",
+   "added": "amendment",
+   "added_source": "protocol/PROTOCOL.md:162-164 (A1.4)",
+   "design": {
+    "instrument": "as Q-PB, context rows",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "tpurtell's cuteafd-fidelity panel, config glm5_flash-v2_20261005_bf16root @ a7e7d1b4: 64 windows, last 512 rows each (32,768 positions); 15,104 generated rows are primary; reference top-1,024 + tail from zai-org/GLM-5.3-Flash-BF16; context rows (role ctx)",
+    "unit": "window",
+    "n": "17,664 context rows; 30 trailing spans",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "Context rows show KL ~1.7 nat on both engines (V1 1.69, C1 1.73), concentrated in tool-call windows, and both engines' NLL there (3.61-3.77) is below the reference's own (3.87). After the audit (U4): all 30 trailing spans are the same unrelated filler file and vLLM-vs-itself KL reaches 1.96 nat there; the run reads these rows as highly sensitive to any numerical change and not evidence about the reference.",
+   "findings": [
+    "V3-pb-ctx"
+   ],
+   "superseded_by": "U4"
+  },
+  {
+   "id": "C0",
+   "question": "Inside CuteAFD, do the official FP8 projections (Core-FP8) and FP8 projections quantized at load from K3.25-v1 give different P-B precision?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:28,42 (arm C0, control for Block Q)",
+   "design": {
+    "instrument": "as Q-PB",
+    "arms": [
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "C0: CuteAFD v3.0.1 on K3.25-v1, GLM5_FLASH_FP8_MODEL_ID=off"
+    ],
+    "items": "tpurtell's cuteafd-fidelity panel, config glm5_flash-v2_20261005_bf16root @ a7e7d1b4: 64 windows, last 512 rows each (32,768 positions); 15,104 generated rows are primary; reference top-1,024 + tail from zai-org/GLM-5.3-Flash-BF16",
+    "unit": "window",
+    "n": "64 windows, 53 of them with generated rows (15,104 generated rows)",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "95% paired bootstrap over windows (SplitMix64, 5,000 draws, seed 20260829)"
+   },
+   "files": [
+    "q/pb/pb-C0.json",
+    "q/pb/pb-pair-C0-C1.json",
+    "q/logs/pb-C0.log",
+    "q/logs/pb-pair-C0-C1.log"
+   ],
+   "result_docs": [
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "C1 − C0 (CuteAFD v3.0.1), generated rows: KL −0.0003 [−0.0019, +0.0014], top-1 −0.14 pts [−0.54, +0.25]: not detected (intervals include 0). RESULTS-Q.md words this as 'indistinguishable'.",
+   "findings": [
+    "V3-c0-projection"
+   ],
+   "status_note": "RESULTS-Q.md:76 and AUDIT-2026-10-27.md:328-329 word C1 vs C0 as 'indistinguishable' / 'do not matter'; the intervals include 0, so the finding states not detected with its bound."
+  },
+  {
+   "id": "Q-REPEAT",
+   "question": "How large is each engine's run-to-run difference on the precision panels (the within-engine noise floor)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:66 (noise floor: V1 and C1 each scored twice)",
+   "design": {
+    "instrument": "as Q-PA and Q-PB",
+    "arms": [
+     "V1 vs V1r (one vLLM launch)",
+     "C1 vs C1r"
+    ],
+    "items": "panels P-A and P-B (and Q2, see Q2)",
+    "unit": "window",
+    "n": "P-A 25 windows; P-B 64 windows",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "P-A: 95% paired bootstrap over windows (numpy, 20,000 draws, seed 20260929); P-B: 95% paired bootstrap over windows (SplitMix64, 5,000 draws, seed 20260829)"
+   },
+   "files": [
+    "q/pa/pa-C1r.json",
+    "q/pa/pa-V1r.json",
+    "q/pa/pa-pair-C1-vs-C1r.json",
+    "q/pa/pa-pair-V1-vs-V1r.json",
+    "q/pb/pb-C1r.json",
+    "q/pb/pb-V1r.json",
+    "q/pb/pb-pair-C1-C1r.json",
+    "q/pb/pb-pair-V1-V1r.json",
+    "q/logs/pb-C1r.log",
+    "q/logs/pb-V1r.log",
+    "q/logs/pb-pair-C1-C1r.log",
+    "q/logs/pb-pair-V1-V1r.log"
+   ],
+   "result_docs": [
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "CuteAFD v3.0.1 repeats are byte-identical (P-A, P-B, Q2). vLLM fork v0.9.2, V1r − V1: P-A KL +0.000001, P-B generated-row KL −0.0006 [−0.0021, +0.0008] (a shift of the mean). Corrected after the audit (I1): rows inside the first 2,045-token prefill chunk are bit-identical between vLLM runs and rows beyond it almost never are; per-row vLLM self-divergence is 55% (2-8K) and 65% (8-16K) of the cross-engine KL.",
+   "findings": [
+    "V3-repeat-cuteafd",
+    "V3-repeat-vllm-pa",
+    "V3-repeat-vllm-pb"
+   ],
+   "superseded_by": "I1"
+  },
+  {
+   "id": "Q2",
+   "question": "Beyond the teacher's 14K reach (32K-128K), do the engines differ in NLL on long human-written text, and how much do their distributions disagree?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:74-82 (Block Q2), amended by A1.1-A1.2 (protocol/PROTOCOL.md:154-157)",
+   "design": {
+    "instrument": "score_q2.py (frozen); full-vocabulary KL in both directions and JS (A1.1)",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "floor: V1r and C1 repeat on 6 windows (A1.2)"
+    ],
+    "items": "6 documents (3 PG-19 test-split books, 3 Apache-2.0 vLLM source files) at 32K, 64K and 128K tokens; last 4,096 positions of each window",
+    "unit": "document (cluster)",
+    "n": "6 documents, 18 windows, 73,728 positions",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "95% bootstrap over documents (numpy, 20,000 draws, seed 20260929); the audit adds t-intervals over the 6 document means (U3)"
+   },
+   "files": [
+    "q/q2/q2-C1-vs-V1.json",
+    "q/logs/q2.log"
+   ],
+   "result_docs": [
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "status_note": "Per-type intervals and the '3x' floor ratio were corrected by the audit (U3) and RESULTS-Q.md:31-34.",
+   "headline": "NLL, CuteAFD v3.0.1 − vLLM fork v0.9.2: −0.0005 [−0.0037, +0.0018], not detected; the run states it as no NLL difference larger than about ±0.005 nat at this sample size (6 documents), with per-type intervals not resolved (t-intervals prose [−0.0013, +0.0050], code [−0.0135, +0.0077], audit U3). The engines' distributions disagree by KL 0.014 (JS 0.0028, argmax agreement 96.2%), about 1.8x vLLM's own run-to-run disagreement on matched documents; this does not say which is closer to BF16.",
+   "findings": [
+    "V3-q2-nll",
+    "V3-q2-disagree"
+   ],
+   "superseded_by": "U3"
+  },
+  {
+   "id": "Q-LOAD",
+   "question": "Does precision change when scoring runs under concurrent serving load?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:68-70 (Load condition: not run)",
+   "design": {
+    "instrument": "none",
+    "arms": [],
+    "items": "none",
+    "unit": "n/a",
+    "n": "0",
+    "repeats": "none",
+    "interval": "none (not run)"
+   },
+   "files": [],
+   "result_docs": [
+    "q/RESULTS-Q.md"
+   ],
+   "status": "not run",
+   "headline": "Not run: CuteAFD's scoring takes an exclusive bench slot, so scoring under concurrent traffic cannot be done 1:1 (declared in the protocol before any run).",
+   "findings": [],
+   "no_findings_reason": "not run"
+  },
+  {
+   "id": "THINK-OFF",
+   "question": "Do both stacks honour enable_thinking:false with this checkpoint's chat template?",
+   "added": "check",
+   "added_source": "protocol/PROTOCOL.md:167-172 (A2.1, from source); q/thinking-check-vllm.json",
+   "design": {
+    "instrument": "source reading of the chat template and the two stacks; one vLLM request per flag value",
+    "arms": [
+     "vLLM fork v0.9.2",
+     "CuteAFD v3.0.1 (source)"
+    ],
+    "items": "one short prompt",
+    "unit": "request",
+    "n": "2 requests (vLLM, enable_thinking true and false)",
+    "repeats": "none; max_tokens not recorded",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "q/thinking-check-vllm.json"
+   ],
+   "result_docs": [
+    "README.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "The template has no thinking-off switch and always ends with <|assistant|><think>; vLLM fork v0.9.2 rendered 147 prompt tokens for both flag values (with false, reasoning arrives in the content), while CuteAFD v3.0.1 renders false as an empty <think></think> (source). The run therefore used thinking on for every T and L request; the audit reads the template and token count as the decisive evidence, the single request as weak.",
+   "findings": [
+    "V3-think-off"
+   ]
+  },
+  {
+   "id": "Q-ROWS",
+   "question": "Publish the per-position scores behind the Block Q summaries.",
+   "added": "accounting",
+   "added_source": "q/rows/README.md:1-6",
+   "design": {
+    "instrument": "export of the scored rows (no token ids, logits or texts)",
+    "arms": [
+     "V1",
+     "V1r",
+     "V2",
+     "C1",
+     "C0 (P-B only)"
+    ],
+    "items": "P-A, P-B and Q2 scored positions",
+    "unit": "position",
+    "n": "P-A 51,175; P-B 32,768; Q2 73,728",
+    "repeats": "n/a",
+    "interval": "none (data)"
+   },
+   "files": [
+    "q/rows/*"
+   ],
+   "result_docs": [
+    "q/rows/README.md"
+   ],
+   "status": "done",
+   "headline": "Per-position KL, NLL and top-1 per arm for P-A (25 windows), P-B (64 windows) and Q2 (18 windows), rounded to 7 significant digits; support data, no reading of its own.",
+   "findings": [],
+   "no_findings_reason": "support file only"
+  },
+  {
+   "id": "Q-TAILS",
+   "question": "How are the per-position KL values distributed (tails, share of KL in the worst positions, KL by position)?",
+   "added": "post hoc",
+   "added_source": "README.md:51 (tails and KL by position: q/tails/); computed by tools/kl_tails.py from q/rows/",
+   "design": {
+    "instrument": "tools/kl_tails.py (type 7 quantiles) on the published per-position files",
+    "arms": [
+     "V1",
+     "V1r",
+     "V2",
+     "C1",
+     "C0 (P-B)"
+    ],
+    "items": "P-A all rows; P-B generated rows; Q2 last 4,096 positions",
+    "unit": "position",
+    "n": "P-A 51,175; P-B 15,104; Q2 73,728",
+    "repeats": "n/a",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "q/tails/*"
+   ],
+   "result_docs": [
+    "q/tails/pb-tails.json",
+    "q/tails/pa-tails.json",
+    "q/tails/q2-tails.json"
+   ],
+   "status": "done",
+   "headline": "Post hoc, descriptive (no intervals). P-B generated rows, coarse KL p99: V1 0.6095, V1r 0.5859, V2 0.5666, C1 0.6204, C0 0.5818; share of total KL in the worst 1% of positions: V1 0.236, C1 0.212.",
+   "findings": [
+    "V3-tails-pb",
+    "V3-tails-pa"
+   ]
+  },
+  {
+   "id": "T",
+   "question": "How fast does each engine serve (per-stream decode, aggregate throughput, time to first token, prefill rate) across input length, content and concurrency?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:84-97 (Block T); A2 (protocol/PROTOCOL.md:166-175)",
+   "design": {
+    "instrument": "block_t.py (frozen, sha256 9497d75b), one client; thinking on, temperature 1.0, top_p 0.95",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "input 1K / 8K / 32K / 128K x content prose, code, reasoning, JSON (reasoning and JSON at 1K and 8K only) x streams 1 / 4 / 8 / 16 (128K: 1 and 4; 8 and 16 skipped for cost, declared); 4 prompts per content; 1,024 output tokens; plus one cached-prompt cell",
+    "unit": "cell (batch); every stream its own request",
+    "n": "44 cells x 3 replicates = 132 measured batches, 1,008 requests per engine",
+    "repeats": "3 replicates per cell; distinct recorded seed per request, same seed list on both engines; nonce salts differ between engines (I2)",
+    "interval": "none (descriptive): median of 3 replicates (min-max)"
+   },
+   "files": [
+    "t/*"
+   ],
+   "result_docs": [
+    "t/T-SUMMARY.md",
+    "t/CAVEATS.md",
+    "SUMMARY.md"
+   ],
+   "status": "done",
+   "status_note": "Run order V then C with no repeat, so the protocol's CVC drift control (principle 6) was not run inside Block T (audit M1); a drift subset was declared afterwards (DRIFT). The aggregate range at 32K-128K is given as '+6-17%' (t/CAVEATS.md:15, SUMMARY.md) and '+6-11%' (AUDIT-2026-10-27.md:365): the first is all 12 cells there, the second the 4-16-stream cells (T-SUMMARY.md:88-99).",
+   "headline": "CuteAFD v3.0.1 / vLLM fork v0.9.2 (no intervals): single-stream decode 1.02-1.41x (largest on reasoning and code prompts); aggregate level at 1K-8K except 1K x 8 streams at 0.87-0.93x, and +6-17% at 32K-128K, which the run reads as mostly faster long prefill (4,400-4,500 vs 3,700-3,900 tok/s); TTFT on 1K prompts 0.41 vs 0.25 s. Per-cell noise is about ±4-8% (a later CuteAFD re-run, CAVEATS) to ±13% (drift), so ratios inside that are not differences; 'code' and 'json' cells measure reasoning text (M2), and inputs are not byte-identical across engines (I2).",
+   "findings": [
+    "V3-t-decode-single",
+    "V3-t-decode-longctx",
+    "V3-t-aggregate",
+    "V3-t-ttft"
+   ]
+  },
+  {
+   "id": "T-CACHED",
+   "question": "How fast is a repeated identical 8K prompt served (prefix-cache reuse)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:86-87 ('one small cell measures cached prompts')",
+   "design": {
+    "instrument": "block_t.py cached cell",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "one 8,192-token prose prompt, primer then repeats, 1 stream",
+    "unit": "request",
+    "n": "4 requests per engine (cached cell)",
+    "repeats": "same prompt repeated",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md",
+    "AUDIT-2026-10-27.md",
+    "f2/RESULTS-F2.md"
+   ],
+   "status": "done",
+   "headline": "CuteAFD v3.0.1 restored the repeated 8K prompt from its prefix cache with TTFT 0.017 s (8,192 cached tokens); vLLM fork v0.9.2 reported cached_tokens 0 and TTFT 2.10 s on every repeat, equal to an uncached 8K prompt (confirmed in audit section 3). Investigated in F2.",
+   "findings": [
+    "V3-t-cached"
+   ]
+  },
+  {
+   "id": "L",
+   "question": "How do the engines behave on long outputs staged to 128K: finishing versus cap, loops, task correctness, length and decode rate?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:99-114 (Block L); A2 (protocol/PROTOCOL.md:166-175)",
+   "design": {
+    "instrument": "block_l.py and analyze_l.py (frozen); checkers: hidden pytest suite in a CPU sandbox, JSON schema, MATH-500 answer, prose words/required; thinking on, temperature 1.0, top_p 0.95",
+    "arms": [
+     "V1: vLLM fork v0.9.2 on K3.25-v1",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "stages L1 8K, L2 32K, L3 128K: 4 contents (prose, code, reasoning, JSON) x 4 prompts x 2 seeds, 8 concurrent; L3s: 1 prompt per content, 1 stream; code specs and JSON schema authored and hashed before running",
+    "unit": "request",
+    "n": "100 requests per engine (32 per stage + 4 at L3s)",
+    "repeats": "2 seeds per prompt, seed recorded per request (32 of 32 distinct per stage)",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "l/*"
+   ],
+   "result_docs": [
+    "l/SUMMARY.md",
+    "SUMMARY.md"
+   ],
+   "status": "done",
+   "status_note": "The audit covered Block L on vLLM only; CuteAFD's Block L ran after it (f1/chain.log 01:41-03:21).",
+   "headline": "Descriptive, n=2 per prompt. At the 128K cap: code all tests pass 7/8 on both engines (217 vs 212 of 218 tests, vLLM fork v0.9.2 vs CuteAFD v3.0.1), MATH-500 level 5 8/8 on both (ceiling), prose 8/8 stopped on both, JSON valid 6/8 vs 4/8; CuteAFD replies ran ~15-25% shorter (median prose 39K vs 49K, code 38K vs 51K tokens), cause not separated from sampling. Code 'terminal loop' flags (vLLM 6 at L3 and 1 at L3s, CuteAFD 2 at L2 and 4 at L3) have no exact period; the audit (U5) read vLLM's as the answer restating code drafted in the reasoning; at the L1/L2 caps and for the 1,030-record JSON task the cells measure stop-versus-cap, not task completion.",
+   "findings": [
+    "V3-l-tasks-128k",
+    "V3-l-length",
+    "V3-l-stop-cap",
+    "V3-l-decode",
+    "V3-l-loopflags"
+   ]
+  },
+  {
+   "id": "F1",
+   "question": "Which of CuteAFD's switchable FP8 choices (KDA projections, output head, W8A8 prefill) account for its P-B gap to vLLM at 8-16K?",
+   "added": "follow-up",
+   "added_source": "protocol/FOLLOWUPS.md:6-24 (declared after Block Q results, before any F1 request); protocol/FOLLOWUPS.md:50-51 (F1 note)",
+   "design": {
+    "instrument": "tpurtell's CLI, --tier full --score-path prefill, same P-B dataset pin; validated port; f1_analysis.py",
+    "arms": [
+     "C1 (CuteAFD v3.0.1 scoring launch, as shipped)",
+     "F1a: GLM5_FLASH_KDA_FP8=off (also drops KDA output sharding)",
+     "F1b: GLM5_FLASH_FP8_HEAD=off",
+     "F1c: GLM5_FLASH_FP8_PREFILL=off (W8A16 prefill)",
+     "F1d: all three",
+     "reference: mean of V1, V1r (later also V2)"
+    ],
+    "items": "tpurtell's cuteafd-fidelity panel, config glm5_flash-v2_20261005_bf16root @ a7e7d1b4: 64 windows, last 512 rows each (32,768 positions); 15,104 generated rows are primary; reference top-1,024 + tail from zai-org/GLM-5.3-Flash-BF16",
+    "unit": "window",
+    "n": "64 windows (15,104 generated rows; 8-16K: 7,522 rows)",
+    "repeats": "one run per arm (CuteAFD bit-deterministic)",
+    "interval": "95% paired window bootstrap (f1_analysis.py)"
+   },
+   "files": [
+    "f1/F1-RESULTS.json",
+    "f1/RESULTS-F1.md",
+    "f1/chain.log",
+    "f1/chain.sh",
+    "f1/f1_analysis.py",
+    "f1/pb-F1-*.log"
+   ],
+   "result_docs": [
+    "f1/RESULTS-F1.md"
+   ],
+   "status": "done",
+   "status_note": "The audit (U2) notes F1a is not a single-factor test and the reading rule is ambiguous (interval width or lower bound).",
+   "headline": "CuteAFD v3.0.1 on Core-FP8, 8-16K KL change vs C1: F1a −0.0022 [−0.0047, +0.0005] (not detected; also changes KDA output sharding), F1b −0.0003 [−0.0004, −0.0001], F1c −0.0032 [−0.0049, −0.0013], F1d −0.0038 [−0.0063, −0.0013]. Against the mean of three vLLM runs: C1 +0.0054 [+0.0034, +0.0074], F1c +0.0022 [+0.0005, +0.0041], F1d +0.0016 [−0.0005, +0.0033] (not detected). The run reads W8A8 prefill as accounting for most of the 8-16K difference in this prefill-shaped measurement; decode-path precision was not scored.",
+   "findings": [
+    "V3-f1-w8a16",
+    "V3-f1-all",
+    "V3-f1-head",
+    "V3-f1-kda"
+   ]
+  },
+  {
+   "id": "F1-SPEED",
+   "question": "What does each F1 switch cost in serving speed?",
+   "added": "amendment",
+   "added_source": "protocol/FOLLOWUPS.md:38-46 (F1 amendment A1, 2026-10-27 ~00:30, before any F1 request)",
+   "design": {
+    "instrument": "block_t.py subset on each F1 launch, after its scoring",
+    "arms": [
+     "F1-base (C1's scoring launch unchanged)",
+     "F1a",
+     "F1b",
+     "F1c",
+     "F1d"
+    ],
+    "items": "inputs 1K and 8K x 1 and 8 streams x prose and code, replicates 0 and 1 (16 batches per arm), same seeds as Block T",
+    "unit": "cell",
+    "n": "16 batches per arm",
+    "repeats": "2 replicates; Block T seeds",
+    "interval": "none (descriptive): per-cell ratio to F1-base, median (range)"
+   },
+   "files": [
+    "f1/speed-F1-*"
+   ],
+   "result_docs": [
+    "f1/RESULTS-F1.md"
+   ],
+   "status": "done",
+   "headline": "Median per-stream decode relative to F1-base (CuteAFD v3.0.1): F1a 0.92, F1b 0.94, F1c 0.99, F1d 0.96 (0.86-1.05); time to first token F1c 1.04, F1d 1.02-1.04. F1-base against C1's Block T also gives the per-cell noise estimate used in M1 (0.96-1.08 decode).",
+   "findings": [
+    "V3-f1-w8a16-cost",
+    "V3-f1-speed-arms"
+   ]
+  },
+  {
+   "id": "F2",
+   "question": "Why did vLLM v0.9.2 report 0 cached tokens on a repeated 8K prompt with prefix caching on?",
+   "added": "follow-up",
+   "added_source": "protocol/FOLLOWUPS.md:26-36 (declared after Block Q results, before running)",
+   "design": {
+    "instrument": "f2_prefix_cache.py, /v1/completions with exact-length token prompts; /metrics prefix-cache counters before and after; server log grep",
+    "arms": [
+     "vLLM fork v0.9.2, normal served launch (--enable-prefix-caching --mamba-cache-mode align)"
+    ],
+    "items": "identical prompts at 1,024, 4,352, 8,192, 8,704 and 17,408 tokens from a PG-19 book",
+    "unit": "request",
+    "n": "15 requests (5 lengths x 3)",
+    "repeats": "3 sequential sends per length; max_tokens 16",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "f2/*"
+   ],
+   "result_docs": [
+    "f2/RESULTS-F2.md"
+   ],
+   "status": "done",
+   "headline": "vLLM fork v0.9.2: cached tokens 0 on all repeats at 1,024-8,704 tokens; at 17,408 tokens 4,352, 8,704, 8,704 with TTFT 3.457 / 2.313 / 2.309 s. Observed reuse in whole 4,352-token blocks (MLA cache groups at block_size 4352) and not the last two blocks, so a repeated prompt below about 13K tokens gets no reuse; the opt-in GLM53_DFLASH_BOUNDARY_LOOKUP was not tested.",
+   "findings": [
+    "V3-f2-prefix"
+   ]
+  },
+  {
+   "id": "F3",
+   "question": "Paired against more than one vLLM launch, what is CuteAFD's precision difference?",
+   "added": "follow-up",
+   "added_source": "protocol/FOLLOWUPS.md:62-65 (declared ~01:15 after the audit, before any F3 request)",
+   "design": {
+    "instrument": "as Q-PA and Q-PB; new vLLM capture-mode launch (run tag v2-r1)",
+    "arms": [
+     "V2: vLLM fork v0.9.2, second launch",
+     "V1, V1r",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "panels P-A and P-B",
+    "unit": "window",
+    "n": "P-A 25 windows; P-B 64 windows",
+    "repeats": "teacher-forced, raw token ids, prefill-shaped; no sampling, so seeds do not apply",
+    "interval": "95% paired bootstrap over windows (SplitMix64, 5,000 draws, seed 20260829); 95% paired bootstrap over windows (numpy, 20,000 draws, seed 20260929)"
+   },
+   "files": [
+    "q/pb/pb-V2.json",
+    "q/pb/pb-vs-vllm-mean3.json",
+    "q/pa-v2/*",
+    "q/logs/pa-v2.log",
+    "q/logs/pb-V2.log"
+   ],
+   "result_docs": [
+    "SUMMARY.md",
+    "f1/RESULTS-F1.md"
+   ],
+   "status": "done",
+   "status_note": "The declared side-by-side of launch-to-launch and within-launch spread appears only as 'V-spread' entries in q/pb/pb-vs-vllm-mean3.json, not in a result document.",
+   "headline": "P-B generated rows, CuteAFD v3.0.1 − mean of three vLLM fork v0.9.2 runs (two launches): KL +0.0033 [+0.0016, +0.0049], top-1 −0.46 pts [−0.73, −0.17]; 8-16K KL +0.0054 [+0.0034, +0.0074], top-1 −0.81 pts [−1.22, −0.44]; 0-2K and 2-8K not detected. P-A: C1 − V2 +0.0017 [+0.0006, +0.0028]; V2 − V1 on P-A +0.0000007.",
+   "findings": [
+    "V3-f3-pa",
+    "V3-f3-pa-launch",
+    "V3-f3-vspread"
+   ]
+  },
+  {
+   "id": "DRIFT",
+   "question": "Did either engine's serving speed drift between its Block T run and a later repeat of the same requests?",
+   "added": "follow-up",
+   "added_source": "protocol/FOLLOWUPS.md:53-58 (declared ~01:15 after the audit; protocol principle 6, protocol/PROTOCOL.md:19)",
+   "design": {
+    "instrument": "block_t.py --lengths 1024 32768 --levels 1 8 --contents code prose --reps 0 1 --no-cached-cell, same seeds and nonce salt as each engine's Block T run",
+    "arms": [
+     "CuteAFD v3.0.1, ~3 h after its Block T, same serving launch",
+     "vLLM fork v0.9.2, ~7.5 h after, fresh launch"
+    ],
+    "items": "inputs 1K and 32K x 1 and 8 streams x code and prose (prompt token counts identical in 16/16 cells)",
+    "unit": "cell",
+    "n": "16 matched cells per engine",
+    "repeats": "replicates 0 and 1",
+    "interval": "none (descriptive): later / earlier ratio per cell, median (range)"
+   },
+   "files": [
+    "drift/C1-drift.json",
+    "drift/C1-drift.log",
+    "drift/V1-drift.json",
+    "drift/V1-drift.log",
+    "drift/RESULTS-DRIFT.md"
+   ],
+   "result_docs": [
+    "drift/RESULTS-DRIFT.md"
+   ],
+   "status": "done",
+   "status_note": "Replaces the protocol's CVC drift control, which had no declared subset and was not run inside Block T (audit M1).",
+   "headline": "Later / Block T ratio: CuteAFD v3.0.1 decode 0.981 (0.958-1.065), aggregate 0.990 (0.971-1.029); vLLM fork v0.9.2 decode 1.021 (0.931-1.126), aggregate 1.013 (0.935-1.125). The run reads this as no systematic drift at the median, with single cells varying by up to about ±13%, so Block T ratios within about ±10% are not differences.",
+   "findings": [
+    "V3-drift"
+   ]
+  },
+  {
+   "id": "DRAFT-ACCEPT",
+   "question": "What is vLLM's speculative draft acceptance on the drift subset (CuteAFD exposes no counter)?",
+   "added": "follow-up",
+   "added_source": "protocol/FOLLOWUPS.md:67-68 (M2, partial; declared after the audit)",
+   "design": {
+    "instrument": "vLLM /metrics speculative-decoding counters before and after",
+    "arms": [
+     "vLLM fork v0.9.2 (DFlash2, 3 draft tokens)"
+    ],
+    "items": "the vLLM drift subset",
+    "unit": "verify step",
+    "n": "40,410 draft steps (counter difference)",
+    "repeats": "one read before and one after the subset",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "drift/V1-spec-metrics-*.txt"
+   ],
+   "result_docs": [
+    "drift/RESULTS-DRIFT.md"
+   ],
+   "status": "partial",
+   "status_note": "Declared as partial; the counters were published as one before/after pair over the whole subset, not per cell as FOLLOWUPS.md:67 describes.",
+   "headline": "vLLM fork v0.9.2: 1.53 of 3 drafted tokens accepted per verify step (51%) over the drift subset. No acceptance figure for CuteAFD v3.0.1 (no counter on its API).",
+   "findings": [
+    "V3-draft-accept"
+   ]
+  },
+  {
+   "id": "TELEMETRY",
+   "question": "Under what clocks, power and temperature did the later runs execute?",
+   "added": "follow-up",
+   "added_source": "protocol/FOLLOWUPS.md:59-60 (declared after the audit's M1)",
+   "design": {
+    "instrument": "nvidia-smi every 5 s",
+    "arms": [
+     "GPU 0",
+     "GPU 1"
+    ],
+    "items": "2026-10-27 01:06:26 to 04:31:46: F1 from its second arm on, CuteAFD Block L, drift, F3, F2; both engines' Block T ran before it began",
+    "unit": "sample",
+    "n": "2,464 samples per GPU",
+    "repeats": "n/a",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "telemetry/*"
+   ],
+   "result_docs": [
+    "telemetry/gpu-telemetry-from-0050.summary.json",
+    "drift/RESULTS-DRIFT.md"
+   ],
+   "status": "done",
+   "headline": "Busy samples (utilization ≥ 50%): GPU 0 median 299.9 W of a 300 W limit, 1,890 MHz, 87 °C, software power cap active in 1,619 of 1,842; GPU 1 287.51 W, 2,100 MHz, 85 °C, power cap in 1,351 of 1,873. Block T is not covered.",
+   "findings": [
+    "V3-telemetry"
+   ]
+  },
+  {
+   "id": "OBS-LAUNCHER",
+   "question": "Which CuteAFD v3.0.1 launcher defaults differ from what the comparison assumed?",
+   "added": "source reading",
+   "added_source": "README.md:127-128 (Observations)",
+   "design": {
+    "instrument": "reading of the CuteAFD v3.0.1 launcher and launch logs",
+    "arms": [
+     "CuteAFD v3.0.1"
+    ],
+    "items": "launcher defaults",
+    "unit": "setting",
+    "n": "n/a",
+    "repeats": "none",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md",
+    "SUMMARY.md"
+   ],
+   "status": "done",
+   "headline": "CuteAFD v3.0.1 launcher: default output limit 4,096 (longer requests are clamped), unconditional /dev/infiniband, request logging on by default, 0.0.0.0 under host networking; swiglu_limit compiled in.",
+   "findings": [
+    "V3-obs-launcher"
+   ]
+  },
+  {
+   "id": "I1",
+   "question": "Was vLLM's run-to-run variation on the precision panels correctly attributed and sized?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:41-81 (correction)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "V1",
+     "V1r",
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "P-B windows by number of prefill steps; full-vocabulary dumps (34 windows, gen rows)",
+    "unit": "window",
+    "n": "64 P-B windows; 34 windows for the full-vocabulary split",
+    "repeats": "none (recomputation)",
+    "interval": "window-cluster percentile bootstrap, 5,000 draws, numpy"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "Every vLLM capture ran alone with identical chunking, so the variation is not batching or speculation: generated rows are 100% bit-equal between V1 and V1r in 1-step windows, 46% in 2-step and 0% in 4+ step windows; vLLM's self-divergence is 55% (2-8K) and 65% (8-16K) of the cross-engine KL. Against mean(V1, V1r), 8-16K KL +0.0050 [+0.0031, +0.0071], top-1 −0.87 [−1.20, −0.54]; the 2-8K top-1 +0.39 [+0.03, +0.76] against V1 is +0.14 [−0.29, +0.48] against V1r (not detected).",
+   "findings": [
+    "V3-i1-chunks",
+    "V3-i1-selfdiv",
+    "V3-i1-baseline",
+    "V3-i1-midtop1"
+   ],
+   "replication": "led to F3 (second vLLM launch)"
+  },
+  {
+   "id": "I2",
+   "question": "Did Block T give both engines identical inputs?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:83-96 (correction)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "V1",
+     "C1"
+    ],
+    "items": "1,008 paired Block T requests; 128K code prompts",
+    "unit": "request",
+    "n": "1,008 request pairs; 24 128K code requests",
+    "repeats": "none (recomputation)",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "t/CAVEATS.md"
+   ],
+   "status": "done",
+   "headline": "No: 0 of 1,008 paired requests share a nonce (salt includes the run label and time), so prompts differ in their first line; seeds still pair. The 128K code prompts are 24 tokens longer on CuteAFD v3.0.1 because the vLLM stack parses literal <think> and </think> in user text as special tokens and CuteAFD keeps them as text, so A2's 'same prompt' does not hold for those cells; the audit reads the throughput impact as negligible.",
+   "findings": [
+    "V3-i2-inputs"
+   ]
+  },
+  {
+   "id": "U1",
+   "question": "Is the P-B gap 'located at 8-16K and growing with context', or confounded with content?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:100-129 (narrowed)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "mean(V1, V1r)"
+    ],
+    "items": "P-B generated rows by block and bucket",
+    "unit": "window",
+    "n": "18 windows at 8-16K (12 block B, 6 block A)",
+    "repeats": "none (recomputation)",
+    "interval": "window bootstrap; Bonferroni 99.67% intervals over about 15 looks; leave-one-window-out"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "Confounded: all 12 block-B (long code reading) windows sit at 8-16K and supply 6,144 of its 7,522 rows. Within block A, C1 − mean(V) KL is 0-2K +0.0029 [−0.0013, +0.0083], 2-8K +0.0017 [−0.0005, +0.0033], 8-16K +0.0028 [−0.0003, +0.0055], difference-in-differences +0.0006 [−0.0030, +0.0044]: growth with context not detected for KL. The 8-16K difference survives leave-one-window-out (+0.0037 to +0.0051) and Bonferroni (KL +0.0044 [+0.0003, +0.0082]); headlining the bucket was post hoc framing.",
+   "findings": [
+    "V3-u1-blockB",
+    "V3-u1-blockA-trend",
+    "V3-u1-robust"
+   ]
+  },
+  {
+   "id": "U2",
+   "question": "Does the FP8 mechanism story (projections, head, KDA) cover the engines' arithmetic differences, and is F1a a clean ablation?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:131-177 (narrowed)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "V1",
+     "V1r",
+     "teacher"
+    ],
+    "items": "source, launch logs, dry-runs; P-B gen-row entropies",
+    "unit": "window",
+    "n": "18 windows at 8-16K for entropy",
+    "repeats": "none (recomputation)",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "Narrowed: the engines also differ in DSA index-key format (CuteAFD BF16 keys, vLLM FP8), attention placement, KDA split path, prefill geometry, BF16 logits in vLLM and W8A8 prefill (source and logs, not measured); F1a also drops KDA output sharding, and F1's reading rule is ambiguous. CuteAFD's predictive entropy is higher (8-16K 0.580 vs V1 0.523, 18 of 18 windows); the audit infers, untested, a scale or bias effect rather than zero-mean rounding.",
+   "findings": [
+    "V3-u2-arith",
+    "V3-u2-entropy"
+   ]
+  },
+  {
+   "id": "U3",
+   "question": "Do Q2's sub-results (per-type NLL, '3x' run-to-run ratio) hold with 6 documents?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:179-204 (narrowed)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "V1",
+     "V1r"
+    ],
+    "items": "Q2 per-window results",
+    "unit": "document",
+    "n": "6 documents (3 per type)",
+    "repeats": "none (recomputation)",
+    "interval": "t-intervals on document means (5 and 2 df)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "Overall C1 − V1 NLL −0.0005, t-interval [−0.0046, +0.0035]; prose +0.0019 [−0.0013, +0.0050], code −0.0029 [−0.0135, +0.0077]: neither sub-claim excludes 0. One window (c2-064k) dominates code; on matched documents the engine disagreement is 1.8x vLLM's floor, not 3x. Q2 can bound an NLL difference at about 0.004-0.005 nat, so only a bounded statement is supported.",
+   "findings": [
+    "V3-u3-q2-types"
+   ]
+  },
+  {
+   "id": "U4",
+   "question": "Do P-B's trailing context rows show a reference-side error?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:206-218 (narrowed)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "V1",
+     "V1r"
+    ],
+    "items": "30 trailing spans in tool-call windows",
+    "unit": "span",
+    "n": "30 spans (12,032 rows)",
+    "repeats": "none (recomputation)",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "All 30 trailing spans are near-copies of one unrelated filler file, so effectively one item; cross-engine KL on rows 20+ into the span is 0.72 / 3.14 / 2.53 nats on three windows and vLLM-vs-itself 1.96 nats on a10. The audit reads this as hypersensitive rows, not evidence of a reference-side error.",
+   "findings": [
+    "V3-u4-ctx"
+   ]
+  },
+  {
+   "id": "U5",
+   "question": "Are Block L's code 'terminal loop' flags loops?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:220-229 (narrowed)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "V1"
+    ],
+    "items": "every vLLM L3 and L3s code reply, re-tokenized",
+    "unit": "reply",
+    "n": "9 replies (8 L3 + 1 L3s)",
+    "repeats": "none (recomputation)",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "README.md"
+   ],
+   "status": "done",
+   "status_note": "Audit scope was Block L on vLLM only; README.md:118 applies the reading to both engines' code flags, but CuteAFD's Block L ran after the audit and its copy-from-reasoning share is not published.",
+   "headline": "For vLLM fork v0.9.2 (6 of 8 L3 and 1 of 1 L3s flagged): all repeated 50-grams in the final 4,096-token window first occur in the reasoning, content self-repetition 0.000-0.001, 37-88% of content 50-grams copied from the reasoning, no exact period: the answer restates code drafted in the reasoning, not a loop.",
+   "findings": [
+    "V3-u5-vllm-code"
+   ]
+  },
+  {
+   "id": "M1",
+   "question": "Is Block T protected against drift and thermal or clock variation?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:233-244 (added check)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "V1 (18:35-20:35)",
+     "C1 (22:39-00:29)",
+     "F1-base"
+    ],
+    "items": "Block T run order, pre-run GPU snapshots, F1-base vs C1-r1 cells",
+    "unit": "cell",
+    "n": "F1-base subset cells",
+    "repeats": "none (recomputation)",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "t/CAVEATS.md"
+   ],
+   "status": "done",
+   "headline": "No drift control (no declared CVC subset; V ran before C, no repeat) and no in-run telemetry. F1-base against C1-r1 gives per-cell ratios 0.96-1.08 on decode and 0.96-1.05 on aggregate, so single-cell noise is about ±4-8% and T-SUMMARY ratios between 0.95 and 1.08 cannot be read as differences; T-SUMMARY has no intervals.",
+   "findings": [
+    "V3-m1-noise"
+   ],
+   "replication": "led to DRIFT and TELEMETRY"
+  },
+  {
+   "id": "M2",
+   "question": "Is the single-stream speed difference explained by draft policy, and do the content labels describe the output?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:246-257 (added check)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "V1 (DFlash2, 3 fixed draft tokens, BF16)",
+     "C1 (DFlash2 adaptive, FP8 drafter, W8A8 draft linear)"
+    ],
+    "items": "Block T replies",
+    "unit": "cell",
+    "n": "Block T code and json cells",
+    "repeats": "none (recomputation)",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "t/CAVEATS.md"
+   ],
+   "status": "done",
+   "headline": "Draft policies differ (vLLM 3 fixed BF16 draft tokens; CuteAFD adaptive with an FP8 drafter and W8A8 draft linear) and acceptance was not recorded; the audit reads the 1.16-1.41x on code, json and reasoning vs 1.02-1.06 on prose as consistent with deeper drafting on predictable text. At 1,024 output tokens, 0% of code and json requests on either engine left the reasoning.",
+   "findings": [
+    "V3-m2-labels",
+    "V3-m2-draft"
+   ],
+   "replication": "led to DRAFT-ACCEPT (vLLM only)",
+   "status_note": "AUDIT-2026-10-27.md:253-255 and t/CAVEATS.md:8-9 say no code or json reply left the reasoning; the receipts show one CuteAFD code reply (1K, 8 streams, t/C1-r1-block-t.json batch 51) that did."
+  },
+  {
+   "id": "M3",
+   "question": "Which launch settings differ between the engines beyond the documented deltas?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:259-278 (added check)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "vLLM fork v0.9.2 launch",
+     "CuteAFD v3.0.1 launch"
+    ],
+    "items": "configs and logs",
+    "unit": "setting",
+    "n": "9 settings tabulated",
+    "repeats": "none (recomputation)",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "t/CAVEATS.md"
+   ],
+   "status": "done",
+   "headline": "Undocumented on vLLM: GPU_MEMORY_UTILIZATION 0.95 (launcher default 0.97) and the v0.9.0 repo's start.sh run with the v0.9.2 image (v0.9.2 launcher defaults unverified). Further differences: drafter policy, attention placement (split:25 vs context), DSA index K (FP8 kpool vs BF16 keys), KV record, prefill scheduling, prefix cache, logits (BF16 vs F32), special tokens in user text.",
+   "findings": [
+    "V3-m3-launch"
+   ]
+  },
+  {
+   "id": "M4",
+   "question": "Is CuteAFD within the P-B panel's own paired bar against vLLM?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:281-291 (added check)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "C1: CuteAFD v3.0.1 on Core-FP8",
+     "V1",
+     "V1r"
+    ],
+    "items": "P-B generated rows; paired_bar kl_margin 0.005, top1_margin 0.005",
+    "unit": "window",
+    "n": "64 windows",
+    "repeats": "none (recomputation)",
+    "interval": "tpurtell's one-sided compare (bar.py, port of fidelity.rs:269-333), upper 95%"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "Upper 95% bound of CuteAFD's loss: top-1 0.0080 (vs V1) / 0.0067 (vs V1r), KL 0.0043 / 0.0048 against a 0.005 bar: not shown within the bar on top-1; within it on KL, narrowly. RESULTS-Q.md notes the bar is defined for same-engine changes and is applied here by analogy only.",
+   "findings": [
+    "V3-m4-pairedbar"
+   ]
+  },
+  {
+   "id": "M5",
+   "question": "Where does the P-B panel's generated text come from?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:293-298 (added check)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "panel generation server"
+    ],
+    "items": "windows.json generation_server and recipe",
+    "unit": "panel",
+    "n": "1 panel",
+    "repeats": "none (recomputation)",
+    "interval": "none (source reading)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "q/RESULTS-Q.md"
+   ],
+   "status": "done",
+   "headline": "P-B's generated rows are greedy (temperature 0) outputs of CuteAFD v1.0.0 serving official FP8 with a BF16 head, kda-fp8 off, fp8-prefill none; any engine-family bias would favour CuteAFD, against the observed difference; on greedy text NLL measures sharpness.",
+   "findings": [
+    "V3-m5-panel-source"
+   ]
+  },
+  {
+   "id": "M6",
+   "question": "Was decode-shaped precision scored?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:300-301 (added check)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "C1: CuteAFD v3.0.1 on Core-FP8"
+    ],
+    "items": "n/a",
+    "unit": "n/a",
+    "n": "0",
+    "repeats": "none (recomputation)",
+    "interval": "none (not run)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md",
+    "SUMMARY.md"
+   ],
+   "status": "done",
+   "headline": "No: only prefill-shaped scoring was run, although tpurtell's CLI has --score-path decode. Precision of the path generated tokens use was not measured in this run.",
+   "findings": [
+    "V3-m6-prefill-only"
+   ]
+  },
+  {
+   "id": "AUDIT-HOLDS",
+   "question": "Do the instruments, numbers, seeds, freeze and Block T arithmetic reproduce?",
+   "added": "check",
+   "added_source": "AUDIT-2026-10-27.md:306-379 (what holds up)",
+   "design": {
+    "instrument": "separate read-only review by a reviewer who did not run the measurements; CPU recomputation from captures, logs and source in network-less containers (recomputation scripts not published)",
+    "arms": [
+     "V1",
+     "V1r",
+     "C1",
+     "C0"
+    ],
+    "items": "scorers, captures, logs, receipts, FROZEN.json hashes",
+    "unit": "check",
+    "n": "n/a",
+    "repeats": "none (recomputation)",
+    "interval": "none (recomputation)"
+   },
+   "files": [],
+   "result_docs": [
+    "AUDIT-2026-10-27.md"
+   ],
+   "status": "done",
+   "headline": "Reported as holding: P-A scorer reproduces the v0.8.0 result 0.0493912; vLLM dumps match its API log-probabilities to max |Δ| 5.7e-6; every RESULTS-Q number traced matches; CuteAFD NLL higher than V1 in 12 of 12 block-B windows; seeds distinct per request; freeze hashes match and vLLM captures began after the freeze; t_summary.py regenerates T-SUMMARY.md byte-identically; streams decoding with under 5% prefill overlap run at the same speed on both engines (45.0 vs 45.6 tok/s etc.). The port-vs-CLI 0-difference check is claimed, not re-run.",
+   "findings": [
+    "V3-audit-reproduce"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "NOT-PUBLISHED.json",
+  "SUMMARY.md",
+  "AUDIT-2026-10-27.md",
+  "q/RESULTS-Q.md"
+ ]
+}

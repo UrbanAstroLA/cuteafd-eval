@@ -1,0 +1,448 @@
+[
+ {
+  "id": "c01",
+  "where": "thinking.html; earlier thinking-length findings",
+  "said": "neither thinking length nor stop decision changes with the core, on 41 questions and both engines",
+  "now": "The stop decision was measured on both engines (11 + 30 questions on the vLLM fork, 41 on CuteAFD) and not detected to change. Free-generation thinking length on science questions was measured on one question, on the vLLM fork only, and the reading is inconclusive.",
+  "findings": [
+   "TL-stop-core",
+   "NQ-core-stop-vllm",
+   "NQ-core-stop-cuteafd-pooled",
+   "TL-g4-primary"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c02",
+  "where": "code-thinking CT-RESULT.md; new-questions PROTOCOL.md",
+  "said": "science-question free generation showed no core (length) difference",
+  "now": "Same as above: only the stop decision was measured on CuteAFD; free generation was one question on the vLLM fork, inconclusive.",
+  "findings": [
+   "CS-stop-core",
+   "TL-g4-primary"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c03",
+  "where": "v5.html (distance from BF16); v5 RESULTS.md section 10",
+  "said": "the teacher panel can favour the experts the three probe arms carry",
+  "now": "The panel comes from the evidence set of brandonmusic's K4. The probe arms carry K4-Core-K6's experts, calibrated on another panel, so the panel can favour K4, not the probe arms.",
+  "findings": [
+   "CP-panel-tilt",
+   "K4-pa-provenance"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c04",
+  "where": "v5.html, ledger at long context",
+  "said": "answer: Open",
+  "now": "At four passes compact − anchor on ledger at 64K and 127K is not detected; the two-pass lead did not hold.",
+  "findings": [
+   "CP-fourpass-ledger",
+   "CP-ledger-long-context"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c05",
+  "where": "v5.html, endings",
+  "said": "every unfinished join reply of the run is at 127K",
+  "now": "True for the first four configurations; K3.25-Core-FP8 also has unfinished join replies at 64K.",
+  "findings": [
+   "CP-fourpass-endings",
+   "CP-k325-endings"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c06",
+  "where": "v5.html, ledger interval",
+  "said": "two values for one interval in two sections",
+  "now": "The same data resampled with two seeds; the site now cites one and names its seed.",
+  "findings": [
+   "CP-ledger-long-context"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c07",
+  "where": "README.md; v3.0.1 SUMMARY.md",
+  "said": "BF16 head: no change",
+  "now": "A resolved, very small change: −0.0003 [−0.0004, −0.0001] in long-code KL.",
+  "findings": [
+   "V3-f1-head"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c08",
+  "where": "v3.0.1 RESULTS-Q.md",
+  "said": "C1 and C0 indistinguishable; the projection source does not matter",
+  "now": "Not detected, with its bound: −0.0003 [−0.0019, +0.0014] in KL.",
+  "findings": [
+   "V3-c0-projection"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c09",
+  "where": "v3.0.1 README.md",
+  "said": "the audit's loop reading (code restated from the reasoning) applies to both engines",
+  "now": "The audit checked the vLLM fork's replies only; CuteAFD's flagged replies share the pattern in the published data, but their copy share was not published.",
+  "findings": [
+   "V3-u5-vllm-code",
+   "V3-l-loopflags"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c10",
+  "where": "v3.0.1 speed caveats, drift results, audit",
+  "said": "speed noise stated as ±4-8%, ±13% and two aggregate ranges",
+  "now": "One statement per measure, each from its own file: re-run noise 0.96-1.08 in decode, drift up to 0.931-1.126, and the aggregate range at 32K-128K over all 12 cells or the 8 with 4-16 streams.",
+  "findings": [
+   "V3-m1-noise",
+   "V3-drift",
+   "V3-t-aggregate"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c11",
+  "where": "v3.0.1 FOLLOWUPS.md",
+  "said": "launch-to-launch spread reported beside within-launch spread",
+  "now": "Published only as a combined per-row range across three runs.",
+  "findings": [
+   "V3-f3-vspread"
+  ],
+  "kind": "file note"
+ },
+ {
+  "id": "c12",
+  "where": "v3.0.1 PROTOCOL.md principle 6",
+  "said": "a CuteAFD-vLLM-CuteAFD drift control inside Block T",
+  "now": "Not carried out; replaced by a later drift repeat on each engine.",
+  "findings": [
+   "V3-drift"
+  ],
+  "kind": "file note"
+ },
+ {
+  "id": "c13",
+  "where": "v3.0.1 audit and caveats",
+  "said": "no code or JSON reply left the reasoning",
+  "now": "One CuteAFD code reply reached the answer; every other ended inside the reasoning.",
+  "findings": [
+   "V3-m2-labels"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c14",
+  "where": "v3.0.1 audit",
+  "said": "single-stream speedups 1.16-1.41x on code, JSON and reasoning prompts",
+  "now": "The cells range from 1.10 to 1.41.",
+  "findings": [
+   "V3-t-decode-single"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c15",
+  "where": "v3.0.1 README.md",
+  "said": "long-prefill rates 4,400-4,500 against 3,700-3,900 tok/s",
+  "now": "4,252-4,516 against 3,737-3,969 over the 4-16-stream cells; the narrower range fits the one-stream cells only.",
+  "findings": [
+   "V3-t-aggregate"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c16",
+  "where": "e1-router-route README.md",
+  "said": "64,000 rows per comparison",
+  "now": "The skinny 160-vs-100 comparison has 40,000 rows.",
+  "findings": [
+   "E1-within-route"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c17",
+  "where": "e1-router-route README.md",
+  "said": "the two changed rows are near-ties",
+  "now": "No score margins were stored, so this cannot be checked.",
+  "findings": [
+   "E1-fp64"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c18",
+  "where": "setup-checks FP8 log",
+  "said": "codes = 1.0000",
+  "now": "99.99998% of codes match; 132 of 179 tensors have at least one differing code.",
+  "findings": [
+   "SC-fp8-recipe"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c19",
+  "where": "vllm-startup-cache",
+  "said": "cold and warm starts read as a pair",
+  "now": "The start without kept caches ran about 7 hours before the others.",
+  "findings": [
+   "SU-ready"
+  ],
+  "kind": "file note"
+ },
+ {
+  "id": "c20",
+  "where": "K4 README.md",
+  "said": "terminal-loop counts per engine",
+  "now": "Under the audit's loop rule there are 0 loops; the flags are code copied from the reasoning.",
+  "findings": [
+   "K4-l-u5-loops"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c21",
+  "where": "K4 README.md",
+  "said": "F1-K4 speed pooled over code and prose",
+  "now": "The corrected table separates code and prose.",
+  "findings": [
+   "K4-f1-speed"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c22",
+  "where": "K4 RESULTS-K4e.md",
+  "said": "W8A16 + amax matches or exceeds as shipped",
+  "now": "The counts: JSON valid 3 and 6 of 8, 32K-cap code passing 5 and 2 of 8.",
+  "findings": [
+   "K4-e-long-output"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c23",
+  "where": "K4 follow-ups",
+  "said": "a 9,472-token head16 shortfall assigned to two different launches",
+  "now": "No launch log is published; the finding gives the shortfall without assigning it.",
+  "findings": [
+   "K4-b-fit"
+  ],
+  "kind": "file note"
+ },
+ {
+  "id": "c24",
+  "where": "v4.html; v4 SUMMARY.json",
+  "said": "speed noise band ±8%",
+  "now": "On K3.25 the band applied was 8.85% (the vLLM fork's drift); on K4 8%.",
+  "findings": [
+   "V4-speed-k325-cells",
+   "V4-speed-k4-cells"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c25",
+  "where": "v4.html; v4 RUN.json",
+  "said": "v4.0.0 against v3.0.1: same day",
+  "now": "Only the top-20 rows are same-day; the K3.25 full-vocabulary pair and the text comparison use earlier captures.",
+  "findings": [
+   "V4-v3-identity",
+   "V4-v3-text"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c26",
+  "where": "v4 SUMMARY.json vs K4 README.md",
+  "said": "K4 vLLM fidelity-set KL 0.0315 and +0.0045, against 0.0305 and +0.0053",
+  "now": "Both are right for different vLLM launches: the v4 run's own two launches, and the K4 run's two launches a few days earlier.",
+  "findings": [
+   "V4-top20-engine-k4-pb",
+   "K4-pb-generated"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c27",
+  "where": "v4 SUMMARY.json",
+  "said": "K4 / K3.25 fidelity-set ratio on the vLLM fork 0.69",
+  "now": "The inputs are from another capture, not this run's own levels.",
+  "findings": [
+   "V4-top20-ratio"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c28",
+  "where": "v4 RESULTS",
+  "said": "the v3.0.1 one-lane check ran on the JSON replies",
+  "now": "It ran on the fidelity set's 64 windows; its receipts are not published.",
+  "findings": [
+   "V4-v3-cause"
+  ],
+  "kind": "file note"
+ },
+ {
+  "id": "c29",
+  "where": "running.html; v4 pages",
+  "said": "CuteAFD v3.0.1's K4 KV pool 447,488 tokens",
+  "now": "Measured with a desktop's graphics context on one GPU.",
+  "findings": [
+   "V4-kv-pool-v3"
+  ],
+  "kind": "file note"
+ },
+ {
+  "id": "c30",
+  "where": "thinking-length AMENDMENT-1.md",
+  "said": "question 12 sd 0.17; 8 or 4-6 samples per question",
+  "now": "0.19 as a sample sd (0.17 is the population sd); 6 samples per question were made.",
+  "findings": [
+   "TL-g1b-spread"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c31",
+  "where": "thinking-length G0 and G2 results",
+  "said": "84 probe traces (G0) and 52 (G2)",
+  "now": "Both counts are right; how the 52 were selected is not documented.",
+  "findings": [
+   "TL-g0-checks"
+  ],
+  "kind": "file note"
+ },
+ {
+  "id": "c32",
+  "where": "new-questions NQ-RESULT.md",
+  "said": "the hazard did not change",
+  "now": "Both hazard intervals exclude 0: small resolved shifts in a secondary measure.",
+  "findings": [
+   "NQ-hazard-vllm-core",
+   "NQ-hazard-cuteafd-core"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c33",
+  "where": "attn-position QBO-RESULT.md",
+  "said": "hazard: no change",
+  "now": "Not detected, with its bound.",
+  "findings": [
+   "AP-qbo-hazard"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c34",
+  "where": "attn-position NOTE.md; NQ-RESULT.md",
+  "said": "last-512 shift −0.116",
+  "now": "−0.115 from the published file.",
+  "findings": [
+   "AP-last512-vllm"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c35",
+  "where": "thinking-length G2 result",
+  "said": "mla_q_b flagged",
+  "now": "With the bootstrap clustered by question the interval includes 0; kda_o's then excludes 0.",
+  "findings": [
+   "AP-g2-mla-q-b-clustered",
+   "AP-g2-o-proj-clustered"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c36",
+  "where": "core-swap PROTOCOL.md",
+  "said": "4 prompts per content",
+  "now": "3 for JSON in the long-output read; 4 for the others.",
+  "findings": [
+   "CS-blockl-json-math"
+  ],
+  "kind": "number"
+ },
+ {
+  "id": "c37",
+  "where": "core-swap S2-READ.md",
+  "said": "the reasoning prompts are the science-question content; no length difference",
+  "now": "They are math problems, and the ratio quoted is the whole-checkpoint ratio, not the core contrast.",
+  "findings": [
+   "CS-blockl-json-math"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c38",
+  "where": "core-swap S1-READ.md",
+  "said": "the difference goes with the 6-bit core",
+  "now": "The other arm also runs CuteAFD's FP8 KDA, head and prefill; the KDA setting accounts for most of the code gap.",
+  "findings": [
+   "CS-s1-core",
+   "FA-kda-step"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c39",
+  "where": "code-thinking CT-RESULT.md",
+  "said": "the extra thinking does not buy or cost correctness",
+  "now": "Not detected, with its bound: +1.6 points [−7.8, +10.9].",
+  "findings": [
+   "FA-pass-ck6-ck6x"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c40",
+  "where": "vllm-code-thinking VCT-RESULT.md",
+  "said": "weight values do not change length",
+  "now": "Not detected, with its bound: 1.00 [0.96, 1.04].",
+  "findings": [
+   "VC-core-code"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c41",
+  "where": "fp8-ablation FA-RESULT.md",
+  "said": "FP8 MLA shows no shortening",
+  "now": "MLA was never switched; not measured.",
+  "findings": [
+   "FA-where"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c42",
+  "where": "tool-calling run",
+  "said": "the engines compared on the same checkpoints",
+  "now": "On K3.25 each engine ran its own variant (v1 on the vLLM fork, Core-FP8 on CuteAFD).",
+  "findings": [
+   "TC-engines-k325"
+  ],
+  "kind": "overreach"
+ },
+ {
+  "id": "c43",
+  "where": "tool-calling PROTOCOL.md",
+  "said": "engine contrasts only",
+  "now": "The analysis also computes a checkpoint contrast; it is exploratory.",
+  "findings": [
+   "TC-core-k6-vs-k4"
+  ],
+  "kind": "file note"
+ }
+]

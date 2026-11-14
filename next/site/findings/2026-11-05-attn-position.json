@@ -1,0 +1,1253 @@
+[
+ {
+  "id": "AP-kl-slope-vllm",
+  "run": "2026-11-05-attn-position",
+  "goal": "M1",
+  "question": "On the vLLM fork's G2 dumps, does any core group's top-64 KL to the 6-bit core grow with position along the fixed science-question traces?",
+  "statement": "Exploratory (criteria written before computing): the per-trace slope of top-64 KL on log2(position) is below 0 for every swap arm except lm_head, e.g. whole core −0.019 [−0.055, −0.0008], mla_q_b −0.020 [−0.054, −0.0006], mla_o −0.011 [−0.030, −0.0007]. The second 6-bit launch gives +0.0004 [−0.0000, +0.0007] and lm_head +0.0003 [−0.0001, +0.0007].",
+  "class": "difference",
+  "status": "exploratory",
+  "quantity": "mean over traces of the OLS slope of per-row top-64 KL(k6, arm) on log2(position), nats/token per doubling",
+  "sign": "above 0 = the arm's divergence from the 6-bit core grows along the trace",
+  "unit": "trace (slope); question (cluster)",
+  "n": "93 traces, 11 questions; one launch per arm",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/position.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release (thinking-length G2 dumps)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load; swap arms load core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 9,
+   "note": "vLLM M1 slopes: whole core, k6r2 and 9 groups; all below 0 except k6r2 and lm_head, whose intervals include 0"
+  },
+  "replication": "the qbo launches show the same slope: AP-qbo-position",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/all/m1_slope_kl_per_log2pos",
+    "what": "vllm all m1_slope_kl_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.0190137314246047,
+     -0.055369939708602975,
+     -0.0008208245331857868
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_q_b/m1_slope_kl_per_log2pos",
+    "what": "vllm mla_q_b m1_slope_kl_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.02046922151844166,
+     -0.05429315191618057,
+     -0.0005891488276344573
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_o/m1_slope_kl_per_log2pos",
+    "what": "vllm mla_o m1_slope_kl_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.011436062379934794,
+     -0.02961177624158824,
+     -0.0007061333867614461
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/k6r2/m1_slope_kl_per_log2pos",
+    "what": "vllm k6r2 m1_slope_kl_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.00035704223925752017,
+     -9.122199667176157e-07,
+     0.0007149631472593085
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/lm_head/m1_slope_kl_per_log2pos",
+    "what": "vllm lm_head m1_slope_kl_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.00028967195492946176,
+     -0.00012775932813837817,
+     0.0007188730251321217
+    ]
+   }
+  ]
+ },
+ {
+  "id": "AP-kl-bins",
+  "run": "2026-11-05-attn-position",
+  "goal": "M1",
+  "question": "How does top-64 KL to the 6-bit core vary by position band on the fixed science-question traces?",
+  "statement": "Pooled top-64 KL between the whole-core BF16 arm and k6 (vLLM fork) by position: 0.0103 in rows 0-1K, 0.0060 at 1K-4K, 0.0062 at 4K-16K, 0.0068 at 16K-64K and 0.0040 beyond 64K; between two 6-bit launches 0.0000, 0.0021, 0.0048, 0.0050 and 0.0033. On CuteAFD, core (C-K6x vs C-K6): 0.0162, 0.0110, 0.0110, 0.0120 and 0.0072.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "mean top-64 KL over rows in each position band, nats/token",
+  "sign": "n/a (a distance)",
+  "unit": "trace row",
+  "n": "93 traces; rows per band 2,660 / 9,401 / 20,557 / 51,016 / 10,036",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release (thinking-length G2 dumps); CuteAFD v4.0.0, unmodified (stored core-swap step 2 dumps)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load; swap arms load core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load; C-K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/all/m1_kl_by_bin",
+    "what": "vLLM whole core: band -> [KL, rows]",
+    "value": {
+     "0-1024": [
+      0.010315636435578021,
+      2660
+     ],
+     "1024-4096": [
+      0.0059865703855195,
+      9401
+     ],
+     "4096-16384": [
+      0.006247173843917265,
+      20557
+     ],
+     "16384-65536": [
+      0.00676763988575799,
+      51016
+     ],
+     "65536-1073741824": [
+      0.004032539573849306,
+      10036
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/k6r2/m1_kl_by_bin",
+    "what": "vLLM second 6-bit launch: band -> [KL, rows]",
+    "value": {
+     "0-1024": [
+      0.0,
+      2660
+     ],
+     "1024-4096": [
+      0.0021473120289648207,
+      9401
+     ],
+     "4096-16384": [
+      0.0047537439653455565,
+      20557
+     ],
+     "16384-65536": [
+      0.00497974283388345,
+      51016
+     ],
+     "65536-1073741824": [
+      0.0032512846671683927,
+      10036
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/core/m1_kl_by_bin",
+    "what": "CuteAFD core: band -> [KL, rows]",
+    "value": {
+     "0-1024": [
+      0.016160462215725806,
+      2660
+     ],
+     "1024-4096": [
+      0.010984509231307343,
+      9401
+     ],
+     "4096-16384": [
+      0.01100490597121096,
+      20557
+     ],
+     "16384-65536": [
+      0.012041254589061528,
+      51016
+     ],
+     "65536-1073741824": [
+      0.007215051044879795,
+      10036
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "AP-kl-slope-cuteafd",
+  "run": "2026-11-05-attn-position",
+  "goal": "M1",
+  "question": "On CuteAFD v4.0.0's stored dumps, does the core's or the routed experts' top-64 KL grow with position along the fixed science-question traces?",
+  "statement": "Exploratory: slope of top-64 KL on log2(position), core (C-K6x vs C-K6) −0.019 [−0.053, −0.0014] and experts (C-K4 vs C-K6x) −0.037 [−0.099, −0.0036]; core minus experts +0.019 [+0.002, +0.047], i.e. the core's divergence falls less with position than the experts'.",
+  "class": "difference",
+  "status": "exploratory",
+  "quantity": "mean over traces of the OLS slope of per-row top-64 KL on log2(position), nats/token per doubling",
+  "sign": "above 0 = divergence grows along the trace",
+  "unit": "trace (slope); question (cluster)",
+  "n": "93 traces, 11 questions; bit-identical launches",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/position.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified (stored core-swap step 2 dumps)",
+   "checkpoint": "C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load; C-K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 3,
+   "note": "CuteAFD M1: core, experts, launch (identically 0) and core minus experts"
+  },
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/core/m1_slope_kl_per_log2pos",
+    "what": "cuteafd core m1_slope_kl_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.01853498089796889,
+     -0.053423795162066814,
+     -0.0013901241145987345
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/experts/m1_slope_kl_per_log2pos",
+    "what": "cuteafd experts m1_slope_kl_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.037488001968372375,
+     -0.09931405922750833,
+     -0.003620093625831018
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/core/m1_slope_minus_experts",
+    "what": "cuteafd core m1_slope_minus_experts [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.018953021070403496,
+     0.0020619304320866213,
+     0.047170179798984656
+    ]
+   }
+  ]
+ },
+ {
+  "id": "AP-lp-close-slope",
+  "run": "2026-11-05-attn-position",
+  "goal": "M2",
+  "question": "Does the stop-decision difference (BF16 side minus 6-bit side, log p(</think>) at the close) grow with trace length, for any group on the vLLM fork or for the core on CuteAFD?",
+  "statement": "Exploratory: slope of the lp_close difference on log2(close position) is mla_q_b −0.003 [−0.010, +0.002], mla_o −0.007 [−0.024, +0.002] and whole core +0.001 [−0.005, +0.007] on the vLLM fork, and core −0.003 [−0.026, +0.015] on CuteAFD; none of the 11 vLLM or 3 CuteAFD intervals excludes 0.",
+  "class": "not detected",
+  "status": "exploratory",
+  "quantity": "slope of delta lp_close (BF16 side - 6-bit side) on log2(close position), per doubling",
+  "sign": "above 0 = the BF16 side is more ready to stop on longer traces",
+  "unit": "finished trace; question (cluster)",
+  "n": "77 finished traces, 11 questions",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/position.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release (thinking-length G2 dumps); CuteAFD v4.0.0, unmodified (stored core-swap step 2 dumps)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load; swap arms load core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load; C-K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 14,
+   "excluding_0": 0,
+   "note": "11 vLLM arms (whole core, k6r2, 9 groups) and 3 CuteAFD contrasts (core, experts, launch identically 0)"
+  },
+  "replication": "for the combined qbo arm: AP-qbo-position",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_q_b/m2_lp_close_slope_per_log2pos",
+    "what": "vllm mla_q_b m2_lp_close_slope_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.0028879327649184686,
+     -0.010032085315786435,
+     0.0024229514122699127
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_o/m2_lp_close_slope_per_log2pos",
+    "what": "vllm mla_o m2_lp_close_slope_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.007156357632120002,
+     -0.023571212737815893,
+     0.0016258543219859873
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/all/m2_lp_close_slope_per_log2pos",
+    "what": "vllm all m2_lp_close_slope_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.0013066748309100839,
+     -0.004503497385032837,
+     0.006574875478276992
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/core/m2_lp_close_slope_per_log2pos",
+    "what": "cuteafd core m2_lp_close_slope_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.002906152890116346,
+     -0.02636838102822755,
+     0.015468321353993656
+    ]
+   }
+  ],
+  "bound": "slopes from −0.024 (mla_o) to +0.007 (whole core, vLLM) and +0.015 (core, CuteAFD) per doubling of close position are not excluded"
+ },
+ {
+  "id": "AP-g2-mla-q-b-clustered",
+  "run": "2026-11-05-attn-position",
+  "goal": "M2",
+  "question": "With the bootstrap clustered by question instead of over traces, does the G2 screen's mla_q_b stop-decision flag hold on the same vLLM dumps?",
+  "statement": "Exploratory re-estimate of a G2 quantity: mla_q_b − k6 in log p(</think>) at the close is +0.014 [−0.001, +0.027] clustered by 11 questions, an interval that includes 0 (over traces in G2: [+0.002, +0.026]).",
+  "class": "not detected",
+  "status": "exploratory",
+  "quantity": "log p(</think>) at the close, mla_q_b - k6, mean over finished traces",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions; one launch per arm",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/position.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release (thinking-length G2 dumps)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load; swap arms load core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 2,
+   "note": "lp_close deltas clustered by question, vLLM: whole core, k6r2 and 9 groups; mla_o and kda_o exclude 0"
+  },
+  "replication": "same delta over traces: TL-stop-mla-q-b",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_q_b/m2_lp_close_delta",
+    "what": "vllm mla_q_b m2_lp_close_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.013796600919527186,
+     -0.0013956119039154572,
+     0.02701392823479768
+    ]
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/mla_q_b/lp_close/ci95",
+    "what": "G2, over traces",
+    "value": [
+     0.0021131179466099092,
+     0.025860468275959055
+    ]
+   }
+  ],
+  "bound": "a change from −0.001 to +0.027 in log p(</think>) at the close is not excluded"
+ },
+ {
+  "id": "AP-g2-o-proj-clustered",
+  "run": "2026-11-05-attn-position",
+  "goal": "M2",
+  "question": "With the bootstrap clustered by question, do the output-projection groups' stop-decision deltas of the G2 screen exclude 0 on the same vLLM dumps?",
+  "statement": "Exploratory re-estimate of G2 quantities, clustered by 11 questions: mla_o − k6 +0.017 [+0.005, +0.033] and kda_o − k6 +0.009 [+0.002, +0.015] in log p(</think>) at the close; kda_o's interval over traces in G2 was [−0.001, +0.020].",
+  "class": "difference",
+  "status": "exploratory",
+  "quantity": "log p(</think>) at the close, group arm - k6, mean over finished traces",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions; one launch per arm",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/position.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release (thinking-length G2 dumps)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load; swap arms load core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 2,
+   "note": "lp_close deltas clustered by question, vLLM: whole core, k6r2 and 9 groups; mla_o and kda_o exclude 0"
+  },
+  "replication": "over traces: TL-stop-mla-o; the three output/q_b groups combined: AP-qbo, which failed to replicate on new questions (NQ-qbo-primary)",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/mla_o/m2_lp_close_delta",
+    "what": "vllm mla_o m2_lp_close_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.01681828331304321,
+     0.005103806343718402,
+     0.03270863129948861
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/kda_o/m2_lp_close_delta",
+    "what": "vllm kda_o m2_lp_close_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.009014076049117956,
+     0.0017368130775348618,
+     0.015468397081756851
+    ]
+   },
+   {
+    "file": "results/2026-11-02-thinking-length/SUMMARY.json",
+    "pointer": "/g2/contrasts_vs_k6/kda_o/lp_close/ci95",
+    "what": "G2 kda_o, over traces",
+    "value": [
+     -0.0013639331461573337,
+     0.01999378359997925
+    ]
+   }
+  ]
+ },
+ {
+  "id": "AP-last512-cuteafd",
+  "run": "2026-11-05-attn-position",
+  "goal": "LEAD",
+  "question": "On CuteAFD v4.0.0's stored dumps, does the core change mean log p(</think>) over the last 512 rows before the close, and does that difference grow with position?",
+  "statement": "Exploratory (named before computing, not a frozen measure): core, BF16-core side − 6-bit, +0.057 [+0.011, +0.104] in mean log p(</think>) over the last 512 rows, slope +0.033 per doubling of position [+0.020, +0.046]; the routed experts' slope is −0.038 [−0.056, −0.015].",
+  "class": "difference",
+  "status": "exploratory",
+  "quantity": "mean log p(</think>) over the 512 rows before the close, BF16-core side - 6-bit side; its slope on log2(position)",
+  "sign": "above 0 = the BF16-core side puts more log-probability on </think> on the approach to the close",
+  "unit": "finished trace; question (cluster)",
+  "n": "77 finished traces, 11 questions; bit-identical launches",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/position.py)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified (stored core-swap step 2 dumps)",
+   "checkpoint": "C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core); C-K6x: derived BF16-core checkpoint @ 049c0180 (local, not a producer release), core converted to FP8 at load; C-K4: brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 1,
+   "note": "CuteAFD last-512 deltas: core, experts, launch (identically 0); slopes: core and experts exclude 0"
+  },
+  "replication": "same sign on 30 new questions: NQ-last512-core-cuteafd; the arm planned to locate it (C-K6A) was refused at load",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/core/m2_last512_logp_delta",
+    "what": "cuteafd core m2_last512_logp_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.05718363506558445,
+     0.010534277247039554,
+     0.10434966470688133
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/core/m2_last512_slope_per_log2pos",
+    "what": "cuteafd core m2_last512_slope_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.033350775333595165,
+     0.019681401039988784,
+     0.04562578441675454
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/cuteafd/experts/m2_last512_slope_per_log2pos",
+    "what": "cuteafd experts m2_last512_slope_per_log2pos [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.03782879086203759,
+     -0.05590656974551556,
+     -0.014700727585134212
+    ]
+   }
+  ]
+ },
+ {
+  "id": "AP-last512-vllm",
+  "run": "2026-11-05-attn-position",
+  "goal": "LEAD",
+  "question": "On the vLLM fork's G2 dumps, does the whole-core swap (or any group) change mean log p(</think>) over the last 512 rows before the close?",
+  "statement": "Exploratory: on the vLLM fork the same measure goes the other way, whole core −0.115 [−0.148, −0.092], lm_head alone −0.069 [−0.094, −0.050] and shared_down −0.031 [−0.066, −0.001]; the second 6-bit launch gives −0.009 [−0.024, +0.004].",
+  "class": "difference",
+  "status": "exploratory",
+  "quantity": "mean log p(</think>) over the 512 rows before the close, arm - k6",
+  "sign": "above 0 = the arm puts more log-probability on </think> on the approach to the close",
+  "unit": "finished trace; question (cluster)",
+  "n": "77 finished traces, 11 questions; one launch per arm",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/position.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release (thinking-length G2 dumps)",
+   "checkpoint": "K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), 6-bit core rebuilt to BF16 at load; swap arms load core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (vLLM-generated; 77 finished, 16 not finished; 11 questions); existing dumps, no new requests",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 11,
+   "excluding_0": 3,
+   "note": "vLLM last-512 deltas: whole core, k6r2 and 9 groups; whole core, lm_head and shared_down exclude 0"
+  },
+  "replication": "same sign on 30 new questions: NQ-last512-core-vllm",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/all/m2_last512_logp_delta",
+    "what": "vllm all m2_last512_logp_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.11548554006173567,
+     -0.1478636863981973,
+     -0.09210811522254661
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/lm_head/m2_last512_logp_delta",
+    "what": "vllm lm_head m2_last512_logp_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.06927177666436465,
+     -0.09359164332844967,
+     -0.04978418879785248
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/shared_down/m2_last512_logp_delta",
+    "what": "vllm shared_down m2_last512_logp_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.031206776384889324,
+     -0.06600564702994871,
+     -0.0012488064362179325
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSITION.json",
+    "pointer": "/vllm/k6r2/m2_last512_logp_delta",
+    "what": "vllm k6r2 m2_last512_logp_delta [estimate, 2.5%, 97.5%]",
+    "value": [
+     -0.008543944498070503,
+     -0.024415093961818384,
+     0.004248457166471858
+    ]
+   }
+  ]
+ },
+ {
+  "id": "AP-cuteafd-cross-day",
+  "run": "2026-11-05-attn-position",
+  "goal": "RECHECK",
+  "question": "Is a fresh C-K6 launch on CuteAFD v4.0.0, two days later, bit-identical to the stored core-swap step 2 dumps?",
+  "statement": "A C-K6 launch on 2026-11-05 scored the 10 longest fixed traces bit-identically to the dumps of 2026-11-03: 10 of 10 traces and 18,286 of 18,286 rows.",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "per-row logits hash, new launch against stored dumps",
+  "sign": "n/a",
+  "unit": "row",
+  "n": "18,286 rows on 10 traces",
+  "interval": "none (exact comparison)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified",
+   "checkpoint": "C-K6: K4-Core-K6 @ 5d3fffe1 (native 6-bit core)",
+   "items": "the 10 longest of the 93 fixed science-question traces",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "same-day launch identity: 2026-11-03-cuteafd-core-swap/S2-ID",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/SUMMARY.json",
+    "pointer": "/cuteafd_cross_day_recheck",
+    "what": "cross-day recheck",
+    "value": {
+     "source": "analysis/S2-IDENTITY-CHECK.json",
+     "traces": 10,
+     "traces_bit_identical": 10,
+     "rows": 18286,
+     "rows_bit_identical": 18286,
+     "differing_traces": []
+    }
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/S2-IDENTITY-CHECK.json",
+    "what": "identity check output"
+   }
+  ],
+  "replaces": [
+   "TL-identity"
+  ]
+ },
+ {
+  "id": "AP-qbo",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO",
+  "question": "On the vLLM fork with route b, does loading mla_q_b, mla_o and kda_o as BF16 together (rest of the core 6-bit) move log p(</think>) at the close against K4-Core-K6 on the 11 questions where the single-group flags were seen?",
+  "statement": "qbo − k6 (launch means): +0.0118 [+0.0047, +0.0205] clustered by question, +0.0118 [+0.0009, +0.0225] over 77 traces; within-arm launch differences −0.0018 (k6) and −0.0007 (qbo), the four cross-launch pairings +0.0106 to +0.0131, so the rule frozen before the launch reads it as supported. The arm tests a lead chosen after reading the G2 screen (2 flagged groups of 27 tests) on the same 11 questions, so it is a post hoc lead tested on its own data; on 30 new questions it did not replicate.",
+  "class": "difference",
+  "status": "follow-up",
+  "quantity": "log p(</think>) at the close, qbo - k6, launch means (two launches each), mean over finished traces",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster); trace (secondary)",
+  "n": "77 finished traces, 11 questions; 4 launches interleaved (k6-a, qbo-a, k6-b, qbo-b)",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/analyze_qbo.py with position.py's definitions); secondary over traces",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (77 finished, 16 not finished; 11 questions), new captures on 4 interleaved launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 1,
+   "excluding_0": 1,
+   "note": "the frozen primary of this arm; the lead came from a 27-test screen (TL-stop-mla-q-b, TL-stop-mla-o)"
+  },
+  "replication": "failed to replicate in NQ-qbo-primary (30 new questions); pooled over 41 questions: NQ-qbo-pooled",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/lp_close/delta_by_question",
+    "what": "clustered by question",
+    "value": [
+     0.01181993296816106,
+     0.004655912031787028,
+     0.020462506309187528
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/lp_close/delta_by_trace",
+    "what": "over traces",
+    "value": [
+     0.01181993296816106,
+     0.0008923567405270355,
+     0.022480148185976823
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/lp_close/launch_k6_b_minus_a",
+    "what": "k6-b - k6-a",
+    "value": [
+     -0.0018422852112312935,
+     -0.01092506156323966,
+     0.006964331908895535
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/lp_close/launch_qbo_b_minus_a",
+    "what": "qbo-b - qbo-a",
+    "value": [
+     -0.0006849739316725414,
+     -0.011353480925350453,
+     0.009927707293375873
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/lp_close/cross_pairings",
+    "what": "four cross-launch pairings",
+    "value": {
+     "qbo-a-k6-a": [
+      0.011241277328381684,
+      -0.0020797033335201104,
+      0.0255173567613501
+     ],
+     "qbo-a-k6-b": [
+      0.013083562539612978,
+      -0.0005661671616567159,
+      0.027079213910604135
+     ],
+     "qbo-b-k6-a": [
+      0.010556303396709142,
+      -0.0019324719586207224,
+      0.022763350789940073
+     ],
+     "qbo-b-k6-b": [
+      0.012398588607940436,
+      0.001098188622178553,
+      0.023852750774256172
+     ]
+    }
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/reading_rule",
+    "what": "frozen rule fields",
+    "value": {
+     "ci_excludes_0_positive": true,
+     "exceeds_launch_band": true,
+     "launch_band": 0.0018422852112312935,
+     "all_cross_pairings_positive": true,
+     "supported": true
+    }
+   }
+  ],
+  "replaces": [
+   "TL-qbo"
+  ]
+ },
+ {
+  "id": "AP-qbo-hazard",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-SEC",
+  "question": "Does the qbo arm change the pre-close hazard (mean p(</think>) over the 512 rows before the close) on the 11 questions? (The result document reads it as 'no change'.)",
+  "statement": "qbo − k6 hazard +0.0000019 [−0.0000088, +0.0000090] clustered by question; the interval includes 0.",
+  "class": "not detected",
+  "status": "follow-up",
+  "quantity": "mean p(</think>) over the 512 rows before the close, qbo - k6, launch means",
+  "sign": "above 0 = qbo puts more probability on </think> just before the close",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions; 4 launches",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/analyze_qbo.py with position.py's definitions); secondary over traces",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (77 finished, 16 not finished; 11 questions), new captures on 4 interleaved launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 0,
+   "note": "secondaries of the qbo arm: hazard and last-512 mean log p"
+  },
+  "replication": "30 new questions: NQ-hazard-qbo",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/hazard/delta_by_question",
+    "what": "qbo - k6 hazard, clustered",
+    "value": [
+     1.8682368994598507e-06,
+     -8.821085149680849e-06,
+     9.007876374269783e-06
+    ]
+   }
+  ],
+  "bound": "a hazard change from −0.0000088 to +0.0000090 is not excluded"
+ },
+ {
+  "id": "AP-qbo-last512",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-SEC",
+  "question": "Does the qbo arm change mean log p(</think>) over the last 512 rows before the close on the 11 questions?",
+  "statement": "qbo − k6: +0.008 [−0.012, +0.028] in mean log p(</think>) over the last 512 rows, clustered by question; the interval includes 0.",
+  "class": "not detected",
+  "status": "follow-up",
+  "quantity": "mean log p(</think>) over the 512 rows before the close, qbo - k6, launch means",
+  "sign": "above 0 = qbo puts more log-probability on </think> on the approach to the close",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions; 4 launches",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (analysis/analyze_qbo.py with position.py's definitions); secondary over traces",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (77 finished, 16 not finished; 11 questions), new captures on 4 interleaved launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 0,
+   "note": "secondaries of the qbo arm: hazard and last-512 mean log p"
+  },
+  "replication": "30 new questions: NQ-last512-qbo",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/last512_logp/delta_by_question",
+    "what": "qbo - k6 last-512, clustered",
+    "value": [
+     0.007839336662683943,
+     -0.011750958072252465,
+     0.028033868222040806
+    ]
+   }
+  ],
+  "bound": "a change from −0.012 to +0.028 is not excluded"
+ },
+ {
+  "id": "AP-qbo-position",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-SEC",
+  "question": "Do the qbo arm's divergence and stop-decision differences grow with position?",
+  "statement": "Across the four qbo − k6 launch pairings: slope of top-64 KL on log2(position) −0.021 to −0.022 per doubling (k6-b against k6-a +0.0002), lp_close delta slopes −0.003 to +0.001 (every interval includes 0) and last-512 slopes −0.004 to −0.008.",
+  "class": "descriptive",
+  "status": "follow-up",
+  "quantity": "per-trace slopes on log2(position): top-64 KL, delta lp_close, delta last-512 mean log p",
+  "sign": "above 0 = grows along the trace",
+  "unit": "trace; question (cluster)",
+  "n": "93 traces (KL), 77 finished, 11 questions",
+  "interval": "none (descriptive summary of four pairings; each pairing has a clustered interval in QBO.json)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit",
+   "items": "the 93 fixed science-question traces of 2026-11-02-thinking-length (77 finished, 16 not finished; 11 questions), new captures on 4 interleaved launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "single groups: AP-kl-slope-vllm, AP-lp-close-slope",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/QBO.json",
+    "pointer": "/position",
+    "what": "slopes per launch pairing",
+    "value": {
+     "qbo-a-k6-a": {
+      "m1_slope_kl_per_log2pos": [
+       -0.021539915544579877,
+       -0.05769569059536747,
+       -0.0005803483085505068
+      ],
+      "m1_kl_mean_per_trace": [
+       0.006566391430063236,
+       0.004602397831109932,
+       0.009418296541459495
+      ],
+      "m2_lp_close_slope_per_log2pos": [
+       -0.0010353595767726277,
+       -0.006448096416272746,
+       0.0035244902490179472
+      ],
+      "m2_last512_slope_per_log2pos": [
+       -0.0038054596510960293,
+       -0.013680918913196014,
+       0.004178604298168347
+      ],
+      "m1_kl_by_bin": {
+       "0-1024": [
+        0.010527360739303968,
+        2660
+       ],
+       "1024-4096": [
+        0.005314619249511771,
+        9401
+       ],
+       "4096-16384": [
+        0.0057673035081123045,
+        20557
+       ],
+       "16384-65536": [
+        0.0058263041588967465,
+        51016
+       ],
+       "65536-1073741824": [
+        0.0034133482068193018,
+        10036
+       ]
+      }
+     },
+     "qbo-a-k6-b": {
+      "m1_slope_kl_per_log2pos": [
+       -0.02149684633764891,
+       -0.05775589324654079,
+       -0.0005120349436366315
+      ],
+      "m1_kl_mean_per_trace": [
+       0.006503610745056139,
+       0.004497218296952567,
+       0.00932629228577029
+      ],
+      "m2_lp_close_slope_per_log2pos": [
+       -0.002707235089842845,
+       -0.009382125988468408,
+       0.002561012253180087
+      ],
+      "m2_last512_slope_per_log2pos": [
+       -0.0036619129004593345,
+       -0.013738708269267649,
+       0.005692029734384099
+      ],
+      "m1_kl_by_bin": {
+       "0-1024": [
+        0.010527360739303968,
+        2660
+       ],
+       "1024-4096": [
+        0.005268515802328567,
+        9401
+       ],
+       "4096-16384": [
+        0.005574380985430477,
+        20557
+       ],
+       "16384-65536": [
+        0.005829071314004421,
+        51016
+       ],
+       "65536-1073741824": [
+        0.003477200382920158,
+        10036
+       ]
+      }
+     },
+     "qbo-b-k6-a": {
+      "m1_slope_kl_per_log2pos": [
+       -0.021531784482451844,
+       -0.05771126460708961,
+       -0.0005221334299131043
+      ],
+      "m1_kl_mean_per_trace": [
+       0.006625482218030463,
+       0.004697863313486303,
+       0.009424308559327955
+      ],
+      "m2_lp_close_slope_per_log2pos": [
+       0.0013952222284117088,
+       -0.002649512145089035,
+       0.007385009819475465
+      ],
+      "m2_last512_slope_per_log2pos": [
+       -0.007813250653091096,
+       -0.01635439018358823,
+       -0.000818804517831089
+      ],
+      "m1_kl_by_bin": {
+       "0-1024": [
+        0.010527360739303968,
+        2660
+       ],
+       "1024-4096": [
+        0.005507769145273918,
+        9401
+       ],
+       "4096-16384": [
+        0.005943370978893226,
+        20557
+       ],
+       "16384-65536": [
+        0.0058542057669786745,
+        51016
+       ],
+       "65536-1073741824": [
+        0.0034413957533181378,
+        10036
+       ]
+      }
+     },
+     "qbo-b-k6-b": {
+      "m1_slope_kl_per_log2pos": [
+       -0.021452657525761008,
+       -0.05770800244423518,
+       -0.0004478007486270115
+      ],
+      "m1_kl_mean_per_trace": [
+       0.006584076800965603,
+       0.004579750474889831,
+       0.009486516878223116
+      ],
+      "m2_lp_close_slope_per_log2pos": [
+       -0.00027665328465850783,
+       -0.005422238055905023,
+       0.005590559467682285
+      ],
+      "m2_last512_slope_per_log2pos": [
+       -0.0076697039024544045,
+       -0.016515360623434228,
+       -0.0002057553757815685
+      ],
+      "m1_kl_by_bin": {
+       "0-1024": [
+        0.010527360739303968,
+        2660
+       ],
+       "1024-4096": [
+        0.005460098936485511,
+        9401
+       ],
+       "4096-16384": [
+        0.005567500845630913,
+        20557
+       ],
+       "16384-65536": [
+        0.00593658518488124,
+        51016
+       ],
+       "65536-1073741824": [
+        0.0034072375526939917,
+        10036
+       ]
+      }
+     },
+     "k6-b-k6-a": {
+      "m1_kl_mean_per_trace": [
+       0.003982573011784563,
+       0.0030622957561154958,
+       0.004980071502148837
+      ],
+      "m1_slope_kl_per_log2pos": [
+       0.00021472583769174895,
+       -0.00022529088827157715,
+       0.0006155891734671927
+      ]
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "AP-qbo-vs-all",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-PH",
+  "question": "Post hoc: does the qbo arm differ from the whole-core BF16 arm in log p(</think>) at the close on the 11 questions?",
+  "statement": "Post hoc: qbo − whole-core BF16 (G2 'all', one launch) +0.0114 [+0.0056, +0.0195] in log p(</think>) at the close, clustered by 11 questions.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, qbo (launch mean) - all (G2, one launch)",
+  "sign": "above 0 = qbo puts more probability on </think> where the trace closed than the whole-core BF16 arm",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (posthoc_qbo_all.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit; G2 arms as in 2026-11-02-thinking-length",
+   "items": "the 77 finished fixed science-question traces of 2026-11-02-thinking-length (11 questions), scored on the G2 and qbo launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 7,
+   "excluding_0": 5,
+   "note": "post hoc: whole core, mla_q_b, mla_o, kda_o, qbo-a, qbo-b against the mean of four 6-bit launches, and qbo - whole core; whole core and mla_q_b include 0"
+  },
+  "replication": "failed to replicate in NQ-qbo-vs-all (stated secondary on 30 new questions)",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/qbo_minus_g2_all",
+    "what": "qbo - all [estimate, 2.5%, 97.5%]",
+    "value": [
+     0.011441406655129478,
+     0.005627262764078969,
+     0.019526334702985485
+    ]
+   }
+  ]
+ },
+ {
+  "id": "AP-core-vs-mean4",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-PH",
+  "question": "Post hoc: against the mean of four K4-Core-K6 launches, does the whole-core BF16 arm move log p(</think>) at the close on the 11 questions?",
+  "statement": "Post hoc, against the mean of four 6-bit launches (G2 k6 and k6r2; k6-a and k6-b): whole-core BF16 +0.0011 [−0.0081, +0.0106]; the four 6-bit launches lie −0.0038 to +0.0024 around their mean.",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, all (G2) - mean of four k6 launches",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (posthoc_qbo_all.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit; G2 arms as in 2026-11-02-thinking-length",
+   "items": "the 77 finished fixed science-question traces of 2026-11-02-thinking-length (11 questions), scored on the G2 and qbo launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 7,
+   "excluding_0": 5,
+   "note": "post hoc: whole core, mla_q_b, mla_o, kda_o, qbo-a, qbo-b against the mean of four 6-bit launches, and qbo - whole core; whole core and mla_q_b include 0"
+  },
+  "replication": "30 new questions (one k6 pair as base): NQ-core-stop-vllm",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/vs_mean_of_4_k6_launches/g2-all",
+    "what": "all - mean of 4 k6",
+    "value": [
+     0.0010716282087812872,
+     -0.008076362062576158,
+     0.010642239520423225
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/k6_launch_spread",
+    "what": "each 6-bit launch - their mean",
+    "value": {
+     "g2-k6": -0.0037512659591221243,
+     "g2-k6r2": 0.0023650621676227146,
+     "k6-a": 0.0016142445013653517,
+     "k6-b": -0.0002280407098659417
+    }
+   }
+  ],
+  "bound": "a change from −0.0081 to +0.0106 is not excluded"
+ },
+ {
+  "id": "AP-mean4-mla-q-b",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-PH",
+  "question": "Post hoc: against the mean of four K4-Core-K6 launches, does the single-group mla_q_b swap move log p(</think>) at the close?",
+  "statement": "Post hoc: mla_q_b − mean of four 6-bit launches +0.0100 [−0.0011, +0.0202]; the interval includes 0.",
+  "class": "not detected",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, mla_q_b (G2) - mean of four k6 launches",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (posthoc_qbo_all.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit; G2 arms as in 2026-11-02-thinking-length",
+   "items": "the 77 finished fixed science-question traces of 2026-11-02-thinking-length (11 questions), scored on the G2 and qbo launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 7,
+   "excluding_0": 5,
+   "note": "post hoc: whole core, mla_q_b, mla_o, kda_o, qbo-a, qbo-b against the mean of four 6-bit launches, and qbo - whole core; whole core and mla_q_b include 0"
+  },
+  "replication": "original screen: TL-stop-mla-q-b",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/vs_mean_of_4_k6_launches/g2-mla_q_b",
+    "what": "mla_q_b - mean of 4 k6",
+    "value": [
+     0.010045334960405062,
+     -0.0010743297440316574,
+     0.020235044795976594
+    ]
+   }
+  ],
+  "bound": "a change from −0.0011 to +0.0202 is not excluded"
+ },
+ {
+  "id": "AP-mean4-o-proj",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-PH",
+  "question": "Post hoc: against the mean of four K4-Core-K6 launches, do the single-group output-projection swaps (mla_o, kda_o) move log p(</think>) at the close?",
+  "statement": "Post hoc: mla_o − mean of four 6-bit launches +0.0131 [+0.0039, +0.0272] and kda_o +0.0053 [+0.0007, +0.0100]; both intervals exclude 0.",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, group arm (G2) - mean of four k6 launches",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (posthoc_qbo_all.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit; G2 arms as in 2026-11-02-thinking-length",
+   "items": "the 77 finished fixed science-question traces of 2026-11-02-thinking-length (11 questions), scored on the G2 and qbo launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 7,
+   "excluding_0": 5,
+   "note": "post hoc: whole core, mla_q_b, mla_o, kda_o, qbo-a, qbo-b against the mean of four 6-bit launches, and qbo - whole core; whole core and mla_q_b include 0"
+  },
+  "replication": "original screen: TL-stop-mla-o; the combined arm failed to replicate on new questions (NQ-qbo-primary)",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/vs_mean_of_4_k6_launches/g2-mla_o",
+    "what": "mla_o - mean of 4 k6",
+    "value": [
+     0.013067017353921085,
+     0.0038688200457161603,
+     0.02723989463783182
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/vs_mean_of_4_k6_launches/g2-kda_o",
+    "what": "kda_o - mean of 4 k6",
+    "value": [
+     0.005262810089995831,
+     0.0007079023436018615,
+     0.010002728535628693
+    ]
+   }
+  ]
+ },
+ {
+  "id": "AP-qbo-vs-mean4",
+  "run": "2026-11-05-attn-position",
+  "goal": "QBO-PH",
+  "question": "Post hoc: against the mean of four K4-Core-K6 launches, how far does each qbo launch move log p(</think>) at the close?",
+  "statement": "Post hoc: qbo-a − mean of four 6-bit launches +0.0129 [+0.0034, +0.0244], qbo-b +0.0122 [+0.0040, +0.0232].",
+  "class": "difference",
+  "status": "post hoc",
+  "quantity": "log p(</think>) at the close, each qbo launch - mean of four k6 launches",
+  "sign": "BF16 side - 6-bit side: above 0 = the BF16 side puts more probability on </think> where the trace closed",
+  "unit": "question (cluster)",
+  "n": "77 finished traces, 11 questions",
+  "interval": "95% bootstrap clustered by question (11 questions), 2,000 replicates, numpy default_rng(20261105) (posthoc_qbo_all.py)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2-experimental image + the local loader modification (route b), not an upstream release",
+   "checkpoint": "K4-Core-K6 @ 5d3fffe1 (k6: 6-bit core rebuilt to BF16 at load); qbo: mla_q_b, mla_o and kda_o (56 matrices) loaded as native BF16 from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb, rest of the core 6-bit; G2 arms as in 2026-11-02-thinking-length",
+   "items": "the 77 finished fixed science-question traces of 2026-11-02-thinking-length (11 questions), scored on the G2 and qbo launches",
+   "context": "fixed traces, largest sequence under 100K tokens",
+   "path": "teacher-forced (reduced dumps: top-64 plus p(</think>) at every row)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 7,
+   "excluding_0": 5,
+   "note": "post hoc: whole core, mla_q_b, mla_o, kda_o, qbo-a, qbo-b against the mean of four 6-bit launches, and qbo - whole core; whole core and mla_q_b include 0"
+  },
+  "replication": "failed to replicate on new questions: NQ-qbo-primary",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/vs_mean_of_4_k6_launches/qbo-a",
+    "what": "qbo-a - mean of 4 k6",
+    "value": [
+     0.012855521829747035,
+     0.0034100533440013436,
+     0.024409384731838336
+    ]
+   },
+   {
+    "file": "results/2026-11-05-attn-position/analysis/POSTHOC-QBO-ALL.json",
+    "pointer": "/vs_mean_of_4_k6_launches/qbo-b",
+    "what": "qbo-b - mean of 4 k6",
+    "value": [
+     0.012170547898074494,
+     0.003991166694623718,
+     0.023235345050009473
+    ]
+   }
+  ]
+ }
+]

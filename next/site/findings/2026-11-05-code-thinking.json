@@ -1,0 +1,376 @@
+[
+ {
+  "id": "CT-prompts",
+  "run": "2026-11-05-code-thinking",
+  "goal": "PROMPTS",
+  "question": "Were the code study's prompts fixed before any request, and does each reference implementation pass its hidden tests?",
+  "statement": "16 code prompts: p0-p3 are the four Block L code projects, byte-identical; p4-p15 are twelve projects written for this run before any request, the primary set. The run states that each reference implementation passes its hidden tests (the check's output is not published).",
+  "class": "accounting",
+  "status": "check",
+  "quantity": "prompt provenance and reference-implementation test check",
+  "sign": "n/a",
+  "unit": "project",
+  "n": "16 projects",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "none (code sandbox, pytest)",
+   "checkpoint": "n/a",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "n/a",
+   "path": "reference implementations",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the same prompts are used by 2026-11-06-vllm-code-thinking and 2026-11-06-cuteafd-fp8-ablation",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-code-thinking/protocol/PROTOCOL.md",
+    "lines": [
+     16,
+     20
+    ],
+    "what": "prompts, as frozen",
+    "text": "## Prompts (stage0/prompts, built by build_prompts.py)\n16 code prompts in the Block L format (L_code wrapper; Python 3.12 package spec; files answered as `### FILE:` blocks;\nhidden pytest suite). p0-p3: the four Block L code projects, byte-identical. p4-p15: twelve projects written 2026-11-05\nfor this run (spec, reference implementation, hidden tests; each reference passes its tests in the code sandbox), before\nany request. The p0-p3 set raised the question, so it is not the primary set."
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/README.md",
+    "lines": [
+     13,
+     15
+    ],
+    "what": "prompts and reference check",
+    "text": "- `prompts/`: the 16 prompts (`L/p0.json`-`L/p15.json`, `L/index.json`) and each project's spec, reference implementation and\n  hidden tests (`L/code/`). p0-p3 are the four Block L code projects, unchanged; p4-p15 were written for this run before\n  any request, and each reference implementation passes its tests (`code/tools/check_ref.py`)."
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/prompts/L/index.json",
+    "what": "prompt index"
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/code/tools/check_ref.py",
+    "what": "reference check"
+   }
+  ]
+ },
+ {
+  "id": "CT-core-code",
+  "run": "2026-11-05-code-thinking",
+  "goal": "PRIMARY",
+  "question": "On CuteAFD v4.0.0, on 12 new code prompts, does K4-Core-K6 with its native 6-bit core think longer than the same checkpoint with its BF16 core as CuteAFD serves it (converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults; same routed experts)?",
+  "statement": "C-K6 / C-K6x reasoning tokens 1.26 [1.24, 1.29] over the 12 new prompts (48 seed pairs); 12 of 12 prompts above 1 (sign test p = 0.0005); above 1 = the native 6-bit core arm thought longer.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "reasoning tokens, C-K6 / C-K6x, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the native 6-bit core arm thought longer",
+  "unit": "prompt",
+  "n": "12 prompts, 48 seed pairs; one launch per arm",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261105 (analysis/analyze_ct.py, frozen); detected when the interval excludes 1; two-sided sign test over prompts",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "12 new code prompts p4-p15 (Python package specs with hidden tests, written before any request), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "the frozen table: primary p4-p15, secondary all 16 and p0-p3; ratios, the null is 1"
+  },
+  "replication": "same prompts and seeds on the vLLM fork, where the arms differ only in weight values: VC-core-code (not detected); with the BF16-core arm's KDA setting off: FA-kda-step and FA-kda-vs-native. Science-question content on CuteAFD was measured only as the stop decision on fixed traces (CS-stop-core); science-question free generation only on the vLLM fork, one question (2026-11-02-thinking-length/G4).",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/primary_p4_p15/ratio",
+    "what": "ratio",
+    "value": 1.2624662456554547
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/primary_p4_p15/ratio_ci95_prompts",
+    "what": "95% interval over prompts",
+    "value": [
+     1.236515516161589,
+     1.2893401000597893
+    ]
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/primary_p4_p15/prompts_above_1",
+    "what": "prompts above 1, of 12",
+    "value": 12
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/primary_p4_p15/sign_test_p",
+    "what": "sign test p",
+    "value": 0.00048828125
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/analysis/samples.csv",
+    "what": "per reply"
+   }
+  ],
+  "replaces": [
+   "TL-code-cuteafd-core"
+  ]
+ },
+ {
+  "id": "CT-core-code-all16",
+  "run": "2026-11-05-code-thinking",
+  "goal": "SECONDARY",
+  "question": "On CuteAFD v4.0.0, over all 16 code prompts, how much longer does the native 6-bit core arm think than the BF16-core arm?",
+  "statement": "All 16 prompts: C-K6 / C-K6x 1.33 [1.27, 1.40], 16 of 16 prompts above 1. Per seed pair C-K6 thought longer in 58 of 64; single pairs range from 0.86 to 2.62.",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "reasoning tokens, C-K6 / C-K6x, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the native 6-bit core arm thought longer",
+  "unit": "prompt",
+  "n": "16 prompts, 64 seed pairs",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261105 (analysis/analyze_ct.py, frozen); detected when the interval excludes 1; two-sided sign test over prompts",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "the frozen table: primary p4-p15, secondary all 16 and p0-p3; ratios, the null is 1"
+  },
+  "replication": "vLLM fork, all 16: VC-core-code-all16",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/all_p0_p15/ratio",
+    "what": "ratio",
+    "value": 1.330962994281631
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/all_p0_p15/ratio_ci95_prompts",
+    "what": "95% interval over prompts",
+    "value": [
+     1.2713905643219405,
+     1.3986672439241152
+    ]
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/all_p0_p15/prompts_above_1",
+    "what": "prompts above 1, of 16",
+    "value": 16
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/pairs_6bit_longer",
+    "what": "pairs with C-K6 longer, of 64",
+    "value": [
+     58,
+     64
+    ]
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/CT-RESULT.md",
+    "lines": [
+     15,
+     15
+    ],
+    "what": "range of single-pair ratios",
+    "text": "**Detected.** Per pair, C-K6 thought longer in 58 of 64 pairs (42 of 48 on p4-p15); single pairs range 0.86 to 2.62, so"
+   }
+  ]
+ },
+ {
+  "id": "CT-core-code-blockl",
+  "run": "2026-11-05-code-thinking",
+  "goal": "SECONDARY",
+  "question": "On CuteAFD v4.0.0, on the four Block L code prompts that raised the question (p0-p3), how much longer does the native 6-bit core arm think than the BF16-core arm, on new seeds?",
+  "statement": "p0-p3: C-K6 / C-K6x 1.56 [1.52, 1.62], 4 of 4 prompts above 1 (sign test p = 0.125). The core swap's step 1 gave 1.25 on the same prompts with other seeds (CS-s1-core).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "reasoning tokens, C-K6 / C-K6x, exp(mean seed-paired log ratio)",
+  "sign": "above 1 = the native 6-bit core arm thought longer",
+  "unit": "prompt",
+  "n": "4 prompts, 16 seed pairs",
+  "interval": "95% bootstrap over prompts, 4,000 replicates, seed 20261105 (analysis/analyze_ct.py, frozen); detected when the interval excludes 1; two-sided sign test over prompts",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "4 Block L code prompts p0-p3 (the set that raised the question), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 3,
+   "excluding_0": 3,
+   "note": "the frozen table: primary p4-p15, secondary all 16 and p0-p3; ratios, the null is 1"
+  },
+  "replication": "vLLM fork, p0-p3: VC-core-code-blockl",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/blockL_p0_p3/ratio",
+    "what": "ratio",
+    "value": 1.5595690096794497
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/blockL_p0_p3/ratio_ci95_prompts",
+    "what": "95% interval over prompts",
+    "value": [
+     1.5171912035241755,
+     1.6198609707753964
+    ]
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/reading/blockL_p0_p3/sign_test_p",
+    "what": "sign test p",
+    "value": 0.125
+   },
+   {
+    "file": "results/2026-11-03-cuteafd-core-swap/SUMMARY.json",
+    "pointer": "/step1/contrasts/core/ratio_by_content",
+    "what": "core swap step 1, C-K6 / C-K6x by content",
+    "value": {
+     "code": 1.2500027827709763,
+     "prose": 1.0752277562368604
+    }
+   }
+  ]
+ },
+ {
+  "id": "CT-tests",
+  "run": "2026-11-05-code-thinking",
+  "goal": "TESTS",
+  "question": "On CuteAFD v4.0.0, how often do the code replies of the two arms pass all hidden tests?",
+  "statement": "All hidden tests pass on 50 of 64 C-K6 replies and 49 of 64 C-K6x replies; mean share of tests passed 0.945 and 0.936; the arms agree on all-pass in 51 of 64 seed pairs.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "all-tests-pass count and mean share of tests passed, per arm",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "64 replies per arm (all finished)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "paired post hoc in FA-pass-ck6-ck6x (interval includes 0). Corrected reading: analysis/CT-RESULT.json reports all_tests_pass_of_finished 0 for both arms; the run's correction (CT-RESULT.md:24-27) takes the figures from the analyzer's merged output, as in SUMMARY.json",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/C-K6/all_tests_pass",
+    "what": "C-K6, of 64",
+    "value": 50
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/C-K6x/all_tests_pass",
+    "what": "C-K6x, of 64",
+    "value": 49
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/C-K6/mean_share_tests_passed",
+    "what": "C-K6",
+    "value": 0.9449532917619592
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/C-K6x/mean_share_tests_passed",
+    "what": "C-K6x",
+    "value": 0.9358709604492521
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/pairs_agree_on_all_tests_pass",
+    "what": "pairs agreeing, of 64",
+    "value": [
+     51,
+     64
+    ]
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/CT-RESULT.md",
+    "lines": [
+     24,
+     27
+    ],
+    "what": "correction",
+    "text": "- Correction: `CT-RESULT.json` reports `all_tests_pass_of_finished: 0` for both arms. analyze_ct.py reads the per-arm\n  `*.inner.json`, where code checks are still `pending`; the analyzer writes the checks only into `L-analysis.json`.\n  The figures above are from `L-analysis.json`. The frozen ratio uses `reasoning_tokens`, which is in both files and\n  identical; it is unaffected."
+   }
+  ],
+  "replaces": [
+   "TL-code-tests"
+  ]
+ },
+ {
+  "id": "CT-desc",
+  "run": "2026-11-05-code-thinking",
+  "goal": "DESC",
+  "question": "On CuteAFD v4.0.0, what were median reasoning length, decode speed and finish classes per arm in the code study?",
+  "statement": "Median reasoning tokens C-K6 63,731.5 and C-K6x 50,411.5; median decode 115.1 and 121.8 tok/s; all 128 replies finished under the cap. Finished replies with a terminal repetition onset (not loops): C-K6 51, C-K6x 44 of 64.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-arm medians and finish classes",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "64 replies per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, unmodified launcher (coordinator image index sha256:e257bc61...)",
+   "checkpoint": "C-K6: K4-Core-K6 (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1), native 6-bit core; C-K6x: derived BF16-core checkpoint (K4-Core-K6 with its 316 core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb; local derived checkpoint, not a producer release), BF16 converted to FP8 at load, with the launcher's FP8 KDA, FP8 head and FP8 prefill-activation defaults",
+   "items": "16 code prompts p0-p15 (p0-p3 the Block L code projects), 4 seeds each",
+   "context": "prompts of 1,155-1,758 tokens; replies up to the 130,048-token cap",
+   "path": "generation (sampled replies, thinking on, model default sampling), 2 concurrent",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/C-K6",
+    "what": "C-K6",
+    "value": {
+     "requests": 64,
+     "finished": 64,
+     "capped": 0,
+     "all_tests_pass": 50,
+     "all_tests_pass_of_finished": 50,
+     "mean_share_tests_passed": 0.9449532917619592,
+     "finished_with_terminal_repetition_onset": 51,
+     "median_reasoning_tokens": 63731.5,
+     "median_decode_tok_s": 115.125
+    }
+   },
+   {
+    "file": "results/2026-11-05-code-thinking/SUMMARY.json",
+    "pointer": "/per_arm/C-K6x",
+    "what": "C-K6x",
+    "value": {
+     "requests": 64,
+     "finished": 64,
+     "capped": 0,
+     "all_tests_pass": 49,
+     "all_tests_pass_of_finished": 49,
+     "mean_share_tests_passed": 0.9358709604492521,
+     "finished_with_terminal_repetition_onset": 44,
+     "median_reasoning_tokens": 50411.5,
+     "median_decode_tok_s": 121.80000000000001
+    }
+   }
+  ]
+ }
+]

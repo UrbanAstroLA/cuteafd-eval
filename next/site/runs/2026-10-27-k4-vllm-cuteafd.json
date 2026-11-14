@@ -1,0 +1,884 @@
+{
+ "id": "2026-10-27-k4-vllm-cuteafd",
+ "date": "2026-10-27",
+ "title": "K4 (brandonmusic GLM-5.3-Flash-tr3-4bpw) on tpurtell's vLLM fork v0.9.2 and CuteAFD v3.0.1: precision, throughput, long output",
+ "kind": "measurement",
+ "question": "With brandonmusic's K4 checkpoint, how do tpurtell's vLLM fork v0.9.2 and CuteAFD v3.0.1 compare in distance from BF16, throughput and long-output behaviour under a protocol frozen before the first comparison request, and which CuteAFD settings move its precision difference?",
+ "engines": [
+  "tpurtell vLLM fork (glm-5.3-flash-ext3-2x-rtx) v0.9.2, tag f18f51f5, image index sha256:ea0430aa",
+  "tpurtell CuteAFD v3.0.1 (9098781f), image ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0"
+ ],
+ "checkpoints": [
+  "brandonmusic/GLM-5.3-Flash-tr3-4bpw @ a5fee929 (K4), the same bytes on both engines",
+  "incoai/GLM-5.3-Flash-DFlash2 @ bf582e4e (drafter)",
+  "K3.25 reference values from results/2026-10-26-cuteafd-vs-vllm (K3.25-v1 0490d2f7 on the vLLM fork, K3.25 Core-FP8 d31ebc92 on CuteAFD)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W), driver 595.84",
+ "protocol": {
+  "file": "METHOD.md",
+  "frozen": "2026-10-27T17:58:09-07:00",
+  "amendments": [
+   "none to the frozen protocol (METHOD.md:211-213); follow-ups F1-K4, K4b-K4f are outside it",
+   "B1 (follow-up K4b, 2026-10-28 13:05): nospec control arm, drafter-off scoring for kda16 and all16",
+   "B2 (follow-up K4b, 2026-10-28 13:10): B1 extended to head16"
+  ]
+ },
+ "goals": [
+  {
+   "id": "S1-START",
+   "question": "How long does each engine take from the start command to /v1/models, to ready, and to a first token, cold and warm, with K4?",
+   "added": "protocol",
+   "added_source": "METHOD.md:56-58 (Stage 1, before the freeze); RUN.json slots.startup",
+   "design": {
+    "instrument": "drivers/startup.py: start command to the first HTTP 200 on /v1/models, to the engine's ready line, to the first streamed token of a fixed 1K request",
+    "arms": [
+     "V: vLLM fork v0.9.2",
+     "C: CuteAFD v3.0.1 (serving and scoring launches)"
+    ],
+    "items": "one cold and one warm start per engine, plus the CuteAFD scoring launch",
+    "unit": "launch",
+    "n": "5 launches",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "startup/startup.json"
+   ],
+   "result_docs": [
+    "startup/startup.json",
+    "README.md"
+   ],
+   "status": "done",
+   "headline": "Descriptive, one cold and one warm start, K4: vLLM fork v0.9.2 ready in 307 s cold and 257 s warm (/v1/models 249 s and 200 s); CuteAFD v3.0.1 76 s cold and 86 s warm (/v1/models 74 s and 79 s); CuteAFD scoring launch 90 s.",
+   "findings": [
+    "K4-startup-time"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "S1-POOL",
+   "question": "What capacity does each engine report at startup with K4, and what local settings does the planner need to admit K4 on two RTX GPUs?",
+   "added": "protocol",
+   "added_source": "METHOD.md:38 and METHOD.md:45 (declared differences); startup/startup.json capacity lines",
+   "design": {
+    "instrument": "capacity line from each launch's log; CuteAFD planner dry run",
+    "arms": [
+     "V: vLLM fork v0.9.2",
+     "C: CuteAFD v3.0.1"
+    ],
+    "items": "the Stage 1 launches",
+    "unit": "launch",
+    "n": "5 launches",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "startup/startup.json",
+    "METHOD.md"
+   ],
+   "status": "done",
+   "headline": "vLLM fork v0.9.2: KV pool 1,377,179 tokens, 16 sequences. CuteAFD v3.0.1: 447,488 tokens, 16 requests on the serving launch (the dry run predicted 605,696; the run attributes the rest to the desktop's context on GPU 1), 451,584 on the scoring launch. At its defaults CuteAFD's planner refuses K4 on two RTX GPUs (pool 260,608 tokens below the 1,048,576-token context floor); the run sets MAX_CONTEXT_TOKENS=262144.",
+   "findings": [
+    "K4-startup-capacity"
+   ]
+  },
+  {
+   "id": "S1-SMOKE",
+   "question": "Do both engines tokenize the same inputs identically, return reasoning separately, and behave the same with literal <think> text and a repeated seed?",
+   "added": "check",
+   "added_source": "METHOD.md:47-48; startup/startup.json smoke",
+   "design": {
+    "instrument": "smoke checks S1-S3, P1 and a same-seed repeat",
+    "arms": [
+     "V: vLLM fork v0.9.2",
+     "C: CuteAFD v3.0.1"
+    ],
+    "items": "a chat smoke prompt, a test prompt with and without literal <think> tags, the 1K prose Block T prompt, P-A window 0, 3 prompts sent twice with the same seed",
+    "unit": "check",
+    "n": "6 checks",
+    "repeats": "same seed twice on 3 prompts",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "startup/startup.json",
+    "METHOD.md"
+   ],
+   "status": "done",
+   "headline": "Prompt tokens equal on the chat smoke (26/26) and the 1K Block T prompt (1,024/1,024); literal <think> tags give 33 tokens on the vLLM fork and 37 on CuteAFD (29 on both without the tags; the run reads this as vLLM parsing them as special tokens). Same seed twice: vLLM identical text 1 of 3, CuteAFD 3 of 3 (cause not examined).",
+   "findings": [
+    "K4-smoke"
+   ]
+  },
+  {
+   "id": "Q-PA",
+   "question": "On panel P-A, is CuteAFD v3.0.1 further from the BF16 teacher than the vLLM fork v0.9.2 with K4 (KL20, top-1 agreement, NLL)?",
+   "added": "protocol",
+   "added_source": "METHOD.md:8 (frozen 2026-10-27T17:58:09-07:00); METHOD.md:139-141 (primary look P-A KL20)",
+   "design": {
+    "instrument": "top-20 KL(teacher ‖ engine) KL20 on the engine's 20 ids plus the actual token plus a rest cell (a lower bound, about 0.8 of full-vocabulary KL), top-1 agreement, NLL; prefill-shaped scoring; reading rule: interval excludes 0 and |C − Vmean| exceeds |V-r2 − V-r1|",
+    "arms": [
+     "V: vLLM fork v0.9.2 (per-row mean of launches V-r1 and V-r2)",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)"
+    ],
+    "items": "P-A: brandonmusic's BF16 teacher panel, 25 windows × 2,048 tokens, all 2,047 rows (51,175 positions); reused unchanged from the K3.25 run",
+    "unit": "window",
+    "n": "25 windows (51,175 positions)",
+    "repeats": "V: two launches (V-r1, V-r2); C: two passes on one scoring launch (C-r1, C-r1b)",
+    "interval": "window-cluster bootstrap 95%, seed 20260929, 20,000 replicates"
+   },
+   "files": [
+    "q/pa20.json",
+    "q/logs/score-pa20.log"
+   ],
+   "result_docs": [
+    "README.md",
+    "q/pa20.json"
+   ],
+   "status": "done",
+   "headline": "K4, CuteAFD v3.0.1 − vLLM fork v0.9.2 (mean of 2 launches), P-A: KL20 +0.0027 [+0.0012, +0.0047] (0.0219 against 0.0192), top-1 agreement −0.55 pts [−0.72, −0.37], NLL +0.0026 [+0.0005, +0.0048]; vLLM launch-to-launch +0.0000; the run reads all three as 'differs'. Top-20 measures, not comparable in level with full-vocabulary KL.",
+   "findings": [
+    "K4-pa-kl20",
+    "K4-pa-top1-nll",
+    "K4-pa-provenance"
+   ],
+   "replication": "not attempted",
+   "status_note": "P-A provenance (K4-pa-provenance): the 25 'final' windows of brandonmusic/GLM-5.3-Flash-ShapleyMCG-K4-Evidence @ 32afb887, as listed in the K3.25 run's q/pa/PROVENANCE.json; README.md:26-28 states P-A can favour K4."
+  },
+  {
+   "id": "Q-PB",
+   "question": "On panel P-B, is CuteAFD v3.0.1 further from the BF16 reference than the vLLM fork v0.9.2 with K4, overall on generated rows and by bucket and block?",
+   "added": "protocol",
+   "added_source": "METHOD.md:8 (frozen 2026-10-27T17:58:09-07:00); METHOD.md:139-143 (primary looks P-B generated KL_pb20 and top-1; buckets and blocks descriptive)",
+   "design": {
+    "instrument": "KL_pb20 (top-20 truncation of tpurtell's top-1,024-plus-tail rule), top-1 agreement; groups: generated rows (primary), 0-2K/2-8K/8-16K buckets, block B (long code reading); same reading rule as Q-PA",
+    "arms": [
+     "V: vLLM fork v0.9.2 (per-row mean of launches V-r1 and V-r2)",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)"
+    ],
+    "items": "P-B: tpurtell's cuteafd-fidelity glm5_flash-v2 set, 64 windows 0.5K-14.4K, last 512 rows; generated rows primary (15,104 positions in 53 windows); reused unchanged",
+    "unit": "window",
+    "n": "53 windows with generated rows (15,104 positions); 64 windows in all",
+    "repeats": "V: V-r1 and V-r2, plus V-r1b (P-B again on launch 1); C: C-r1, C-r1b",
+    "interval": "window-cluster bootstrap 95% (SplitMix64, seed 20260829, 5,000 replicates)"
+   },
+   "files": [
+    "q/pb20.json",
+    "q/logs/score-pb20.log"
+   ],
+   "result_docs": [
+    "README.md",
+    "q/pb20.json"
+   ],
+   "status": "done",
+   "headline": "K4, CuteAFD v3.0.1 − vLLM fork v0.9.2, P-B generated rows: KL_pb20 +0.0053 [+0.0033, +0.0076], top-1 −0.34 pts [−0.62, −0.09] (both 'differs'). Descriptive by bucket: 0-2K +0.0018, not detected (interval [−0.0007, +0.0049]); 2-8K +0.0015 [+0.0005, +0.0027]; 8-16K +0.0090 [+0.0062, +0.0122]; block B (long code reading) +0.0098 [+0.0064, +0.0137]. Mechanisms are not inferred.",
+   "findings": [
+    "K4-pb-generated",
+    "K4-pb-0-2k",
+    "K4-pb-2-8k",
+    "K4-pb-block-b"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "Q2",
+   "question": "On human-written text at 32K-128K, does CuteAFD v3.0.1's NLL differ from the vLLM fork v0.9.2's with K4, and how does their disagreement compare with vLLM's own launch-to-launch floor?",
+   "added": "protocol",
+   "added_source": "METHOD.md:8 (frozen 2026-10-27T17:58:09-07:00); METHOD.md:121 and METHOD.md:143-145",
+   "design": {
+    "instrument": "NLL of the actual token; engine-against-engine KL20n both directions and top-1 agreement; cross-engine KL20n set against the vLLM launch-to-launch floor on the same documents",
+    "arms": [
+     "V: vLLM fork v0.9.2 (per-row mean of launches V-r1 and V-r2)",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)"
+    ],
+    "items": "Q2: 6 human-written documents (3 PG-19 books, 3 Apache-2.0 vLLM source files) at 32K/64K/128K, last 4,096 rows (18 windows, 73,728 positions); no reference",
+    "unit": "document",
+    "n": "6 documents",
+    "repeats": "V: V-r1, V-r2; C: C-r1, C-r1b",
+    "interval": "Student-t over the 6 documents (5 df)"
+   },
+   "files": [
+    "q/q2-top20.json",
+    "q/logs/score-q2.log"
+   ],
+   "result_docs": [
+    "README.md",
+    "q/q2-top20.json"
+   ],
+   "status": "done",
+   "headline": "K4, CuteAFD v3.0.1 − vLLM fork v0.9.2 (mean of 2 launches), Q2 NLL: +0.0076, not detected (interval [−0.0076, +0.0228]); vLLM launch-to-launch +0.0003. Cross-engine KL20n over the 6 documents is 0.0185 (V-r1) and 0.0205 (V-r2) against a vLLM launch-to-launch floor of 0.0114 (ratios 1.63 and 1.80; q/q2-top20.json, no interval).",
+   "findings": [
+    "K4-q2-nll",
+    "K4-q2-cross-floor"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "Q2-C2OUT",
+   "question": "Without the window q2-code-c2-064k (the K3.25 outlier, reported separately by rule), does CuteAFD's Q2 NLL differ from each vLLM launch?",
+   "added": "protocol",
+   "added_source": "METHOD.md:143-145 ('the K3.25 outlier window q2-code-c2-064k is reported separately and the overall numbers are also given without it')",
+   "design": {
+    "instrument": "Q2 NLL difference with the window q2-code-c2-064k removed, per vLLM launch",
+    "arms": [
+     "V-r1",
+     "V-r2",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)"
+    ],
+    "items": "Q2: 6 human-written documents (3 PG-19 books, 3 Apache-2.0 vLLM source files) at 32K/64K/128K, last 4,096 rows (18 windows, 73,728 positions); no reference, without q2-code-c2-064k",
+    "unit": "document",
+    "n": "6 documents",
+    "repeats": "V: V-r1, V-r2",
+    "interval": "Student-t over the 6 documents (5 df)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md",
+    "q/q2-top20.json"
+   ],
+   "status": "done",
+   "headline": "Without q2-code-c2-064k: CuteAFD − vLLM launch 1 +0.0012, not detected (interval [−0.0007, +0.0030]); CuteAFD − vLLM launch 2 −0.0008, not detected (interval [−0.0086, +0.0071]).",
+   "findings": [
+    "K4-q2-without-c2"
+   ]
+  },
+  {
+   "id": "C2",
+   "question": "On Q2 document c2, where do the vLLM fork's two launches and CuteAFD disagree by more than 1 nat, and what kind of rows are they?",
+   "added": "post hoc",
+   "added_source": "c2/README.md:1-5 (CPU-only reading of the Block Q captures after the results); RUN.json slots.c2",
+   "design": {
+    "instrument": "per-row |ΔNLL| > 1 nat counts per pair, V-r1 top-20 entropy, confident rows (one launch p(actual) > 0.9), top-1/top-2 swaps, rows completing a 12-gram also seen more than 2,048 tokens earlier",
+    "arms": [
+     "V-r1",
+     "V-r2",
+     "C-r1"
+    ],
+    "items": "c2's three windows (prefixes of one token stream) and three controls (c0-064k, c1-064k, pg28988-064k)",
+    "unit": "row within a window",
+    "n": "6 windows × 4,096 rows",
+    "repeats": "the Block Q captures (no new requests)",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "c2/*"
+   ],
+   "result_docs": [
+    "c2/README.md",
+    "c2/c2-summary.json"
+   ],
+   "status": "done",
+   "headline": "Post hoc, K4: on c2-064k the two vLLM fork launches differ from each other on 192 rows by more than 1 nat (CuteAFD against them: 292 and 298); c2-032k 9, c2-128k 70, controls 0-9. Of the 192, 38 have one launch above 0.9 probability on the actual token and 20 are top-1/top-2 swaps. Between the vLLM launches on c2-064k, rows completing a 12-gram also seen more than 2,048 tokens earlier are volatile at 14% against 4.4% for other rows. Whether near-duplicate code and the sparse-attention indexer's selection explain the flips is stated as an open question, not tested.",
+   "findings": [
+    "K4-c2-vllm-self",
+    "K4-c2-copy"
+   ]
+  },
+  {
+   "id": "Q-ROWS",
+   "question": "Publish per-position scores behind Block Q and their tail and position statistics.",
+   "added": "accounting",
+   "added_source": "RUN.json slots.Qrows; q/rows/README.md",
+   "design": {
+    "instrument": "per-row values from the frozen scorers' definitions (q/q2_rows.py for Q2), rounded to 7 significant digits; tails by tools/kl_tails.py",
+    "arms": [
+     "Vr1",
+     "Vr1b (P-B)",
+     "Vr2",
+     "Cr1"
+    ],
+    "items": "P-A, P-B and Q2 as in Q-PA, Q-PB, Q2",
+    "unit": "position",
+    "n": "P-A 51,175; P-B 32,768; Q2 73,728",
+    "repeats": "as in Block Q",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "q/rows/*",
+    "q/tails/*",
+    "q/q2_rows.py"
+   ],
+   "result_docs": [
+    "q/rows/README.md"
+   ],
+   "status": "done",
+   "headline": "Per-position KL20 / KL_pb20 / KL20n, NLL and top-1 for every Block Q arm, with tail and position statistics; the export checks that Q2 window means equal the frozen scorer's. Top-20 measures, not full-vocabulary KL. Token-id files are not published (NOT-PUBLISHED.json).",
+   "findings": [],
+   "no_findings_reason": "support file only"
+  },
+  {
+   "id": "Q-CAL",
+   "question": "Before the freeze: how much of full-vocabulary KL do the top-20 measures keep, and do the K3.25 run's differences keep their sign and significance under the truncation?",
+   "added": "check",
+   "added_source": "METHOD.md:123-127 (calibration, zero-GPU check before the freeze)",
+   "design": {
+    "instrument": "the K3.25 run's full-vocabulary captures truncated to each engine's own top 20 and rescored",
+    "arms": [
+     "K3.25 run arms V1, V1r, V2, C1"
+    ],
+    "items": "P-A and P-B as in the K3.25 run",
+    "unit": "window",
+    "n": "P-A 25, P-B 64 windows",
+    "repeats": "none",
+    "interval": "as in the K3.25 run"
+   },
+   "files": [],
+   "result_docs": [
+    "METHOD.md",
+    "q/k325-top20-reference.json"
+   ],
+   "status": "done",
+   "headline": "On P-A, KL20 read 0.79-0.80 of full-vocabulary KL on every arm; on P-B generated rows, KL_pb20 kept 98-99% of the published coarse KL; every K3.25 difference whose interval excluded 0 kept its sign and significance under the truncation; the K4 scorers reproduce the per-row values on emulated top-20 rows.",
+   "findings": [
+    "K4-calibration"
+   ]
+  },
+  {
+   "id": "Q-K325",
+   "question": "On the same top-20 definitions and rows, how far is K4 from BF16 against K3.25 on each engine, and is the engine difference larger on K4?",
+   "added": "protocol",
+   "added_source": "q/k325-top20-reference.json about ('computed before the K4 freeze ... for comparing the two checkpoints'); README.md:74-87",
+   "design": {
+    "instrument": "top-20 measures as in Q-PA and Q-PB; K3.25 values from the K3.25 run's full-vocabulary captures truncated to each engine's top 20",
+    "arms": [
+     "vLLM fork v0.9.2 on K3.25-v1 (P-A one launch; P-B mean of three runs) and on K4 (mean of two launches)",
+     "CuteAFD v3.0.1 on K3.25 Core-FP8 (official FP8 projections) and on K4 (BF16 projections converted at load)"
+    ],
+    "items": "P-A: brandonmusic's BF16 teacher panel, 25 windows × 2,048 tokens, all 2,047 rows (51,175 positions); reused unchanged from the K3.25 run; P-B: tpurtell's cuteafd-fidelity glm5_flash-v2 set, 64 windows 0.5K-14.4K, last 512 rows; generated rows primary (15,104 positions in 53 windows); reused unchanged",
+    "unit": "window",
+    "n": "P-A 25; P-B 53 windows with generated rows",
+    "repeats": "as in Block Q",
+    "interval": "intervals for the engine difference per checkpoint (bootstraps as in Block Q); none for the change between checkpoints"
+   },
+   "files": [
+    "q/k325-top20-reference.json"
+   ],
+   "result_docs": [
+    "README.md",
+    "q/k325-top20-reference.json"
+   ],
+   "status": "done",
+   "headline": "Top-20, K3.25 → K4: P-A KL20 vLLM fork 0.0365 → 0.0192 (0.53 of K3.25), CuteAFD 0.0380 → 0.0219 (0.58); P-B KL_pb20 ratios 0.69 and 0.75; no interval for the change between checkpoints. CuteAFD − vLLM at P-B 8-16K: K4 +0.0090 [+0.0062, +0.0122], K3.25 +0.0052 [+0.0031, +0.0075]; the intervals overlap and the change between checkpoints was not tested. The checkpoints were calibrated on different text and P-A can favour K4.",
+   "findings": [
+    "K4-pb-longcode",
+    "K4-vs-k325-level",
+    "K4-k325-gap-top20"
+   ]
+  },
+  {
+   "id": "DET",
+   "question": "Are each engine's scored rows reproducible within a launch and across launches?",
+   "added": "protocol",
+   "added_source": "METHOD.md:65-67 and METHOD.md:129-134 (two vLLM launches, V-r1b within-launch repeat, C-r1/C-r1b byte identity)",
+   "design": {
+    "instrument": "row hashes (CuteAFD raw f32 rows) and per-window identical values; launch-to-launch and within-launch floors",
+    "arms": [
+     "V-r1, V-r1b, V-r2",
+     "C-r1, C-r1b"
+    ],
+    "items": "P-A, P-B, Q2 as in Block Q",
+    "unit": "window",
+    "n": "P-A 25, P-B 64, Q2 18 windows",
+    "repeats": "V: two launches plus a P-B repeat on launch 1; C: two passes on one launch",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md",
+    "q/pa20.json",
+    "q/pb20.json"
+   ],
+   "status": "done",
+   "headline": "CuteAFD v3.0.1's two passes were byte-identical on every window (row hashes). The vLLM fork v0.9.2's two launches returned identical values on 20 of 64 P-B windows and none of the 25 P-A windows (mean P-A KL20 differs by less than 1e-7); its within-launch P-B repeat matched launch 1 on 20 of 64 windows. The method records vLLM's multi-chunk prefill as not run-to-run deterministic past the first 2,045-token chunk.",
+   "findings": [
+    "K4-determinism",
+    "K4-vllm-pb-spread"
+   ]
+  },
+  {
+   "id": "T",
+   "question": "With K4, how fast is CuteAFD v3.0.1 against the vLLM fork v0.9.2 per cell of the frozen grid (decode per stream, aggregate, time to first token)?",
+   "added": "protocol",
+   "added_source": "METHOD.md:8 (frozen 2026-10-27T17:58:09-07:00); METHOD.md:147-161",
+   "design": {
+    "instrument": "per cell median decode per stream, clean decode, aggregate tok/s and median time to first token; CuteAFD ÷ vLLM with the range over replicates; reading band max(8%, largest drift deviation) = 8%",
+    "arms": [
+     "V-r1: vLLM fork v0.9.2",
+     "C-r1: CuteAFD v3.0.1"
+    ],
+    "items": "Block T prompt set (K3.25, unchanged): prose and code at every length, reasoning and JSON at 1K and 8K; 1 and 4 streams at 1K/8K/32K, 1 stream at 128K; 1,024 output tokens; every prompt unique, distinct seed per request, same prompts and seeds on both",
+    "unit": "cell (input × streams × content)",
+    "n": "22 cells; 264 measured requests per engine",
+    "repeats": "3 replicates per cell",
+    "interval": "none (band rule: ±8%)"
+   },
+   "files": [
+    "t/V-r1.*",
+    "t/C-r1.*",
+    "t/t-compare.json"
+   ],
+   "result_docs": [
+    "README.md",
+    "t/t-compare.json"
+   ],
+   "status": "done",
+   "headline": "K4, CuteAFD v3.0.1 ÷ vLLM fork v0.9.2: decode per stream 1.05-1.38x at one stream and 1.11-1.59x at four; faster in 20 of 22 cells, level in 2, slower in 0 (±8% band). First token sooner on CuteAFD at one stream from 8K up and at 8K × 4; sooner on the vLLM fork at 1K and at 32K × 4. 0 errors on either engine; the 128K code prompts are longer on CuteAFD (literal <think> text).",
+   "findings": [
+    "K4-t-decode",
+    "K4-t-aggregate",
+    "K4-t-ttft"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "T-DRIFT",
+   "question": "Did each engine's speed drift during the Block T stage, and how wide must the reading band be?",
+   "added": "protocol",
+   "added_source": "METHOD.md:158-163",
+   "design": {
+    "instrument": "later ÷ earlier per drift cell for decode and aggregate",
+    "arms": [
+     "V-d1 and final V-d2: vLLM fork v0.9.2",
+     "C-d1: CuteAFD v3.0.1"
+    ],
+    "items": "Block T drift subset: 1K and 32K, 1 and 4 streams, code and prose, replicates 0-1 (64 requests, frozen seeds); seeds +30,000,000 and their own salt",
+    "unit": "cell",
+    "n": "8 cells",
+    "repeats": "replicates 0-1",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "t/V-d1.*",
+    "t/V-d2.*",
+    "t/C-d1.*"
+   ],
+   "result_docs": [
+    "README.md",
+    "t/t-compare.json"
+   ],
+   "status": "done",
+   "headline": "Both engines' drift repeats stayed inside 8%, so the Block T band is ±8% (t/t-compare.json band V 0.08, C 0.08).",
+   "findings": [
+    "K4-t-drift"
+   ]
+  },
+  {
+   "id": "L",
+   "question": "With K4, how do the two engines' long outputs end (finished, at cap), pass their content checks, and how long and fast are they, per stage and content?",
+   "added": "protocol",
+   "added_source": "METHOD.md:8 (frozen 2026-10-27T17:58:09-07:00); METHOD.md:165-183",
+   "design": {
+    "instrument": "the frozen K3.25 Block L analyser (stop against cap, lengths, decode rate, correctness: math answers, hidden pytest suites in a CPU sandbox, JSON schema, prose length ratio)",
+    "arms": [
+     "V-r1: vLLM fork v0.9.2",
+     "C-r1: CuteAFD v3.0.1"
+    ],
+    "items": "the K3.25 Block L prompt set: prose, code, reasoning, JSON; 4 prompts per content; caps L1 8,192, L2 32,768, L3 130,048 (2 in flight), L3s 130,048 (1 in flight, prompt 0 per content)",
+    "unit": "reply",
+    "n": "100 replies per engine (32 + 32 + 32 + 4)",
+    "repeats": "2 seeds per prompt",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "l/L-analysis-VC.json"
+   ],
+   "result_docs": [
+    "README.md",
+    "l/L-analysis-VC.json"
+   ],
+   "status": "done",
+   "headline": "Descriptive (8 replies per content per stage), K4, vLLM fork v0.9.2 / CuteAFD v3.0.1: at L3 (130,048 cap) code all tests pass 8/8 and 8/8, reasoning correct 8/8 and 8/8, JSON valid 5/8 and 3/8, prose finished 7/8 and 8/8; at L2 (32,768) code finished 0/8 and 5/8, JSON valid 2/8 and 2/8; at L1 (8,192) only reasoning finished (8/8 each). Median decode at L3 code 105.0 and 123.6 tok/s. JSON tasks are sized for thinking off and are infeasible by design where reasoning fills the cap.",
+   "findings": [
+    "K4-l-checks",
+    "K4-l-length-decode"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "L-U5",
+   "question": "Of the replies the frozen analyser flags as repeating, which are terminal loops (an exact period) and which copy code drafted in the reasoning?",
+   "added": "protocol",
+   "added_source": "METHOD.md:179-181; l/LOOP-RULES-VC.json rule ('declared before any K4 Block L request')",
+   "design": {
+    "instrument": "loop_rules.py after the frozen analyser: content-only R50, copy share from the reasoning, category (terminal loop only with an exact period m >= 0.8)",
+    "arms": [
+     "V-r1",
+     "C-r1"
+    ],
+    "items": "every Block L reply",
+    "unit": "reply",
+    "n": "200 replies",
+    "repeats": "as in L",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "l/LOOP-RULES-VC.json"
+   ],
+   "result_docs": [
+    "l/LOOP-RULES-VC.json",
+    "f1k4/RESULTS-K4e.md"
+   ],
+   "status": "done",
+   "status_note": "The README Block L table's 'terminal loops' column (README.md:157-165: vLLM L3 code 8, L3 json 1; CuteAFD L2 code 3, L3 code 6, L3s code 1) repeats the frozen analyser's flags and predates the U5 reading; under the U5 rule in l/LOOP-RULES-VC.json every one of those is 'copy from reasoning' and none is a terminal loop, as f1k4/RESULTS-K4e.md:36-39 also states. The headline and finding give the U5 reading.",
+   "headline": "Under the U5 rule, 0 terminal loops on either engine. Every reply the frozen analyser flagged is classified 'copy from reasoning': vLLM fork v0.9.2 9 (L3 code 8, L3 JSON 1), CuteAFD v3.0.1 10 (L2 code 3, L3 code 6, L3s code 1).",
+   "findings": [
+    "K4-l-u5-loops"
+   ],
+   "superseded_by": "README.md Block L table 'terminal loops' column is superseded by this reading"
+  },
+  {
+   "id": "F1K4-Q",
+   "question": "On K4, how much of CuteAFD's precision difference from the vLLM fork comes from W8A8 prefill GEMMs (CuteAFD with GLM5_FLASH_FP8_PREFILL=off, W8A16)?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4.md:1-5 (declared after the Block Q results, before any F1-K4 request; outside the frozen protocol)",
+   "design": {
+    "instrument": "Block Q top-20 measures with the frozen probe driver and scorers; C-f1c against the vLLM mean and directly against C-r1; rule: 'accounts for most' if C-f1c − C-r1 moves P-B 8-16K by more than half of C-r1 − Vmean with an interval excluding 0",
+    "arms": [
+     "V: vLLM fork v0.9.2 (per-row mean of launches V-r1 and V-r2)",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)",
+     "C-f1c: CuteAFD v3.0.1 + GLM5_FLASH_FP8_PREFILL=off"
+    ],
+    "items": "P-A, P-B, Q2 as in Block Q",
+    "unit": "window (Q2: document)",
+    "n": "P-A 25, P-B 53 generated-row windows, Q2 6 documents",
+    "repeats": "one scoring pass (CuteAFD is bit-deterministic)",
+    "interval": "window-cluster bootstrap 95%, 5,000 replicates"
+   },
+   "files": [
+    "f1k4/FOLLOWUPS-K4.md",
+    "f1k4/RESULTS-F1K4.md",
+    "f1k4/score-pa.log",
+    "f1k4/score-pb.log",
+    "f1k4/score-q2.log",
+    "f1k4/score/*",
+    "f1k4/q/C-f1c-*.log"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-F1K4.md",
+    "f1k4/score/f1c-minus-c1.json"
+   ],
+   "status": "done",
+   "headline": "Outside the frozen protocol, K4: W8A16 − as shipped at P-B 8-16K −0.0019 [−0.0039, −0.0002], about 21% of CuteAFD's +0.0090 difference, below the declared 'more than half' bar (on K3.25 the same switch moved about 59%). P-A: W8A16 − as shipped −0.0018, not detected (interval [−0.0050, +0.0005]); CuteAFD W8A16 − vLLM +0.0009, not detected (interval [−0.0014, +0.0028]). P-B generated: W8A16 − vLLM +0.0050 [+0.0034, +0.0067].",
+   "findings": [
+    "K4-f1-w8a16",
+    "K4-f1-w8a16-pa",
+    "K4-f1-w8a16-vs-vllm"
+   ],
+   "superseded_by": "K4b, K4c (W8A16 together with the amax scale rule)",
+   "status_note": "File names: f1k4/FOLLOWUPS-K4.md:11 names configs under local/; they are published as repro/k4/cuteafd/glm53-flash-exl3-k4-2rtx-score-f1c.config and glm53-flash-exl3-k4-2rtx-f1c.config. FOLLOWUPS-K4.md:17 points to analysis/c2/C2-FINDINGS.md, which is not published (the c2 reading is published as c2/README.md). f1k4/RESULTS-F1K4.md:40 names q/C-f1c/, published as f1k4/q/C-f1c-pa.log, C-f1c-pb.log and C-f1c-q2.log."
+  },
+  {
+   "id": "F1K4-T",
+   "question": "What does W8A16 prefill cost CuteAFD in decode speed and time to first token on K4?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4.md:19-24",
+   "design": {
+    "instrument": "Block T drift subset on serving launches in the order base, W8A16, base; W8A16 ÷ mean(base) per cell and content, base-to-base as the band",
+    "arms": [
+     "CuteAFD v3.0.1 as shipped (base1, base2)",
+     "CuteAFD v3.0.1 W8A16 prefill (C-f1c)"
+    ],
+    "items": "Block T drift subset: 1K and 32K, 1 and 4 streams, code and prose, replicates 0-1 (64 requests, frozen seeds)",
+    "unit": "cell × content",
+    "n": "8 cell-content pairs; 64 requests per launch",
+    "repeats": "replicates 0-1; ABA launches",
+    "interval": "none (base-to-base band)"
+   },
+   "files": [
+    "f1k4/t/C-base1.*",
+    "f1k4/t/C-f1c.*",
+    "f1k4/t/C-base2.*"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-F1K4.md"
+   ],
+   "status": "done",
+   "status_note": "Corrected in f1k4/RESULTS-F1K4.md:32-34: an earlier draft pooled code and prose and read 1.06-1.07x faster. README.md:130-141 gives per-request medians per cell and content; f1k4/RESULTS-F1K4.md:17-25 gives medians of batch medians per cell and content. Both separate code and prose (README.md:141-144 still describes RESULTS-F1K4.md as pooled) and both follow from the f1k4/t receipts; they differ in some cells (e.g. 32K x 4 prose 0.970 against 1.02). The finding cites RESULTS-F1K4.md.",
+   "headline": "Outside the frozen protocol: time to first token +3-4% in every cell (base-to-base 0.2%); decode level, W8A16 ÷ base 0.97-1.08 per cell and content against base-to-base 0.94-1.02.",
+   "findings": [
+    "K4-f1-speed"
+   ]
+  },
+  {
+   "id": "K4b",
+   "question": "Which of CuteAFD's FP8 switches on K4 (scale rule amax or best, BF16 KDA projections, BF16 head, all together) carry its precision difference from the vLLM fork?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4b.md:1-35 (declared 2026-10-28 before any F1-K4b request; operator request; outside the frozen protocol)",
+   "design": {
+    "instrument": "Block Q top-20 measures, one scoring launch per arm, against the vLLM mean and directly against C-r1; rule: 'accounts for most' = moves P-B 8-16K by more than half of 0.0090 with an interval excluding 0",
+    "arms": [
+     "V: vLLM fork v0.9.2 (per-row mean of launches V-r1 and V-r2)",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)",
+     "amax: FP8_SCALES=amax",
+     "best: FP8_SCALES=best",
+     "kda16: GLM5_FLASH_KDA_FP8=off",
+     "head16: GLM5_FLASH_FP8_HEAD=off",
+     "all16: best + kda16 + head16 + W8A16"
+    ],
+    "items": "P-A, P-B, Q2 as in Block Q",
+    "unit": "window",
+    "n": "P-A 25, P-B 53 generated-row windows",
+    "repeats": "one scoring pass per arm",
+    "interval": "window-cluster bootstrap 95%, 5,000 replicates"
+   },
+   "files": [
+    "f1k4/FOLLOWUPS-K4b.md",
+    "f1k4/RESULTS-F1K4b.md",
+    "f1k4/score-b/*"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-F1K4b.md",
+    "f1k4/score-b/f1b-summary.json"
+   ],
+   "status": "done",
+   "headline": "Outside the frozen protocol, K4, P-B 8-16K arm − as shipped: kda16 −0.0035 [−0.0065, −0.0007] (about 39%), amax −0.0023, not detected (interval [−0.0054, +0.0008]), best −0.0010, not detected (interval [−0.0039, +0.0015]), head16 −0.0003 [−0.0004, −0.0002]; no single switch moves more than half. all16 −0.0050 [−0.0078, −0.0021] (about 56%) and remains +0.0041 [+0.0027, +0.0054] from the vLLM fork. On P-A, best and all16 − vLLM are not detected (+0.0009, +0.0012).",
+   "findings": [
+    "K4-b-kda16-head16",
+    "K4-b-scale-rules",
+    "K4-b-all16",
+    "K4-b-pa"
+   ],
+   "status_note": "File names: f1k4/RESULTS-F1K4b.md:35 names q/C-{amax,best,head16,kda16,all16,nospec}/ and t/HEAD16-SERVING-DOES-NOT-FIT, which are not published (the per-arm results are in f1k4/score-b/f1b-summary.json); the arm configs are published under repro/k4/cuteafd/. f1k4/RESULTS-F1K4b.md:79 points to analysis/c2/C2-FINDINGS.md, which is not published (c2/README.md)."
+  },
+  {
+   "id": "K4b-FIT",
+   "question": "Which K4b arms fit a serving or scoring launch on 2x RTX with K4?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4b.md:19-22 (memory rule declared before any request) and :37-45 (pre-run and run notes)",
+   "design": {
+    "instrument": "planner dry runs and live launches at MAX_CONTEXT_TOKENS 262,144, retried once at 139,264",
+    "arms": [
+     "amax",
+     "best",
+     "kda16",
+     "head16",
+     "all16"
+    ],
+    "items": "one dry run and one launch per arm and launch type",
+    "unit": "arm",
+    "n": "5 arms",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "f1k4/RESULTS-F1K4b.md",
+    "f1k4/FOLLOWUPS-K4b.md"
+   ],
+   "status": "done",
+   "headline": "Serving fits for W8A16 prefill and the scale rules only. kda16 and all16 do not fit a serving launch (pool 194,560 tokens short at 262,144; 150,016 short at 139,264); head16 fit the serving dry run (pool 406,528) but not live (RESULTS-F1K4b.md: 9,472 tokens short; amendment B2 gives the same shortfall for the head16 scoring launch); their speed was not measured.",
+   "findings": [
+    "K4-b-fit"
+   ],
+   "status_note": "The 9,472-token shortfall is assigned to the head16 scoring launch in f1k4/FOLLOWUPS-K4b.md:56-57 (amendment B2) and to head16 serving in f1k4/RESULTS-F1K4b.md:17; no head16 launch log is published, so the attribution is not settled and no finding uses it."
+  },
+  {
+   "id": "K4b-B1",
+   "question": "Is removing the DFlash2 drafter neutral for CuteAFD's scored rows, so that drafter-off scoring launches can measure head16, kda16 and all16?",
+   "added": "amendment",
+   "added_source": "f1k4/FOLLOWUPS-K4b.md:47-60 (amendments B1 13:05 and B2 13:10, before any further request)",
+   "design": {
+    "instrument": "control arm nospec = as-shipped scoring config + SPECULATOR=off; pass if raw-logit row hashes equal C-r1's on every scored row",
+    "arms": [
+     "C-r1",
+     "nospec"
+    ],
+    "items": "every scored row of P-A, P-B and Q2",
+    "unit": "row",
+    "n": "157,671 rows",
+    "repeats": "one pass",
+    "interval": "none (exact match)"
+   },
+   "files": [],
+   "result_docs": [
+    "f1k4/RESULTS-F1K4b.md"
+   ],
+   "status": "done",
+   "headline": "Raw-logit row hashes identical to C-r1 on 157,671 of 157,671 scored rows; the drafter-off launches of head16, kda16 and all16 were therefore read as measuring only their own switch.",
+   "findings": [
+    "K4-b-nospec"
+   ]
+  },
+  {
+   "id": "K4c",
+   "question": "How close does the combination that fits on 2x RTX, W8A16 prefill plus the amax scale rule, bring CuteAFD to the vLLM fork on K4, and at what speed?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4b.md:62-69 (K4c, declared before any K4c request; operator request)",
+   "design": {
+    "instrument": "as K4b for precision; speed on serving launches base, w16amax, base (drift subset, per cell and content, base-to-base band)",
+    "arms": [
+     "V: vLLM fork v0.9.2 (per-row mean of launches V-r1 and V-r2)",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)",
+     "w16amax: GLM5_FLASH_FP8_PREFILL=off + FP8_SCALES=amax"
+    ],
+    "items": "P-A, P-B, Q2 as in Block Q; Block T drift subset: 1K and 32K, 1 and 4 streams, code and prose, replicates 0-1 (64 requests, frozen seeds)",
+    "unit": "window (Q2: document); speed: cell × content",
+    "n": "P-A 25, P-B 53 generated-row windows, Q2 6 documents; 64 requests per speed launch",
+    "repeats": "one scoring pass; ABA speed launches",
+    "interval": "window-cluster bootstrap 95%, 5,000 replicates; Q2 Student-t over documents"
+   },
+   "files": [
+    "f1k4/score-c/*",
+    "f1k4/t/C-c-*.json"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-F1K4b.md",
+    "f1k4/score-c/f1c2-summary.json"
+   ],
+   "status": "done",
+   "headline": "Outside the frozen protocol, K4: W8A16 + amax − as shipped at P-B 8-16K −0.0061 [−0.0095, −0.0029] (about 68%, above the declared bar); CuteAFD remains +0.0030 [+0.0011, +0.0049] from the vLLM fork there, P-B generated +0.0025 [+0.0012, +0.0038]; P-A +0.0006, not detected; Q2 NLL +0.0002, not detected (interval [−0.0009, +0.0012]). Decode level (0.95-1.09 against base-to-base 0.92-1.02), first token +4.1-4.3%. The narrow Q2 interval is not read as an effect (see K4d).",
+   "findings": [
+    "K4-c-w16amax",
+    "K4-c-pa-q2",
+    "K4-c-speed"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "K4d",
+   "question": "Does W8A16 prefill with the best scale rule do as well as with amax on K4?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4b.md:71-75 (K4d, declared before any K4d request; operator request after K4c)",
+   "design": {
+    "instrument": "as K4c",
+    "arms": [
+     "V: vLLM fork v0.9.2 (per-row mean of launches V-r1 and V-r2)",
+     "C: CuteAFD v3.0.1 as shipped (C-r1)",
+     "w16best: GLM5_FLASH_FP8_PREFILL=off + FP8_SCALES=best",
+     "w16amax (K4c)"
+    ],
+    "items": "P-A, P-B, Q2 as in Block Q; Block T drift subset: 1K and 32K, 1 and 4 streams, code and prose, replicates 0-1 (64 requests, frozen seeds)",
+    "unit": "window (Q2: document); speed: cell × content",
+    "n": "P-A 25, P-B 53 generated-row windows, Q2 6 documents; 64 requests per speed launch",
+    "repeats": "one scoring pass; ABA speed launches",
+    "interval": "window-cluster bootstrap 95%, 5,000 replicates; Q2 Student-t over documents"
+   },
+   "files": [
+    "f1k4/score-d/*",
+    "f1k4/t/C-d-*.json"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-F1K4b.md",
+    "f1k4/score-d/f1d2-summary.json"
+   ],
+   "status": "done",
+   "headline": "Outside the frozen protocol, K4: W8A16 + best − as shipped at P-B 8-16K −0.0043 [−0.0068, −0.0023] (about 48%, just under the bar); W8A16 + best − W8A16 + amax: P-A +0.0003, not detected (interval [−0.0016, +0.0022]), P-B 8-16K +0.0018 [+0.0000, +0.0035] (at the edge of resolution). Q2 NLL − vLLM +0.0158, not detected (interval [−0.0245, +0.0560]); the run reads Q2's six-document intervals as dominated by window c2-064k. Decode level, first token +4%.",
+   "findings": [
+    "K4-d-w16best",
+    "K4-d-pa-q2",
+    "K4-d-speed"
+   ]
+  },
+  {
+   "id": "K4e-T",
+   "question": "Under the protocol's full Block T grid, how fast is CuteAFD with W8A16 prefill + amax against CuteAFD as shipped and against the vLLM fork on K4?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4e.md:1-18 (declared 2026-10-28 before any K4e request; outside the frozen protocol)",
+   "design": {
+    "instrument": "Block T full grid with the frozen seeds and prompts; ratios to Stage 3's C-r1 and V-r1 per cell; band max(8%, base1-base2 and C-d1 drift); machine-state check: as-shipped drift subsets before and after against Stage 3's C-d1",
+    "arms": [
+     "C-w16amax-r1",
+     "C-e-base1, C-e-base2 (as shipped, drift subset)",
+     "Stage 3 C-r1 and V-r1"
+    ],
+    "items": "Block T prompt set (K3.25, unchanged): prose and code at every length, reasoning and JSON at 1K and 8K",
+    "unit": "cell",
+    "n": "22 cells (7 input × stream cells reported as medians over content)",
+    "repeats": "3 replicates per cell",
+    "interval": "none (band rule: ±8%)"
+   },
+   "files": [
+    "f1k4/FOLLOWUPS-K4e.md",
+    "f1k4/RESULTS-K4e.md",
+    "f1k4/t/C-e-base*",
+    "f1k4/t/C-w16amax-r1.*"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-K4e.md"
+   ],
+   "status": "done",
+   "headline": "Outside the frozen protocol, K4: the as-shipped drift subsets matched 2026-10-27 (decode 0.95-1.03x, first token within 1.5%). W8A16 + amax ÷ as shipped: decode and aggregate level in every cell, first token +4% in every cell. ÷ vLLM fork: decode 1.13-1.54x; first token later at 1K and at 32K × 4, sooner at 8K-128K one stream.",
+   "findings": [
+    "K4-e-speed-vs-shipped",
+    "K4-e-speed-vs-vllm"
+   ],
+   "status_note": "f1k4/FOLLOWUPS-K4e.md:4 names local/glm53-flash-exl3-k4-2rtx-w16amax.config; it is published as repro/k4/cuteafd/glm53-flash-exl3-k4-2rtx-w16amax.config."
+  },
+  {
+   "id": "K4e-L",
+   "question": "Under the protocol's Block L, how do CuteAFD's long outputs with W8A16 prefill + amax compare with CuteAFD as shipped and the vLLM fork on K4?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4e.md:9-17",
+   "design": {
+    "instrument": "Block L L1-L3s with the frozen analyser and the U5 loop rules on V-r1, C-r1 and C-w16amax-r1",
+    "arms": [
+     "V-r1: vLLM fork v0.9.2",
+     "C-r1: CuteAFD v3.0.1 as shipped",
+     "C-w16amax-r1: W8A16 + amax"
+    ],
+    "items": "the Block L prompt set and seeds of Stage 4",
+    "unit": "reply",
+    "n": "100 replies per arm (8 per content per stage)",
+    "repeats": "2 seeds per prompt",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "f1k4/l/*"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-K4e.md",
+    "f1k4/l/L-analysis-K4e.json"
+   ],
+   "status": "done",
+   "status_note": "f1k4/RESULTS-K4e.md:45-46 names the analysis files l/L-analysis-e.json and l/LOOP-RULES-e.json; they are published as f1k4/l/L-analysis-K4e.json and f1k4/l/LOOP-RULES-K4e.json. f1k4/RESULTS-K4e.md:41-43 reads W8A16 + amax as matching or exceeding as shipped while giving code at the 32K cap as 2/8 against 5/8; the finding states the counts only.",
+   "headline": "Descriptive (n = 8 per cell), vLLM fork / as shipped / W8A16 + amax: 128K-cap code all tests pass 8/8, 8/8, 8/8; JSON valid 5/8, 3/8, 6/8; reasoning 8/8 each; 32K-cap code finished and passing 0/8, 5/8, 2/8; median 128K-cap code reply 51,343, 39,377, 37,537 tokens; 0 terminal loops under U5 (flags classified copy from reasoning: 9, 10, 7). Differences of this size are not separated from sampling.",
+   "findings": [
+    "K4-e-long-output"
+   ]
+  },
+  {
+   "id": "K4f",
+   "question": "At concurrency the frozen grid dropped (1K and 8K at 8 and 16 streams, 32K at 8, 128K at 2), how do the vLLM fork, CuteAFD as shipped and CuteAFD W8A16 + amax compare on K4?",
+   "added": "follow-up",
+   "added_source": "f1k4/FOLLOWUPS-K4f.md:1-15 (declared 2026-10-29 before any K4f request; outside the frozen protocol)",
+   "design": {
+    "instrument": "per cell and content: decode per stream, aggregate, time to first token; CuteAFD ÷ vLLM and W8A16+amax ÷ as shipped; ±8% band; drift subsets after the first two arms against 2026-10-27",
+    "arms": [
+     "vLLM fork v0.9.2 (V-side)",
+     "CuteAFD v3.0.1 as shipped (C-side)",
+     "CuteAFD W8A16 + amax (C-w16amax-side)"
+    ],
+    "items": "Block T prompts, seeds and nonce salt; cells in f1k4/K4f-cells.json; 1,024 output tokens",
+    "unit": "cell",
+    "n": "6 cells; 648 measured requests per arm",
+    "repeats": "replicates per the frozen Block T rule",
+    "interval": "none (band rule: ±8%)"
+   },
+   "files": [
+    "f1k4/FOLLOWUPS-K4f.md",
+    "f1k4/RESULTS-K4f.md",
+    "f1k4/K4f-cells.json",
+    "f1k4/t/*-side.json",
+    "f1k4/t/*-f-drift.json"
+   ],
+   "result_docs": [
+    "f1k4/RESULTS-K4f.md"
+   ],
+   "status": "done",
+   "status_note": "32K × 16 not run: CuteAFD's K4 pool (447,488 tokens) does not hold 16 × 33,792.",
+   "headline": "Outside the frozen protocol, K4, aggregate CuteAFD v3.0.1 ÷ vLLM fork v0.9.2: level at 1K × 8 (1.00) and 8K × 8 (1.05); CuteAFD ahead at 1K × 16 (1.44), 8K × 16 (1.37), 32K × 8 (1.09) and 128K × 2 (1.15). First token: vLLM fork sooner at 1K (CuteAFD 1.87x and 1.78x as long) and at 32K × 8 (1.33x); level at 8K and 128K × 2. W8A16 + amax ÷ as shipped: aggregate 0.97-1.00x, first token +4%. The run states a mechanism (chunked prefill interleaved with decode against queued prefill) carried over from K3.25, not tested here.",
+   "findings": [
+    "K4-f-aggregate",
+    "K4-f-ttft"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "NOT-PUBLISHED.json",
+  "METHOD.md"
+ ]
+}

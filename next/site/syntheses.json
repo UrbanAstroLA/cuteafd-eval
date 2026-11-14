@@ -1,0 +1,1199 @@
+[
+ {
+  "id": "S-experts",
+  "question": "Where does most of a configuration's distance from the BF16 model come from: the routed experts, the core, or the engine?",
+  "judgement": "From the routed experts. On CuteAFD v4.0.0 the step from 3.25-bit to 4-bit experts (K3.25 to K4) changed teacher-panel KL by −0.0195. On the same checkpoint the engine changed it by +0.0017 (K3.25) and +0.0035 (K4). The core moved it less: on the fidelity set hqa was 0.0026 closer than the BF16 core, and on the teacher panel the BF16-core configuration was not the closest (anchor 0.0320, compact 0.0297, intervals overlapping). In the v5 study K3.25-Core-FP8 was farther than every 4-bit-expert configuration on both sets, by +0.0124 to +0.0183 on the fidelity set.",
+  "strength": "established",
+  "strength_basis": "Comparisons planned before their data, on two reference sets (teacher panel, fidelity set) and two engines, point the same way. The expert step is resolved on the teacher panel in the v4 run. The whole-checkpoint step is resolved on both sets in the v5 run (20 of 20 intervals exclude 0). The top-20 ratios agree in direction on both engines and both panels. Engine and core differences are resolved or bounded, and each is under a fifth of the expert step.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000; prefill path; contexts to 14.4K; CuteAFD v3.0.1, v4.0.0 and v5.0.0 and the vLLM fork v0.9.2.",
+  "basis": [
+   {
+    "finding": "V4-fv-k4-vs-k325",
+    "role": "supports",
+    "note": "the expert step on the teacher panel, CuteAFD v4.0.0"
+   },
+   {
+    "finding": "CP-k325-bf16-diffs",
+    "role": "supports",
+    "note": "K3.25-Core-FP8 farther than all four 4-bit-expert configurations, both sets (a whole-checkpoint step: experts and core change together)"
+   },
+   {
+    "finding": "V4-top20-ratio",
+    "role": "supports",
+    "note": "the same direction on both engines and both panels (descriptive, top-20)"
+   },
+   {
+    "finding": "V4-fv-engine-k325",
+    "role": "context",
+    "note": "engine difference on K3.25"
+   },
+   {
+    "finding": "V4-fv-engine-k4",
+    "role": "context",
+    "note": "engine difference on K4"
+   },
+   {
+    "finding": "CP-bf16-hqa-anchor",
+    "role": "context",
+    "note": "core precision: BF16 core against hqa"
+   },
+   {
+    "finding": "V4-fv-k6-vs-k4",
+    "role": "context",
+    "note": "K6 core with other 4-bit experts against K4: not detected"
+   },
+   {
+    "finding": "CP-bf16-exlr8",
+    "role": "limits",
+    "note": "among 4-bit-expert configurations the two sets order them differently"
+   },
+   {
+    "finding": "K4-vs-k325-level",
+    "role": "supports",
+    "note": "the same step on the fidelity set and on both engines (top-20, no interval)"
+   },
+   {
+    "finding": "CP-panel-tilt",
+    "role": "limits",
+    "note": "the teacher panel can favour brandonmusic's K4; the fidelity set's relation to either calibration set is not known, and the v5 rows carry other experts; both point the same way"
+   },
+   {
+    "finding": "V4-top20-k6-vs-k4-pb",
+    "role": "limits",
+    "note": "between two 4-bit checkpoints with different producers the difference is as large as an engine gap"
+   },
+   {
+    "finding": "CP-bf16-teacher",
+    "role": "context",
+    "note": "teacher-panel levels of the v5 configurations"
+   }
+  ],
+  "does_not_show": [
+   "That the same ordering holds on the decode path or beyond 14.4K; nothing was measured against BF16 there.",
+   "Whether the bit width or the calibration text makes the expert difference: K3.25 and K4 also differ in producer and calibration data.",
+   "That distance from BF16 predicts task accuracy (see S-distance-tasks).",
+   "Which of the 4-bit-expert configurations is closest: they sit in one band and the two sets order them differently.",
+   "That the teacher panel is neutral between checkpoints: it comes from the evidence set of K4's producer."
+  ],
+  "short": "Mostly from the routed experts: 3.25-bit to 4-bit experts moved teacher-panel KL by −0.0195; the engine moved it by +0.0035 at most and the core by less."
+ },
+ {
+  "id": "S-engine-gap",
+  "page": "precision",
+  "question": "On the same weights, is CuteAFD farther from the BF16 model than the vLLM fork?",
+  "judgement": "Slightly, and most on long code. On the teacher panel (2K contexts) CuteAFD is farther by +0.0017 on K3.25 (v3.0.1 and v4.0.0 give the same rows) and +0.0035 on K4 (v4.0.0). On the fidelity set the difference is resolved in the 8-16K bucket, which is all long-code reading: +0.0054 on K3.25 and +0.0090 on K4 (a top-20 measure, not comparable in level). At 0-2K and 2-8K on K3.25 it is not detected. At 32K-128K there is no BF16 reference; there the engines' NLL on six long documents was not detected to differ (K3.25 −0.0005 [−0.0037, +0.0018]; K4 +0.0076 [−0.0076, +0.0228]).",
+  "short": "Slightly: +0.0017 (K3.25) and +0.0035 (K4) on the teacher panel, +0.0054 and +0.0090 on long code; not detected below 8K or in NLL at 32K-128K.",
+  "strength": "established",
+  "strength_basis": "Frozen rules, two checkpoints, two reference sets and two CuteAFD releases, all in the same direction. On the fidelity set, where the vLLM fork's rows vary between runs, CuteAFD is paired against more than one vLLM run; on the teacher panel the vLLM fork's launches agree to within a millionth.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); prefill path; CuteAFD v3.0.1 and v4.0.0, vLLM fork v0.9.2; K3.25 and K4.",
+  "basis": [
+   {
+    "finding": "V3-pa-engine",
+    "role": "supports",
+    "note": "teacher panel, K3.25, v3.0.1"
+   },
+   {
+    "finding": "V4-fv-engine-k325",
+    "role": "supports",
+    "note": "teacher panel, K3.25, v4.0.0"
+   },
+   {
+    "finding": "V4-fv-engine-k4",
+    "role": "supports",
+    "note": "teacher panel, K4, v4.0.0"
+   },
+   {
+    "finding": "V3-pb-longcode",
+    "role": "supports",
+    "note": "fidelity set 8-16K, K3.25"
+   },
+   {
+    "finding": "K4-pb-longcode",
+    "role": "supports",
+    "note": "fidelity set 8-16K, K4 (top-20)"
+   },
+   {
+    "finding": "V3-pb-short",
+    "role": "limits",
+    "note": "0-2K: not detected"
+   },
+   {
+    "finding": "V3-pb-mid",
+    "role": "limits",
+    "note": "2-8K: not detected"
+   },
+   {
+    "finding": "V3-u1-blockB",
+    "role": "limits",
+    "note": "the 8-16K bucket is one kind of text, so length and content are not separated"
+   },
+   {
+    "finding": "V3-q2-nll",
+    "role": "context",
+    "note": "32K-128K, engine against engine, K3.25"
+   },
+   {
+    "finding": "K4-q2-nll",
+    "role": "context",
+    "note": "32K-128K, engine against engine, K4"
+   },
+   {
+    "finding": "V3-i1-baseline",
+    "role": "context",
+    "note": "the vLLM reference varies between runs; the gap holds against each"
+   },
+   {
+    "finding": "V3-f3-pa-launch",
+    "role": "context",
+    "note": "teacher panel: two vLLM launches agree"
+   }
+  ],
+  "does_not_show": [
+   "Which engine is closer to BF16 beyond 14.4K tokens: no reference exists there.",
+   "That the gap grows with context length: within the one kind of text present at every length, growth was not detected (V3-u1-blockA-trend).",
+   "That the gap costs task accuracy: no task study paired the engines on the same checkpoint at long context."
+  ]
+ },
+ {
+  "id": "S-fp8-settings",
+  "page": "precision",
+  "question": "How much of CuteAFD's long-code gap do its FP8 settings account for?",
+  "judgement": "On K3.25 (v3.0.1), most of it goes with the FP8 prefill: W8A16 prefill moved the 8-16K KL by −0.0032, leaving +0.0022 against the vLLM fork; with KDA, head and prefill FP8 all off it moved by −0.0038 and the remainder, +0.0016 [−0.0005, +0.0033], is not detected. The BF16 head alone moved it by −0.0003. On K4 the same W8A16 switch moved −0.0019 of a +0.0090 gap; W8A16 with the amax scale rule moved −0.0061 and all BF16 paths −0.0050, and each still left a resolved gap (+0.0030 and +0.0041); BF16 KDA projections alone moved −0.0035.",
+  "short": "On K3.25 most of the long-code gap goes with W8A16 prefill; on K4 no setting tried closes it (best: W8A16 + amax, −0.0061 of +0.0090).",
+  "strength": "supported",
+  "strength_basis": "Follow-ups declared after the engine result and before their own requests, on one item set (the fidelity set's 8-16K bucket, 18 windows) on each of two checkpoints. The checkpoints disagree on how much the prefill accounts for, so the result is per checkpoint.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); prefill path; CuteAFD v3.0.1; K3.25 and K4.",
+  "basis": [
+   {
+    "finding": "V3-f1-w8a16",
+    "role": "supports",
+    "note": "K3.25, W8A16 prefill"
+   },
+   {
+    "finding": "V3-f1-all",
+    "role": "supports",
+    "note": "K3.25, all three settings off"
+   },
+   {
+    "finding": "V3-f1-head",
+    "role": "context",
+    "note": "K3.25, BF16 head: resolved, very small"
+   },
+   {
+    "finding": "V3-f1-kda",
+    "role": "context",
+    "note": "K3.25, BF16 KDA: not detected"
+   },
+   {
+    "finding": "K4-f1-w8a16",
+    "role": "limits",
+    "note": "K4, W8A16 prefill"
+   },
+   {
+    "finding": "K4-c-w16amax",
+    "role": "limits",
+    "note": "K4, W8A16 + amax"
+   },
+   {
+    "finding": "K4-b-all16",
+    "role": "limits",
+    "note": "K4, all BF16 paths"
+   },
+   {
+    "finding": "K4-b-kda16-head16",
+    "role": "context",
+    "note": "K4, KDA and head singly"
+   },
+   {
+    "finding": "V3-m6-prefill-only",
+    "role": "limits",
+    "note": "only the prefill path was scored"
+   }
+  ],
+  "does_not_show": [
+   "What these settings do on the decode path: only prefill was scored.",
+   "What they cost; that is on the settings page (S-set-costs).",
+   "Why K4's gap is mostly elsewhere: KDA output sharding, index-key format, attention placement and prefill geometry also differ between the engines (V3-u2-arith)."
+  ]
+ },
+ {
+  "id": "S-distance-tasks",
+  "question": "Does distance from BF16, measured to 14.4K, predict accuracy at long context?",
+  "judgement": "Only in part. K3.25-Core-FP8, the farthest of the five v5 configurations from BF16, also scored lowest at 127K. But compact sits in the same distance band as hqa and anchor, yet among the 4-bit-expert configurations it alone scored lower at 127K, and resolved only against hqa (+0.037 [+0.004, +0.073]). Up to 16K no configuration's score differed from the others'.",
+  "strength": "indicated",
+  "strength_basis": "One study. Compact's difference rests on one four-pass interval among 102. The 127K tasks have no BF16 reference, so distance and task score are measured at different lengths.",
+  "scope": "CuteAFD v5.0.0; five configurations; synthetic graded tasks 4K-127K; distance to 14.4K.",
+  "basis": [
+   {
+    "finding": "CP-bf16-distance",
+    "role": "context"
+   },
+   {
+    "finding": "CP-k325-bf16-diffs",
+    "role": "supports"
+   },
+   {
+    "finding": "CP-k325-tasks",
+    "role": "supports"
+   },
+   {
+    "finding": "CP-fourpass-compact-127k",
+    "role": "supports"
+   },
+   {
+    "finding": "CP-fourpass-compact-anchor",
+    "role": "limits",
+    "note": "compact is not resolved from anchor"
+   },
+   {
+    "finding": "CP-k325-tasks-short",
+    "role": "context",
+    "note": "level at 4K-16K"
+   }
+  ],
+  "does_not_show": [
+   "That short-context distance is irrelevant to long context.",
+   "Why compact or K3.25-Core-FP8 lose at 127K; the losses are mostly replies that did not finish (v5 study, endings)."
+  ],
+  "short": "Only in part: K3.25-Core-FP8 is farthest and scored lowest at 127K, but compact sits with hqa and anchor on distance and scored below hqa at 127K."
+ },
+ {
+  "id": "S-reproducible",
+  "question": "Can distances from BF16 be compared across studies and CuteAFD releases?",
+  "judgement": "Yes, for the same weights on CuteAFD. v4.0.0 rows are bit-identical to v3.0.1. K3.25-Core-FP8's teacher-panel KL is 0.0476 on v3.0.1, v4.0.0 and v5.0.0. K4-Core-K6's 0.0297 on v4.0.0 reappears for compact on v5.0.0, which loads the same K6 tensors. A second v5.0.0 launch repeated every row exactly.",
+  "strength": "established",
+  "strength_basis": "Exact agreement across three releases and repeated launches.",
+  "scope": "CuteAFD v3.0.1, v4.0.0 and v5.0.0; the teacher panel and the fidelity set; prefill path.",
+  "basis": [
+   {
+    "finding": "V4-v3-identity",
+    "role": "supports"
+   },
+   {
+    "finding": "CP-k325-earlier-release",
+    "role": "supports"
+   },
+   {
+    "finding": "V4-fv-k6-vs-k4",
+    "role": "supports",
+    "note": "K4-Core-K6 on v4.0.0"
+   },
+   {
+    "finding": "CP-bf16-teacher",
+    "role": "supports",
+    "note": "compact on v5.0.0"
+   },
+   {
+    "finding": "CP-bf16-repeat",
+    "role": "supports"
+   }
+  ],
+  "does_not_show": [
+   "That the vLLM fork's rows repeat: its multi-chunk prefill varies from run to run (v3.0.1 audit I1), so its rows are paired against the mean of several runs.",
+   "That other CuteAFD settings or checkpoints would repeat across releases; only these were compared."
+  ],
+  "short": "Yes on CuteAFD: the same weights give the same rows across v3.0.1, v4.0.0 and v5.0.0 (K3.25-Core-FP8 0.0476 on all three)."
+ },
+ {
+  "id": "S-long-fall",
+  "page": "long-tasks",
+  "question": "Does accuracy on long-context tasks fall with length, and does core precision cause the fall?",
+  "judgement": "It falls in every configuration, the BF16 core included: over four passes anchor went from 0.985 at 4K to 0.918 at 127K, hqa 0.984 to 0.924, compact 0.981 to 0.887 and exlr8-k4 0.983 to 0.920. Part of the fall is replies that did not finish: on finished replies at 127K, two passes, the three probe arms score 0.928 to 0.942, and finished join replies at 127K score 0.989 to 0.997. Accuracy by evidence position stayed within about 0.05 at every length.",
+  "short": "Yes, in every configuration including the BF16 core (anchor 0.985 at 4K to 0.918 at 127K); much of it is replies that did not finish.",
+  "strength": "supported",
+  "strength_basis": "A frozen protocol with four passes on one synthetic item set (60 items) and one engine; the fall has the same direction in all five configurations. One item set, so supported, not established.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v5.0.0; generation with thinking on; synthetic join, ledger and trace items at 4K-127K.",
+  "basis": [
+   {
+    "finding": "CP-length-fourpass",
+    "role": "supports",
+    "note": "four passes, four configurations"
+   },
+   {
+    "finding": "CP-length-effect",
+    "role": "supports",
+    "note": "two passes, three arms"
+   },
+   {
+    "finding": "CP-length-finished",
+    "role": "context",
+    "note": "finished replies only"
+   },
+   {
+    "finding": "CP-endings-finished-join",
+    "role": "context",
+    "note": "join replies that finished"
+   },
+   {
+    "finding": "CP-fourpass-endings",
+    "role": "context",
+    "note": "how many replies did not finish"
+   },
+   {
+    "finding": "CP-desc-position",
+    "role": "context",
+    "note": "evidence position"
+   }
+  ],
+  "does_not_show": [
+   "That the same fall holds on real documents or other tasks: one synthetic item set.",
+   "Whether the model or the engine produces the fall: one engine.",
+   "Why replies did not finish; in most, the reasoning copies the prompt's records out in order (CP-endings-copying)."
+  ]
+ },
+ {
+  "id": "S-long-cost",
+  "page": "long-tasks",
+  "question": "Where does a configuration's precision show up as a cost on long-context tasks?",
+  "judgement": "K3.25-Core-FP8 scored −0.051 to −0.058 below anchor, hqa and exlr8-k4 at 127K, and was not detected to differ from any of them at 4K and 16K; pooled over all four lengths it was −0.012 to −0.016 below the same three. More of its join replies at 127K did not finish.",
+  "short": "K3.25-Core-FP8 scored 0.051-0.058 below three 4-bit-expert configurations at 127K; nothing was detected at 4K and 16K.",
+  "strength": "supported",
+  "strength_basis": "A frozen rule (amendment 2, written before its requests) on one item set; the unfinished-reply shares were computed after the results were read.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v5.0.0; graded synthetic tasks at 4K-127K.",
+  "basis": [
+   {
+    "finding": "CP-k325-tasks",
+    "role": "supports",
+    "note": "at 127K"
+   },
+   {
+    "finding": "CP-k325-tasks-short",
+    "role": "supports",
+    "note": "not detected at 4K and 16K"
+   },
+   {
+    "finding": "CP-k325-tasks-all",
+    "role": "context",
+    "note": "pooled over all lengths"
+   },
+   {
+    "finding": "CP-k325-endings-share",
+    "role": "context",
+    "note": "unfinished join replies (post hoc)"
+   }
+  ],
+  "does_not_show": [
+   "Which part of K3.25-Core-FP8 costs accuracy: experts, core and the engine's FP8 defaults all differ from the other arms (a whole-checkpoint difference).",
+   "Anything beyond 127K, or on other tasks."
+  ]
+ },
+ {
+  "id": "S-long-cost-compact",
+  "page": "long-tasks",
+  "question": "Does the compact attention mode cost accuracy at long context?",
+  "judgement": "Against hqa, yes at 127K: hqa − compact +0.037 [+0.004, +0.073], and +0.013 [+0.002, +0.024] pooled over all lengths. Against the BF16 core it is not detected: compact − anchor −0.031 [−0.070, +0.008] at 127K. More of compact's join replies at 127K did not finish than hqa's.",
+  "short": "Against hqa at 127K, yes (+0.037); against the BF16 core, not detected.",
+  "strength": "indicated",
+  "strength_basis": "Resolved against hqa only, in the four passes of amendment 1 (passes 3-4 added after the two-pass results were read); in neither pass set alone is the pooled difference resolved.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v5.0.0; K4-Core-K6-HQA; graded synthetic tasks.",
+  "basis": [
+   {
+    "finding": "CP-fourpass-compact-127k",
+    "role": "supports",
+    "note": "at 127K"
+   },
+   {
+    "finding": "CP-fourpass-hqa-compact-all",
+    "role": "supports",
+    "note": "pooled over lengths"
+   },
+   {
+    "finding": "CP-fourpass-compact-anchor",
+    "role": "limits",
+    "note": "against the BF16 core: not detected"
+   },
+   {
+    "finding": "CP-endings-share",
+    "role": "context",
+    "note": "unfinished join replies (post hoc)"
+   }
+  ],
+  "does_not_show": [
+   "That compact costs accuracy against the BF16 core: that interval includes 0."
+  ]
+ },
+ {
+  "id": "S-long-output",
+  "page": "long-tasks",
+  "question": "Do long replies (to 130K tokens) finish and pass their checks on both engines?",
+  "judgement": "Code replies at the 130K cap passed all tests on 7 of 8 per engine on K3.25 and 8 of 8 on K4, and level-5 math problems were correct 8 of 8 on both. JSON validity varied between runs and engines (K3.25: 6 and 4 of 8; K4: 5 and 3 of 8). Under the audit's loop rule no reply looped; replies the detector flagged copy code out of the reasoning. CuteAFD's replies were shorter (code median 38,190.5 against 51,297.5 tokens on K3.25). K4-Core-K6 finished fewer replies within 32K than K4 (11 and 13 against 17 and 18 of 32).",
+  "short": "Yes for code and math on both engines (7-8 of 8 at the 130K cap); JSON validity varies; CuteAFD's replies are shorter.",
+  "strength": "supported",
+  "strength_basis": "Frozen protocols on three runs (K3.25 and K4 on v3.0.1, K4 and K4-Core-K6 on v4.0.0, two seeds) give the same picture, but as counts of 8 replies per cell with no intervals.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v3.0.1 and v4.0.0, vLLM fork v0.9.2; thinking on; one prompt per content type and cap, 8 replies per cell.",
+  "basis": [
+   {
+    "finding": "V3-l-tasks-128k",
+    "role": "supports",
+    "note": "K3.25"
+   },
+   {
+    "finding": "K4-l-checks",
+    "role": "supports",
+    "note": "K4"
+   },
+   {
+    "finding": "V4-blockL-k4-tasks",
+    "role": "supports",
+    "note": "K4, v4.0.0"
+   },
+   {
+    "finding": "K4-l-u5-loops",
+    "role": "context",
+    "note": "loop rule"
+   },
+   {
+    "finding": "V3-l-length",
+    "role": "context",
+    "note": "reply length"
+   },
+   {
+    "finding": "V4-blockL-k6-r1",
+    "role": "context",
+    "note": "K4-Core-K6"
+   },
+   {
+    "finding": "V4-blockL-r2-k6",
+    "role": "context",
+    "note": "K4-Core-K6, second seed"
+   }
+  ],
+  "does_not_show": [
+   "Pass rates with intervals: 8 replies per cell.",
+   "Why CuteAFD's replies are shorter: engine and sampling were not separated (V3-l-length)."
+  ]
+ },
+ {
+  "id": "S-long-retrieval",
+  "page": "long-tasks",
+  "question": "Do the engines accept and use prompts of 256K to 1M tokens?",
+  "judgement": "In an exploratory pilot on K3.25, one request per prompt, both engines finished all 12 requests and found the single code at 256K, 512K and 1M tokens; first token at 1M took 269.7-270.5 s (vLLM fork) and 254.2-255.4 s (CuteAFD).",
+  "short": "In a one-request pilot, yes: both engines found the needle at 256K-1M tokens.",
+  "strength": "indicated",
+  "strength_basis": "Exploratory, one request per cell, no protocol.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v3.0.1 and vLLM fork v0.9.2; K3.25; prompts of 256K-1M tokens.",
+  "basis": [
+   {
+    "finding": "LP-needle",
+    "role": "supports",
+    "note": "retrieval"
+   },
+   {
+    "finding": "LP-ttft",
+    "role": "context",
+    "note": "first-token time"
+   }
+  ],
+  "does_not_show": [
+   "Accuracy on harder long-context tasks at these lengths.",
+   "Anything about K4 or later engine versions."
+  ]
+ },
+ {
+  "id": "S-think-stop",
+  "page": "thinking",
+  "question": "Does the core's precision change when the model decides to stop thinking on science questions?",
+  "judgement": "Not detected on either engine. On the vLLM fork, whole BF16 core − 6-bit core in log p of ending the thinking at the trace's close: +0.005 [−0.009, +0.019] on 11 questions and −0.0109 [−0.0315, +0.0046] on 30 new ones. On CuteAFD: −0.0144 [−0.0497, +0.0187] on the 30 new questions and −0.0028 [−0.0263, +0.0195] over all 41. A secondary measure, the stopping hazard, shows small resolved shifts on both engines.",
+  "short": "Not detected on either engine (11 + 30 questions on the vLLM fork, 41 on CuteAFD); shifts beyond about 0.05 in log p are excluded.",
+  "strength": "established",
+  "strength_basis": "Frozen protocols on two engines, not detected on either (the 11-question set: the vLLM fork in the thinking-length run, CuteAFD in the core-swap run). The 30 new questions agree; that run is labelled exploratory in its own record, with its reading rule frozen before its first launch. The bound is the widest interval end, −0.0497.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); teacher-forced traces of science questions; vLLM fork v0.9.2 with the local core loader, CuteAFD v4.0.0; K4-Core-K6 and its BF16-core derivative.",
+  "basis": [
+   {
+    "finding": "TL-stop-core",
+    "role": "supports",
+    "note": "vLLM fork, 11 questions"
+   },
+   {
+    "finding": "NQ-core-stop-vllm",
+    "role": "supports",
+    "note": "vLLM fork, 30 new questions"
+   },
+   {
+    "finding": "NQ-core-stop-cuteafd",
+    "role": "supports",
+    "note": "CuteAFD, 30 new questions"
+   },
+   {
+    "finding": "NQ-core-stop-cuteafd-pooled",
+    "role": "supports",
+    "note": "CuteAFD, 41 questions"
+   },
+   {
+    "finding": "CS-stop-core",
+    "role": "supports",
+    "note": "CuteAFD, 11 questions"
+   },
+   {
+    "finding": "NQ-hazard-vllm-core",
+    "role": "limits",
+    "note": "hazard: small resolved shift"
+   },
+   {
+    "finding": "NQ-hazard-cuteafd-core",
+    "role": "limits",
+    "note": "hazard: small resolved shift"
+   },
+   {
+    "finding": "TL-launch-stop",
+    "role": "context",
+    "note": "two launches of the same arm differ by as much on the vLLM fork"
+   }
+  ],
+  "does_not_show": [
+   "How long the model thinks in free generation on science questions: see S-think-science-length.",
+   "Anything about code, where the engines' arms do differ in length (S-think-code-kda)."
+  ]
+ },
+ {
+  "id": "S-think-science-length",
+  "page": "thinking",
+  "question": "Does the core's precision change how long the model thinks in free generation on science questions?",
+  "judgement": "Not known. It was measured on one question, on the vLLM fork only: BF16 core / 6-bit core 0.80 [0.51, 1.14] in geometric-mean completion tokens, wider than the frozen band, so the frozen reading is inconclusive. On finished replies only, post hoc, 0.97 [0.78, 1.21].",
+  "short": "Not known: one question on one engine, inconclusive (0.80 [0.51, 1.14]).",
+  "strength": "open",
+  "strength_basis": "One question, one engine, and the frozen reading is inconclusive.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); vLLM fork v0.9.2 with the local core loader; one science question.",
+  "basis": [
+   {
+    "finding": "TL-g4-primary",
+    "role": "supports",
+    "note": "the frozen measurement"
+   },
+   {
+    "finding": "TL-g4-finished",
+    "role": "context",
+    "note": "finished replies only (post hoc)"
+   },
+   {
+    "finding": "TL-g4-classes",
+    "role": "context",
+    "note": "how the replies ended"
+   }
+  ],
+  "does_not_show": [
+   "That thinking length on science questions is the same with either core: the earlier site said so; it was not measured."
+  ]
+ },
+ {
+  "id": "S-think-code-kda",
+  "page": "thinking",
+  "question": "Why does CuteAFD's BF16-core arm think shorter on code than its native 6-bit-core arm?",
+  "judgement": "Most of the gap goes with CuteAFD's FP8 KDA setting. The native 6-bit core thought 1.26 [1.24, 1.29] times as long as the BF16 core run through the engine's FP8 defaults, on 12 new code prompts. Switching the KDA setting off lengthened the BF16-core arm 1.31 [1.24, 1.38] times; turning the head and prefill FP8 off after that added nothing detectable. On the vLLM fork, which runs neither core through these FP8 paths, the two cores thought equally long: 1.00 [0.96, 1.04]. The setting changes both the KDA projection format and, on two GPUs, KDA output sharding, and the run does not separate the two.",
+  "short": "Mostly CuteAFD's FP8 KDA setting: switching it off lengthened code thinking 1.31x, about the whole gap; on the vLLM fork the two cores think alike (1.00 [0.96, 1.04]).",
+  "strength": "supported",
+  "strength_basis": "Frozen protocols, one prompt family (16 code prompts, 12 primary) and one checkpoint pair; the engine contrast and the setting ablation point the same way.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v4.0.0 and vLLM fork v0.9.2 with the local core loader; K4-Core-K6 and its BF16-core derivative; code prompts, thinking on.",
+  "basis": [
+   {
+    "finding": "CT-core-code",
+    "role": "supports",
+    "note": "the gap on CuteAFD"
+   },
+   {
+    "finding": "FA-kda-step",
+    "role": "supports",
+    "note": "KDA setting off"
+   },
+   {
+    "finding": "FA-head-step",
+    "role": "context",
+    "note": "then the head: not detected"
+   },
+   {
+    "finding": "FA-prefill-step",
+    "role": "context",
+    "note": "then the prefill: not detected"
+   },
+   {
+    "finding": "FA-gap-share",
+    "role": "supports",
+    "note": "share of the gap closed"
+   },
+   {
+    "finding": "VC-core-code",
+    "role": "supports",
+    "note": "the vLLM fork: not detected"
+   },
+   {
+    "finding": "VC-engines",
+    "role": "supports",
+    "note": "the core ratio is smaller on the vLLM fork"
+   },
+   {
+    "finding": "VC-fp8-path-shard",
+    "role": "limits",
+    "note": "format and sharding change together"
+   },
+   {
+    "finding": "CS-s1-core",
+    "role": "limits",
+    "note": "on 8 mixed prompts the core ratio was not detected at the prompt level"
+   },
+   {
+    "finding": "FA-where",
+    "role": "limits",
+    "note": "where in the computation: not measured"
+   }
+  ],
+  "does_not_show": [
+   "Whether the FP8 format or the output sharding is responsible.",
+   "That the same holds for other prompt families or checkpoints.",
+   "That longer or shorter thinking changes correctness (S-think-correctness)."
+  ]
+ },
+ {
+  "id": "S-think-correctness",
+  "page": "thinking",
+  "question": "Does shorter thinking cost correctness on code?",
+  "judgement": "Not settled. The 1.26x length gap between CuteAFD's two arms came with no detected difference in all-tests-pass: +1.6 points [−7.8, +10.9]. But in a post hoc look the arm with every FP8 path off passed more often than either CuteAFD arm (+17.5 points [+7.8, +28.6] against the BF16-core default), which also holds after a correction for 13 looks; that arm ran a day later on the same prompt family.",
+  "short": "Not settled: the 1.26x length gap came with no detected pass-rate difference (+1.6 points [−7.8, +10.9]), but an all-BF16-path arm passed more often in a post hoc look.",
+  "strength": "open",
+  "strength_basis": "One pre-set comparison not detected, one post hoc comparison resolved; mixed.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v4.0.0 and vLLM fork v0.9.2; 16 code prompts with hidden tests.",
+  "basis": [
+   {
+    "finding": "CT-core-code",
+    "role": "context",
+    "note": "the length gap"
+   },
+   {
+    "finding": "FA-pass-ck6-ck6x",
+    "role": "supports",
+    "note": "the length gap without a pass difference"
+   },
+   {
+    "finding": "FA-pass-fpre",
+    "role": "contradicts",
+    "note": "all FP8 off passed more often (post hoc)"
+   },
+   {
+    "finding": "FA-pass-kda",
+    "role": "context",
+    "note": "KDA off alone (post hoc)"
+   },
+   {
+    "finding": "CT-tests",
+    "role": "context",
+    "note": "pass counts"
+   },
+   {
+    "finding": "V3-l-tasks-128k",
+    "role": "context",
+    "note": "shorter CuteAFD replies, equal code passes (K3.25)"
+   }
+  ],
+  "does_not_show": [
+   "That shorter thinking is free.",
+   "That the FP8 paths cost correctness: the result is post hoc, from one run on another day."
+  ]
+ },
+ {
+  "id": "S-set-attention",
+  "page": "settings",
+  "question": "What does CuteAFD v5's default attention mode (hqa) trade against a BF16 core?",
+  "judgement": "hqa holds 4,266 MiB less in weights outside the experts than the BF16 core over the two GPUs, 756 MiB of it the output head, with no task cost detected (hqa − anchor +0.003 [−0.005, +0.012] over four passes), and is 0.0026 closer to BF16 on the fidelity set. In these launches every configuration was admitted the same KV pool, so the saving stayed unused.",
+  "short": "4,266 MiB less than the BF16 core, with no task cost detected (+0.003 [−0.005, +0.012]).",
+  "strength": "supported",
+  "strength_basis": "hqa against the BF16 core is the frozen comparison, over four passes, not detected; one item set and one engine.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v5.0.0; K4-Core-K6-HQA; graded synthetic tasks at 4K-127K.",
+  "basis": [
+   {
+    "finding": "CP-trade-memory",
+    "role": "supports",
+    "note": "memory"
+   },
+   {
+    "finding": "CP-fourpass-hqa-vs-anchor",
+    "role": "supports",
+    "note": "hqa against the BF16 core"
+   },
+   {
+    "finding": "CP-bf16-hqa-anchor",
+    "role": "supports",
+    "note": "distance from BF16"
+   },
+   {
+    "finding": "CP-kv-pool",
+    "role": "context",
+    "note": "equal KV pools"
+   }
+  ],
+  "does_not_show": [
+   "That hqa equals the BF16 core: a cost up to −0.005 is not excluded.",
+   "What the saved memory buys: no launch used it for a larger pool."
+  ]
+ },
+ {
+  "id": "S-set-compact",
+  "page": "settings",
+  "question": "What does the compact attention mode trade against hqa?",
+  "judgement": "compact holds a further 2,568 MiB less than hqa in weights outside the experts; it scored below hqa over all lengths (+0.013 [+0.002, +0.024]) and at 127K (+0.037), while against the BF16 core no difference was detected.",
+  "short": "2,568 MiB less than hqa, and below hqa at 127K (+0.037).",
+  "strength": "indicated",
+  "strength_basis": "As S-long-cost-compact: resolved against hqa only, in passes added after the first results were read.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v5.0.0; K4-Core-K6-HQA.",
+  "basis": [
+   {
+    "finding": "CP-trade-memory",
+    "role": "supports",
+    "note": "memory"
+   },
+   {
+    "finding": "CP-fourpass-hqa-compact-all",
+    "role": "supports",
+    "note": "task score"
+   },
+   {
+    "finding": "CP-fourpass-compact-127k",
+    "role": "supports",
+    "note": "at 127K"
+   },
+   {
+    "finding": "CP-fourpass-compact-anchor",
+    "role": "limits",
+    "note": "against the BF16 core: not detected"
+   }
+  ],
+  "does_not_show": [
+   "What the further 2,568 MiB buys: no launch used it for a larger pool."
+  ]
+ },
+ {
+  "id": "S-set-costs",
+  "page": "settings",
+  "question": "What does turning CuteAFD's FP8 settings off cost in speed and memory?",
+  "judgement": "W8A16 prefill costs about 4% in time to first token in every cell measured (1.038 to 1.045 on K3.25) with decode within run-to-run noise, and fits every launch measured. BF16 KDA projections and a BF16 head shrink the KV pool: on K4-Core-K6 (v4.0.0) from 1,931,264 tokens to 1,414,656 (KDA) and 1,215,488 (KDA and head). On K4 with v3.0.1, a serving launch with BF16 KDA did not fit; with a BF16 head the planner's dry run fit, and a live launch fell 9,472 tokens short of the context floor. Decode with BF16 KDA was 0.92 of as shipped on K3.25.",
+  "short": "W8A16 prefill: about 4% first-token time; BF16 KDA and head: a smaller KV pool (1,931,264 to 1,215,488 tokens on K4-Core-K6), and BF16 KDA did not fit a K4 serving launch on v3.0.1.",
+  "strength": "supported",
+  "strength_basis": "Measured in follow-ups on three runs and three checkpoints with consistent direction; speed is descriptive against each run's noise band.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v3.0.1 and v4.0.0; K3.25, K4, K4-Core-K6.",
+  "basis": [
+   {
+    "finding": "V3-f1-w8a16-cost",
+    "role": "supports",
+    "note": "W8A16 first token, K3.25"
+   },
+   {
+    "finding": "K4-f1-speed",
+    "role": "supports",
+    "note": "W8A16, K4"
+   },
+   {
+    "finding": "K4-c-speed",
+    "role": "supports",
+    "note": "W8A16 + amax, K4"
+   },
+   {
+    "finding": "FA-kv-pool",
+    "role": "supports",
+    "note": "KV pool with KDA and head BF16"
+   },
+   {
+    "finding": "K4-b-fit",
+    "role": "supports",
+    "note": "fit on K4"
+   },
+   {
+    "finding": "V3-f1-speed-arms",
+    "role": "context",
+    "note": "decode per arm, K3.25"
+   }
+  ],
+  "does_not_show": [
+   "What these settings buy in accuracy: see S-fp8-settings (precision) and S-think-code-kda (thinking length)."
+  ]
+ },
+ {
+  "id": "S-ckpt-k6-k4",
+  "page": "checkpoints",
+  "question": "Between the two 4-bit checkpoints, K4 and K4-Core-K6, is either closer to the BF16 model?",
+  "judgement": "Neither on both sets. On the teacher panel they are not detected to differ (+0.0016 [−0.0031, +0.0057], full vocabulary), and that panel can favour K4; on the fidelity set K4-Core-K6 is closer (−0.0049 [−0.0076, −0.0026], top-20). By domain, chosen after the pooled result, K4 was closer on legal and reasoning-termination text.",
+  "short": "Neither on both sets: level on the teacher panel (which can favour K4), K4-Core-K6 closer on the fidelity set (−0.0049).",
+  "strength": "open",
+  "strength_basis": "The two reference sets disagree, and one of them can favour one checkpoint.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v4.0.0; prefill path to 14.4K.",
+  "basis": [
+   {
+    "finding": "V4-fv-k6-vs-k4",
+    "role": "supports",
+    "note": "teacher panel, full vocabulary"
+   },
+   {
+    "finding": "V4-top20-k6-vs-k4-pb",
+    "role": "contradicts",
+    "note": "fidelity set"
+   },
+   {
+    "finding": "V4-k6-vs-k4-domain",
+    "role": "context",
+    "note": "by domain (exploratory)"
+   },
+   {
+    "finding": "K4-pa-provenance",
+    "role": "context",
+    "note": "where the teacher panel comes from"
+   },
+   {
+    "finding": "V4-calibration-mix",
+    "role": "context",
+    "note": "what each was calibrated on"
+   }
+  ],
+  "does_not_show": [
+   "That one 4-bit checkpoint is better for tasks: no task study compared them, except tool calling (S-tools)."
+  ]
+ },
+ {
+  "id": "S-ckpt-exlr8",
+  "page": "checkpoints",
+  "question": "How does the EXLR8 K4 checkpoint compare with the K4-Core-K6 configurations?",
+  "judgement": "On graded tasks over four passes, not detected against anchor (−0.001 [−0.012, +0.009]), hqa (−0.004 [−0.016, +0.007]) or compact (+0.009 [−0.003, +0.021]); an earlier two-pass lead over compact did not hold. In a post hoc look it had fewer replies with every field right than anchor at 64K and 127K (−0.046 [−0.087, −0.004], one of 6 of 102 such intervals). It is farther from BF16 than each probe arm on the fidelity set (+0.0032 to +0.0058) and level with them on the teacher panel.",
+  "short": "Not detected to differ on tasks over four passes; farther from BF16 on the fidelity set, level on the teacher panel.",
+  "strength": "supported",
+  "strength_basis": "Added as a reference after the first results were read, then compared under the frozen rule over four passes; the distance comparison was declared before its data. One item set, one engine.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v5.0.0; kindlingai EXLR8 K4 against K4-Core-K6-HQA and the BF16-core checkpoint.",
+  "basis": [
+   {
+    "finding": "CP-fourpass-exlr8-level",
+    "role": "supports",
+    "note": "against anchor and hqa"
+   },
+   {
+    "finding": "CP-fourpass-exlr8-k4",
+    "role": "supports",
+    "note": "against compact; the lead did not hold"
+   },
+   {
+    "finding": "CP-fourpass-exlr8-right",
+    "role": "limits",
+    "note": "every field right at 64K and 127K (post hoc)"
+   },
+   {
+    "finding": "CP-bf16-exlr8",
+    "role": "context",
+    "note": "distance from BF16"
+   }
+  ],
+  "does_not_show": [
+   "Which part of the checkpoint makes any difference: it differs from the probe arms in experts, core and formats (a whole-checkpoint difference)."
+  ]
+ },
+ {
+  "id": "S-speed-engines",
+  "page": "speed",
+  "question": "Is CuteAFD faster than the vLLM fork on this machine?",
+  "judgement": "On v4.0.0, faster or level in every cell measured on K3.25 and K4 (aggregate faster in 19 and 22 of 22 cells, slower in none), and K4-Core-K6 on CuteAFD was faster or level against the vLLM fork running K4 (20 of 22 faster); time to first token at 128K 19.8 s against 34.9 s on K3.25. On v3.0.1 CuteAFD was faster in single-stream decode (1.02 to 1.41) and in aggregate at 32K-128K, but slower in aggregate at 1K input with 8 streams (0.87 to 0.93), in first token at 1K (0.40-0.41 s against 0.25-0.26 s) and in first token at 32K-128K with 4-16 streams (1.18-1.47).",
+  "short": "On v4.0.0, faster or level in every measured cell on K3.25 and K4 (0 slower); v3.0.1 was slower at 1K with 8 streams and in first token with many streams.",
+  "strength": "established",
+  "strength_basis": "Frozen speed grids with drift-repeat noise bands on two CuteAFD releases and two checkpoints with both engines on the same weights; the v3.0.1 exceptions are named. K4-Core-K6 has no vLLM counterpart, so its cells compare different checkpoints.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v3.0.1 and v4.0.0, vLLM fork v0.9.2; prompts 1K-128K, 1-16 streams, thinking on.",
+  "basis": [
+   {
+    "finding": "V4-speed-k325-cells",
+    "role": "supports",
+    "note": "K3.25, v4.0.0"
+   },
+   {
+    "finding": "V4-speed-k4-cells",
+    "role": "supports",
+    "note": "K4, v4.0.0"
+   },
+   {
+    "finding": "V4-speed-k6-cells",
+    "role": "supports",
+    "note": "K4-Core-K6, v4.0.0"
+   },
+   {
+    "finding": "V4-speed-k325-ratios",
+    "role": "supports",
+    "note": "ratios, K3.25"
+   },
+   {
+    "finding": "V3-t-aggregate",
+    "role": "limits",
+    "note": "v3.0.1 aggregate"
+   },
+   {
+    "finding": "V3-t-ttft",
+    "role": "limits",
+    "note": "v3.0.1 first token"
+   },
+   {
+    "finding": "K4-t-aggregate",
+    "role": "supports",
+    "note": "K4, v3.0.1"
+   },
+   {
+    "finding": "V3-drift",
+    "role": "context",
+    "note": "noise band"
+   },
+   {
+    "finding": "V3-t-decode-single",
+    "role": "context",
+    "note": "v3.0.1 single-stream decode"
+   }
+  ],
+  "does_not_show": [
+   "Speed on other GPUs, power limits or engine versions.",
+   "Speed with W8A16 or other non-default settings (S-set-costs)."
+  ]
+ },
+ {
+  "id": "S-speed-k6",
+  "page": "speed",
+  "question": "Does K4-Core-K6's 6-bit core cost speed on CuteAFD?",
+  "judgement": "The v4 run reports K4-Core-K6 5-15% slower than K4 across the speed cells; its own vLLM-relative decode at one stream is 0.99-1.36x against K4's 1.07-1.42x. In the core-swap run (exploratory) the native 6-bit core decoded 120.9 tok/s on code against 129.8 for the BF16 core and 129.4 for K4.",
+  "short": "Slower than K4 by 5-15% (v4 run); per-cell bands for this contrast were not published.",
+  "strength": "indicated",
+  "strength_basis": "Stated by the run without per-cell bands; the core-swap figure is exploratory.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v4.0.0; K4 and K4-Core-K6.",
+  "basis": [
+   {
+    "finding": "V4-speed-k6-vs-k4",
+    "role": "supports",
+    "note": "the run's statement"
+   },
+   {
+    "finding": "V4-speed-k6-ratios",
+    "role": "context",
+    "note": "ratios against the vLLM fork"
+   },
+   {
+    "finding": "V4-speed-k4-ratios",
+    "role": "context",
+    "note": "K4's ratios"
+   },
+   {
+    "finding": "CS-s1-speed",
+    "role": "supports",
+    "note": "decode by arm (exploratory)"
+   }
+  ],
+  "does_not_show": [
+   "Which part of the core costs the speed."
+  ]
+ },
+ {
+  "id": "S-run-capacity",
+  "page": "running",
+  "question": "How much context fits, and how long does a start take?",
+  "judgement": "CuteAFD v4.0.0 holds a larger KV pool than the vLLM fork on the same checkpoint: 5,799,424 against 4,762,898 tokens on K3.25 and 1,931,264 against 1,377,179 on K4. It is ready in 81-91 s; the vLLM fork in 257-349 s with its JIT caches kept between starts, and 697 s without them. On v3.0.1, CuteAFD needed MAX_CONTEXT_TOKENS=262144 to start K4 on two GPUs.",
+  "short": "CuteAFD v4.0.0: larger KV pools (1,931,264 vs 1,377,179 tokens on K4) and ready in 81-91 s against 257-349 s.",
+  "strength": "established",
+  "strength_basis": "Recorded on every launch of several runs; the direction is the same in each. Start times are one or two starts per configuration.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v3.0.1 and v4.0.0, vLLM fork v0.9.2.",
+  "basis": [
+   {
+    "finding": "V4-kv-pool",
+    "role": "supports",
+    "note": "pools, v4.0.0"
+   },
+   {
+    "finding": "V4-startup",
+    "role": "supports",
+    "note": "start times, v4.0.0"
+   },
+   {
+    "finding": "SU-ready",
+    "role": "supports",
+    "note": "vLLM JIT caches"
+   },
+   {
+    "finding": "K4-startup-capacity",
+    "role": "context",
+    "note": "v3.0.1 on K4"
+   },
+   {
+    "finding": "V4-kv-pool-v3",
+    "role": "context",
+    "note": "v3.0.1 pool, with a desktop on one GPU"
+   }
+  ],
+  "does_not_show": [
+   "Capacity with non-default FP8 settings (S-set-costs)."
+  ]
+ },
+ {
+  "id": "S-run-determinism",
+  "page": "running",
+  "question": "Does the same request give the same result twice?",
+  "judgement": "On CuteAFD, yes: scoring rows were bit-identical between passes, launches, days and releases (93,670 of 93,670 rows across launches; 18,286 of 18,286 across days), and tool-calling statuses were the same in all three repeats. On the vLLM fork, rows inside the first 2,045-token prefill chunk repeat exactly and rows beyond it almost never do, and tool-calling status changed between repeats on 8 of 88 scenarios.",
+  "short": "CuteAFD: bit-identical across launches, days and releases. vLLM fork: varies beyond its first prefill chunk.",
+  "strength": "established",
+  "strength_basis": "Checked in five runs on each engine, with the same result each time.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v3.0.1 to v5.0.0, vLLM fork v0.9.2.",
+  "basis": [
+   {
+    "finding": "V3-repeat-cuteafd",
+    "role": "supports",
+    "note": "v3.0.1"
+   },
+   {
+    "finding": "CS-launch-identity",
+    "role": "supports",
+    "note": "launches"
+   },
+   {
+    "finding": "AP-cuteafd-cross-day",
+    "role": "supports",
+    "note": "days"
+   },
+   {
+    "finding": "CP-bf16-repeat",
+    "role": "supports",
+    "note": "v5.0.0"
+   },
+   {
+    "finding": "V3-i1-chunks",
+    "role": "supports",
+    "note": "vLLM fork prefill chunks"
+   },
+   {
+    "finding": "K4-determinism",
+    "role": "supports",
+    "note": "K4"
+   },
+   {
+    "finding": "TC-stability",
+    "role": "supports",
+    "note": "tool calling"
+   }
+  ],
+  "does_not_show": [
+   "That either engine is more accurate because of it.",
+   "Determinism under concurrent load on CuteAFD's scoring path, which takes an exclusive slot."
+  ]
+ },
+ {
+  "id": "S-run-prefix",
+  "page": "running",
+  "question": "Do the engines reuse a repeated prompt?",
+  "judgement": "CuteAFD returned a repeated 8,192-token prompt from its cache in 0.017 s. The vLLM fork reused nothing for repeated prompts up to 8,704 tokens and, at 17,408 tokens, reused whole blocks of 4,352 tokens.",
+  "short": "CuteAFD: yes (0.017 s for a repeated 8K prompt). vLLM fork: only in whole 4,352-token blocks, nothing below 17,408 tokens.",
+  "strength": "supported",
+  "strength_basis": "One measurement per engine under a frozen protocol (CuteAFD) and a declared follow-up (vLLM fork).",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v3.0.1, vLLM fork v0.9.2; K3.25.",
+  "basis": [
+   {
+    "finding": "V3-t-cached",
+    "role": "supports",
+    "note": "repeated 8K prompt"
+   },
+   {
+    "finding": "V3-f2-prefix",
+    "role": "supports",
+    "note": "vLLM block reuse"
+   }
+  ],
+  "does_not_show": [
+   "The vLLM fork's opt-in boundary lookup, which was not tested."
+  ]
+ },
+ {
+  "id": "S-tools",
+  "page": "tools",
+  "question": "Does multi-turn tool calling differ between the engines or checkpoints?",
+  "judgement": "All five arms scored 158 to 163 of 176 points. Under the frozen rule the engines differ on 7 of 88 scenarios on K3.25, in both directions, where each engine also runs its own checkpoint variant, and on 5 of 88 on K4, where CuteAFD is partial on all five. Every arm failed the harness's safety gate on the same scenario. CuteAFD's statuses were the same in all three repeats.",
+  "short": "All arms 158-163 of 176; the engines differ on 5-7 of 88 scenarios; CuteAFD repeats exactly.",
+  "strength": "supported",
+  "strength_basis": "A frozen rule on one benchmark (88 scenarios, three seeds per arm); descriptive, no significance test.",
+  "scope": "GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q (300 W); CuteAFD v4.0.0, vLLM fork v0.9.2; K3.25, K4, K4-Core-K6.",
+  "basis": [
+   {
+    "finding": "TC-points",
+    "role": "supports",
+    "note": "points"
+   },
+   {
+    "finding": "TC-engines-k325",
+    "role": "supports",
+    "note": "K3.25"
+   },
+   {
+    "finding": "TC-engines-k4",
+    "role": "supports",
+    "note": "K4"
+   },
+   {
+    "finding": "TC-safety-gate",
+    "role": "context",
+    "note": "safety gate"
+   },
+   {
+    "finding": "TC-stability",
+    "role": "context",
+    "note": "repeats"
+   },
+   {
+    "finding": "TC-core-k6-vs-k4",
+    "role": "context",
+    "note": "checkpoints (exploratory)"
+   }
+  ],
+  "does_not_show": [
+   "That one engine is better at tool calling: counts are small and in both directions on K3.25."
+  ]
+ },
+ {
+  "id": "M-leads",
+  "page": "method",
+  "question": "Do leads found after looking at the data hold on new data?",
+  "judgement": "Not in these runs. A layout lead found on 11 questions (+0.0118) was not detected on 30 new ones (−0.0032 [−0.0161, +0.0064]). exlr8-k4 above compact at two passes (+0.016 [+0.004, +0.029]) was not detected at four (+0.009 [−0.003, +0.021]). compact below anchor on ledger, read after two passes, is not detected at four (−0.026 [−0.070, +0.019]). A top-1 difference against one vLLM run (+0.39 points) was not detected against a second. A code length ratio of 1.43 on old seeds was 1.27 on new ones.",
+  "short": "Not in these runs: five leads found after looking each shrank or failed on new data or more passes.",
+  "strength": "established",
+  "strength_basis": "Five independent leads, each followed by a pre-set check on new data, seeds or passes.",
+  "scope": "Every study on this site.",
+  "basis": [
+   {
+    "finding": "AP-qbo",
+    "role": "context",
+    "note": "the layout lead"
+   },
+   {
+    "finding": "NQ-qbo-primary",
+    "role": "supports",
+    "note": "not replicated"
+   },
+   {
+    "finding": "CP-reference-exlr8-compact",
+    "role": "context",
+    "note": "the exlr8-k4 lead"
+   },
+   {
+    "finding": "CP-fourpass-exlr8-k4",
+    "role": "supports",
+    "note": "not replicated"
+   },
+   {
+    "finding": "CP-ledger-long-context",
+    "role": "context",
+    "note": "the ledger lead"
+   },
+   {
+    "finding": "CP-fourpass-ledger",
+    "role": "supports",
+    "note": "not detected at four passes"
+   },
+   {
+    "finding": "V3-i1-midtop1",
+    "role": "supports",
+    "note": "the top-1 lead"
+   },
+   {
+    "finding": "CS-blockl-code-prose",
+    "role": "context",
+    "note": "the code ratio on old seeds"
+   },
+   {
+    "finding": "CS-s1-total",
+    "role": "supports",
+    "note": "smaller on new seeds"
+   }
+  ],
+  "does_not_show": [
+   "That every post hoc result here is wrong: each is labelled and kept, with its check linked."
+  ]
+ }
+]

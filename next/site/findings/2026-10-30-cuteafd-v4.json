@@ -1,0 +1,2578 @@
+[
+ {
+  "id": "V4-v3-identity",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "V4V3-PREC",
+  "question": "Does CuteAFD v4.0.0 give the same teacher-panel rows as v3.0.1?",
+  "statement": "K3.25, full vocabulary, v4.0.0 − v3.0.1: KL difference 0.0, interval [0.0, 0.0]; the rows are bit-identical. The v3.0.1 rows are the 2026-10-26 run's capture, not a same-day one; on K4 the run reports the same-day top-20 teacher-panel rows bit-identical too.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "teacher-panel KL rows, v4.0.0 - v3.0.1",
+  "sign": "n/a",
+  "unit": "row",
+  "n": "51,175 rows",
+  "interval": "n/a (identical)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and v3.0.1 (K3.25 full vocabulary: v3.0.1 rows from the 2026-10-26 cuteafd-vs-vllm capture; K4 top-20: v3.0.1 captured the same day in this run)",
+   "checkpoint": "K3.25 and K4",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the v3.0.1 K3.25 rows are those of V3-pa-engine",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/v4_minus_v3/K3.25/kl",
+    "what": "difference",
+    "value": {
+     "a": 0.047556256645403285,
+     "b": 0.047556256645403285,
+     "delta": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/q/fullvocab/pa-pair-C1v3-vs-C325.json",
+    "pointer": "/A",
+    "what": "source of the v3.0.1 rows (A)",
+    "value": "<run>/q/score/final/pa/pa-C1.rows.npz"
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/v4_vs_v3/pa",
+    "what": "teacher panel, both checkpoints",
+    "value": "bit-identical"
+   }
+  ]
+ },
+ {
+  "id": "V4-v3-pb",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "V4V3-PREC",
+  "question": "On the fidelity set, does CuteAFD v4.0.0 give the same top-20 KL from BF16 as v3.0.1 captured the same day?",
+  "statement": "CuteAFD v4.0.0 − v3.0.1, fidelity-set top-20 KL on generated positions: within ±0.00005 on K3.25 and K4; the run reads this as not resolved and publishes no interval for it.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "top-20 KL from BF16 on generated positions, CuteAFD v4.0.0 - v3.0.1",
+  "sign": "above 0 = v4.0.0 farther from BF16",
+  "unit": "window",
+  "n": "53 windows with generated positions per checkpoint",
+  "interval": "none published in this folder (the frozen release rule R reports it as a bound)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and v3.0.1, both captured in this run on 2026-10-30",
+   "checkpoint": "K3.25 and K4",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of the set's 64 windows, histories to about 14.4K tokens; top-20 logits",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/v4_vs_v3/pb",
+    "what": "reading",
+    "value": "within +-0.00005, not resolved"
+   }
+  ]
+ },
+ {
+  "id": "V4-v3-text",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "V4V3-TEXT",
+  "question": "On K4, do CuteAFD v4.0.0 and v3.0.1 write the same long-output reply text for the same requests and seeds?",
+  "statement": "Block L on K4, same prompts, seeds and salt: code, prose and reasoning replies identical in text (75/75); every JSON reply differs (25/25).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "replies with byte-identical text, CuteAFD v4.0.0 against v3.0.1, by content type",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "100 replies (75 code, prose and reasoning; 25 JSON)",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (this run) against CuteAFD v3.0.1 replies from the 2026-10-27 K4 run (same driver, prompts, seeds and salt; not a same-day v3.0.1 run)",
+   "checkpoint": "K4",
+   "items": "Block L prompt set: 8 code, 8 JSON, 8 prose and 8 reasoning prompts; 32 replies per cap (8K, 32K, 130K output tokens)",
+   "context": "caps 8K to 130K output tokens",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/v4_vs_v3/text",
+    "what": "reading",
+    "value": "Block L code, prose, reasoning replies identical (75/75); JSON replies differ (25/25); cause: prefill split geometry (confirmed: v3.0.1 with one prefill lane matches v4 bit for bit)"
+   }
+  ]
+ },
+ {
+  "id": "V4-v3-cause",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "V4V3-CAUSE",
+  "question": "Is the v4.0.0-against-v3.0.1 output difference reproduced by v3.0.1 when it splits the prefill as v4.0.0 does?",
+  "statement": "Post hoc, after the JSON replies were seen to differ: the run attributes the difference to how the prefill is split and reports that CuteAFD v3.0.1 run with one prefill lane matched v4.0.0 bit for bit. Receipts for that check are not published in this folder; per the run's notes it was made on the fidelity set's 64 windows, not on the JSON replies.",
+  "class": "accounting",
+  "status": "post hoc",
+  "quantity": "bit identity of captured rows, CuteAFD v3.0.1 with one prefill lane against v4.0.0",
+  "sign": "n/a",
+  "unit": "window",
+  "n": "not stated in the published files (the run's notes: 64 fidelity-set windows)",
+  "interval": "none (identity check)",
+  "scope": {
+   "engine": "CuteAFD v3.0.1 with one prefill lane and CuteAFD v4.0.0",
+   "checkpoint": "K4",
+   "items": "fidelity set (P-B) windows, per the run's notes; the JSON replies themselves were not rerun",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/v4_vs_v3/text",
+    "what": "reading and check",
+    "value": "Block L code, prose, reasoning replies identical (75/75); JSON replies differ (25/25); cause: prefill split geometry (confirmed: v3.0.1 with one prefill lane matches v4 bit for bit)"
+   }
+  ]
+ },
+ {
+  "id": "V4-top20-engine-k325-pa",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "Q-TOP20",
+  "question": "On K3.25, is CuteAFD v4.0.0 farther from BF16 than the vLLM fork v0.9.2 on the teacher panel (P-A, top-20)?",
+  "statement": "K3.25, teacher panel, top-20 KL from BF16: vLLM fork 0.0365, CuteAFD v4.0.0 0.0380; CuteAFD − mean of two same-day vLLM launches +0.0015 [+0.0006, +0.0025].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-20 KL from BF16, CuteAFD v4.0.0 - mean of two vLLM fork launches (same rows); not comparable in level with full-vocabulary KL or across panels",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows (25), 20,000 replicates, seed 20260929 (the run's top-20 scorer)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (coordinator image sha256:e257bc61...) and the vLLM fork v0.9.2 (image ea0430aa...); the vLLM rows are two launches captured in this run on 2026-10-30, before and after the CuteAFD capture",
+   "checkpoint": "K3.25",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 4,
+   "note": "frozen rule E: two checkpoints x two panels (top-20 KL); the rule also covers fidelity-set top-1, not published in this folder, and requires the difference to exceed the vLLM launch-to-launch difference"
+  },
+  "replication": "full vocabulary agrees in sign: V4-fv-engine-k325",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/cuteafd_minus_vllm/K3.25/pa",
+    "what": "[difference, 2.5%, 97.5%]",
+    "value": [
+     0.0015,
+     0.0006,
+     0.0025
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pa_kl20/K3.25 vLLM",
+    "what": "vLLM level (first same-day launch)",
+    "value": 0.0365
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pa_kl20/K3.25 CuteAFD",
+    "what": "CuteAFD level",
+    "value": 0.038
+   }
+  ]
+ },
+ {
+  "id": "V4-top20-engine-k325-pb",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "Q-TOP20",
+  "question": "On K3.25, is CuteAFD v4.0.0 farther from BF16 than the vLLM fork v0.9.2 on the fidelity set (P-B, top-20, generated positions)?",
+  "statement": "K3.25, fidelity set, top-20 KL from BF16 on generated positions: CuteAFD v4.0.0 0.0477, vLLM fork 0.0444 (first of two same-day launches); CuteAFD − mean of the two launches +0.0036 [+0.0020, +0.0051].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-20 KL from BF16, CuteAFD v4.0.0 - mean of two vLLM fork launches (same rows); not comparable in level with full-vocabulary KL or across panels",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "53 windows (15,104 generated positions)",
+  "interval": "95% percentile bootstrap over windows (53), 5,000 replicates, seed 20260829 (the run's top-20 scorer)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (coordinator image sha256:e257bc61...) and the vLLM fork v0.9.2 (image ea0430aa...); the vLLM rows are two launches captured in this run on 2026-10-30, before and after the CuteAFD capture",
+   "checkpoint": "K3.25",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of the set's 64 windows, histories to about 14.4K tokens; top-20 logits",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 4,
+   "note": "frozen rule E: two checkpoints x two panels (top-20 KL); the rule also covers fidelity-set top-1, not published in this folder, and requires the difference to exceed the vLLM launch-to-launch difference"
+  },
+  "replication": "the 2026-10-26 run measured a coarse KL on this set, not top-20 KL (V3-pb-short, V3-pb-mid, V3-pb-longcode)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/cuteafd_minus_vllm/K3.25/pb",
+    "what": "[difference, 2.5%, 97.5%]",
+    "value": [
+     0.0036,
+     0.002,
+     0.0051
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pb_kl20/K3.25 vLLM",
+    "what": "vLLM level (first same-day launch)",
+    "value": 0.0444
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pb_kl20/K3.25 CuteAFD",
+    "what": "CuteAFD level",
+    "value": 0.0477
+   }
+  ]
+ },
+ {
+  "id": "V4-top20-engine-k4-pa",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "Q-TOP20",
+  "question": "On K4, is CuteAFD v4.0.0 farther from BF16 than the vLLM fork v0.9.2 on the teacher panel (P-A, top-20)?",
+  "statement": "K4, teacher panel, top-20 KL from BF16: vLLM fork 0.0192, CuteAFD v4.0.0 0.0219; CuteAFD − mean of two same-day vLLM launches +0.0027 [+0.0012, +0.0047].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-20 KL from BF16, CuteAFD v4.0.0 - mean of two vLLM fork launches (same rows); not comparable in level with full-vocabulary KL or across panels",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows (25), 20,000 replicates, seed 20260929 (the run's top-20 scorer)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (coordinator image sha256:e257bc61...) and the vLLM fork v0.9.2 (image ea0430aa...); the vLLM rows are two launches captured in this run on 2026-10-30, before and after the CuteAFD capture",
+   "checkpoint": "K4",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 4,
+   "note": "frozen rule E: two checkpoints x two panels (top-20 KL); the rule also covers fidelity-set top-1, not published in this folder, and requires the difference to exceed the vLLM launch-to-launch difference"
+  },
+  "replication": "full vocabulary agrees in sign: V4-fv-engine-k4 (vLLM rows from a different capture); the 2026-10-27 K4 run gives the same value against v3.0.1 and its own two vLLM launches (results/2026-10-27-k4-vllm-cuteafd/README.md:60)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/cuteafd_minus_vllm/K4/pa",
+    "what": "[difference, 2.5%, 97.5%]",
+    "value": [
+     0.0027,
+     0.0012,
+     0.0047
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pa_kl20/K4 vLLM",
+    "what": "vLLM level (first same-day launch)",
+    "value": 0.0192
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pa_kl20/K4 CuteAFD",
+    "what": "CuteAFD level",
+    "value": 0.0219
+   },
+   {
+    "file": "results/2026-10-27-k4-vllm-cuteafd/README.md",
+    "lines": [
+     60,
+     60
+    ],
+    "what": "2026-10-27 K4 run: v3.0.1 against that day's vLLM launches",
+    "text": "| P-A, teacher KL20 (25 windows × 2,048 tokens) | 1 / 1,024 / 2,047 | 0.0192 | 0.0219 | +0.0027 [+0.0012, +0.0047] | +0.0000 | differs |"
+   }
+  ]
+ },
+ {
+  "id": "V4-top20-engine-k4-pb",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "Q-TOP20",
+  "question": "On K4, is CuteAFD v4.0.0 farther from BF16 than the vLLM fork v0.9.2 on the fidelity set (P-B, top-20, generated positions)?",
+  "statement": "K4, fidelity set, top-20 KL from BF16 on generated positions: CuteAFD v4.0.0 0.0358, vLLM fork 0.0315 (first of two same-day launches); CuteAFD − mean of the two launches +0.0045 [+0.0024, +0.0068].",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-20 KL from BF16, CuteAFD v4.0.0 - mean of two vLLM fork launches (same rows); not comparable in level with full-vocabulary KL or across panels",
+  "sign": "above 0 = CuteAFD farther from BF16",
+  "unit": "window",
+  "n": "53 windows (15,104 generated positions)",
+  "interval": "95% percentile bootstrap over windows (53), 5,000 replicates, seed 20260829 (the run's top-20 scorer)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (coordinator image sha256:e257bc61...) and the vLLM fork v0.9.2 (image ea0430aa...); the vLLM rows are two launches captured in this run on 2026-10-30, before and after the CuteAFD capture",
+   "checkpoint": "K4",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of the set's 64 windows, histories to about 14.4K tokens; top-20 logits",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 4,
+   "excluding_0": 4,
+   "note": "frozen rule E: two checkpoints x two panels (top-20 KL); the rule also covers fidelity-set top-1, not published in this folder, and requires the difference to exceed the vLLM launch-to-launch difference"
+  },
+  "replication": "the 2026-10-27 K4 run, same rows, CuteAFD v3.0.1 against that day's two vLLM launches (results/2026-10-27-k4-vllm-cuteafd/README.md:63): same sign; the vLLM reference differs, so the two differences are not the same quantity",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/cuteafd_minus_vllm/K4/pb",
+    "what": "[difference, 2.5%, 97.5%]",
+    "value": [
+     0.0045,
+     0.0024,
+     0.0068
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pb_kl20/K4 vLLM",
+    "what": "vLLM level (first same-day launch)",
+    "value": 0.0315
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pb_kl20/K4 CuteAFD",
+    "what": "CuteAFD level",
+    "value": 0.0358
+   },
+   {
+    "file": "results/2026-10-27-k4-vllm-cuteafd/README.md",
+    "lines": [
+     63,
+     63
+    ],
+    "what": "2026-10-27 K4 run: v3.0.1 against that day's vLLM launches",
+    "text": "| P-B, generated rows, KL_pb20 | 1,084 / 5,751.5 / 14,402 | 0.0305 | 0.0358 | +0.0053 [+0.0033, +0.0076] | -0.0002 | differs |"
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-engine-k325",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-ENG",
+  "question": "On K3.25, is CuteAFD v4.0.0 farther from BF16 than the vLLM fork (teacher panel, full vocabulary)?",
+  "statement": "K3.25: vLLM fork 0.0458, CuteAFD v4.0.0 0.0476; CuteAFD − vLLM +0.0017 [+0.0006, +0.0028].",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "full-vocabulary KL from BF16, CuteAFD v4.0.0 - vLLM fork",
+  "sign": "above 0 = CuteAFD farther",
+  "unit": "window",
+  "n": "25 windows",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (unmodified) and the vLLM fork v0.9.2 release image (vLLM rows are receipts from 2026-10-26/27 on the same panel and plan)",
+   "checkpoint": "K3.25",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 2,
+   "note": "one per checkpoint"
+  },
+  "replication": "v3.0.1 gives the same K3.25 rows (V4-v3-identity)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/cuteafd_minus_vllm/K3.25/kl",
+    "what": "a = vLLM, b = CuteAFD",
+    "value": {
+     "a": 0.045840164541551785,
+     "b": 0.047556256645403285,
+     "delta": 0.0017160921038514947,
+     "ci95": [
+      0.000647468416329731,
+      0.002817797506028621
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-engine-k325-top1",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-ENG",
+  "question": "On K3.25, does CuteAFD v4.0.0 agree with BF16's top token less often than the vLLM fork (teacher panel)?",
+  "statement": "K3.25, top-1 agreement with BF16: vLLM fork 93.50%, CuteAFD v4.0.0 93.15%; CuteAFD − vLLM −0.35 points [−0.54, −0.16].",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "top-1 agreement with the BF16 teacher, CuteAFD v4.0.0 - vLLM fork, percentage points",
+  "sign": "below 0 = CuteAFD agrees with BF16 less often",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (unmodified) and the vLLM fork v0.9.2 (vLLM rows: the 2026-10-26 run's capture on the same panel and plan)",
+   "checkpoint": "K3.25",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 2,
+   "note": "top-1 agreement, one per checkpoint"
+  },
+  "replication": "same panel, KL: V4-fv-engine-k325",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/cuteafd_minus_vllm/K3.25/top1",
+    "what": "a = vLLM, b = CuteAFD",
+    "value": {
+     "a": 0.9350073277967758,
+     "b": 0.9315290669272106,
+     "delta": -0.0034782608695652175,
+     "ci95": [
+      -0.00537371763556424,
+      -0.001621885686370298
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-engine-k325-nll",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-ENG",
+  "question": "On K3.25, does CuteAFD v4.0.0 give the panel's actual tokens a different NLL than the vLLM fork (teacher panel)?",
+  "statement": "K3.25, NLL of the actual token: vLLM fork 1.0731, CuteAFD v4.0.0 1.0730; CuteAFD − vLLM −0.0001 [−0.0038, +0.0040] (includes 0).",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "mean NLL of the panel's actual next token, nats per token, CuteAFD v4.0.0 - vLLM fork",
+  "sign": "above 0 = CuteAFD assigns the actual tokens lower probability",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (unmodified) and the vLLM fork v0.9.2 (vLLM rows: the 2026-10-26 run's capture on the same panel and plan)",
+   "checkpoint": "K3.25",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "NLL, one per checkpoint; NLL is per tokenizer and per text"
+  },
+  "replication": "same panel, KL: V4-fv-engine-k325",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/cuteafd_minus_vllm/K3.25/nll",
+    "what": "a = vLLM, b = CuteAFD",
+    "value": {
+     "a": 1.0731354819911814,
+     "b": 1.0730463409525626,
+     "delta": -8.914103861885112e-05,
+     "ci95": [
+      -0.0038310250977830465,
+      0.004018639551019181
+     ]
+    }
+   }
+  ],
+  "bound": "a difference up to +0.0040 (CuteAFD higher) or down to −0.0038 is not excluded"
+ },
+ {
+  "id": "V4-fv-engine-k4",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-ENG",
+  "question": "On K4, is CuteAFD v4.0.0 farther from BF16 than the vLLM fork (teacher panel, full vocabulary)?",
+  "statement": "K4: vLLM fork 0.0246, CuteAFD v4.0.0 0.0281; CuteAFD − vLLM +0.0035 [+0.0016, +0.0059].",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "full-vocabulary KL from BF16, CuteAFD v4.0.0 - vLLM fork",
+  "sign": "above 0 = CuteAFD farther",
+  "unit": "window",
+  "n": "25 windows",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (unmodified) and the vLLM fork v0.9.2; the vLLM rows are a separate 2026-10-30 capture on the same panel and plan, not published as a run of its own",
+   "checkpoint": "K4",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 2,
+   "note": "one per checkpoint"
+  },
+  "replication": "the top-20 measure on this run's own same-day vLLM launches has the same sign (V4-top20-engine-k4-pa)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/cuteafd_minus_vllm/K4/kl",
+    "what": "a = vLLM, b = CuteAFD",
+    "value": {
+     "a": 0.02458401214441207,
+     "b": 0.02806376014479317,
+     "delta": 0.003479748000381094,
+     "ci95": [
+      0.0015952127255681502,
+      0.0058713267642466135
+     ]
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/q/fullvocab/pa-pair-V4card-vs-C4.json",
+    "pointer": "/A",
+    "what": "source of the vLLM rows (A)",
+    "value": "<runs>/2026-10-30-k4k6-card/score/V3/pa-C4.rows.npz"
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-engine-k4-top1",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-ENG",
+  "question": "On K4, does CuteAFD v4.0.0 agree with BF16's top token less often than the vLLM fork (teacher panel)?",
+  "statement": "K4, top-1 agreement with BF16: vLLM fork 95.28%, CuteAFD v4.0.0 94.73%; CuteAFD − vLLM −0.55 points [−0.72, −0.37].",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "top-1 agreement with the BF16 teacher, CuteAFD v4.0.0 - vLLM fork, percentage points",
+  "sign": "below 0 = CuteAFD agrees with BF16 less often",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (unmodified) and the vLLM fork v0.9.2 (vLLM rows: a separate 2026-10-30 capture on the same panel and plan, not published as a run of its own)",
+   "checkpoint": "K4",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 2,
+   "note": "top-1 agreement, one per checkpoint"
+  },
+  "replication": "same panel, KL: V4-fv-engine-k4",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/cuteafd_minus_vllm/K4/top1",
+    "what": "a = vLLM, b = CuteAFD",
+    "value": {
+     "a": 0.9527503663898388,
+     "b": 0.9472789447972643,
+     "delta": -0.0054714215925745,
+     "ci95": [
+      -0.007249633610161212,
+      -0.0036541279921836834
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-engine-k4-nll",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-ENG",
+  "question": "On K4, does CuteAFD v4.0.0 give the panel's actual tokens a different NLL than the vLLM fork (teacher panel)?",
+  "statement": "K4, NLL of the actual token: vLLM fork 1.0627, CuteAFD v4.0.0 1.0653; CuteAFD − vLLM +0.0026 [+0.0005, +0.0048] (excludes 0).",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "mean NLL of the panel's actual next token, nats per token, CuteAFD v4.0.0 - vLLM fork",
+  "sign": "above 0 = CuteAFD assigns the actual tokens lower probability",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (unmodified) and the vLLM fork v0.9.2 (vLLM rows: a separate 2026-10-30 capture on the same panel and plan, not published as a run of its own)",
+   "checkpoint": "K4",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "NLL, one per checkpoint; NLL is per tokenizer and per text"
+  },
+  "replication": "same panel, KL: V4-fv-engine-k4",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/cuteafd_minus_vllm/K4/nll",
+    "what": "a = vLLM, b = CuteAFD",
+    "value": {
+     "a": 1.0627361119157481,
+     "b": 1.06532524723859,
+     "delta": 0.0025891353228419626,
+     "ci95": [
+      0.0005452208368465924,
+      0.004759326289116775
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-top20-ratio",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "CK-TOP20",
+  "question": "On both engines, how much of K3.25's top-20 distance from BF16 does K4 keep?",
+  "statement": "K4's top-20 KL as a share of K3.25's: teacher panel 0.53 (vLLM fork) and 0.58 (CuteAFD); fidelity set 0.69 and 0.75; no interval. The fidelity-set vLLM ratio does not follow from this run's own same-day vLLM levels (K4 0.0315, K3.25 0.0444); its inputs are not published here.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "KL20 (K4) / KL20 (K3.25), per engine and panel",
+  "sign": "below 1 = K4 closer",
+  "unit": "panel",
+  "n": "2 panels x 2 engines",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2",
+   "checkpoint": "K3.25 and K4",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; fidelity set (P-B): 15,104 generated positions in 53 of the set's 64 windows, histories to about 14.4K tokens; top-20 logits",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/k4_over_k325",
+    "what": "ratios",
+    "value": {
+     "pa": {
+      "vLLM": 0.53,
+      "CuteAFD": 0.58
+     },
+     "pb": {
+      "vLLM": 0.69,
+      "CuteAFD": 0.75
+     }
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pa_kl20",
+    "what": "teacher panel levels",
+    "value": {
+     "K3.25 vLLM": 0.0365,
+     "K3.25 CuteAFD": 0.038,
+     "K4 vLLM": 0.0192,
+     "K4 CuteAFD": 0.0219,
+     "K4-Core-K6 CuteAFD": 0.0232
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pb_kl20",
+    "what": "fidelity set levels (vLLM: first same-day launch)",
+    "value": {
+     "K3.25 vLLM": 0.0444,
+     "K3.25 CuteAFD": 0.0477,
+     "K4 vLLM": 0.0315,
+     "K4 CuteAFD": 0.0358,
+     "K4-Core-K6 CuteAFD": 0.0309
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-top20-k6-vs-k4-pa",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "CK-TOP20",
+  "question": "On CuteAFD v4.0.0, is K4-Core-K6 farther from BF16 than K4 on the teacher panel (top-20)?",
+  "statement": "K4-Core-K6 − K4, teacher-panel top-20 KL on CuteAFD v4.0.0: K4 0.0219, K4-Core-K6 0.0232; +0.0013 [−0.0022, +0.0042] (includes 0).",
+  "class": "not detected",
+  "status": "protocol",
+  "quantity": "top-20 KL from BF16, K4-Core-K6 - K4 on CuteAFD v4.0.0",
+  "sign": "above 0 = K4-Core-K6 farther",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows (25), 20,000 replicates, seed 20260929 (the run's top-20 scorer)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4 and K4-Core-K6 (different expert quantizations and cores)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; the panel can favour K4 (shared corpus with K4's published calibration windows)",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "frozen rule K (provenance rule): a direction only if both panels' intervals exclude 0 with the same sign; the run reads this pair as panel-dependent"
+  },
+  "replication": "full vocabulary, same rows: V4-fv-k6-vs-k4 (also includes 0)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/k6_minus_k4/pa",
+    "what": "[difference, 2.5%, 97.5%]",
+    "value": [
+     0.0013,
+     -0.0022,
+     0.0042
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pa_kl20/K4 CuteAFD",
+    "what": "K4 level",
+    "value": 0.0219
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pa_kl20/K4-Core-K6 CuteAFD",
+    "what": "K4-Core-K6 level",
+    "value": 0.0232
+   }
+  ],
+  "bound": "a difference up to +0.0042 (K4-Core-K6 farther) or down to −0.0022 (K4-Core-K6 closer) is not excluded"
+ },
+ {
+  "id": "V4-top20-k6-vs-k4-pb",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "CK-TOP20",
+  "question": "On CuteAFD v4.0.0, is K4-Core-K6 farther from BF16 than K4 on the fidelity set (top-20, generated positions)?",
+  "statement": "K4-Core-K6 − K4, fidelity-set top-20 KL on generated positions, CuteAFD v4.0.0: K4 0.0358, K4-Core-K6 0.0309; −0.0049 [−0.0076, −0.0026] (excludes 0).",
+  "class": "difference",
+  "status": "protocol",
+  "quantity": "top-20 KL from BF16 on generated positions, K4-Core-K6 - K4 on CuteAFD v4.0.0",
+  "sign": "below 0 = K4-Core-K6 closer",
+  "unit": "window",
+  "n": "53 windows (15,104 generated positions)",
+  "interval": "95% percentile bootstrap over windows (53), 5,000 replicates, seed 20260829 (the run's top-20 scorer)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4 and K4-Core-K6 (different expert quantizations and cores)",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of the set's 64 windows, histories to about 14.4K tokens; top-20 logits; its relation to either checkpoint's calibration text is not known",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "frozen rule K (provenance rule): a direction only if both panels' intervals exclude 0 with the same sign; the run reads this pair as panel-dependent"
+  },
+  "replication": "the teacher panel does not give this direction (V4-top20-k6-vs-k4-pa)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/k6_minus_k4/pb",
+    "what": "[difference, 2.5%, 97.5%]",
+    "value": [
+     -0.0049,
+     -0.0076,
+     -0.0026
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pb_kl20/K4 CuteAFD",
+    "what": "K4 level",
+    "value": 0.0358
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_top20/pb_kl20/K4-Core-K6 CuteAFD",
+    "what": "K4-Core-K6 level",
+    "value": 0.0309
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-k4-vs-k325",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-CK",
+  "question": "On CuteAFD v4.0.0, is K4 closer to BF16 than K3.25 (teacher panel, full vocabulary)?",
+  "statement": "K3.25 0.0476, K4 0.0281; K4 − K3.25 −0.0195 [−0.0257, −0.0135] (excludes 0).",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "full-vocabulary KL from BF16, K4 - K3.25 on CuteAFD v4.0.0",
+  "sign": "below 0 = K4 closer",
+  "unit": "window",
+  "n": "25 windows",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K3.25-Core-FP8 (3.25-bit experts) and K4 (4-bit experts, a different producer and calibration)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; the panel can favour K4 (shared corpus with K4's published calibration windows)",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "the two checkpoint contrasts"
+  },
+  "replication": "top-20 measures on both engines agree in direction (CK-TOP20, descriptive)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/checkpoints_cuteafd/K4 - K3.25/kl",
+    "what": "a = K3.25, b = K4",
+    "value": {
+     "a": 0.047556256645403285,
+     "b": 0.02806376014479317,
+     "delta": -0.019492496500610117,
+     "ci95": [
+      -0.025729279575458876,
+      -0.013471815182128082
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-k4-vs-k325-top1",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-CK",
+  "question": "On CuteAFD v4.0.0, does K4 agree with BF16's top token more or less often than K3.25 (teacher panel)?",
+  "statement": "Top-1 agreement with BF16 on CuteAFD v4.0.0: K3.25 93.15%, K4 94.73%; K4 − K3.25 +1.57 points [+1.07, +2.10] (excludes 0).",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "top-1 agreement with the BF16 teacher, K4 - K3.25 on CuteAFD v4.0.0, percentage points",
+  "sign": "above 0 = K4 agrees with BF16 more often",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K3.25-Core-FP8 (3.25-bit experts) and K4 (4-bit experts, a different producer and calibration)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; the panel can favour K4 (shared corpus with K4's published calibration windows)",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "top-1 agreement, the two checkpoint contrasts"
+  },
+  "replication": "same panel, KL: V4-fv-k4-vs-k325",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/checkpoints_cuteafd/K4 - K3.25/top1",
+    "what": "a = K3.25, b = K4",
+    "value": {
+     "a": 0.9315290669272106,
+     "b": 0.9472789447972643,
+     "delta": 0.015749877870053736,
+     "ci95": [
+      0.010668783585735222,
+      0.020967269174401563
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-k4-vs-k325-nll",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-CK",
+  "question": "On CuteAFD v4.0.0, does K4 give the panel's actual tokens a different NLL than K3.25 (teacher panel)?",
+  "statement": "NLL of the actual token on CuteAFD v4.0.0: K3.25 1.0730, K4 1.0653; K4 − K3.25 −0.0077 [−0.0166, −0.0011] (excludes 0).",
+  "class": "difference",
+  "status": "amendment",
+  "quantity": "mean NLL of the panel's actual next token, nats per token, K4 - K3.25 on CuteAFD v4.0.0",
+  "sign": "above 0 = K4 assigns the actual tokens lower probability",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K3.25-Core-FP8 (3.25-bit experts) and K4 (4-bit experts, a different producer and calibration)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; the panel can favour K4 (shared corpus with K4's published calibration windows)",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "NLL, the two checkpoint contrasts"
+  },
+  "replication": "same panel, KL: V4-fv-k4-vs-k325",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/checkpoints_cuteafd/K4 - K3.25/nll",
+    "what": "a = K3.25, b = K4",
+    "value": {
+     "a": 1.0730463409525626,
+     "b": 1.06532524723859,
+     "delta": -0.007721093713972496,
+     "ci95": [
+      -0.016594526287535126,
+      -0.0010945426715165765
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-fv-k6-vs-k4",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-CK",
+  "question": "On CuteAFD v4.0.0, is K4-Core-K6 farther from BF16 than K4 (teacher panel, full vocabulary)?",
+  "statement": "K4 0.0281, K4-Core-K6 0.0297; K4-Core-K6 − K4 +0.0016 [−0.0031, +0.0057] (includes 0).",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "full-vocabulary KL from BF16, K4-Core-K6 - K4 on CuteAFD v4.0.0",
+  "sign": "above 0 = K4-Core-K6 farther",
+  "unit": "window",
+  "n": "25 windows",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4 and K4-Core-K6 (different expert quantizations and cores)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "the two checkpoint contrasts"
+  },
+  "replication": "the same K4-Core-K6 rows measured 0.0297 again as compact on v5.0.0 (CP-bf16-teacher)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/checkpoints_cuteafd/K4-Core-K6 - K4/kl",
+    "what": "a = K4, b = K4-Core-K6",
+    "value": {
+     "a": 0.02806376014479317,
+     "b": 0.029699118315845728,
+     "delta": 0.0016353581710525612,
+     "ci95": [
+      -0.0031478778055809994,
+      0.005734176927204549
+     ]
+    }
+   }
+  ],
+  "bound": "a difference up to +0.0057 is not excluded"
+ },
+ {
+  "id": "V4-fv-k6-vs-k4-top1",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-CK",
+  "question": "On CuteAFD v4.0.0, does K4-Core-K6 agree with BF16's top token more or less often than K4 (teacher panel)?",
+  "statement": "Top-1 agreement with BF16 on CuteAFD v4.0.0: K4 94.73%, K4-Core-K6 94.67%; K4-Core-K6 − K4 −0.06 points [−0.46, +0.37] (includes 0).",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "top-1 agreement with the BF16 teacher, K4-Core-K6 - K4 on CuteAFD v4.0.0, percentage points",
+  "sign": "above 0 = K4-Core-K6 agrees with BF16 more often",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4 and K4-Core-K6 (different expert quantizations and cores)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; the panel can favour K4 (shared corpus with K4's published calibration windows)",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "top-1 agreement, the two checkpoint contrasts"
+  },
+  "replication": "same panel, KL: V4-fv-k6-vs-k4",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/checkpoints_cuteafd/K4-Core-K6 - K4/top1",
+    "what": "a = K4, b = K4-Core-K6",
+    "value": {
+     "a": 0.9472789447972643,
+     "b": 0.9466536394723987,
+     "delta": -0.0006253053248656571,
+     "ci95": [
+      -0.0046311675622862725,
+      0.003712750366389839
+     ]
+    }
+   }
+  ],
+  "bound": "a difference down to −0.46 points (K4-Core-K6 agrees less often) or up to +0.37 points is not excluded"
+ },
+ {
+  "id": "V4-fv-k6-vs-k4-nll",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-FV-CK",
+  "question": "On CuteAFD v4.0.0, does K4-Core-K6 give the panel's actual tokens a different NLL than K4 (teacher panel)?",
+  "statement": "NLL of the actual token on CuteAFD v4.0.0: K4 1.0653, K4-Core-K6 1.0682; K4-Core-K6 − K4 +0.0029 [−0.0017, +0.0073] (includes 0).",
+  "class": "not detected",
+  "status": "amendment",
+  "quantity": "mean NLL of the panel's actual next token, nats per token, K4-Core-K6 - K4 on CuteAFD v4.0.0",
+  "sign": "above 0 = K4-Core-K6 assigns the actual tokens lower probability",
+  "unit": "window",
+  "n": "25 windows (51,175 rows)",
+  "interval": "95% percentile bootstrap over windows, 20,000 replicates, numpy seed 20260929",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4 and K4-Core-K6 (different expert quantizations and cores)",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; the panel can favour K4 (shared corpus with K4's published calibration windows)",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 2,
+   "excluding_0": 1,
+   "note": "NLL, the two checkpoint contrasts"
+  },
+  "replication": "same panel, KL: V4-fv-k6-vs-k4",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/precision_fullvocab_pa/checkpoints_cuteafd/K4-Core-K6 - K4/nll",
+    "what": "a = K4, b = K4-Core-K6",
+    "value": {
+     "a": 1.06532524723859,
+     "b": 1.0681803803970413,
+     "delta": 0.0028551331584513577,
+     "ci95": [
+      -0.0016584261974979847,
+      0.007293249897177581
+     ]
+    }
+   }
+  ],
+  "bound": "a difference up to +0.0073 (K4-Core-K6 higher) or down to −0.0017 is not excluded"
+ },
+ {
+  "id": "V4-k6-vs-k4-domain",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "K6-DOMAIN",
+  "question": "Within the teacher panel's four domains, is K4-Core-K6 farther from or closer to BF16 than K4 on CuteAFD v4.0.0?",
+  "statement": "Exploratory, chosen after the pooled result: K4-Core-K6 − K4 full-vocabulary KL per domain, legal +0.0097 and reasoning-termination +0.0062 (intervals exclude 0 per the run), general −0.0081 and code +0.0004 (intervals include 0); 6-7 windows per domain, interval bounds not published in this folder.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "full-vocabulary KL from BF16, K4-Core-K6 - K4 on CuteAFD v4.0.0, per teacher-panel domain",
+  "sign": "above 0 = K4-Core-K6 farther",
+  "unit": "window",
+  "n": "25 windows: general 7, legal 6, code/agentic 6, reasoning-termination 6",
+  "interval": "window bootstrap within each domain (bounds not published in this folder; SUMMARY.json gives a flag)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4 and K4-Core-K6",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows; the panel can favour K4 (shared corpus with K4's published calibration windows); split by its four domains",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": {
+   "size": 16,
+   "excluding_0": 5,
+   "note": "the run's per-domain table split four contrasts (K3.25 and K4 engine gaps, K4-Core-K6 on two engines, K4-Core-K6 - K4) by four domains; this folder publishes only the K4-Core-K6 - K4 row (2 of its 4 flagged); when the split was chosen is not recorded"
+  },
+  "replication": "not attempted; the pooled teacher-panel difference includes 0 (V4-fv-k6-vs-k4); the per-domain split was not repeated",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/k6_minus_k4_by_domain_pa",
+    "what": "[difference, interval excludes 0] per domain",
+    "value": {
+     "source": "q/fullvocab/detail/FULLVOCAB-DETAIL.json (6-7 windows per domain; window bootstrap within domain)",
+     "general": [
+      -0.0081,
+      false
+     ],
+     "legal": [
+      0.0097,
+      true
+     ],
+     "code": [
+      0.0004,
+      false
+     ],
+     "reasoning_termination": [
+      0.0062,
+      true
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-per1000-top-token",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "CONF",
+  "question": "On the teacher panel, how often per 1,000 positions does each checkpoint's top token differ from BF16's, on each engine?",
+  "statement": "Exploratory, per 1,000 teacher-panel positions, top token differs from BF16 (CuteAFD v4.0.0 / vLLM fork): K3.25 68.5 / 65.0, K4 52.7 / 47.2, K4-Core-K6 53.3 (CuteAFD only). The two engines' top tokens differ from each other at 40.1 (K3.25) and 43.3 (K4) per 1,000.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "positions per 1,000 where the arm's top token differs from BF16's (and from the other engine's)",
+  "sign": "higher = more top-token changes",
+  "unit": "position",
+  "n": "51,175 positions per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (vLLM rows as in V4-fv-engine-k325 and V4-fv-engine-k4)",
+   "checkpoint": "K3.25, K4, K4-Core-K6",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K3.25 CuteAFD/differs",
+    "what": "K3.25 CuteAFD",
+    "value": 68.4709
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K3.25 vLLM/differs",
+    "what": "K3.25 vLLM",
+    "value": 64.9927
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K4 CuteAFD/differs",
+    "what": "K4 CuteAFD",
+    "value": 52.7211
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K4 vLLM/differs",
+    "what": "K4 vLLM",
+    "value": 47.2496
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K4-Core-K6 CuteAFD/differs",
+    "what": "K4-Core-K6 CuteAFD",
+    "value": 53.3464
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa_engines_differ",
+    "what": "engines differ from each other",
+    "value": {
+     "K3.25": 40.1,
+     "K4": 43.3
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/q/fullvocab/pa-pair-V1-vs-C325.json",
+    "pointer": "/top1_discordance",
+    "what": "K3.25 engine argmax agreement",
+    "value": {
+     "A_only": 947,
+     "B_only": 769,
+     "engine_argmax_agreement": 0.9598827552515877
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/q/fullvocab/pa-pair-V4card-vs-C4.json",
+    "pointer": "/top1_discordance",
+    "what": "K4 engine argmax agreement",
+    "value": {
+     "A_only": 1114,
+     "B_only": 834,
+     "engine_argmax_agreement": 0.9567366878358573
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-per1000-confident",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "CONF",
+  "question": "On the teacher panel, how often per 1,000 positions does each checkpoint miss BF16's top token where BF16 was at least 90% sure, and how often is KL above 1 nat?",
+  "statement": "Exploratory, per 1,000 teacher-panel positions (CuteAFD v4.0.0 / vLLM fork): top token differs where BF16 was at least 90% sure (57% of positions) K3.25 0.61 / 0.59, K4 0.10 / 0.06, K4-Core-K6 0.18; KL above 1 nat K3.25 5.0 / 4.6, K4 2.1 / 1.7, K4-Core-K6 2.5.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "positions per 1,000 with a top-token miss where BF16's top probability >= 0.9; positions per 1,000 with KL > 1 nat",
+  "sign": "higher = more such positions",
+  "unit": "position",
+  "n": "51,175 positions per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2 (vLLM rows as in V4-fv-engine-k325 and V4-fv-engine-k4)",
+   "checkpoint": "K3.25, K4, K4-Core-K6",
+   "items": "teacher panel (P-A): 25 windows of 2,048 tokens, 51,175 rows",
+   "context": "2K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K3.25 CuteAFD",
+    "what": "K3.25 CuteAFD",
+    "value": {
+     "differs": 68.4709,
+     "differs_bf16_sure": 0.6058,
+     "differs_bf16_unsure": 56.4143,
+     "kl_over_1": 4.9829,
+     "share_bf16_sure": 0.5698
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K3.25 vLLM",
+    "what": "K3.25 vLLM",
+    "value": {
+     "differs": 64.9927,
+     "differs_bf16_sure": 0.5862,
+     "differs_bf16_unsure": 53.1119,
+     "kl_over_1": 4.5921,
+     "share_bf16_sure": 0.5698
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K4 CuteAFD",
+    "what": "K4 CuteAFD",
+    "value": {
+     "differs": 52.7211,
+     "differs_bf16_sure": 0.0977,
+     "differs_bf16_unsure": 45.6473,
+     "kl_over_1": 2.1299,
+     "share_bf16_sure": 0.5698
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K4 vLLM",
+    "what": "K4 vLLM",
+    "value": {
+     "differs": 47.2496,
+     "differs_bf16_sure": 0.0586,
+     "differs_bf16_unsure": 40.977,
+     "kl_over_1": 1.7,
+     "share_bf16_sure": 0.5698
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pa/K4-Core-K6 CuteAFD",
+    "what": "K4-Core-K6 CuteAFD",
+    "value": {
+     "differs": 53.3464,
+     "differs_bf16_sure": 0.1759,
+     "differs_bf16_unsure": 46.0186,
+     "kl_over_1": 2.5012,
+     "share_bf16_sure": 0.5698
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-per1000-pb",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "CONF",
+  "question": "On the fidelity set's generated positions, how often per 1,000 does each arm's top token differ from BF16's, and how often is top-20 KL above 1 nat?",
+  "statement": "Exploratory, per 1,000 fidelity-set generated positions, top-20 rows (CuteAFD v4.0.0 / vLLM fork): top token differs K3.25 66.8 / 61.9, K4 54.6 / 51.8, K4-Core-K6 50.1; KL above 1 nat K3.25 3.18 / 3.51, K4 1.66 / 1.59, K4-Core-K6 1.85.",
+  "class": "descriptive",
+  "status": "exploratory",
+  "quantity": "positions per 1,000 where the top token differs from BF16's; positions per 1,000 with top-20 KL > 1 nat",
+  "sign": "higher = more such positions",
+  "unit": "position",
+  "n": "15,104 generated positions per arm",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (coordinator image sha256:e257bc61...) and the vLLM fork v0.9.2 (image ea0430aa...); the vLLM rows are two launches captured in this run on 2026-10-30, before and after the CuteAFD capture (vLLM column: first launch)",
+   "checkpoint": "K3.25, K4, K4-Core-K6",
+   "items": "fidelity set (P-B): 15,104 generated positions in 53 of the set's 64 windows, histories to about 14.4K tokens; top-20 logits",
+   "context": "to 14.4K",
+   "path": "prefill (teacher-forced)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/per_1000/pb_generated",
+    "what": "per arm",
+    "value": {
+     "K3.25 vLLM": {
+      "kl_pb20": 0.0444,
+      "differs": 61.9,
+      "kl_over_1": 3.51
+     },
+     "K3.25 CuteAFD": {
+      "kl_pb20": 0.0477,
+      "differs": 66.8,
+      "kl_over_1": 3.18
+     },
+     "K4 vLLM": {
+      "kl_pb20": 0.0315,
+      "differs": 51.8,
+      "kl_over_1": 1.59
+     },
+     "K4 CuteAFD": {
+      "kl_pb20": 0.0358,
+      "differs": 54.6,
+      "kl_over_1": 1.66
+     },
+     "K4-Core-K6 CuteAFD": {
+      "kl_pb20": 0.0309,
+      "differs": 50.1,
+      "kl_over_1": 1.85
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-calibration-mix",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "CALIB",
+  "question": "By content share, what text do the producers' published calibration files contain for K3.25/K4-Core-K6 and for K4?",
+  "statement": "Shares read from the producers' files, K3.25 and K4-Core-K6 calibration split (share of prompt tokens) / brandonmusic's K4 evidence-set windows (share of windows): code 33.3% / 31.4%, general 24.0% / 31.7%, legal 0 / 27.0%, math 20.4% / 0, reasoning topics 12.1% / 9.8%, function calling 10.2% / 0. K4's model card does not describe calibration; the run reads the evidence-set windows as K4's calibration windows, an inferred link.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "share of calibration text by content domain, percent",
+  "sign": "n/a",
+  "unit": "content domain",
+  "n": "6 domains; 1,426 prompts (1.08M tokens) and 640 windows",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "none (published dataset files)",
+   "checkpoint": "K3.25 and K4-Core-K6 (agentic-quant-panel-v1 calibration split); K4 (GLM-5.3-Flash-ShapleyMCG-K4-Evidence windows)",
+   "items": "the producers' published statistics and windows files",
+   "context": "n/a",
+   "path": "n/a",
+   "hardware": "n/a"
+  },
+  "family": null,
+  "replication": "n/a",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/calibration_mix/tpurtell",
+    "what": "K3.25 / K4-Core-K6 calibration split",
+    "value": {
+     "code": 33.3,
+     "general": 24.0,
+     "legal": 0,
+     "math": 20.4,
+     "reasoning topics": 12.1,
+     "function calling": 10.2
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/calibration_mix/brandon",
+    "what": "K4 evidence-set windows",
+    "value": {
+     "code": 31.4,
+     "general": 31.7,
+     "legal": 27.0,
+     "math": 0,
+     "reasoning topics": 9.8,
+     "function calling": 0
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/checkpoints/K4/calibration",
+    "what": "K4 calibration note",
+    "value": "not described on the model card; the producer's K4 evidence set (GLM-5.3-Flash-ShapleyMCG-K4-Evidence, calibration/windows/panel.json, sha256 6bafe328...) lists 640 windows labelled fit, conditional-fit, selection and confirmation; read here as K4's calibration windows"
+   }
+  ]
+ },
+ {
+  "id": "V4-speed-k325-cells",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "T-K325",
+  "question": "On K3.25, in how many Block T cells is CuteAFD v4.0.0 faster, level or slower than the vLLM fork v0.9.2?",
+  "statement": "K3.25, CuteAFD v4.0.0 / vLLM fork v0.9.2 per cell: aggregate throughput faster in 19 of 22 cells, level in 3, slower in 0; clean decode 15 faster, 7 level, 0 slower. The band applied on this checkpoint was ±8.85%, the vLLM fork's largest drift-repeat change (CuteAFD's stayed within the 8% floor), not the ±8% the summary states.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-cell throughput ratio CuteAFD / vLLM fork (aggregate tok/s; clean-decode median tok/s), read against the noise band",
+  "sign": "above 1 = CuteAFD faster",
+  "unit": "cell",
+  "n": "22 cells; 12 requests per cell and engine (3 replicates); drift repeats on 8 cells",
+  "interval": "none (descriptive); band rule frozen before the run: a ratio within max(8%, the largest drift-repeat change of either engine) reads as level",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2, same prompts and seeds, same day",
+   "checkpoint": "K3.25",
+   "items": "Block T prompt set: 22 cells (input 1K, 8K, 32K, 128K x content x 1 or 4 concurrent streams), 12 requests per cell and engine in 3 replicates, 1,024 output tokens, thinking on",
+   "context": "1K-128K input",
+   "path": "serving (generation)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/cells_aggregate/K3.25",
+    "what": "[faster, level, slower]",
+    "value": [
+     19,
+     3,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/cells_clean_decode/K3.25",
+    "what": "[faster, level, slower]",
+    "value": [
+     15,
+     7,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/t/k325/T-COMPARE.json",
+    "pointer": "/band",
+    "what": "band per engine (largest drift-repeat change, floor 0.08)",
+    "value": {
+     "V": 0.08849988163575184,
+     "C": 0.08
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/t/k325/T-COMPARE.json",
+    "pointer": "/cells/(1024, 'code', 1)/C/band_used",
+    "what": "band applied to the ratios (every cell)",
+    "value": 0.08849988163575184
+   }
+  ]
+ },
+ {
+  "id": "V4-speed-k325-ratios",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "T-K325",
+  "question": "On K3.25, how large are CuteAFD v4.0.0's speed ratios against the vLLM fork v0.9.2, and its time to first token at 128K input?",
+  "statement": "K3.25, CuteAFD v4.0.0 / vLLM fork v0.9.2: decode with one stream 1.06-1.46x over 12 cells; aggregate at 32K-128K input 1.40-1.63x over 6 cells; median time to first token at 128K input 19.8 s against 34.9 s.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-cell ratio CuteAFD / vLLM fork (median decode tok/s, one stream; aggregate tok/s, 32K-128K input); median time to first token, seconds",
+  "sign": "ratio above 1 = CuteAFD faster; lower time to first token = sooner",
+  "unit": "cell",
+  "n": "12 one-stream cells; 6 cells at 32K-128K input; 2 cells at 128K",
+  "interval": "none (descriptive; the range over cells, not an interval)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2, same prompts and seeds, same day",
+   "checkpoint": "K3.25",
+   "items": "Block T prompt set: 22 cells (input 1K, 8K, 32K, 128K x content x 1 or 4 concurrent streams), 12 requests per cell and engine in 3 replicates, 1,024 output tokens, thinking on",
+   "context": "1K-128K input",
+   "path": "serving (generation)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/decode_1stream/K3.25",
+    "what": "[min, max] over one-stream cells",
+    "value": [
+     1.06,
+     1.46
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/aggregate_32k_128k/K3.25",
+    "what": "[min, max] over 32K-128K cells",
+    "value": [
+     1.4,
+     1.63
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/ttft_128k_s/K3.25",
+    "what": "[CuteAFD, vLLM] seconds",
+    "value": [
+     19.8,
+     34.9
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-speed-k4-cells",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "T-K4",
+  "question": "On K4, in how many Block T cells is CuteAFD v4.0.0 faster, level or slower than the vLLM fork v0.9.2?",
+  "statement": "K4, CuteAFD v4.0.0 / vLLM fork v0.9.2 per cell: aggregate throughput faster in 22 of 22 cells, level in 0, slower in 0; clean decode 19 faster, 3 level, 0 slower. The band applied was ±8% (no engine's drift-repeat change exceeded the 8% floor).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-cell throughput ratio CuteAFD / vLLM fork (aggregate tok/s; clean-decode median tok/s), read against the noise band",
+  "sign": "above 1 = CuteAFD faster",
+  "unit": "cell",
+  "n": "22 cells; 12 requests per cell and engine (3 replicates); drift repeats on 8 cells",
+  "interval": "none (descriptive); band rule frozen before the run: a ratio within max(8%, the largest drift-repeat change of either engine) reads as level",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2, same prompts and seeds, same day",
+   "checkpoint": "K4",
+   "items": "Block T prompt set: 22 cells (input 1K, 8K, 32K, 128K x content x 1 or 4 concurrent streams), 12 requests per cell and engine in 3 replicates, 1,024 output tokens, thinking on",
+   "context": "1K-128K input",
+   "path": "serving (generation)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/cells_aggregate/K4",
+    "what": "[faster, level, slower]",
+    "value": [
+     22,
+     0,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/cells_clean_decode/K4",
+    "what": "[faster, level, slower]",
+    "value": [
+     19,
+     3,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/t/k4/T-COMPARE.json",
+    "pointer": "/band",
+    "what": "band per arm",
+    "value": {
+     "K": 0.08,
+     "V": 0.08,
+     "C": 0.08
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/t/k4/T-COMPARE.json",
+    "pointer": "/cells/(1024, 'code', 1)/C/band_used",
+    "what": "band applied to the ratios",
+    "value": 0.08
+   }
+  ]
+ },
+ {
+  "id": "V4-speed-k4-ratios",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "T-K4",
+  "question": "On K4, how large are CuteAFD v4.0.0's speed ratios against the vLLM fork v0.9.2, and its time to first token at 128K input?",
+  "statement": "K4, CuteAFD v4.0.0 / vLLM fork v0.9.2: decode with one stream 1.07-1.42x over 12 cells; aggregate at 32K-128K input 1.38-1.66x over 6 cells; median time to first token at 128K input 20.0 s against 36.3 s.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-cell ratio CuteAFD / vLLM fork (median decode tok/s, one stream; aggregate tok/s, 32K-128K input); median time to first token, seconds",
+  "sign": "ratio above 1 = CuteAFD faster; lower time to first token = sooner",
+  "unit": "cell",
+  "n": "12 one-stream cells; 6 cells at 32K-128K input; 2 cells at 128K",
+  "interval": "none (descriptive; the range over cells, not an interval)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 and the vLLM fork v0.9.2, same prompts and seeds, same day",
+   "checkpoint": "K4",
+   "items": "Block T prompt set: 22 cells (input 1K, 8K, 32K, 128K x content x 1 or 4 concurrent streams), 12 requests per cell and engine in 3 replicates, 1,024 output tokens, thinking on",
+   "context": "1K-128K input",
+   "path": "serving (generation)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/decode_1stream/K4",
+    "what": "[min, max] over one-stream cells",
+    "value": [
+     1.07,
+     1.42
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/aggregate_32k_128k/K4",
+    "what": "[min, max] over 32K-128K cells",
+    "value": [
+     1.38,
+     1.66
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/ttft_128k_s/K4",
+    "what": "[CuteAFD, vLLM] seconds",
+    "value": [
+     20.0,
+     36.3
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-speed-k6-cells",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "T-K6",
+  "question": "On K4-Core-K6, in how many Block T cells is CuteAFD v4.0.0 faster, level or slower than the vLLM fork v0.9.2 on K4?",
+  "statement": "K4-Core-K6 on CuteAFD v4.0.0 / vLLM fork v0.9.2 on K4 per cell: aggregate throughput faster in 20 of 22 cells, level in 2, slower in 0; clean decode 16 faster, 6 level, 0 slower. The band applied was ±8%.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-cell throughput ratio CuteAFD / vLLM fork (aggregate tok/s; clean-decode median tok/s), read against the noise band",
+  "sign": "above 1 = CuteAFD faster",
+  "unit": "cell",
+  "n": "22 cells; 12 requests per cell and engine (3 replicates); drift repeats on 8 cells",
+  "interval": "none (descriptive); band rule frozen before the run: a ratio within max(8%, the largest drift-repeat change of either engine) reads as level",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (K4-Core-K6) against the vLLM fork v0.9.2 on K4, same prompts and seeds, same day",
+   "checkpoint": "K4-Core-K6 (CuteAFD) against K4 (vLLM fork)",
+   "items": "Block T prompt set: 22 cells (input 1K, 8K, 32K, 128K x content x 1 or 4 concurrent streams), 12 requests per cell and engine in 3 replicates, 1,024 output tokens, thinking on",
+   "context": "1K-128K input",
+   "path": "serving (generation)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/cells_aggregate/K4-Core-K6",
+    "what": "[faster, level, slower]",
+    "value": [
+     20,
+     2,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/cells_clean_decode/K4-Core-K6",
+    "what": "[faster, level, slower]",
+    "value": [
+     16,
+     6,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/t/k4/T-COMPARE.json",
+    "pointer": "/band",
+    "what": "band per arm",
+    "value": {
+     "K": 0.08,
+     "V": 0.08,
+     "C": 0.08
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/t/k4/T-COMPARE.json",
+    "pointer": "/cells/(1024, 'code', 1)/K/band_used",
+    "what": "band applied to the K4-Core-K6 ratios",
+    "value": 0.08
+   }
+  ]
+ },
+ {
+  "id": "V4-speed-k6-ratios",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "T-K6",
+  "question": "On K4-Core-K6, how large are CuteAFD v4.0.0's speed ratios against the vLLM fork v0.9.2 on K4, and its time to first token at 128K input?",
+  "statement": "K4-Core-K6 on CuteAFD v4.0.0 / vLLM fork v0.9.2 on K4: decode with one stream 0.99-1.36x over 12 cells; aggregate at 32K-128K input 1.21-1.41x over 6 cells; median time to first token at 128K input 24.5 s against 36.3 s.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-cell ratio CuteAFD / vLLM fork (median decode tok/s, one stream; aggregate tok/s, 32K-128K input); median time to first token, seconds",
+  "sign": "ratio above 1 = CuteAFD faster; lower time to first token = sooner",
+  "unit": "cell",
+  "n": "12 one-stream cells; 6 cells at 32K-128K input; 2 cells at 128K",
+  "interval": "none (descriptive; the range over cells, not an interval)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (K4-Core-K6) against the vLLM fork v0.9.2 on K4, same prompts and seeds, same day",
+   "checkpoint": "K4-Core-K6 (CuteAFD) against K4 (vLLM fork)",
+   "items": "Block T prompt set: 22 cells (input 1K, 8K, 32K, 128K x content x 1 or 4 concurrent streams), 12 requests per cell and engine in 3 replicates, 1,024 output tokens, thinking on",
+   "context": "1K-128K input",
+   "path": "serving (generation)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/decode_1stream/K4-Core-K6",
+    "what": "[min, max] over one-stream cells",
+    "value": [
+     0.99,
+     1.36
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/aggregate_32k_128k/K4-Core-K6",
+    "what": "[min, max] over 32K-128K cells",
+    "value": [
+     1.21,
+     1.41
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/ttft_128k_s/K4-Core-K6",
+    "what": "[CuteAFD, vLLM] seconds",
+    "value": [
+     24.5,
+     36.3
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-speed-k6-vs-k4",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "T-K6",
+  "question": "On CuteAFD v4.0.0, how much slower is K4-Core-K6 than K4 over the Block T grid?",
+  "statement": "On CuteAFD v4.0.0 the run reports K4-Core-K6 5-15% slower than K4 across the Block T cells; no per-cell ratio or band for this contrast is published in this folder (the per-cell rates of both arms are).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "per-cell throughput, K4-Core-K6 relative to K4, both on CuteAFD v4.0.0",
+  "sign": "n/a",
+  "unit": "cell",
+  "n": "22 cells",
+  "interval": "none (descriptive; the frozen rule reads it descriptively)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4 and K4-Core-K6",
+   "items": "Block T prompt set: 22 cells (input 1K, 8K, 32K, 128K x content x 1 or 4 concurrent streams), 12 requests per cell and engine in 3 replicates, 1,024 output tokens, thinking on",
+   "context": "1K-128K input",
+   "path": "serving (generation)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/speed/k6_vs_k4_cuteafd",
+    "what": "reading",
+    "value": "5-15% slower"
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/t/k4/T-COMPARE.json",
+    "what": "per-cell rates, arms C and K"
+   }
+  ]
+ },
+ {
+  "id": "V4-kv-pool",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "POOL",
+  "question": "How many KV tokens does each engine hold per checkpoint on its serving launch?",
+  "statement": "KV pool on the serving launch, vLLM fork v0.9.2 / CuteAFD v4.0.0: K3.25 4,762,898 / 5,799,424 tokens; K4 1,377,179 / 1,931,264; K4-Core-K6 on CuteAFD 2,240,512.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "KV pool reported at startup, tokens",
+  "sign": "higher = more KV capacity",
+  "unit": "launch",
+  "n": "one serving launch per engine and checkpoint",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 and CuteAFD v4.0.0 (serving configurations; scoring launches differ)",
+   "checkpoint": "K3.25, K4, K4-Core-K6",
+   "items": "startup line of each serving launch",
+   "context": "n/a",
+   "path": "serving (startup)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "the vLLM fork's K4 pool equals the 2026-10-27 K4 run's (same number)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/kv_pool/K3.25",
+    "what": "K3.25",
+    "value": {
+     "vLLM": 4762898,
+     "CuteAFD": 5799424
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/kv_pool/K4",
+    "what": "K4",
+    "value": {
+     "vLLM": 1377179,
+     "CuteAFD": 1931264
+    }
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/kv_pool/K4-Core-K6",
+    "what": "K4-Core-K6",
+    "value": {
+     "CuteAFD": 2240512
+    }
+   },
+   {
+    "file": "results/2026-10-27-k4-vllm-cuteafd/startup/startup.json",
+    "pointer": "/launches/V-warm/capacity/pool_tokens",
+    "what": "vLLM fork K4 pool, 2026-10-27",
+    "value": 1377179
+   }
+  ]
+ },
+ {
+  "id": "V4-kv-pool-v3",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "POOL",
+  "question": "On K4, how does CuteAFD v4.0.0's KV pool compare with CuteAFD v3.0.1's?",
+  "statement": "K4 KV pool: CuteAFD v4.0.0 1,931,264 tokens (this run) against v3.0.1 447,488 (the 2026-10-27 K4 run's launch; that run records that a desktop's graphics context on one GPU took memory its dry run had counted for the pool).",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "KV pool reported at startup, tokens, CuteAFD v4.0.0 and v3.0.1 on K4",
+  "sign": "higher = more KV capacity",
+  "unit": "launch",
+  "n": "one launch per version, on different days",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 (2026-10-30) and CuteAFD v3.0.1 (2026-10-27)",
+   "checkpoint": "K4",
+   "items": "startup line of each serving launch",
+   "context": "n/a",
+   "path": "serving (startup)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted (no same-day v3.0.1 serving launch is published)",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/kv_pool/K4/CuteAFD",
+    "what": "v4.0.0",
+    "value": 1931264
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/kv_pool/K4 CuteAFD v3.0.1",
+    "what": "v3.0.1",
+    "value": 447488
+   },
+   {
+    "file": "results/2026-10-27-k4-vllm-cuteafd/startup/startup.json",
+    "pointer": "/launches/C-warm/capacity/pool_tokens",
+    "what": "v3.0.1, 2026-10-27 launch",
+    "value": 447488
+   },
+   {
+    "file": "results/2026-10-27-k4-vllm-cuteafd/METHOD.md",
+    "lines": [
+     45,
+     45
+    ],
+    "what": "2026-10-27 capacity note",
+    "text": "| Capacity at these settings (startup lines) | KV pool 1,377,179 tokens, 16 sequences | pool 447,488 tokens (the dry run predicted 605,696; the desktop's context on GPU 1 takes the rest), 16 requests; scoring launch 451,584 |"
+   }
+  ]
+ },
+ {
+  "id": "V4-startup",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "START",
+  "question": "How long does each engine take from start to ready, cold and warm, on K3.25 and K4?",
+  "statement": "Start to ready, cold / warm, one launch each: K3.25 vLLM fork 348 / 349 s, CuteAFD v4.0.0 91 / 86 s; K4 vLLM fork 292 / 313 s, CuteAFD v4.0.0 86 / 81 s.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "seconds from start to ready",
+  "sign": "lower = ready sooner",
+  "unit": "launch",
+  "n": "one cold and one warm launch per engine and checkpoint",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "vLLM fork v0.9.2 and CuteAFD v4.0.0",
+   "checkpoint": "K3.25 and K4",
+   "items": "serving launches; page-cache state recorded, not controlled",
+   "context": "n/a",
+   "path": "serving (startup)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/startup_s",
+    "what": "[cold, warm] seconds",
+    "value": {
+     "K3.25": {
+      "vLLM": [
+       348,
+       349
+      ],
+      "CuteAFD": [
+       91,
+       86
+      ]
+     },
+     "K4": {
+      "vLLM": [
+       292,
+       313
+      ],
+      "CuteAFD": [
+       86,
+       81
+      ]
+     }
+    }
+   }
+  ]
+ },
+ {
+  "id": "V4-blockL-k4-finish",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "L-R1",
+  "question": "On K4, how many Block L replies finish on their own within each cap, and how many loop, on CuteAFD v4.0.0 and on the vLLM fork?",
+  "statement": "K4, replies that finished on their own, of 32 per cap (vLLM fork, 2026-10-27 / CuteAFD v4.0.0 r1): 8 / 8 within 8K, 12 / 17 within 32K, 29 / 31 within 130K; replies that looped 0 / 0.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "replies finished within the cap (of 32 per cap); replies flagged as terminal loops (U5 rule)",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "96 replies per arm (32 per cap); one run each",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 r1 (this run) and the vLLM fork v0.9.2 (the 2026-10-27 K4 run, same requests and seeds; the engines do not share a sampler, so columns are not paired)",
+   "checkpoint": "K4",
+   "items": "Block L prompt set: 8 code, 8 JSON, 8 prose and 8 reasoning prompts; 32 replies per cap (8K, 32K, 130K output tokens)",
+   "context": "caps 8K to 130K output tokens",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "CuteAFD v4.0.0 repeated with new seeds: V4-blockL-r2-k4",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/columns",
+    "what": "columns",
+    "value": [
+     "K4 vLLM (10-27)",
+     "K4 CuteAFD v4 r1",
+     "K4 CuteAFD v4 r2",
+     "K4-Core-K6 v4 r1",
+     "K4-Core-K6 v4 r2"
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_8k",
+    "what": "finished_8k",
+    "value": [
+     8,
+     8,
+     8,
+     8,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_32k",
+    "what": "finished_32k",
+    "value": [
+     12,
+     17,
+     18,
+     11,
+     13
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_130k",
+    "what": "finished_130k",
+    "value": [
+     29,
+     31,
+     31,
+     31,
+     30
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/terminal_loops",
+    "what": "terminal_loops",
+    "value": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-blockL-k4-tasks",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "L-R1",
+  "question": "On K4 at the 130K cap, how do CuteAFD v4.0.0's code, JSON and reply-length results compare with the vLLM fork's?",
+  "statement": "K4 at the 130K cap (vLLM fork, 2026-10-27 / CuteAFD v4.0.0 r1): code with all tests passing 8 / 8 of 8, JSON valid 5 / 5 of 8; median code reply 51,343 / 39,377 tokens, of which thinking 47,500 / 34,800. Columns are separate runs, not paired.",
+  "class": "descriptive",
+  "status": "protocol",
+  "quantity": "code replies passing all tests (of 8); JSON replies valid (of 8); median code reply and thinking length, tokens",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "8 code and 8 JSON replies per arm at the 130K cap; one run each",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0 r1 (this run) and the vLLM fork v0.9.2 (the 2026-10-27 K4 run, same requests and seeds; the engines do not share a sampler, so columns are not paired)",
+   "checkpoint": "K4",
+   "items": "Block L prompt set: 8 code, 8 JSON, 8 prose and 8 reasoning prompts; 32 replies per cap (8K, 32K, 130K output tokens)",
+   "context": "130K output cap",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "CuteAFD v4.0.0 repeated with new seeds: V4-blockL-r2-k4",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/columns",
+    "what": "columns",
+    "value": [
+     "K4 vLLM (10-27)",
+     "K4 CuteAFD v4 r1",
+     "K4 CuteAFD v4 r2",
+     "K4-Core-K6 v4 r1",
+     "K4-Core-K6 v4 r2"
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_pass_130k_of8",
+    "what": "code_pass_130k_of8",
+    "value": [
+     8,
+     8,
+     8,
+     7,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_len_130k_median",
+    "what": "code_len_130k_median",
+    "value": [
+     51343,
+     39377,
+     35407,
+     46417,
+     41913
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/json_valid_130k_of8",
+    "what": "json_valid_130k_of8",
+    "value": [
+     5,
+     5,
+     5,
+     7,
+     6
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/thinking_code_130k_median",
+    "what": "thinking_code_130k_median",
+    "value": [
+     47500,
+     34800,
+     30600,
+     42400,
+     37900
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-blockL-k6-r1",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A1-K6-L",
+  "question": "Under Block L on CuteAFD v4.0.0, how does K4-Core-K6 behave, beside K4 on the same engine, requests and day?",
+  "statement": "K4-Core-K6 r1 (K4 r1 in brackets), CuteAFD v4.0.0: finished of 32 within 8K 8 (8), within 32K 11 (17), within 130K 31 (31); 0 looped. At 130K: code all tests pass 7 (8) of 8, JSON valid 7 (5) of 8, median code reply 46,417 (39,377) tokens, thinking 42,400 (34,800).",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "Block L counts and median lengths, K4-Core-K6 beside K4, both CuteAFD v4.0.0 r1",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "96 replies per checkpoint (32 per cap); one run each",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0, same requests, seeds and day for both checkpoints",
+   "checkpoint": "K4-Core-K6 and K4",
+   "items": "Block L prompt set: 8 code, 8 JSON, 8 prose and 8 reasoning prompts; 32 replies per cap (8K, 32K, 130K output tokens)",
+   "context": "caps 8K to 130K output tokens",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "repeated with new seeds: V4-blockL-r2-k6",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/columns",
+    "what": "columns",
+    "value": [
+     "K4 vLLM (10-27)",
+     "K4 CuteAFD v4 r1",
+     "K4 CuteAFD v4 r2",
+     "K4-Core-K6 v4 r1",
+     "K4-Core-K6 v4 r2"
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_8k",
+    "what": "finished_8k",
+    "value": [
+     8,
+     8,
+     8,
+     8,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_32k",
+    "what": "finished_32k",
+    "value": [
+     12,
+     17,
+     18,
+     11,
+     13
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_130k",
+    "what": "finished_130k",
+    "value": [
+     29,
+     31,
+     31,
+     31,
+     30
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_pass_130k_of8",
+    "what": "code_pass_130k_of8",
+    "value": [
+     8,
+     8,
+     8,
+     7,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_len_130k_median",
+    "what": "code_len_130k_median",
+    "value": [
+     51343,
+     39377,
+     35407,
+     46417,
+     41913
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/json_valid_130k_of8",
+    "what": "json_valid_130k_of8",
+    "value": [
+     5,
+     5,
+     5,
+     7,
+     6
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/terminal_loops",
+    "what": "terminal_loops",
+    "value": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/thinking_code_130k_median",
+    "what": "thinking_code_130k_median",
+    "value": [
+     47500,
+     34800,
+     30600,
+     42400,
+     37900
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-blockL-r2-k4",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-L-R2",
+  "question": "With new seeds, does K4 on CuteAFD v4.0.0 repeat its Block L counts and lengths?",
+  "statement": "K4, CuteAFD v4.0.0, r2 with new seeds (r1 in brackets): finished of 32 within 32K 18 (17), within 130K 31 (31); code all tests pass at 130K 8 (8) of 8; JSON valid 5 (5) of 8; median code reply 35,407 (39,377) tokens; 0 looped in either run.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "Block L counts and median code reply length, r2 beside r1",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "96 replies per run (32 per cap); two runs",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4",
+   "items": "Block L prompt set: 8 code, 8 JSON, 8 prose and 8 reasoning prompts; 32 replies per cap (8K, 32K, 130K output tokens); r2 seeds and repeat indices shifted by 10",
+   "context": "caps 8K to 130K output tokens",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "this is the repeat of V4-blockL-k4-finish and V4-blockL-k4-tasks",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/columns",
+    "what": "columns",
+    "value": [
+     "K4 vLLM (10-27)",
+     "K4 CuteAFD v4 r1",
+     "K4 CuteAFD v4 r2",
+     "K4-Core-K6 v4 r1",
+     "K4-Core-K6 v4 r2"
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_8k",
+    "what": "finished_8k",
+    "value": [
+     8,
+     8,
+     8,
+     8,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_32k",
+    "what": "finished_32k",
+    "value": [
+     12,
+     17,
+     18,
+     11,
+     13
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_130k",
+    "what": "finished_130k",
+    "value": [
+     29,
+     31,
+     31,
+     31,
+     30
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_pass_130k_of8",
+    "what": "code_pass_130k_of8",
+    "value": [
+     8,
+     8,
+     8,
+     7,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_len_130k_median",
+    "what": "code_len_130k_median",
+    "value": [
+     51343,
+     39377,
+     35407,
+     46417,
+     41913
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/json_valid_130k_of8",
+    "what": "json_valid_130k_of8",
+    "value": [
+     5,
+     5,
+     5,
+     7,
+     6
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/terminal_loops",
+    "what": "terminal_loops",
+    "value": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/thinking_code_130k_median",
+    "what": "thinking_code_130k_median",
+    "value": [
+     47500,
+     34800,
+     30600,
+     42400,
+     37900
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-blockL-r2-k6",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "A2-L-R2",
+  "question": "With new seeds, does K4-Core-K6 on CuteAFD v4.0.0 repeat its Block L counts and lengths?",
+  "statement": "K4-Core-K6, CuteAFD v4.0.0, r2 with new seeds (r1 in brackets): finished of 32 within 32K 13 (11), within 130K 30 (31); code all tests pass at 130K 8 (7) of 8; JSON valid 6 (7) of 8; median code reply 41,913 (46,417) tokens; 0 looped in either run.",
+  "class": "descriptive",
+  "status": "amendment",
+  "quantity": "Block L counts and median code reply length, r2 beside r1",
+  "sign": "n/a",
+  "unit": "reply",
+  "n": "96 replies per run (32 per cap); two runs",
+  "interval": "none (descriptive)",
+  "scope": {
+   "engine": "CuteAFD v4.0.0",
+   "checkpoint": "K4-Core-K6",
+   "items": "Block L prompt set: 8 code, 8 JSON, 8 prose and 8 reasoning prompts; 32 replies per cap (8K, 32K, 130K output tokens); r2 seeds and repeat indices shifted by 10",
+   "context": "caps 8K to 130K output tokens",
+   "path": "generation (sampled replies, thinking on)",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q, 300 W"
+  },
+  "family": null,
+  "replication": "this is the repeat of V4-blockL-k6-r1",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/columns",
+    "what": "columns",
+    "value": [
+     "K4 vLLM (10-27)",
+     "K4 CuteAFD v4 r1",
+     "K4 CuteAFD v4 r2",
+     "K4-Core-K6 v4 r1",
+     "K4-Core-K6 v4 r2"
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_8k",
+    "what": "finished_8k",
+    "value": [
+     8,
+     8,
+     8,
+     8,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_32k",
+    "what": "finished_32k",
+    "value": [
+     12,
+     17,
+     18,
+     11,
+     13
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/finished_130k",
+    "what": "finished_130k",
+    "value": [
+     29,
+     31,
+     31,
+     31,
+     30
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_pass_130k_of8",
+    "what": "code_pass_130k_of8",
+    "value": [
+     8,
+     8,
+     8,
+     7,
+     8
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/code_len_130k_median",
+    "what": "code_len_130k_median",
+    "value": [
+     51343,
+     39377,
+     35407,
+     46417,
+     41913
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/json_valid_130k_of8",
+    "what": "json_valid_130k_of8",
+    "value": [
+     5,
+     5,
+     5,
+     7,
+     6
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/terminal_loops",
+    "what": "terminal_loops",
+    "value": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   {
+    "file": "results/2026-10-30-cuteafd-v4/SUMMARY.json",
+    "pointer": "/block_l/thinking_code_130k_median",
+    "what": "thinking_code_130k_median",
+    "value": [
+     47500,
+     34800,
+     30600,
+     42400,
+     37900
+    ]
+   }
+  ]
+ },
+ {
+  "id": "V4-v41-source",
+  "run": "2026-10-30-cuteafd-v4",
+  "goal": "V41-SRC",
+  "question": "Does CuteAFD v4.1.0, released after this run, change the GLM-5.3-Flash compute path for this GPU-only two-RTX layout?",
+  "statement": "Read in source, not run: no change to this layout's GLM-5.3-Flash compute path was found in CuteAFD v4.1.0; no difference was measured.",
+  "class": "source reading",
+  "status": "source reading",
+  "quantity": "changes to the GLM-5.3-Flash compute path for two RTX PRO 6000 with local experts",
+  "sign": "n/a",
+  "unit": "code change",
+  "n": "not stated",
+  "interval": "none (source reading)",
+  "scope": {
+   "engine": "CuteAFD v4.1.0 (not run)",
+   "checkpoint": "n/a",
+   "items": "the release's source changes",
+   "context": "n/a",
+   "path": "n/a",
+   "hardware": "2x RTX PRO 6000 Blackwell Max-Q (the layout read for; nothing run)"
+  },
+  "family": null,
+  "replication": "not attempted",
+  "evidence": [
+   {
+    "file": "results/2026-10-30-cuteafd-v4/README.md",
+    "lines": [
+     3,
+     5
+    ],
+    "what": "run note",
+    "text": "Measurement under a protocol frozen before the first comparison request (see `RUN.json`). Two RTX PRO 6000 Max-Q\n(300 W), GPU only: experts local, no DGX Spark expert nodes; thinking on. CuteAFD v4.1.0 (released after this run) was\nread in source, not run: no change to this setup's GLM-5.3-Flash compute path was found. Pages: [Three checkpoints](../../docs/checkpoints.html) and"
+   }
+  ]
+ }
+]

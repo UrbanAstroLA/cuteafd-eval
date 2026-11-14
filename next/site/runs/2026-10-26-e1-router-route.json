@@ -1,0 +1,114 @@
+{
+ "id": "2026-10-26-e1-router-route",
+ "date": "2026-10-26",
+ "title": "CuteAFD router logits across its 160/161-row route switch (one GPU, one kernel)",
+ "kind": "exploratory",
+ "question": "Are CuteAFD's GLM-5.3-Flash router logits bit-identical across the switch between its skinny GEMV route (up to 160 rows) and its TMA tensor-core route, a question its source audit left open?",
+ "engines": [
+  "CuteAFD image (tag and digest not recorded in this run's files): sparkinfer b12x RoutedBf16Projection JIT-compiled from the image's source, torch 2.12.0a0+5aff3928d8.nv26.05"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8@d31ebc921f1f098b4a56d37aaccb3cdef4096184 (router weights and correction biases only)"
+ ],
+ "hardware": "1x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+ "protocol": {
+  "file": null,
+  "frozen": null,
+  "amendments": []
+ },
+ "goals": [
+  {
+   "id": "E1-ROUTE",
+   "question": "Are CuteAFD's router logits bit-identical across its skinny-GEMV (up to 160 rows) / TMA tensor-core (above 160 rows) route switch, and if not, does expert selection or its weights change?",
+   "added": "exploratory",
+   "added_source": "README.md:5 (why it was run); 2026-10-26-cuteafd-setup-checks source audit E1",
+   "design": {
+    "instrument": "e1_router_route.py: RoutedBf16Projection(288, 4096, FP32 out) JIT-compiled from the CuteAFD image's sparkinfer b12x source (not the served AOT binary), real router weights and correction biases; top-8 of sigmoid score + bias, weights normalized x 2.5",
+    "arms": [
+     "skinny route, 160-row launch",
+     "TMA route, same rows in a 161-row launch"
+    ],
+    "items": "layers 3, 12, 24, 36, 44 x two approximate input kinds (normalized embedding rows of seeded random token ids, and N(0,1) rows, times the post-attention norm weight); the real mHC-collapsed residual input was not reproduced",
+    "unit": "row (one router input row)",
+    "n": "64,000 rows",
+    "repeats": "40 batches per layer and input kind; torch generator seed 70901",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory, one GPU, one kernel, approximate inputs: across the switch 0.35-0.37% of logits are bit-identical, max abs logit difference 1.7e-5 to 8.2e-5, top-8 set changed in 2 of 64,000 rows; where the set agreed, routing weights differed by at most 8.0e-7. The run reads launches above 160 rows as prefill chunks only; decode steps stay on the skinny route.",
+   "findings": [
+    "E1-route-logits",
+    "E1-route-selection"
+   ],
+   "replication": "not attempted"
+  },
+  {
+   "id": "E1-WITHIN",
+   "question": "Within each route, do CuteAFD's router logits depend on the launch's row count?",
+   "added": "exploratory",
+   "added_source": "e1_router_route.py docstring (launches A-D)",
+   "design": {
+    "instrument": "e1_router_route.py: RoutedBf16Projection(288, 4096, FP32 out) JIT-compiled from the CuteAFD image's sparkinfer b12x source (not the served AOT binary), real router weights and correction biases; top-8 of sigmoid score + bias, weights normalized x 2.5",
+    "arms": [
+     "skinny 160 rows vs skinny 100 rows",
+     "TMA 161 rows vs TMA 512 rows"
+    ],
+    "items": "layers 3, 12, 24, 36, 44 x two approximate input kinds (normalized embedding rows of seeded random token ids, and N(0,1) rows, times the post-attention norm weight); the real mHC-collapsed residual input was not reproduced",
+    "unit": "row (one router input row)",
+    "n": "40,000 rows (skinny 160 vs 100); 64,000 rows (TMA 161 vs 512)",
+    "repeats": "40 batches per layer and input kind; torch generator seed 70901",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md",
+    "e1-router-route.json"
+   ],
+   "status": "done",
+   "headline": "Exploratory: skinny 160 vs 100 rows and TMA 161 vs 512 rows are 100% bit-identical, max difference 0, top-8 set changed in 0 rows. README.md states 64,000 rows per comparison; the skinny 160-vs-100 comparison has 40,000 rows in e1-router-route.json.",
+   "findings": [
+    "E1-within-route"
+   ],
+   "status_note": "README.md:13 states 64,000 rows per comparison; in e1-router-route.json the skinny 160-vs-100 comparison has 40,000 rows (4,000 per cell) and the TMA 161-vs-512 comparison 64,000."
+  },
+  {
+   "id": "E1-FP64",
+   "question": "How far is each route's FP32 router logit from an FP64 reference, and does either change expert selection against it?",
+   "added": "exploratory",
+   "added_source": "README.md:20-21 (table rows vs FP64 reference)",
+   "design": {
+    "instrument": "e1_router_route.py: RoutedBf16Projection(288, 4096, FP32 out) JIT-compiled from the CuteAFD image's sparkinfer b12x source (not the served AOT binary), real router weights and correction biases; top-8 of sigmoid score + bias, weights normalized x 2.5",
+    "arms": [
+     "skinny 160 rows vs FP64 x @ W^T",
+     "TMA 161 rows vs FP64 x @ W^T"
+    ],
+    "items": "layers 3, 12, 24, 36, 44 x two approximate input kinds (normalized embedding rows of seeded random token ids, and N(0,1) rows, times the post-attention norm weight); the real mHC-collapsed residual input was not reproduced",
+    "unit": "row (one router input row)",
+    "n": "64,000 rows per route",
+    "repeats": "40 batches per layer and input kind; torch generator seed 70901",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "README.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory: max error relative to the largest logit 1.0-1.6e-7 on the skinny route (top-8 set changed in 0 rows) and 5.3-6.8e-6 on the TMA route (2 rows); the run reads both changed rows as the TMA route moving a near-tie away from the FP64 choice, within an FP32 dot product's rounding.",
+   "findings": [
+    "E1-fp64"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "e1_router_route.py",
+  "e1-router-route.json",
+  "e1-router-route.log"
+ ]
+}

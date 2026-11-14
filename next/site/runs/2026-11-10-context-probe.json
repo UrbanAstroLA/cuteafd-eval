@@ -1,0 +1,1268 @@
+{
+ "id": "2026-11-10-context-probe",
+ "date": "2026-11-10",
+ "title": "CuteAFD v5.0.0 core precision at long context: BF16 reference, HQA and K6 core on graded tasks from 4K to 127K tokens",
+ "kind": "measurement",
+ "question": "On CuteAFD v5.0.0 with two RTX PRO 6000, what does the precision of the tensors outside the K4 experts (BF16 core, BF16 q_b_proj and o_proj with K6 elsewhere, K6 core) buy on graded tasks as context grows from 4K to 127K tokens, delivered as one message and over eight turns?",
+ "engines": [
+  "tpurtell/cuteafd v5.0.0 (tag d8e566e85; coordinator image sha256:6194637e...), unmodified launcher",
+  "CuteAFD build v5.0.0-1-g092f2168b (v5.0.0 tag plus one local commit: host configuration and a launcher guard; release coordinator image by digest), BF16-reference stage only"
+ ],
+ "checkpoints": [
+  "anchor: derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180c693ebbad90190dca8d5f0a7ca4d3753 (local derived checkpoint, not a producer release)",
+  "hqa, compact: wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6-HQA @ e0ecc3d55d117e656a03d5790521cad0c4fcb624 (no longer on the hub, checked 2026-11-11; local copy downloaded 2026-11-10)",
+  "exlr8-k4 (reference, added after the results were read): kindlingai/glm-5.3-flash-exlr8-k2-k3-k4 @ 867580abd28d142bb4c56218bb81a752b7dea988, manifest k4 (loaded from a SparkNest v0.8.3 store on the same host)",
+  "k325-fp8 (amendment 2): wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 @ d31ebc921f1f098b4a56d37aaccb3cdef4096184",
+  "drafter in every arm: incoai/GLM-5.3-Flash-DFlash2 @ bf582e4e"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W); GPU only, experts local",
+ "protocol": {
+  "file": "protocol/PROTOCOL.md",
+  "frozen": "2026-11-10T19:55:10-0800",
+  "amendments": [
+   "A1: protocol/AMENDMENT-2026-11-11.md (2026-11-11 16:46:31 -0800): single-message passes 3 and 4 for anchor, hqa, compact and exlr8-k4, total fixed at four; scoring capture on exlr8-k4 (exploratory)",
+   "A2: protocol/AMENDMENT-2026-11-12.md (2026-11-12 11:57:02 -0800): fifth configuration k325-fp8, four single-message passes and its distance from BF16",
+   "BF16REF: bf16ref/ADDENDUM-BF16REF.md (frozen 2026-11-11T17:54:32-08:00): descriptive distance from the BF16 model for the four configurations, outside the frozen task comparison",
+   "pre-freeze: PROTOCOL.md section 11 moves the depth-profile texts from a user-turn to an assistant-turn frame (exploratory layer, before the freeze)"
+  ]
+ },
+ "goals": [
+  {
+   "id": "X-START",
+   "question": "Does each arm launch, are the score rows aligned and repeatable within one launch, and does a reply round-trip into the next turn?",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md section 7 (step S) and section 10",
+   "design": {
+    "instrument": "launch logs; POST /v1/bench/probe cold scoring; one 2-turn conversation",
+    "arms": [
+     "hqa",
+     "anchor"
+    ],
+    "items": "one 22K prompt (cold prefill twice), decode-path capture, one 16K ledger item (single + follow-up)",
+    "unit": "launch / scored row",
+    "n": "two arms launched; 64 decode-path rows and 32 prefill rows compared",
+    "repeats": "each capture twice within one launch",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory. hqa ready in about 60 s with a KV pool of 2,097,152 tokens; anchor in about 80 s with 1,318,400 tokens, BF16 head, no FP8. Within one launch the decode-path capture repeated 64 of 64 rows hash-equal and cold prefill at 22K 32 of 32. The next turn's prompt reproduced prompt + generated exactly and the cache restored 22,431 of 22,452 tokens.",
+   "findings": [
+    "CP-start-checks"
+   ]
+  },
+  {
+   "id": "X-DEPTH-U",
+   "question": "With the depth-profile texts placed inside a user turn, do the arms separate from one another and from the positive control core-fp8?",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md section 11",
+   "design": {
+    "instrument": "drivers/depth_profile.py: cold teacher-forced scoring, full-vocabulary dumps, prefill and decode paths, user-turn frame (r0)",
+    "arms": [
+     "anchor",
+     "core-fp8",
+     "hqa",
+     "hqa-bf16pre",
+     "compact",
+     "fp8c"
+    ],
+    "items": "five texts of about 127K tokens (prose, code, ledger, join, trace), not the task items; read on anchor, core-fp8 and hqa",
+    "unit": "scored position (row)",
+    "n": "9,408 prefill rows",
+    "repeats": "one capture per arm (r0)",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "status_note": "Frame replaced by the assistant frame (protocol section 11, amendment to section 3); the depth profile is read in X-DEPTH.",
+   "headline": "Exploratory. All three pairwise KLs are the same size (anchor‖core-fp8 0.588, anchor‖hqa 0.583, core-fp8‖hqa 0.589, means; top-1 differs on 14.5% of rows), independent of depth and concentrated where the model is unsure (rows with p < 0.5 in all three: KL about 0.8). The positive control is no more visible than any other pair, so the protocol reads this frame as unable to meet its first reading rule and amends section 3 to an assistant-turn frame.",
+   "findings": [],
+   "no_findings_reason": "superseded by X-DEPTH",
+   "superseded_by": "X-DEPTH"
+  },
+  {
+   "id": "X-DEPTH",
+   "question": "Where does each setting's next-token distribution depart from the all-original-precision anchor, and does the departure grow with depth toward 128K? (protocol question 1)",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md section 3; amendment to section 3 in section 11; sections 11a, 11b, 11c",
+   "design": {
+    "instrument": "drivers/depth_profile.py, depth_strata.py, strata_boot.py: cold teacher-forced scoring via POST /v1/bench/probe, full-vocabulary F32 dumps (exact KL), prefill and decode paths, assistant frame (a0)",
+    "arms": [
+     "anchor",
+     "core-fp8",
+     "hqa",
+     "compact",
+     "fp8c"
+    ],
+    "items": "five texts of about 127K tokens (two Block T documents: prose, code; three generated task documents: ledger, join, trace), not the task items",
+    "unit": "scored position (row); intervals over runs of consecutive rows within each text",
+    "n": "9,728 prefill rows and 1,920 decode rows per arm",
+    "repeats": "one capture per arm (a0); a second launch (a1) of anchor and hqa",
+    "interval": "95% run bootstrap (drivers/strata_boot.py)"
+   },
+   "files": [
+    "drivers/depth_profile.py",
+    "drivers/depth_strata.py",
+    "drivers/strata_boot.py"
+   ],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory, one capture per arm, CuteAFD v5.0.0. Prefill path, KL to anchor (mean / median / top-1 differs): core-fp8 0.0150 / 0.00063 / 6.1%; hqa 0.0168 / 0.00054 / 5.1%; compact 0.0176 / 0.00055 / 5.2%; fp8c 0.0184 / 0.00066 / 5.7%; every difference between pairs' mean KL includes 0, so mean KL does not rank these arms. NLL of the given token, arm - anchor, prefill: core-fp8 -0.0012 [-0.0057, +0.0034], hqa +0.0017 [-0.0040, +0.0081], compact -0.0055 [-0.0109, -0.0000], fp8c -0.0013 [-0.0065, +0.0039]; the protocol reads this as no arm measurably worse than anchor at predicting the text at any depth. Ten of 9,728 rows carry 40% of the mean KL (isolated collapse rows, in every arm including anchor).",
+   "findings": [
+    "CP-explore-depth"
+   ]
+  },
+  {
+   "id": "X-FP8PRE",
+   "question": "Does switching FP8 prefill off on the HQA checkpoint (arm hqa-bf16pre, GLM5_FLASH_FP8_PREFILL=off) change any recorded distribution?",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md section 2 (arm added after the start check) and section 11b",
+   "design": {
+    "instrument": "depth-profile captures in both frames and both paths; source reading of glm5_flash/engine.rs (v5.0.0)",
+    "arms": [
+     "hqa",
+     "hqa-bf16pre"
+    ],
+    "items": "the five depth-profile texts",
+    "unit": "scored position (row)",
+    "n": "11,648 rows",
+    "repeats": "one capture per frame (r0, a0)",
+    "interval": "none (bit comparison)"
+   },
+   "files": [],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "status_note": "Section 11b withdraws the protocol's section 2 and 3 description of this arm as separating the prefill precision.",
+   "headline": "Exploratory. hqa-bf16pre equals hqa bit for bit on all 11,648 rows, both score paths, user and assistant frames, although the load line changes (fp8_prefill=[Mla, Ffn] against [None]). By source reading of v5.0.0 the core paths return before fp8_prefill is read, so on a Core-K6 checkpoint the setting is inert and the arm is a second launch of hqa, not a precision arm.",
+   "findings": [
+    "CP-explore-fp8-prefill"
+   ]
+  },
+  {
+   "id": "X-LAUNCH",
+   "question": "Do two launches of the same arm give the same score rows (the launch-to-launch floor), and how far apart are the prefill and decode paths inside one launch?",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md section 3 (two captures in separate launches), sections 11a (path floor) and 11c ('Launch floor, assistant frame')",
+   "design": {
+    "instrument": "depth-profile captures a0 and a1 in separate launches; prefill against decode path at the same positions",
+    "arms": [
+     "anchor",
+     "hqa",
+     "hqa-bf16pre"
+    ],
+    "items": "the five depth-profile texts",
+    "unit": "scored position (row)",
+    "n": "11,648 rows per launch pair; 891 positions for the path floor",
+    "repeats": "two launches per arm",
+    "interval": "none for the launch floor (bit comparison); 95% run bootstrap for the path floor"
+   },
+   "files": [],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory. anchor a0 against a1 and hqa a0 against a1: 11,648 of 11,648 rows bit-identical in each (dump hash and given-token log-probability, both paths); with hqa-bf16pre equal to hqa, three launch pairs at zero. Inside one launch the prefill and decode paths are not bit-equal: KL mean 0.0051 [0.0018, 0.0093] (anchor), median 1.65e-4, top-1 differs on 3.6%, below each arm-to-arm pair on the same positions.",
+   "findings": [
+    "CP-explore-launch-repeat"
+   ]
+  },
+  {
+   "id": "X-TURN",
+   "question": "Is a conversation continued on decode-written, cache-resumed state equivalent to the same tokens prefilled cold? (engine check for protocol question 3)",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md sections 4 and 12",
+   "design": {
+    "instrument": "drivers/turn_check.py (legs live, cold-a, cold-b, replay-p, replay-64, replay-1; 32 recorded greedy rows), drivers/turn_summary.py",
+    "arms": [
+     "hqa",
+     "hqa-bf16pre",
+     "compact",
+     "fp8c"
+    ],
+    "items": "12 conversations per arm: 3 families x 16K and 64K x (single + follow-up, 8 parts)",
+    "unit": "conversation",
+    "n": "46 completed conversations",
+    "repeats": "one run per arm",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "drivers/turn_check.py",
+    "drivers/turn_summary.py",
+    "turncheck-plan.sh"
+   ],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory, one run per arm; anchor not in this step. Cold prefill twice bit-identical in all 46 completed conversations; 1-row and 64-row decode replays identical; the live cache-resumed path against the replay bit-identical in 45 of 46 (the exception, compact join-000-64k with 8 parts, is read as a harness artifact). Cold in one prefill against prefill cut at turn frontiers is never bit-equal (KL mean 0.001-0.02); live against cold 0.002-0.04. The protocol reads this as an engine property and not a precision effect, by inference from layer 1, and lists eight design limits for a second version.",
+   "findings": [
+    "CP-explore-prefix-resume"
+   ]
+  },
+  {
+   "id": "X-REPEAT",
+   "question": "Does greedy output survive the decode batch: is it the same alone and with eight requests at once?",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md section 4a (added 2026-11-10) and section 12",
+   "design": {
+    "instrument": "drivers/repeat_check.py: one byte-identical prompt, temperature 0, thinking on, replies cut at 768 tokens",
+    "arms": [
+     "hqa",
+     "hqa-bf16pre",
+     "compact",
+     "fp8c"
+    ],
+    "items": "one prompt (pilot item trace-000-16k)",
+    "unit": "request",
+    "n": "260 requests per arm",
+    "repeats": "4 one at a time, then 256 at concurrency 8",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "drivers/repeat_check.py"
+   ],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory. One output text in all 260 requests on every arm; 259 of 260 resumed from the prefix cache, so this is batched decode from a restore, not concurrent prefill.",
+   "findings": [
+    "CP-explore-greedy"
+   ]
+  },
+  {
+   "id": "X-PILOT",
+   "question": "Which reply cap, concurrency, number of parts and item difficulty should the graded runs freeze, and does anchor fit at 127K?",
+   "added": "exploratory",
+   "added_source": "protocol/PROTOCOL.md section 7 (step P) and section 13",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, acknowledgement cap 4,096, concurrency 8",
+    "arms": [
+     "hqa",
+     "anchor"
+    ],
+    "items": "pilot item set (indices 0-5 per family: 18 items x 4 lengths); anchor at 127K only",
+    "unit": "request",
+    "n": "72 requests per pass (hqa); 18 per mode (anchor)",
+    "repeats": "hqa: two single passes and one 8-turn pass; anchor: one pass per mode",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "protocol/PROTOCOL.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory; nothing here is a measured result. hqa, single, two passes: field score 0.979 / 0.990 / 0.972 / 0.823 at 4K / 16K / 64K / 127K; flip floor 11 of 72; capped replies copy the context record by record inside the thinking. Fixed for the freeze: reply cap 32,768, acknowledgement cap 4,096, concurrency 8, parts=8, arms anchor, hqa and compact, two single passes and one 8-turn pass per arm; difficulty not moved. Stated before the measured data: resolving power sits mostly in ledger (about +/-0.14 in one cell, +/-0.07 pooled over lengths).",
+   "findings": [
+    "CP-pilot-settings"
+   ]
+  },
+  {
+   "id": "CP-HA",
+   "question": "On CuteAFD v5.0.0, does hqa (BF16 q_b_proj and o_proj, rest of the core and head K6) score differently from anchor (BF16 core and head) on the graded tasks, single message, two passes?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md sections 5, 8 and 9; RESULTS.md section 2",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (repeats averaged within item, paired b - a)",
+    "n": "60 items (240 item-lengths per pass)",
+    "repeats": "two single-message passes, a distinct recorded seed per request, the same seed per index in every arm",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [
+    "tasks/compare-anchor__hqa-measured.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Frozen rule, b - a: hqa - anchor +0.000 [-0.012, +0.012] over all lengths, not detected; by length -0.002 [-0.014, +0.008], +0.005 [-0.004, +0.015], -0.013 [-0.046, +0.018], +0.009 [-0.026, +0.047] at 4K / 16K / 64K / 127K. CuteAFD v5.0.0; K4-Core-K6-HQA e0ecc3d5 (default mode) against the locally derived BF16-core checkpoint 049c0180.",
+   "findings": [
+    "CP-hqa-vs-anchor"
+   ],
+   "replication": "replicated in A1-HA (passes 3-4 alone +0.006 [-0.010, +0.021]; four passes +0.003 [-0.005, +0.012])"
+  },
+  {
+   "id": "CP-CA",
+   "question": "On CuteAFD v5.0.0, does compact (K6 core and head, ATTENTION_MODE=compact) score differently from anchor on the graded tasks, single message, two passes?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md sections 5, 8 and 9; RESULTS.md section 2",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (repeats averaged within item, paired b - a)",
+    "n": "60 items (240 item-lengths per pass)",
+    "repeats": "two single-message passes, a distinct recorded seed per request, the same seed per index in every arm",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [
+    "tasks/compare-anchor__compact-measured.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Frozen rule, b - a: compact - anchor -0.010 [-0.026, +0.006] over all lengths, not detected; by length +0.001 [-0.008, +0.011], -0.002 [-0.010, +0.006], -0.024 [-0.056, +0.004], -0.014 [-0.069, +0.041] at 4K / 16K / 64K / 127K. CuteAFD v5.0.0; K4-Core-K6-HQA e0ecc3d5 in compact mode against the derived BF16-core checkpoint 049c0180.",
+   "findings": [
+    "CP-compact-vs-anchor"
+   ],
+   "replication": "same reading in A1-COMPACT (four passes -0.010 [-0.021, +0.002]; at 127K -0.031 [-0.070, +0.008])"
+  },
+  {
+   "id": "CP-HC",
+   "question": "Do the two modes of the K4-Core-K6-HQA checkpoint, hqa and compact, score differently on the graded tasks, single message, two passes?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md sections 5, 8 and 9; RESULTS.md section 2",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "compact",
+     "hqa"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (repeats averaged within item, paired b - a)",
+    "n": "60 items (240 item-lengths per pass)",
+    "repeats": "two single-message passes, a distinct recorded seed per request, the same seed per index in every arm",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [
+    "tasks/compare-compact__hqa-measured.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "status_note": "Two-pass result of the frozen protocol stands as written; RESULTS.md section 7 carries a dated pointer (2026-11-12) to the four-pass reading.",
+   "headline": "Frozen rule, b - a: hqa - compact +0.010 [-0.005, +0.025] over all lengths, not detected at two passes; by length -0.003 [-0.015, +0.007], +0.007 [-0.004, +0.019], +0.011 [-0.014, +0.040], +0.023 [-0.026, +0.073]. Over four passes (amendment 1) the interval is +0.013 [+0.002, +0.024] and the difference sits at 127K (A1-COMPACT).",
+   "findings": [
+    "CP-hqa-vs-compact"
+   ],
+   "superseded_by": "A1-COMPACT"
+  },
+  {
+   "id": "CP-FLIP",
+   "question": "Does changing the arm change more every-field-right outcomes than rerunning the same arm with new seeds (flip floor and exact McNemar per repeat)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md section 5, 'Two request-level readings' (added 2026-11-10, before the freeze); RESULTS.md section 2",
+   "design": {
+    "instrument": "every-field-right outcome per request; drivers/analyze_tasks.py compare",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "request, paired on (item, length, seed)",
+    "n": "240 requests per pass",
+    "repeats": "two single-message passes",
+    "interval": "exact McNemar per repeat; none for the floor (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md"
+   ],
+   "status": "done",
+   "headline": "Share of the 240 requests whose every-field-right outcome changes: same arm, pass 1 against pass 2 (the floor) anchor 0.229, hqa 0.229, compact 0.246; hqa against anchor 0.192 (p 0.10) and 0.233 (p 0.14); compact against anchor 0.204 (p 1.0) and 0.221 (p 0.053); hqa against compact 0.179 (p 0.066) and 0.229 (p 0.79). The run reads this as changing the arm changing no more outcomes than rerunning the same arm with new seeds.",
+   "findings": [
+    "CP-flip-floor"
+   ]
+  },
+  {
+   "id": "L",
+   "question": "Does accuracy fall with context length, and does it fall faster under one arm than another? (protocol question 2)",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md sections 1 and 5; RESULTS.md sections 1, 7 and 11",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (mean item score per length)",
+    "n": "60 items per length",
+    "repeats": "two single-message passes (four after amendment 1)",
+    "interval": "none for the per-length means (descriptive); arm differences in CP-HA, CP-CA, CP-HC"
+   },
+   "files": [
+    "tasks/anchor/summary-measured.json",
+    "tasks/hqa/summary-measured.json",
+    "tasks/compact/summary-measured.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "status_note": "Section 7's first wording ('the long-context loss is not produced by core tensor precision') was narrowed in sections 11 and 13: the common part does not come from the settings that differ between the arms; compact's extra fall at 127K is A1-COMPACT and END.",
+   "headline": "Field score, single message, two passes, 4K / 16K / 64K / 127K: anchor 0.983 / 0.977 / 0.956 / 0.903; hqa 0.981 / 0.982 / 0.944 / 0.912; compact 0.984 / 0.975 / 0.932 / 0.890; finished replies only at 127K 0.942 / 0.936 / 0.928. As read on 2026-11-12 over four passes, the fall from 4K to 127K is 0.067, 0.060, 0.094 and 0.063 (anchor, hqa, compact, exlr8-k4): about 0.06 is common to all four, the BF16-core anchor included, and compact's further 0.03 is its 127K gap; no unquantized model and no other engine ran these tasks, so the run does not say where the common fall comes from.",
+   "findings": [
+    "CP-length-effect",
+    "CP-length-finished"
+   ]
+  },
+  {
+   "id": "FAM",
+   "question": "How does each task family (join, ledger, trace) score by arm and length, single message, two passes?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md section 13 ('Every table is reported by family as well as pooled'); RESULTS.md section 4",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item",
+    "n": "20 items per family per length",
+    "repeats": "two single-message passes",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md"
+   ],
+   "status": "done",
+   "headline": "Field score at 127K, anchor / hqa / compact: join 0.897 / 0.947 / 0.912; ledger 0.847 / 0.841 / 0.787; trace 0.966 / 0.950 / 0.969; at 64K ledger 0.891 / 0.850 / 0.825, join and trace 0.975 to 0.997. The run reads trace at 127K as level across arms, so the collapse-row test of the depth profile stays parked.",
+   "findings": [
+    "CP-family-scores"
+   ]
+  },
+  {
+   "id": "LEDGER",
+   "question": "On the ledger family alone, do the arms differ, and do wrong fields that match left-out events differ by arm?",
+   "added": "exploratory",
+   "added_source": "RESULTS.md section 5 ('an added exploratory reading, not part of the frozen protocol', line 6); protocol/PROTOCOL.md section 13 (a pooled null is not a ledger null)",
+   "design": {
+    "instrument": "paired field-score differences on ledger; heuristic classifier of wrong fields (exploratory/ledger_errors.py)",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "the 20 ledger items of the measured set",
+    "unit": "item (differences); answer field (classifier)",
+    "n": "20 items per length",
+    "repeats": "two single-message passes (classifier also on the 8-turn pass)",
+    "interval": "95% item resample (differences); none for the counts"
+   },
+   "files": [
+    "exploratory/ledger_errors.py",
+    "exploratory/ledger_errors.json"
+   ],
+   "result_docs": [
+    "RESULTS.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory, 20 items, b - a: compact - anchor -0.066 [-0.153, +0.013] at 64K and -0.059 [-0.147, +0.034] at 127K; hqa - anchor -0.041 [-0.138, +0.047] at 64K; none detected. Wrong fields matching one or two left-out events at 64K + 127K (pass 1 / pass 2 / 8 turns): anchor 17 / 16 / 9, hqa 16 / 17 / 9, compact 17 / 25 / 13; compact's two passes differ by as much as it differs from the others, which the run reads as inside the floor. The classifier is a heuristic.",
+   "findings": [
+    "CP-ledger-explore",
+    "CP-ledger-leftout"
+   ],
+   "replication": "lean not repeated over four passes (see PH-LC)"
+  },
+  {
+   "id": "LEXT",
+   "question": "Should the held ledger extension (new ledger items 120-159) run: does an arm's ledger difference from anchor at 64K or 127K include both 0 and a loss of 0.10 or more, or do left-out-event counts differ beyond the two-pass floor?",
+   "added": "follow-up",
+   "added_source": "notes/ledger-extension-hold.md (written 2026-11-10 before the measured data); RESULTS.md section 5 'Extension trigger'",
+   "design": {
+    "instrument": "trigger rule on the ledger differences and the left-out-event counts",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "ledger indices 120-159, a separate set with its own freeze (not generated)",
+    "unit": "item",
+    "n": "0 (not run)",
+    "repeats": "not run",
+    "interval": "none"
+   },
+   "files": [
+    "notes/ledger-extension-hold.md"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "notes/ledger-extension-hold.md"
+   ],
+   "status": "not run",
+   "headline": "Not run. The trigger written before the data was met on its first condition: compact - anchor at 64K and at 127K and hqa - anchor at 64K have intervals that include both 0 and a loss of 0.10 or more; the second condition (left-out events beyond the two-pass floor) was not met. The extension is held.",
+   "findings": [],
+   "no_findings_reason": "not run"
+  },
+  {
+   "id": "T",
+   "question": "Does delivering the same input over eight acknowledged user turns change accuracy against a single message, and do the arms differ there? (protocol question 3, layer 3)",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md sections 1, 5 and 13 (turns, parts=8); RESULTS.md section 3",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8; turns: records delivered as 8 user messages, each acknowledged (cap 4,096), then the question",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (turns - single per arm; b - a between arms)",
+    "n": "60 items per length",
+    "repeats": "one 8-turn pass per arm against the two single-message passes",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "status_note": "The protocol's advance reading ('turn check v2 not needed') is withdrawn (RESULTS.md section 7, line 176); the turn design is to be revised.",
+   "headline": "turns - single, 4K / 16K / 64K / 127K: anchor +0.013 [+0.002, +0.024], -0.010 [-0.050, +0.017], -0.008 [-0.066, +0.037], -0.001 [-0.070, +0.060]; hqa +0.015 [+0.003, +0.027], -0.003 [-0.017, +0.009], -0.017 [-0.074, +0.030], +0.013 [-0.047, +0.065]; compact +0.007 [-0.004, +0.019], -0.002 [-0.040, +0.024], -0.005 [-0.067, +0.048], +0.042 [-0.021, +0.100]. Between arms over eight turns, all lengths: hqa - anchor +0.004 [-0.023, +0.032], compact - anchor +0.003 [-0.027, +0.033], hqa - compact +0.001 [-0.027, +0.028]. A cost of split delivery is not detected from 16K to 127K; this measures split delivery of the same input, not a conversation whose history the model wrote (T-SCOPE).",
+   "findings": [
+    "CP-turns-vs-single-long",
+    "CP-turns-vs-single-4k"
+   ],
+   "superseded_by": "T-SCOPE"
+  },
+  {
+   "id": "T-SCOPE",
+   "question": "Did the eight-turn pass test a conversation whose history the model wrote: what share of the final prompt did the model write?",
+   "added": "post hoc",
+   "added_source": "RESULTS.md section 3 'Scope of this pass (added 2026-11-11)'; README.md 'Scope of the eight-turn pass'",
+   "design": {
+    "instrument": "model-written tokens in the eight delivery turns (thinking included) as a share of the final prompt (analysis/posthoc.py)",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "session",
+    "n": "60 sessions per arm per length",
+    "repeats": "one 8-turn pass",
+    "interval": "none (descriptive, medians)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Post hoc. The model's own turns are a median 9% of the final prompt at 4K, 2.7% at 16K, 0.7% at 64K and 0.3-0.4% at 127K, so at long context more than 99% of the history was written by prefill. The run reads the pass as split delivery of the same input; it does not test a conversation whose history the model wrote, and 'no turn penalty' is not to be read that way.",
+   "findings": [
+    "CP-turns-scope"
+   ]
+  },
+  {
+   "id": "T-CAPS",
+   "question": "In the eight-turn pass, how often was a delivery turn's reply not the requested acknowledgement, and how often did it run to its 4,096-token cap?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md section 5 ('acknowledgement compliance' beside every score, line 131); RESULTS.md section 3",
+   "design": {
+    "instrument": "per delivery turn: ack_ok and finish class (analysis/samples.csv)",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "delivery turn",
+    "n": "1,920 delivery turns in 240 sessions per arm",
+    "repeats": "one 8-turn pass",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Descriptive. Delivery turns whose reply was not the bare acknowledgement: anchor 4, hqa 6, compact 17 of 1,920. Four in each arm finished on their own; the rest ran to the 4,096 cap: anchor 0, hqa 2 turns in 2 sessions, compact 13 turns in 8 sessions (six in one 127K ledger session). The final answers of those sessions were scored as usual.",
+   "findings": [
+    "CP-intermediate-caps"
+   ]
+  },
+  {
+   "id": "DESC",
+   "question": "How long were the replies, how fast were they produced and does accuracy depend on how far back the evidence sits?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md section 5 ('Beside every score'); RESULTS.md section 6 (four-pass medians in section 11)",
+   "design": {
+    "instrument": "per-request fields: reasoning characters, completion tokens, decode tok/s per stream, time to first token, evidence-position bins",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "request (medians)",
+    "n": "120 requests per arm per length (two passes)",
+    "repeats": "two single-message passes",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md"
+   ],
+   "status": "done",
+   "headline": "Descriptive, medians, single message, two passes, 4K / 16K / 64K / 127K: thinking characters anchor 7289 / 7266 / 8714 / 11366, hqa 6538 / 6888 / 8966 / 9636, compact 6657 / 7697 / 8478 / 9786; time to first token at 127K 21.8, 25.1 and 25.5 s. Speeds are per stream under a mixed concurrency-8 load and are not an arm comparison. Accuracy by evidence-position bin stays within about 0.05 at every length in every arm.",
+   "findings": [
+    "CP-desc-thinking",
+    "CP-desc-position"
+   ]
+  },
+  {
+   "id": "COND",
+   "question": "Are the conditional task runs of fp8c and core-fp8 triggered (only if one of the three arms separates from anchor)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md section 13, 'What the pilot fixes' (line 420); RESULTS.md section 7",
+   "design": {
+    "instrument": "decision rule on the frozen comparison",
+    "arms": [
+     "fp8c",
+     "core-fp8"
+    ],
+    "items": "the measured set (not run)",
+    "unit": "item",
+    "n": "0 (not run)",
+    "repeats": "not run",
+    "interval": "none"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md"
+   ],
+   "status": "not run",
+   "headline": "Not run: no arm separated from anchor under the frozen rule, so the conditional fp8c and core-fp8 task runs were not triggered.",
+   "findings": [],
+   "no_findings_reason": "not run"
+  },
+  {
+   "id": "KV",
+   "question": "On two RTX PRO 6000, do the cheaper core settings admit a larger KV pool than the BF16 core?",
+   "added": "source reading",
+   "added_source": "RESULTS.md sections 1 and 7 (correction dated 2026-11-11, line 42); protocol/PROTOCOL.md section 12",
+   "design": {
+    "instrument": "load line and memory admission in each launch's server log (logs not published)",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4",
+     "k325-fp8"
+    ],
+    "items": "serving launches of the graded runs; scoring launches of the exploratory checks",
+    "unit": "launch",
+    "n": "nine serving launches of the three probe arms (plus the later arms' launches)",
+    "repeats": "one launch per arm per pass",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "status_note": "RESULTS.md section 1 first gave anchor 1.32M (its scoring-launch pool); corrected 2026-11-11.",
+   "headline": "Not in the graded runs: every arm was admitted the configured maximum, 2,097,152 tokens, in all nine serving launches (concurrency 8), as were exlr8-k4 and k325-fp8. anchor's smaller pool (1,318,400 tokens) was seen only in the exploratory scoring launches at concurrency 16. Pool and batch size were not varied as a measurement.",
+   "findings": [
+    "CP-kv-pool"
+   ]
+  },
+  {
+   "id": "TRADE",
+   "question": "What does the memory saved by hqa and compact consist of, and how much of it is left free under the engine's memory cap?",
+   "added": "accounting",
+   "added_source": "RESULTS.md section 13 (added 2026-11-12), memory rows from SUMMARY.json trade_offs and launch",
+   "design": {
+    "instrument": "launch-log figures per GPU: weights, workspaces, reserve, KV pool, cap",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "serving launches",
+    "unit": "launch",
+    "n": "one representative launch per arm (figures equal across an arm's launches)",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "SUMMARY.json"
+   ],
+   "status": "done",
+   "headline": "Weights outside the experts, both GPUs: anchor 15,138, hqa 10,872, compact 8,304, exlr8-k4 7,496 MiB. anchor to hqa returns 4,266 MiB (756 of it the output head, which ATTENTION_MODE does not select); hqa to compact a further 2,568 MiB. With larger workspaces in hqa and compact, memory left under the cap rises by 3,096 and then 2,458 MiB; the smaller per-GPU figure is 1,201, 2,753 and 3,982 MiB (anchor, hqa, compact). In the serving launches the saving stayed as unused memory, not pool size.",
+   "findings": [
+    "CP-trade-memory"
+   ]
+  },
+  {
+   "id": "PH-LC",
+   "question": "Post hoc: pooled over 64K and 127K, do the arms differ on all families and on ledger (field score and every field right)?",
+   "added": "post hoc",
+   "added_source": "RESULTS.md section 8 ('added 2026-11-11 after the results were read')",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm; 64K and 127K pooled, ledger 20 items",
+    "unit": "item (paired b - a)",
+    "n": "60 items (20 for ledger)",
+    "repeats": "two single-message passes (8-turn pass added in one figure)",
+    "interval": "95% percentile interval from item resamples, seed 7 (indices 250 and 9750)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/POSTHOC.json"
+   ],
+   "status": "done",
+   "headline": "Post hoc; 48 intervals, two exclude 0. 64K + 127K, b - a: all families hqa - anchor -0.002 [-0.025, +0.021], compact - anchor -0.019 [-0.051, +0.013]; ledger field score compact - anchor -0.062 [-0.127, +0.002]; ledger every field right compact - anchor -0.138 [-0.263, -0.025] (with the 8-turn pass -0.117 [-0.217, -0.017]). The run reads these as a lead, not a finding. Over four passes the lean did not repeat: ledger field score compact - anchor +0.011 [-0.055, +0.072] at passes 3-4 and -0.026 [-0.070, +0.019] over four.",
+   "findings": [
+    "CP-ledger-long-context"
+   ],
+   "superseded_by": "A1",
+   "replication": "failed to replicate in A1 (passes 3-4; RESULTS.md section 11)"
+  },
+  {
+   "id": "REPRO",
+   "question": "Do the published numbers of sections 1 to 8 recompute from the per-request table, and do the rendered items regenerate from their seeds?",
+   "added": "check",
+   "added_source": "README.md 'Reproducing this' steps 1 and 2",
+   "design": {
+    "instrument": "analysis/posthoc.py on analysis/samples.csv (standard library); drivers/gen_tasks.py against items/measured/index.json",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "the 7,920-row per-request table; the 240 rendered items",
+    "unit": "table / item",
+    "n": "7,920 rows; 240 items",
+    "repeats": "one rerun from a clean copy",
+    "interval": "none (equality check)"
+   },
+   "files": [
+    "analysis/posthoc.py",
+    "analysis/POSTHOC.json"
+   ],
+   "result_docs": [
+    "README.md",
+    "analysis/POSTHOC.json"
+   ],
+   "status": "done",
+   "headline": "Run from a clean copy of the folder on 2026-11-11, posthoc.py gave the same output; the 240 items regenerated from the published script match their content and file hashes 240 of 240.",
+   "findings": [
+    "CP-repro"
+   ]
+  },
+  {
+   "id": "REF",
+   "question": "How does a native EXLR8 K4 checkpoint of the same model, served by the same engine, score on the same graded tasks, two single-message passes?",
+   "added": "post hoc",
+   "added_source": "RESULTS.md section 9 ('added 2026-11-11 after the results were read'); RUN.json slot ref",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (paired b - a)",
+    "n": "60 items; 480 requests per arm",
+    "repeats": "two single-message passes, same seeds as the probe arms",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [
+    "analysis/samples-reference.csv",
+    "analysis/make_samples_reference.py",
+    "analysis/reference.py",
+    "analysis/REFERENCE.json",
+    "configs/glm53-flash-exlr8-k4-2rtx.config"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/REFERENCE.json"
+   ],
+   "status": "done",
+   "headline": "Post hoc; 84 intervals, three exclude 0. Two passes, b - a: exlr8-k4 - anchor +0.006 [-0.007, +0.019] and exlr8-k4 - hqa +0.006 [-0.008, +0.019], not detected; exlr8-k4 - compact +0.016 [+0.004, +0.029] over all lengths and +0.030 [+0.006, +0.056] at 64K + 127K, read by the run as a lead, not a finding. Whole-checkpoint difference (kindlingai/glm-5.3-flash-exlr8-k2-k3-k4 867580ab, manifest k4; CuteAFD v5.0.0), not attributable to one component. The lead over compact did not repeat in passes 3-4 (A1-EXLR8).",
+   "findings": [
+    "CP-reference-exlr8-k4",
+    "CP-reference-exlr8-compact"
+   ],
+   "superseded_by": "A1-EXLR8",
+   "replication": "failed to replicate in A1-EXLR8 (passes 3-4 alone +0.002 [-0.017, +0.022])"
+  },
+  {
+   "id": "CAP",
+   "question": "With the engine scoring given texts instead of generating, does exlr8-k4 predict the text worse than the probe arms, and how far apart are the arms?",
+   "added": "exploratory",
+   "added_source": "RESULTS.md section 10; protocol/AMENDMENT-2026-11-11.md A4",
+   "design": {
+    "instrument": "teacher-forced capture in the assistant frame (a0), prefill and decode paths; exploratory/capture_abs.py, capture_pairs.py",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "the five depth-profile texts and positions of protocol section 11a",
+    "unit": "scored position; intervals over runs of consecutive positions within each text",
+    "n": "9,728 prefill and 1,920 decode positions per arm",
+    "repeats": "one capture per arm",
+    "interval": "95% run bootstrap"
+   },
+   "files": [
+    "exploratory/capture_abs.py",
+    "exploratory/capture_abs.json",
+    "exploratory/capture_pairs.py",
+    "exploratory/capture_pairs.json"
+   ],
+   "result_docs": [
+    "RESULTS.md"
+   ],
+   "status": "done",
+   "headline": "Exploratory, one capture. Against the text, exlr8-k4 - anchor, prefill: top-1 = given -0.0007 [-0.0037, +0.0023] (not detected on either path); NLL -0.0134 [-0.0199, -0.0070], carried by 99 of 9,728 positions (-91.48 of -130.40 nat; median per-position difference +0.000000), which the run does not read as an improvement. Between arms, prefill KL median: probe-arm pairs 0.00038 to 0.00055, pairs with exlr8-k4 0.00147 to 0.00167; the latter include two expert quantizations and are not a distance from BF16.",
+   "findings": [
+    "CP-reference-capture",
+    "CP-reference-capture-nll"
+   ]
+  },
+  {
+   "id": "A1",
+   "question": "Do two further single-message passes per arm (four in all) change the reading of the frozen comparison and of exlr8-k4?",
+   "added": "amendment",
+   "added_source": "protocol/AMENDMENT-2026-11-11.md (written 2026-11-11 16:46:31 -0800, after the two-pass results, before the first added request); RESULTS.md section 11",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (paired b - a, repeats averaged within item)",
+    "n": "60 items; 960 requests per arm",
+    "repeats": "four single-message passes (passes 3-4 in new seed blocks); total fixed at four before pass 3",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [
+    "protocol/AMENDMENT-2026-11-11.md",
+    "analysis/samples-extension.csv",
+    "analysis/make_samples_extension.py",
+    "analysis/fourpass.py",
+    "analysis/FOURPASS.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/FOURPASS.json"
+   ],
+   "status": "done",
+   "headline": "Extension. Four passes, b - a, all lengths: hqa - anchor +0.003 [-0.005, +0.012]; compact - anchor -0.010 [-0.021, +0.002]; hqa - compact +0.013 [+0.002, +0.024] (excludes 0 only at four passes); exlr8-k4 - anchor -0.001 [-0.012, +0.009]; exlr8-k4 - hqa -0.004 [-0.016, +0.007]; exlr8-k4 - compact +0.009 [-0.003, +0.021]. Intervals excluding 0 of 102 per pass set: 4 (passes 1-2), 13 (passes 3-4), 6 (four passes), against about 5 with no difference anywhere. Paired half-widths fell to 0.71, 0.71 and 0.75 of their two-pass size for the probe pairs (0.71 stated in advance).",
+   "findings": [
+    "CP-length-fourpass",
+    "CP-fourpass-family"
+   ]
+  },
+  {
+   "id": "A1-HA",
+   "question": "Over four single-message passes, does hqa score differently from anchor?",
+   "added": "amendment",
+   "added_source": "protocol/AMENDMENT-2026-11-11.md A2-A3; RESULTS.md section 11",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (paired b - a)",
+    "n": "60 items; 960 requests per arm",
+    "repeats": "four single-message passes",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/FOURPASS.json"
+   ],
+   "status": "done",
+   "headline": "Extension. hqa - anchor +0.003 [-0.005, +0.012] over four passes (passes 3-4 alone +0.006 [-0.010, +0.021]): not detected, and the 95% interval reaches down to -0.005. By length only 16K excludes 0 (+0.009 [+0.001, +0.018]), one of 102 intervals. CuteAFD v5.0.0, K4-Core-K6-HQA e0ecc3d5 against the derived BF16-core checkpoint.",
+   "findings": [
+    "CP-fourpass-hqa-vs-anchor"
+   ]
+  },
+  {
+   "id": "A1-COMPACT",
+   "question": "Over four single-message passes, does compact cost accuracy, and where?",
+   "added": "amendment",
+   "added_source": "protocol/AMENDMENT-2026-11-11.md A2-A3; RESULTS.md section 11",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (paired b - a)",
+    "n": "60 items; 960 requests per arm",
+    "repeats": "four single-message passes",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/FOURPASS.json"
+   ],
+   "status": "done",
+   "status_note": "Section 11's 'where the gap comes from is not settled' carries a dated pointer to section 14 (END).",
+   "headline": "Extension. compact scores 0.946 over four passes against 0.956 (anchor) and 0.959 (hqa); level up to 64K; at 127K 0.887 against 0.918 and 0.924. hqa - compact +0.013 [+0.002, +0.024] over all lengths and +0.037 [+0.004, +0.073] at 127K (exclude 0); compact - anchor -0.010 [-0.021, +0.002] and -0.031 [-0.070, +0.008] at 127K (include 0). The run labels this indicated, not established; where the gap comes from was left open here and located post hoc in END (join replies at 127K that did not finish).",
+   "findings": [
+    "CP-fourpass-compact-127k",
+    "CP-fourpass-hqa-compact-all",
+    "CP-fourpass-compact-anchor",
+    "CP-fourpass-ledger"
+   ]
+  },
+  {
+   "id": "A1-EXLR8",
+   "question": "Did the two-pass lead of exlr8-k4 over compact repeat, and where does exlr8-k4 sit over four passes?",
+   "added": "amendment",
+   "added_source": "protocol/AMENDMENT-2026-11-11.md A2-A3; RESULTS.md section 11",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (paired b - a)",
+    "n": "60 items; 960 requests per arm",
+    "repeats": "four single-message passes",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/FOURPASS.json"
+   ],
+   "status": "done",
+   "headline": "Extension. The lead did not repeat: exlr8-k4 - compact +0.002 [-0.017, +0.022] at passes 3-4 alone and +0.009 [-0.003, +0.021] over four (at 127K +0.033 [-0.002, +0.069]). exlr8-k4 - anchor -0.001 [-0.012, +0.009], exlr8-k4 - hqa -0.004 [-0.016, +0.007]. Every field right 738 of 960 against 760 (anchor) and 768 (hqa); at 64K + 127K exlr8-k4 - anchor -0.046 [-0.087, -0.004] (one of six of 102 intervals excluding 0). Whole-checkpoint difference, not attributable to one component.",
+   "findings": [
+    "CP-fourpass-exlr8-k4",
+    "CP-fourpass-exlr8-level",
+    "CP-fourpass-exlr8-right"
+   ]
+  },
+  {
+   "id": "B16",
+   "question": "How far are the four configurations from the unquantized BF16 model, and how much of that distance lies in what differs between the probe arms?",
+   "added": "follow-up",
+   "added_source": "bf16ref/ADDENDUM-BF16REF.md (written 2026-11-11 17:54 before the stage's first request, after the two-pass task results were read; bf16ref/FROZEN.json); RESULTS.md section 12",
+   "design": {
+    "instrument": "engine scoring of fixed token ids, prefill path: the engine author's fidelity set (glm5_flash-v2_20261005_bf16root a7e7d1b4; KL over the reference's top 1,024 plus tail, ratio of sums over generated positions) and a teacher panel of published BF16 logits (full-vocabulary KL)",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "fidelity set: 64 windows x 512 scored positions, 15,104 generated positions in 53 windows, contexts to 14.4K; teacher panel: 25 windows of 2,048 tokens, 51,175 rows",
+    "unit": "window (bootstrap unit)",
+    "n": "64 windows (fidelity set); 25 windows (teacher panel)",
+    "repeats": "two launches per arm (r0, r1)",
+    "interval": "window bootstrap: fidelity set 5,000 draws (SplitMix64 seed 20260829); teacher panel 20,000 draws"
+   },
+   "files": [
+    "bf16ref/ADDENDUM-BF16REF.md",
+    "bf16ref/FROZEN.json",
+    "bf16ref/BF16REF.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "bf16ref/BF16REF.json"
+   ],
+   "status": "done",
+   "headline": "Descriptive, CuteAFD build v5.0.0-1-g092f2168b, prefill path, to 14.4K. KL from BF16, fidelity set: hqa 0.0302 [0.0255, 0.0344], compact 0.0314 [0.0263, 0.0359], anchor 0.0328 [0.0275, 0.0377], exlr8-k4 0.0360 [0.0300, 0.0416]; teacher panel 0.0316, 0.0297, 0.0320, 0.0305. b - a on the fidelity set: hqa - anchor -0.0026 [-0.0042, -0.0011]; compact - hqa +0.0012 [-0.0002, +0.0026] (not detected); exlr8-k4 0.003 to 0.006 farther than each probe arm there and level on the teacher panel. 13 of 30 intervals exclude 0, all on the fidelity set. No BF16 reference at 64K or 127K.",
+   "findings": [
+    "CP-bf16-distance",
+    "CP-bf16-teacher",
+    "CP-bf16-hqa-anchor",
+    "CP-bf16-exlr8",
+    "CP-bf16-gate",
+    "CP-panel-tilt"
+   ]
+  },
+  {
+   "id": "B16-REP",
+   "question": "Does a second launch reproduce the BF16-distance result, and does the float64 port used for the intervals agree with the engine's own scorer?",
+   "added": "check",
+   "added_source": "bf16ref/ADDENDUM-BF16REF.md 'Round r1' and 'Scoring'; RESULTS.md section 12 'Repeat'",
+   "design": {
+    "instrument": "second launch (r1) of each arm on the fidelity set; validate_pb.py record comparison",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "fidelity set",
+    "unit": "generated position / record",
+    "n": "15,104 generated positions; 32,768 records per arm and launch",
+    "repeats": "two launches per arm",
+    "interval": "none (equality check)"
+   },
+   "files": [],
+   "result_docs": [
+    "RESULTS.md",
+    "bf16ref/BF16REF.json"
+   ],
+   "status": "done",
+   "headline": "KL difference 0.0 and the same argmax on 15,104 of 15,104 generated positions in all four arms; the float64 port and the engine CLI agree on 32,768 of 32,768 records per arm and launch (largest KL difference 0.0). All four pass the engine CLI's fidelity gate on this set (KL at most 0.05, top-1 at least 0.93).",
+   "findings": [
+    "CP-bf16-repeat"
+   ]
+  },
+  {
+   "id": "END",
+   "question": "How did the replies of the four single-message passes end, and what is compact's lower score at 127K made of?",
+   "added": "post hoc",
+   "added_source": "RESULTS.md section 14 ('post hoc, added 2026-11-12'; classification written after the four-pass results were read)",
+   "design": {
+    "instrument": "finish class per request; counts over each reply's reasoning (step lines, copy share, copy runs; analysis/make_endings.py, endings.py)",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "reply (counts); item (paired share of unfinished replies)",
+    "n": "3,840 replies; 20 items per family",
+    "repeats": "four single-message passes",
+    "interval": "95% interval from 10,000 item resamples, random.Random(5), indices 250 and 9,749; 60 such intervals, 9 exclude 0, no correction"
+   },
+   "files": [
+    "analysis/endings.csv",
+    "analysis/make_endings.py",
+    "analysis/endings.py",
+    "analysis/ENDINGS.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/ENDINGS.json"
+   ],
+   "status": "done",
+   "headline": "Post hoc, a count. 44 of 3,840 replies did not finish (anchor 9, hqa 9, compact 18, exlr8-k4 8), all ending inside the reasoning with no answer text. compact's excess is join at 127K: 10 of 80 against 4, 2 and 1; of the 0.037 hqa - compact difference at 127K, 0.035 is join, and finished join replies score 0.989 against 0.992 to 0.997. 15 of the 17 unfinished join replies copy the prompt's records out in order, in every arm including anchor. Share of unfinished join replies at 127K, b - a: compact - hqa +0.100 [+0.025, +0.175], compact - anchor +0.075 [-0.013, +0.163]; whether the K6 projections raise the rate is indicated, not established.",
+   "findings": [
+    "CP-fourpass-endings",
+    "CP-endings-share",
+    "CP-endings-finished-join",
+    "CP-endings-copying"
+   ]
+  },
+  {
+   "id": "BPW",
+   "question": "In one unit, bits per weight counted from the checkpoint files, how large is each of the five configurations against the BF16 model, and where do they differ?",
+   "added": "accounting",
+   "added_source": "RESULTS.md section 15 (added 2026-11-12)",
+   "design": {
+    "instrument": "analysis/bpw.py: reads the header of every checkpoint file; stored bits of payload, scales and signs per matrix against rows x columns; no weight loaded",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4",
+     "k325-fp8"
+    ],
+    "items": "the checkpoint files of four checkpoints (hqa and compact are two readings of one); vision tower left out",
+    "unit": "matrix, summed by component",
+    "n": "every matrix of the language model (320.8 billion weights)",
+    "repeats": "none",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "analysis/bpw.py",
+    "analysis/BPW.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/BPW.json"
+   ],
+   "status": "done",
+   "headline": "As stored, whole language model: anchor 4.35, hqa 4.17, compact 4.10, exlr8-k4 4.08, k325-fp8 3.55 bits per weight (27.2%, 26.1%, 25.6%, 25.5%, 22.2% of BF16; 162.3 to 132.7 GiB). Routed experts (94.90% of the weights) 4.00 to 4.01, k325-fp8 3.26; outside the routed experts 16.00, 9.66, 7.25, 6.55, 13.65. File accounting, not as run: k325-fp8's load line reports its KDA projections and output head held as FP8, converted at load.",
+   "findings": [
+    "CP-bits-per-weight",
+    "CP-bits-outside-experts"
+   ]
+  },
+  {
+   "id": "A2",
+   "question": "How does k325-fp8 (K3.25 routed experts, the engine's default two-RTX checkpoint) score on the graded tasks next to the four configurations with 4-bit experts?",
+   "added": "amendment",
+   "added_source": "protocol/AMENDMENT-2026-11-12.md (written 2026-11-12 11:57:02 -0800, after the four-pass results, before the first added request); RESULTS.md section 16",
+   "design": {
+    "instrument": "graded synthetic tasks (drivers/gen_tasks.py, run_tasks.py, analyze_tasks.py): field score = fields correct / 8 from the last ANSWER: line, 0 for a reply that did not finish; thinking on, temperature 1.0, top_p 0.95, reply cap 32,768, concurrency 8",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4",
+     "k325-fp8"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "item (paired b - a, k325-fp8 as b)",
+    "n": "60 items; 960 requests per arm",
+    "repeats": "four single-message passes, the same seed per (item, length, pass) as the other arms; total fixed at four; not interleaved with the other arms' passes",
+    "interval": "95% percentile interval from 10,000 item resamples, seed 5 (indices 250 and 9749)"
+   },
+   "files": [
+    "protocol/AMENDMENT-2026-11-12.md",
+    "configs/glm53-flash-exl3-k3.25-core-fp8-2rtx.config",
+    "analysis/samples-amend2.csv",
+    "analysis/make_samples_amend2.py",
+    "analysis/amend2.py",
+    "analysis/AMEND2.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/AMEND2.json"
+   ],
+   "status": "done",
+   "headline": "Amendment 2, no direction predicted. b - a at 127K: k325-fp8 - anchor -0.051 [-0.086, -0.017], - hqa -0.058 [-0.095, -0.023], - exlr8-k4 -0.054 [-0.088, -0.020], - compact -0.020 [-0.059, +0.020] (not detected); over all lengths -0.013 [-0.025, -0.001], -0.016 [-0.030, -0.003], -0.012 [-0.023, -0.001], -0.003 [-0.017, +0.010]; to 16K level (every 4K + 16K interval includes 0). 23 of 76 intervals exclude 0, no correction. Whole-checkpoint difference (wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8 d31ebc92 at the engine's defaults, CuteAFD v5.0.0); its passes ran after the others', so a session effect cannot be excluded.",
+   "findings": [
+    "CP-k325-tasks",
+    "CP-k325-tasks-short",
+    "CP-k325-tasks-all"
+   ]
+  },
+  {
+   "id": "A2-END",
+   "question": "How did the replies of k325-fp8 end, and what is its lower score at 127K made of?",
+   "added": "amendment",
+   "added_source": "protocol/AMENDMENT-2026-11-12.md B4 (ending definitions of analysis/make_endings.py fixed before this arm's data); RESULTS.md section 16 'How its replies ended'",
+   "design": {
+    "instrument": "finish class per request; ending counts with the definitions of section 14 (analysis/make_endings_amend2.py)",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4",
+     "k325-fp8"
+    ],
+    "items": "measured set: 60 synthetic items (join, ledger, trace; 20 each, indices 100-119), each rendered at 4K, 16K, 64K and 127K tokens; same items, seeds and prompt tokens in every arm",
+    "unit": "reply (counts); item (paired share of unfinished replies)",
+    "n": "960 replies; 20 items per family",
+    "repeats": "four single-message passes",
+    "interval": "95% interval from 10,000 item resamples, random.Random(5), indices 250 and 9,749; 20 such intervals, 9 exclude 0, no correction"
+   },
+   "files": [
+    "analysis/endings-amend2.csv",
+    "analysis/make_endings_amend2.py"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "analysis/AMEND2.json"
+   ],
+   "status": "done",
+   "status_note": "Definitions fixed before the data by amendment 2; the two-group reading was made after the counts were seen, and docs/findings.json labels CP-k325-endings 'measurement: post hoc'.",
+   "headline": "22 of 960 replies did not finish (21 reply cap, 1 loop abort), all inside the reasoning: join 127K 11 of 80, join 64K 2 (no other arm has one there), ledger 64K 4 and 127K 5. Of the 0.051 gap to anchor at 127K, 0.032 is join and 0.020 ledger. Share of unfinished join replies at 127K, b - a: k325-fp8 - anchor +0.087 [+0.025, +0.150], - hqa +0.113 [+0.037, +0.200], - exlr8-k4 +0.125 [+0.062, +0.188], - compact +0.013 [-0.100, +0.113]. Read after the counts were seen: k325-fp8 and compact (11 and 10 of 80) against the other three (4, 2, 1), a grouping that neither the stored bits of o_proj and q_b_proj nor distance from BF16 orders; what the two share is not identified.",
+   "findings": [
+    "CP-k325-endings",
+    "CP-k325-endings-share"
+   ]
+  },
+  {
+   "id": "A2-B16",
+   "question": "How far is k325-fp8 from the unquantized BF16 model on this engine release, next to the four configurations with 4-bit experts?",
+   "added": "amendment",
+   "added_source": "protocol/AMENDMENT-2026-11-12.md B5; RESULTS.md section 16 'Distance from BF16, measured on this engine release'",
+   "design": {
+    "instrument": "the BF16-reference stage of bf16ref/ADDENDUM-BF16REF.md unchanged (same plans, dataset revision, scorers, two launches), prefill path",
+    "arms": [
+     "anchor",
+     "hqa",
+     "compact",
+     "exlr8-k4",
+     "k325-fp8"
+    ],
+    "items": "fidelity set (64 windows, 15,104 generated positions, to 14.4K) and teacher panel (25 windows of 2,048 tokens)",
+    "unit": "window (bootstrap unit)",
+    "n": "64 windows (fidelity set); 25 windows (teacher panel)",
+    "repeats": "two launches",
+    "interval": "window bootstrap: 5,000 draws (fidelity set), 20,000 draws (teacher panel)"
+   },
+   "files": [
+    "bf16ref/BF16REF-AMEND2.json"
+   ],
+   "result_docs": [
+    "RESULTS.md",
+    "bf16ref/BF16REF-AMEND2.json"
+   ],
+   "status": "done",
+   "headline": "KL from BF16: fidelity set 0.0485 [0.0411, 0.0547], teacher panel 0.0476 [0.0364, 0.0605]; farther than each of the four by +0.0124 to +0.0183 on the fidelity set and +0.0155 to +0.0179 on the teacher panel (b - a, k325-fp8 as b); all 20 intervals exclude 0. Second launch identical (15,104 of 15,104). Passes the engine's fidelity gate on point estimates; the upper end of its KL interval (0.0547) is above the 0.05 threshold. The same checkpoint measured 0.0484 and 0.0476 on CuteAFD v3.0.1 (2026-10-26).",
+   "findings": [
+    "CP-k325-bf16-distance",
+    "CP-k325-bf16-diffs",
+    "CP-k325-gate",
+    "CP-k325-earlier-release"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "RESULTS.md",
+  "SUMMARY.json",
+  "chain.sh",
+  "protocol/PROTOCOL.md",
+  "protocol/FROZEN.json",
+  "drivers/run_tasks.py",
+  "drivers/gen_tasks.py",
+  "drivers/tasklib.py",
+  "drivers/probelib.py",
+  "drivers/analyze_tasks.py",
+  "items/measured/index.json",
+  "analysis/samples.csv",
+  "analysis/make_samples.py",
+  "configs/glm53-flash-exl3-k4-core-k6-hqa-2rtx.config",
+  "configs/glm53-flash-exl3-k4-core-k6-bf16core-2rtx.config"
+ ]
+}

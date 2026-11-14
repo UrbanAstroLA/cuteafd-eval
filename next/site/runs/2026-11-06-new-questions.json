@@ -1,0 +1,348 @@
+{
+ "id": "2026-11-06-new-questions",
+ "date": "2026-11-06",
+ "title": "New questions: the q_b + output-projection stop-decision shift and the core, on 30 questions not used before",
+ "kind": "exploratory",
+ "question": "Does the q_b + output-projection stop-decision shift found on 11 science-question questions, and the core's (absent) effect on the stop decision, hold on 30 new questions on both engines?",
+ "engines": [
+  "tpurtell vLLM fork v0.9.2-experimental image with the local loader modification (route b; not a tpurtell release)",
+  "tpurtell/cuteafd v4.0.0, unmodified (image digest as in results/2026-11-03-cuteafd-core-swap)"
+ ],
+ "checkpoints": [
+  "wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K4-Core-K6 @ 5d3fffe1 (vLLM arms; qbo and all load core tensors from zai-org/GLM-5.3-Flash-BF16 @ f9fed3bb via the local loader swap)",
+  "derived/GLM-5.3-Flash-EXL3-K4-Core-K6-BF16core @ 049c0180 (CuteAFD C-K6x; local derived checkpoint, not a producer release)"
+ ],
+ "hardware": "2x NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W)",
+ "protocol": {
+  "file": "protocol/PROTOCOL.md",
+  "frozen": "2026-11-06, before the first launch (protocol/FROZEN.json; descriptive metrics added 01:30, before any launch)",
+  "amendments": []
+ },
+ "goals": [
+  {
+   "id": "GEN",
+   "question": "Generate the new fixed traces: K4-Core-K6 (6-bit core, vLLM fork + route b, no swap) writes 3 replies per new question; what are their finish classes, accuracy and completion tokens?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:7-16 (traces); PROTOCOL.md:39-41 (descriptive generation metrics, added 01:30 before any launch per protocol/FROZEN.json)",
+   "design": {
+    "instrument": "free generation (temperature 1.0, top_p 0.95, thinking on, cap 327,680; thinking-length run's gen_traces.py unchanged); completion tokens, finish class, extracted answer",
+    "arms": [
+     "K4-Core-K6, 6-bit core, vLLM fork + route b, no swap (only arm generating)"
+    ],
+    "items": "30 new science-question Diamond questions (questions.json)",
+    "unit": "sample",
+    "n": "90",
+    "repeats": "3 per question, seed 60000 + 100 x doc + rep, recorded",
+    "interval": "none (descriptive)"
+   },
+   "files": [
+    "questions.json",
+    "code/select_questions.py",
+    "analysis/traces-nq.json"
+   ],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Descriptive, one arm only: 90/90 finished, 87 correct (96.7%); completion tokens median 2.4K (min 408, max 121K). 88 finished traces kept (2 over the 96K limit), 0 not finished. No core or layout comparison of length was made from these samples.",
+   "findings": [
+    "NQ-gen"
+   ]
+  },
+  {
+   "id": "FREE-LEN",
+   "question": "Does the q_b + o_proj layout (or the BF16 core) change thinking length in free generation on these science questions?",
+   "added": "accounting",
+   "added_source": "NQ-RESULT.md:37-38 ('Thinking length in free generation for the q_b + o_proj layout: not measured'); protocol/PROTOCOL.md:46 (scope: 'the stop decision, not thinking length')",
+   "design": {
+    "instrument": "n/a",
+    "arms": [
+     "n/a"
+    ],
+    "items": "n/a",
+    "unit": "n/a",
+    "n": "n/a",
+    "repeats": "n/a",
+    "interval": "n/a"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "not run",
+   "headline": "Not measured in this run. Only the 6-bit arm generated (GEN); every other arm scored the fixed traces teacher-forced. This run measured the stop decision, not thinking length.",
+   "findings": [],
+   "no_findings_reason": "not run"
+  },
+  {
+   "id": "PRIMARY",
+   "question": "Does the q_b + o_proj stop-decision shift (lp_close, qbo minus K4-Core-K6) seen on 11 questions hold on 30 new questions?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:26-31 (primary and replication rule, frozen 2026-11-06 before the first launch)",
+   "design": {
+    "instrument": "teacher-forced reduced captures on the fixed traces (thinking-length run's swap launch, capture and score_stop.py unchanged)",
+    "arms": [
+     "k6-a, k6-b (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "qbo-a, qbo-b (mla_q_b, mla_o, kda_o: 56 matrices native BF16)"
+    ],
+    "items": "set nq: 88 finished traces on 30 new science-question Diamond questions (drawn by Random(20261106) from the 198 minus the 12 used before), on-policy for K4-Core-K6 on vLLM",
+    "unit": "question (cluster)",
+    "n": "88 finished traces, 30 questions",
+    "repeats": "vLLM launches k6-a, qbo-a, all, k6-b, qbo-b; launch means",
+    "interval": "95% bootstrap clustered by question (2,000, seed 20261106); replicated if the interval excludes 0 on the positive side, exceeds the launch band, and all four cross-launch pairings are positive"
+   },
+   "files": [
+    "NQ-RESULT.md",
+    "analysis/analyze_nq.py",
+    "analysis/NQ.json",
+    "code/chain-nq.sh"
+   ],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "lp_close qbo - k6 -0.0032 [-0.0161, +0.0064] clustered by 30 questions; launch band 0.0039; pairings -0.0063 to -0.0000: not replicated at this size. The earlier +0.0118 lies outside the new interval. vLLM fork v0.9.2-experimental + route b.",
+   "findings": [
+    "NQ-qbo-primary"
+   ]
+  },
+  {
+   "id": "POOLED",
+   "question": "Pooled over the earlier 11 and the new 30 questions, does qbo move lp_close?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:32-34 (secondary: all 41 questions pooled)",
+   "design": {
+    "instrument": "teacher-forced reduced captures on the fixed traces (thinking-length run's swap launch, capture and score_stop.py unchanged)",
+    "arms": [
+     "k6-a, k6-b (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "qbo-a, qbo-b (mla_q_b, mla_o, kda_o: 56 matrices native BF16)"
+    ],
+    "items": "41 questions: the 93 earlier traces (scored by the qbo run's launches) + nq",
+    "unit": "question (cluster)",
+    "n": "165 traces, 41 questions",
+    "repeats": "vLLM launches k6-a, qbo-a, all, k6-b, qbo-b; launch means",
+    "interval": "95% bootstrap clustered by question (2,000, seed 20261106)"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Pooled qbo - k6 +0.0038 [-0.0046, +0.0105]: not detected.",
+   "findings": [
+    "NQ-qbo-pooled"
+   ]
+  },
+  {
+   "id": "SEC-QBO-ALL",
+   "question": "Secondary: qbo minus the whole-core BF16 arm on the new questions.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:32 (secondary, 'stated now; was post hoc before')",
+   "design": {
+    "instrument": "teacher-forced reduced captures on the fixed traces (thinking-length run's swap launch, capture and score_stop.py unchanged)",
+    "arms": [
+     "qbo-a, qbo-b (mla_q_b, mla_o, kda_o: 56 matrices native BF16)",
+     "all (whole core BF16, 316 matrices; one launch)"
+    ],
+    "items": "set nq: 88 finished traces on 30 new science-question Diamond questions (drawn by Random(20261106) from the 198 minus the 12 used before), on-policy for K4-Core-K6 on vLLM",
+    "unit": "question (cluster)",
+    "n": "88 finished traces, 30 questions",
+    "repeats": "vLLM launches k6-a, qbo-a, all, k6-b, qbo-b; launch means",
+    "interval": "95% bootstrap clustered by question (2,000, seed 20261106)"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "lp_close qbo - all +0.0077 [-0.0025, +0.0185]: not detected (whole-core arm is one launch).",
+   "findings": [
+    "NQ-qbo-vs-all"
+   ]
+  },
+  {
+   "id": "SEC-ALL-K6",
+   "question": "Secondary: on the vLLM fork, does the whole core in BF16 (all minus k6) move the stop decision on the new questions?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:32-33",
+   "design": {
+    "instrument": "teacher-forced reduced captures on the fixed traces (thinking-length run's swap launch, capture and score_stop.py unchanged)",
+    "arms": [
+     "k6-a, k6-b (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "all (whole core BF16, 316 matrices; one launch)"
+    ],
+    "items": "set nq: 88 finished traces on 30 new science-question Diamond questions (drawn by Random(20261106) from the 198 minus the 12 used before), on-policy for K4-Core-K6 on vLLM",
+    "unit": "question (cluster)",
+    "n": "88 finished traces, 30 questions",
+    "repeats": "vLLM launches k6-a, qbo-a, all, k6-b, qbo-b; launch means",
+    "interval": "95% bootstrap clustered by question (2,000, seed 20261106)"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "lp_close all - k6 -0.0109 [-0.0315, +0.0046]: not detected. vLLM fork v0.9.2-experimental + route b.",
+   "findings": [
+    "NQ-core-stop-vllm"
+   ]
+  },
+  {
+   "id": "SEC-HAZARD",
+   "question": "Secondary: hazard (mean p(</think>) over the 512 rows before the close) for qbo - k6, qbo - all, all - k6.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:33 (hazard and last-512 mean log p for each)",
+   "design": {
+    "instrument": "teacher-forced reduced captures on the fixed traces (thinking-length run's swap launch, capture and score_stop.py unchanged)",
+    "arms": [
+     "k6-a, k6-b (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "qbo-a, qbo-b (mla_q_b, mla_o, kda_o: 56 matrices native BF16)",
+     "all (whole core BF16, 316 matrices; one launch)"
+    ],
+    "items": "set nq: 88 finished traces on 30 new science-question Diamond questions (drawn by Random(20261106) from the 198 minus the 12 used before), on-policy for K4-Core-K6 on vLLM",
+    "unit": "question (cluster)",
+    "n": "88 finished traces, 30 questions",
+    "repeats": "vLLM launches k6-a, qbo-a, all, k6-b, qbo-b; launch means",
+    "interval": "95% bootstrap clustered by question (2,000, seed 20261106)"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "status_note": "NQ-RESULT.md:12 reads 'Hazard: no change' and :23 'hazard unchanged'. SUMMARY.json /secondary/all_minus_k6_hazard is -5.1e-06 [-9.1e-06, -1.3e-06] and /cuteafd/core_bf16_minus_6bit_hazard -1.6e-05 [-2.9e-05, -4.2e-06]; both exclude 0 (resolved shifts in a secondary measure); the qbo contrasts include 0. The vLLM whole-core arm is one launch; NQ-RESULT.md does not discuss these two intervals.",
+   "headline": "The result doc reads 'Hazard: no change' (NQ-RESULT.md:12).",
+   "findings": [
+    "NQ-hazard-vllm-core",
+    "NQ-hazard-qbo"
+   ]
+  },
+  {
+   "id": "CUTEAFD",
+   "question": "On CuteAFD, does the BF16 core (FP8 at load) move the stop decision against the native 6-bit core on the new questions, and pooled with the core-swap run's 11 questions?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:35-37 (CuteAFD; rule 'the interval excludes 0')",
+   "design": {
+    "instrument": "teacher-forced probe (core-swap probe_traces.py unchanged), score configs",
+    "arms": [
+     "C-K6 (CuteAFD, native 6-bit core)",
+     "C-K6x (CuteAFD, BF16 core FP8 at load)"
+    ],
+    "items": "set nq: 88 finished traces on 30 new science-question Diamond questions (drawn by Random(20261106) from the 198 minus the 12 used before), on-policy for K4-Core-K6 on vLLM; pooled with core-swap step 2 (11 questions)",
+    "unit": "question (cluster)",
+    "n": "88 traces, 30 questions (41 pooled)",
+    "repeats": "one launch each (CuteAFD scoring bit-identical across launches and days)",
+    "interval": "95% bootstrap clustered by question (2,000, seed 20261106); detected when the interval excludes 0"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "lp_close C-K6x - C-K6 -0.0144 [-0.0497, +0.0187], not detected; pooled 41 questions -0.0028 [-0.0263, +0.0195]. CuteAFD v4.0.0, science-question traces.",
+   "findings": [
+    "NQ-core-stop-cuteafd",
+    "NQ-core-stop-cuteafd-pooled",
+    "NQ-hazard-cuteafd-core"
+   ]
+  },
+  {
+   "id": "XENG",
+   "question": "On the same traces, do the vLLM whole-core contrast and the CuteAFD core contrast agree (means, per-trace correlation)?",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:36-37 (descriptive)",
+   "design": {
+    "instrument": "comparison of per-trace lp_close deltas",
+    "arms": [
+     "vLLM all - k6",
+     "CuteAFD C-K6x - C-K6"
+    ],
+    "items": "set nq: 88 finished traces on 30 new science-question Diamond questions (drawn by Random(20261106) from the 198 minus the 12 used before), on-policy for K4-Core-K6 on vLLM",
+    "unit": "trace",
+    "n": "88",
+    "repeats": "as above",
+    "interval": "none (descriptive)"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Same direction (vLLM -0.0109, CuteAFD -0.0144); per-trace correlation 0.29. Descriptive.",
+   "findings": [
+    "NQ-core-stop-engines"
+   ]
+  },
+  {
+   "id": "DESC-SCORE",
+   "question": "Descriptive scoring metrics on every arm: last-512 mean log p(</think>), top-64 KL and top-1 agreement against k6-a, trace NLL.",
+   "added": "protocol",
+   "added_source": "protocol/PROTOCOL.md:33,42-43 (last-512 secondary; scoring descriptives)",
+   "design": {
+    "instrument": "teacher-forced reduced captures on the fixed traces (thinking-length run's swap launch, capture and score_stop.py unchanged)",
+    "arms": [
+     "k6-a, k6-b (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "qbo-a, qbo-b (mla_q_b, mla_o, kda_o: 56 matrices native BF16)",
+     "all (whole core BF16, 316 matrices; one launch)",
+     "C-K6 (CuteAFD, native 6-bit core)",
+     "C-K6x (CuteAFD, BF16 core FP8 at load)"
+    ],
+    "items": "set nq: 88 finished traces on 30 new science-question Diamond questions (drawn by Random(20261106) from the 198 minus the 12 used before), on-policy for K4-Core-K6 on vLLM",
+    "unit": "question (cluster)",
+    "n": "88 traces",
+    "repeats": "vLLM launches k6-a, qbo-a, all, k6-b, qbo-b; launch means",
+    "interval": "as PRIMARY for last-512; none (descriptive) for KL/NLL"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Last-512 mean log p(</think>): vLLM all - k6 -0.114 [-0.132, -0.096]; CuteAFD C-K6x - C-K6 +0.106 [+0.064, +0.148]: opposite signs on the two engines, a tail measure (p around 1e-6). Top-64 KL against k6-a: k6-b 0.0025, qbo 0.0067, all 0.0074, C-K6 0.0076, C-K6x 0.0125. Trace NLL 0.410-0.411 for every vLLM arm and C-K6, 0.419 for C-K6x.",
+   "findings": [
+    "NQ-last512-core-vllm",
+    "NQ-last512-core-cuteafd",
+    "NQ-last512-qbo",
+    "NQ-last512-qbo-vs-all",
+    "NQ-trace-kl",
+    "NQ-trace-nll"
+   ]
+  },
+  {
+   "id": "PH-SAT",
+   "question": "Post hoc: is the non-replication explained by saturation (p(</think>) near 1 at the close on the new questions)?",
+   "added": "post hoc",
+   "added_source": "NQ-RESULT.md:27 ('Post hoc (not in the frozen rule)')",
+   "design": {
+    "instrument": "teacher-forced reduced captures on the fixed traces (thinking-length run's swap launch, capture and score_stop.py unchanged)",
+    "arms": [
+     "k6-a, k6-b (K4-Core-K6, 6-bit core rebuilt by route b)",
+     "qbo-a, qbo-b (mla_q_b, mla_o, kda_o: 56 matrices native BF16)"
+    ],
+    "items": "traces where K4-Core-K6's lp_close < -0.01: new 38 traces / 18 questions; earlier 41 traces",
+    "unit": "question (cluster)",
+    "n": "38 / 41 traces",
+    "repeats": "vLLM launches k6-a, qbo-a, all, k6-b, qbo-b; launch means",
+    "interval": "95% bootstrap clustered by question"
+   },
+   "files": [],
+   "result_docs": [
+    "NQ-RESULT.md"
+   ],
+   "status": "done",
+   "headline": "Post hoc. Median p(</think>) at the close 0.9988 on the new questions (earlier 0.934). Restricted to non-saturated traces: new -0.0074 [-0.0369, +0.0160]; earlier +0.0221 [+0.0090, +0.0372]. The run reads the non-replication as not explained by saturation.",
+   "findings": [
+    "NQ-sat-new",
+    "NQ-sat-earlier"
+   ]
+  }
+ ],
+ "run_files": [
+  "README.md",
+  "RUN.json",
+  "MANIFEST.json",
+  "SUMMARY.json",
+  "protocol/PROTOCOL.md",
+  "protocol/FROZEN.json"
+ ]
+}
