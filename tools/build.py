@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Builds the site under next/docs from next/site. Standard library only.
+"""Builds the site in docs/ (GitHub Pages) and README.md from site/. Standard library only.
 
-  build.py            check every source, then write next/docs/*.html, findings.json and runs.json
+  build.py            check every source, then write docs/*.html, findings.json, runs.json, llms.txt and README.md
   build.py --check    check only
 
-Sources (next/site):
+Sources (site/):
   runs/<run>.json          run index: goals and files (checked by check_runs.py)
   findings/<run>.json      findings: one measured quantity each, with evidence pointers into results/
   syntheses.json           judgements across findings, with basis and strength
@@ -12,6 +12,7 @@ Sources (next/site):
   pages/<page>.md          page text; directives on their own line:
                              {{finding ID}}  {{synthesis ID}}  {{table NAME}}  {{goals RUN}}  {{runs}}
   style.css                the site's stylesheet (inlined into every page; pages carry no scripts)
+  anchors.json             anchors of earlier versions of the site, mapped to the section that now holds them
 
 A finding is refused when a field is missing, a pointer does not resolve to the value stored beside it, or a decimal
 number in its statement matches no evidence value at the precision shown.
@@ -25,8 +26,10 @@ Evidence kinds (each stores the value it read, and the build re-reads it):
   {"file": "x"}                                                          a file cited without values
 
   build.py --only RUN[,RUN]   report problems for these runs' findings (and run index) only
-  build.py --out DIR          write the pages to DIR (and README.md beside it) instead of next/docs
-                              (a default build also copies next/docs to docs/preview/, the copy GitHub Pages serves)
+  build.py --out DIR          write the pages to DIR (and README.md beside it) instead of docs/ (verify.py compares)
+
+No anchor the published site carries is dropped: an anchor of the pages in docs/ (read before they are rewritten) must
+exist on the new page or be mapped in anchors.json, which then places it before the section that holds its content.
 """
 import csv
 import io
@@ -39,8 +42,8 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
-SITE, OUT = REPO / "next" / "site", REPO / "next" / "docs"
+REPO = HERE.parent
+SITE, OUT = REPO / "site", REPO / "docs"
 sys.path.insert(0, str(HERE))
 import check_runs  # noqa: E402
 import tables      # noqa: E402
@@ -505,10 +508,26 @@ REDIRECTS = {"research.html": ("precision.html", "Precision"), "ledger.html": ("
 STUBS = set(REDIRECTS)
 
 
-def stub(target, label):
+def stub(target, label, aliases=None):
+    """A page that moved. The meta refresh drops the #anchor of the link that was followed; the one-line script keeps it,
+    mapped through anchors.json (verify.py allows this script on redirect stubs only)."""
+    base, _, default = target.partition("#")
+    js = (f"var a={json.dumps(aliases or {}, sort_keys=True)};var h=location.hash.slice(1);h=a[h]||{json.dumps(default)}||h;"
+          f"location.replace({json.dumps(base)}+(h?String.fromCharCode(35)+h:\"\"))")
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,'
-            f'initial-scale=1"><meta http-equiv="refresh" content="0; url={target}"><title>Moved - cuteafd-eval</title>'
-            f'</head><body><p>This page moved: <a href="{target}">{E(label)}</a>.</p></body></html>\n')
+            f'initial-scale=1"><script>{js}</script><meta http-equiv="refresh" content="0; url={target}">'
+            f'<title>Moved - cuteafd-eval</title></head><body><p>This page moved: <a href="{target}">{E(label)}</a>.</p></body></html>\n')
+
+
+def place_aliases(name, doc, aliases):
+    """An empty element carrying each old anchor, just before the section that now holds its content."""
+    for old, new in sorted(aliases.items()):
+        if re.search(rf'\bid="{re.escape(old)}"', doc):
+            raise SystemExit(f"anchors.json: {name}#{old} is still an anchor of the page; drop the mapping")
+        doc, n = re.subn(rf'(<[a-z0-9]+\b[^>]*\bid="{re.escape(new)}")', lambda m: f'<span id="{old}"></span>' + m.group(1), doc, count=1)
+        if not n:
+            raise SystemExit(f"anchors.json: {name}#{old} maps to #{new}, which the page does not have")
+    return doc
 
 
 def page_numbers(text, ctx):
@@ -558,7 +577,7 @@ def page(name, text, ctx):
            f'<style>\n{css}</style></head><body><nav aria-label="Pages"><span class="brand">cuteafd-eval</span>{nav}</nav>'
            f'<main><h1>{inline(title)}</h1>\n{body}\n</main><footer>Machine-readable: <a href="findings.json">findings.json</a> '
            f'(findings and syntheses with source pointers) and <a href="runs.json">runs.json</a> (every run, its goals and files). '
-           f'Built from the repository data by <code>next/tools/build.py</code>. Maintained by Michael M (UrbanAstroLA on GitHub, '
+           f'Built from the repository data by <code>tools/build.py</code>. Maintained by Michael M (UrbanAstroLA on GitHub, '
            f'@UrbanAstroFella on X). Results CC BY 4.0, code Apache-2.0.</footer></body></html>\n')
     ids = re.findall(r'\bid="([^"]+)"', doc)
     dup = sorted({x for x in ids if ids.count(x) > 1})
@@ -569,9 +588,7 @@ def page(name, text, ctx):
     return doc
 
 
-# GitHub Pages serves docs/ only: until cutover the rebuilt pages are also written to docs/preview/ and served from there
-SITE_URL = "https://urbanastrola.github.io/cuteafd-eval/preview/"
-PREVIEW = REPO / "docs" / "preview"
+SITE_URL = "https://urbanastrola.github.io/cuteafd-eval/"
 
 
 def _cell(t):
@@ -591,12 +608,7 @@ def write_readme(F, S, R, home):
     text = text.replace("{{answers-md}}", "\n".join(ans)).replace("{{runs-md}}", "\n".join(runs)).replace("{{site}}", SITE_URL)
     if "{{" in text:
         raise SystemExit("README template: unknown directive")
-    # next/README.md sits one folder below the repository root until cutover: point root files one level up
-    text = re.sub(r"\]\((results/|NOTICE\.md|CITATION\.cff)", r"](../\1", text)
-    text = text.replace("\n\nMeasurements of", "\n\n> **Preview.** This is the rebuilt site, kept in `next/` beside the live one until cutover. Its pages are "
-                        f"built into [`next/docs/`](docs/) and served at <{SITE_URL}>; the live site at the repository root is the earlier version "
-                        "until cutover.\n\nMeasurements of", 1)
-    (OUT.parent / "README.md" if OUT != REPO / "next" / "docs" else REPO / "next" / "README.md").write_text(text)
+    (OUT.parent / "README.md").write_text(text)
 
 
 def write_llms(F, S, R, home):
@@ -631,7 +643,7 @@ def write_llms(F, S, R, home):
 
 def main(argv):
     global OUT
-    if "--out" in argv:                          # build into another directory (verify.py compares it with next/docs)
+    if "--out" in argv:                          # build into another directory (verify.py compares it with docs/)
         OUT = Path(argv[argv.index("--out") + 1]).resolve()
     only = argv[argv.index("--only") + 1].split(",") if "--only" in argv else None
     errs = []
@@ -668,6 +680,11 @@ def main(argv):
     if "--check" in argv:
         print(f"ok: {len(R)} runs, {sum(len(r['goals']) for r in R.values())} goals, {len(F)} findings, {len(S)} syntheses")
         return 0
+    targets = link_targets()                     # read from the published docs/ before it is rewritten
+    prev = {p.name: set(re.findall(r'\bid="([^"]+)"', p.read_text())) for p in sorted((REPO / "docs").glob("*.html"))}
+    aliases = json.loads((SITE / "anchors.json").read_text())["pages"]
+    if OUT == REPO / "docs" and OUT.exists():    # every file in docs/ is generated: nothing stale survives a rebuild
+        shutil.rmtree(OUT)
     OUT.mkdir(parents=True, exist_ok=True)
     home = {}                                    # synthesis id -> the one page that renders it
     for src in sorted((SITE / "pages").glob("*.md")):
@@ -681,11 +698,11 @@ def main(argv):
             raise SystemExit(f"synthesis {sid}: page {s['page']} but rendered on {home[sid]}")
     rendered = {}
     for target, (to, label) in REDIRECTS.items():
-        (OUT / target).write_text(stub(to, label))
+        (OUT / target).write_text(stub(to, label, aliases.get(target)))
     for src in sorted((SITE / "pages").glob("*.md")):
         ctx = {"F": F, "S": S, "R": R, "page": src.stem + ".html", "shown": set(), "home": home, "cited": set()}
         text = src.read_text()
-        (OUT / ctx["page"]).write_text(page(ctx["page"], text, ctx))
+        (OUT / ctx["page"]).write_text(place_aliases(ctx["page"], page(ctx["page"], text, ctx), aliases.get(ctx["page"], {})))
         rendered[ctx["page"]] = ctx["shown"]
         bad = page_numbers(text, ctx)
         if bad:
@@ -701,8 +718,18 @@ def main(argv):
                       if i not in ids.get(t or pg, set())]})
     if broken:
         raise SystemExit("links to anchors that do not exist:\n  " + "\n  ".join(broken))
-    lost = sorted(f"{p}#{i}" for p, i in link_targets()
+    dropped = sorted(f"{pg}#{i}" for pg, have in prev.items() for i in have
+                     if i not in ids.get(pg, set()) and i not in aliases.get(pg, {}))
+    if dropped:
+        raise SystemExit("anchors of the published site not on the new pages (map them in site/anchors.json):\n  " + "\n  ".join(dropped))
+    for pg in aliases:
+        if pg not in rendered and pg not in REDIRECTS:
+            raise SystemExit(f"anchors.json: {pg} is neither a page nor a redirect")
+    lost = sorted(f"{p}#{i}" for p, i in targets
                   if not (OUT / p).exists() or f'id="{i}"' not in (OUT / p).read_text())
+    (OUT / "preview").mkdir()                    # the rebuild's preview address, used before cutover (2026-11-13)
+    for pg in sorted(rendered):
+        (OUT / "preview" / pg).write_text(stub("../" + pg, "this page"))
     write_readme(F, S, R, home)
     write_llms(F, S, R, home)
     print(f"built {len(rendered)} pages: {len(R)} runs, {len(F)} findings ({len(missing)} on no page), {len(S)} syntheses")
@@ -712,10 +739,6 @@ def main(argv):
         print("   syntheses on no page:", " ".join(homeless))
     if lost:
         print(f"   linked anchors not on the new pages ({len(lost)}):", " ".join(lost))
-    if OUT == REPO / "next" / "docs" and PREVIEW.parent.is_dir():     # the served copy; verify.py checks it is identical
-        shutil.rmtree(PREVIEW, ignore_errors=True)
-        shutil.copytree(OUT, PREVIEW)
-        print(f"   copied to {PREVIEW.relative_to(REPO)}/ ({SITE_URL})")
     return 0
 
 

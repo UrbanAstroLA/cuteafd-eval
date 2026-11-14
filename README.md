@@ -2,824 +2,107 @@
 
 Maintained by Michael M: [UrbanAstroLA](https://github.com/UrbanAstroLA) on GitHub, [@UrbanAstroFella](https://x.com/UrbanAstroFella) on X.
 
-Two inference engines by the same author, **tpurtell** (`wrldsuksgo2mars` on Hugging Face), on the same model
-and machine:
+Measurements of two inference engines by the same author, **CuteAFD** ([tpurtell/cuteafd](https://github.com/tpurtell/cuteafd))
+and **tpurtell's vLLM fork** ([tpurtell/glm-5.3-flash-ext3-2x-rtx](https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx)),
+and of several quantized checkpoints of **GLM-5.3-Flash**, on one machine: two RTX PRO 6000 Blackwell Max-Q GPUs at
+300 W. The aim is evidence for choosing a deployment: what each engine and each precision cut costs or buys in distance
+from the BF16 model, task accuracy at long context, thinking length, speed and memory. Nothing here is a recommendation.
 
-- **CuteAFD** ([tpurtell/cuteafd](https://github.com/tpurtell/cuteafd)), his own runtime, built for attention/FFN
-  disaggregation (AFD): attention and the expert (feed-forward) layers run as separate workers, so experts can sit on
-  other machines; here, on two GPUs, they stay local.
-- **His vLLM fork** ([tpurtell/glm-5.3-flash-ext3-2x-rtx](https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx)), his
-  vLLM-based engine for this model on two RTX GPUs.
+**Site:** <https://urbanastrola.github.io/cuteafd-eval/> · **For agents:** [`docs/findings.json`](docs/findings.json),
+[`docs/runs.json`](docs/runs.json), [`docs/llms.txt`](docs/llms.txt)
 
-The model is GLM-5.3-Flash on two RTX PRO 6000 Blackwell Max-Q GPUs at 300 W, in three quantized checkpoints: **K3.25**
-(tpurtell's mixed 3.25-bit EXL3 experts), **K4** (brandonmusic's 4-bit EXL3 experts, Local Inference Lab) and
-**K4-Core-K6** (tpurtell's 4-bit experts with a 6-bit core; CuteAFD only). The CuteAFD v5 probe adds **K4-Core-K6-HQA**
-(tpurtell's; two attention projection groups also carried in BF16) and, as a reference, kindlingai's **EXLR8 K4**. The questions: how close each engine stays to
-the original BF16 model, how fast it is, and how to set it up.
+## How results are stated
 
-Results as of 2026-11-12; versions tested: CuteAFD v5.0.0 (core precision only), v4.0.0 and v3.0.1, vLLM fork v0.9.2. Measured by Michael M (UrbanAstroLA).
+Every result is a **finding**: one measured quantity with its sign convention, unit, n, interval, scope (engine and
+version, checkpoint, items, context, path, hardware), whether it was planned or found after looking, and a pointer into
+the file it was read from. **Judgements across studies** cite their findings, carry a strength and say what they do
+not show:
 
-> This README and the results site in `docs/` are generated from the files under `results/` by `tools/build_readme.py`
-> and `tools/build_site.py`. Each section below has a page of its own on the site.
-> For agents and scripts: [`docs/findings.json`](docs/findings.json) lists the Thinking length and CuteAFD v5 claims with their status,
-> value, interval and a JSON pointer into the file each comes from; [`docs/llms.txt`](docs/llms.txt) is a plain-text
-> orientation. `tools/verify.py` re-resolves every pointer and recomputes the code-study ratios from the per-reply tables.
+- *established*: pre-set rules agree on two or more independent item sets, launches or engines;
+- *supported*: a pre-set rule on one item set, not contradicted;
+- *indicated*: found after looking, or exploratory;
+- *open*: the evidence is mixed or missing.
 
-## Findings
+An interval that includes 0 is reported as *not detected*, with the largest effect it does not exclude.
 
-**Latest: CuteAFD v5.0.0, core precision at long context (2026-11-10/12).** v5.0.0 adds `ATTENTION_MODE`: the core of
-the K4-Core-K6-HQA checkpoint runs with two attention projection groups in BF16 (`hqa`, the default) or all K6
-(`compact`). Both were set against a BF16 core (`anchor`, a locally derived checkpoint, the reference) on 60 graded
-tasks at 4K, 16K, 64K and 127K tokens. Same K4 experts and drafter in every arm; the arms differ in the precision of the core (and, for `anchor`, the output head).
+## Answers so far
 
-- **What each configuration trades (added 2026-11-12).** Against `anchor`, `hqa` holds 4,266 MiB less in weights
-  outside the experts over the two GPUs (756 MiB of it is the output head, which `ATTENTION_MODE` does not change), with no
-  quality cost measured, on task score or on distance from BF16. `compact` holds a further 2,568 MiB less, with a cost of
-  about one point over all lengths indicated (`hqa` − `compact` +0.013 [+0.002, +0.024], `compact` − `anchor`
-  −0.010 [−0.021, +0.002]), not established, and located at 127K. In these launches every configuration was
-  admitted the same KV pool (2,097,152 tokens), so the saving stayed unused under the engine's memory cap (3,096 and a further
-  2,458 MiB more left there; the workspaces of `hqa` and `compact` are larger than `anchor`'s).
-  Cost and measured quality side by side: section 13 of `RESULTS.md` in the run folder, and the first table of the v5 page.
-- **Frozen rule, two passes: neither cheaper core setting is measurably behind the BF16 reference:** field score `hqa` − `anchor` 0.000 [−0.012, +0.012],
-  `compact` − `anchor` −0.010 [−0.026, +0.006], pooled over lengths (95% interval over items).
-- **Four passes (added 2026-11-12; an extension written after the two-pass results were read, before the added requests):**
-  `hqa` − `anchor` +0.003 [−0.005, +0.012], no difference measured (the 95% interval reaches down to −0.005).
-  For `compact` a cost at 127K is indicated, not established: 0.887 there against 0.918 to 0.924, the
-  lowest arm in both pass sets; `hqa` − `compact` +0.037 [+0.004, +0.073] at 127K and +0.013 [+0.002, +0.024] over all lengths
-  (excludes 0 only at four passes), while `compact` − `anchor` −0.010 [−0.021, +0.002] includes 0. Pooled, the gap matches
-  unfinished replies, but the two pass sets do not agree on that split, so these counts alone do not say where it comes
-  from; the next line does.
-- **How the replies ended (added 2026-11-12): `compact`'s 127K gap is replies that did not finish, not answers that were
-  wrong.** 44 of 3,840 replies did not finish, none with answer text. `compact`'s excess is in one place, the `join`
-  family at 127K: 10 of 80 against 4 (`anchor`), 2 (`hqa`), 1 (`exlr8-k4`). Of the +0.037 between
-  `hqa` and `compact` at 127K, +0.035 is `join`, and the finished replies score level. The ending is one every
-  configuration shows, `anchor` included: the reasoning copies the prompt's records out in order and runs to the reply cap.
-  Whether the K6 projections raise its rate is indicated, not established: the paired difference in the share of unfinished `join`
-  replies is +0.100 [+0.025, +0.175] for `compact` − `hqa` and +0.075 [−0.013, +0.163] for `compact` − `anchor`, with no excess in passes 1-2 alone. Post hoc.
-- **Distance from the BF16 model (added 2026-11-12): all four configurations sit in one band.** Coarse KL on tpurtell's
-  fidelity set, contexts to 14.4K: `hqa` 0.0302, `compact` 0.0314, `anchor` 0.0328, `exlr8-k4` 0.0360,
-  between the official FP8 model (0.0216, the baseline tpurtell recorded in the set's manifest) and K3.25 on
-  CuteAFD v3.0.1 (0.0484); both rows are from other measurements, quoted for scale.
-  What differs between the three probe arms moves the distance by under 0.003. `anchor` is not the closest on this set; it
-  differs from `hqa` in its output head as well as its core (both BF16 in `anchor`), and why it measures slightly farther is
-  an open question.
-  Neither reference set reaches past 14.4K, so the 127K task difference lies beyond both.
-- **Size in one unit (added 2026-11-12): bits per weight, BF16 = 16.** `anchor` 4.35, `hqa` 4.17, `compact` 4.10, `exlr8-k4` 4.08:
-  25.5% to 27.2% of the BF16 model. The routed experts are 94.9% of the weights and sit at 4 bits in all four, so
-  in size the configurations differ only in the remaining few percent (16.00, 9.66, 7.25 and 6.55 bits there). A size, not a
-  quality score. A fifth configuration, `k325-fp8` (K3.25 experts, run with an FP8 core; 3.55 bits as its files are stored, 22.2% of BF16), was
-  added by a dated amendment and measured the same day (next line). The v5 page carries a short primer
-  on the formats.
-- **A fifth configuration (added 2026-11-12, amendment 2): `k325-fp8`, K3.25 experts with an FP8 core, 3.55 bits per weight.**
-  Four single-message passes, 960 requests, read by the same rule. To 16K its field score is level with the other four. At
-  127K it is lower than `anchor`, `hqa` and `exlr8-k4` (0.867 against 0.918 to 0.924; paired −0.051 [−0.086, −0.017], −0.058 [−0.095, −0.023], −0.054 [−0.088, −0.020])
-  and not separated from `compact` (−0.020 [−0.059, +0.020]). Most of that gap is `join` replies that did not finish
-  (11 of 80 at 127K, against 10 for `compact` and 4, 2, 1 for the other three). It is farther from the BF16 model
-  than each of the four on both reference sets (fidelity set KL 0.0485 against 0.0302 to 0.0360; all 20 paired intervals
-  exclude 0). It holds 24,134 to 30,970 MiB less in resident weights; with the same KV pool admitted, that stayed
-  unused in these launches. The difference is a whole checkpoint's (experts and core together), its passes ran after the
-  other configurations' and were not interleaved with them, and no direction was predicted. Section 16 of `RESULTS.md` in the
-  run folder, and the v5 page.
-- **Accuracy falls with length in every probe arm, `anchor` included** (two passes: 0.98 at 4K, 0.89 to 0.91 at 127K), so
-  that loss is not produced by core precision. A third to a half of it is replies that did not finish. Added 2026-11-12, four passes: the fall from 4K to 127K is about 0.06 in
-  every configuration, `exlr8-k4` included, and about 0.09 in `compact` (its 127K gap above). The tasks are shared too and no unquantized model ran
-  them, so the run does not say where the common fall comes from.
-- **One slice leaned against the K6 core at two passes:** running totals at 64K and 127K, where `compact` was nominally lower. Twenty
-  items do not decide it; a post hoc lead, not a finding. Added 2026-11-12: over four passes the lean did not repeat
-  (`compact` − `anchor` on that slice −0.062 [−0.128, +0.002] in passes 1-2, +0.011 [−0.055, +0.072] in passes 3-4,
-  −0.026 [−0.070, +0.019] over four).
-- **Every arm was admitted the same KV pool** (2,097,152 tokens) in the graded runs (eight requests at once): there the cheaper
-  settings left more memory unused under the engine's cap; they did not admit more context. Added 2026-11-12: resident weights over both GPUs fall by
-  4,268 MiB from `anchor` to `hqa` and a further 2,568 MiB to `compact`. In exploratory scoring launches with 16
-  requests at once `anchor` was admitted a smaller pool (1,318,400 tokens); one launch setting read from logs, not a measurement.
-- **The eight-turn pass tested split delivery, not model-written history** (under 1% of a long prompt was written by
-  the model); its design is to be revised.
-- **Added after the results were read: a reference checkpoint in another quantisation format (`exlr8-k4`), no difference
-  measured from `anchor` or `hqa`:** field score `exlr8-k4` − `anchor` +0.006 [−0.007, +0.019], − `hqa` +0.006 [−0.008, +0.019] (two
-  single-message passes, post hoc). Against `compact` +0.016 [+0.004, +0.029], on the partial-credit score only and one of
-  84 intervals: a lead, not a finding. It is a different checkpoint, not a setting of the same one, so no
-  difference from an arm is attributable to one component. Added 2026-11-12: over four
-  passes the lead over `compact` did not repeat (+0.009 [−0.003, +0.021]); `exlr8-k4` − `anchor` −0.001 [−0.012, +0.009].
-- The K4-Core-K6-HQA repository is no longer available on the hub (checked 2026-11-11); the runs used a local copy. [CuteAFD v5](results/2026-11-10-context-probe/)
-
-**CuteAFD v4.0.0 (2026-10-30/31).** Two RTX PRO 6000 only, experts local, no DGX Spark expert nodes. CuteAFD
-v4.1.0, released after the run, was read in source, not run: no change to this GPU-only setup's compute path was found.
-
-- **v4.0.0 against the vLLM fork:** faster or level in every speed cell measured (1 and 4 streams), first token level or sooner in every cell, KV pool
-  1.2x (K3.25) and 1.4x (K4); slightly further from BF16
-  (full-vocabulary teacher panel +0.0017 and +0.0035, both resolved). Same precision as
-  v3.0.1 (teacher panel bit-identical). No reply looped on either engine. [CuteAFD v4](results/2026-10-30-cuteafd-v4/)
-- **Three checkpoints:** BF16's top token is missed 68 (K3.25), 53 (K4) and
-  53 (K4-Core-K6) times per 1,000 tokens; where BF16 is at least 90% sure,
-  0.61, 0.10 and 0.18 (teacher panel).
-  K4 and K4-Core-K6 differ by calibration text (legal for K4; maths and function calling for K4-Core-K6) and neither is
-  closer on both panels. [Three checkpoints](results/2026-10-30-cuteafd-v4/)
-- **Multi-turn tool calling:** tool-eval-bench, 88 scenarios: 158-163 of 176 on every arm, scores overlap between
-  engines, CuteAFD turns about 1.7x sooner at 8 scenarios at once. A functional check, not a ranking. [Tool calling](results/2026-11-02-tool-calling/)
-- **Thinking length and the 6-bit core (investigation, 2026-11-02/07):** On code, K4-Core-K6's 6-bit core and the
-  original BF16 core think about as long on the vLLM fork (local loader modification, not a tpurtell release): 1.00x
-  [0.96, 1.04] on 12 code prompts written for the test. On CuteAFD the same prompts and seeds read 1.26x [1.24, 1.29]
-  against the BF16 core converted to FP8 at load, and the engines differ (0.79 [0.75, 0.83]). Set side by side (post
-  hoc), CuteAFD's native 6-bit core and both vLLM arms think about as long; CuteAFD's FP8-from-BF16 core thinks about a
-  fifth shorter, on all 16 prompts, with hidden tests passing as often as the native core. Switching CuteAFD's FP8 launch
-  settings off (the launcher's defaults for a BF16 core) cumulatively places that difference in the KDA setting (KDA projections to BF16, which on two GPUs also turns off
-  KDA output sharding): 1.31x [1.24, 1.38], and not distinguishable from the native core (0.96x [0.92, 1.01]); the FP8
-  head and FP8 prefill activations show no step. The routed experts contribute nothing measurable
-  (0.99x [0.93, 1.05]). On science-question reasoning neither thinking length nor the stop decision changes, on 41
-  questions and both engines; a q_b + output-projection swap that moved the stop decision on 11 questions does not on 30
-  new ones.
-  Whether the core changes the loop rate is open. [Thinking length](results/2026-11-03-cuteafd-core-swap/) [vLLM part](results/2026-11-02-thinking-length/)
-
-**CuteAFD v3.0.1 (2026-10-26/28):** the findings below; where v4.0.0 changes a result, the line says so.
-
-- **Precision: the quantization matters more than the engine.** On K3.25, KL from the BF16 model (teacher panel) is 0.0458 on the vLLM fork and 0.0476 on CuteAFD. The largest engine difference is on long code (8-16K-token prompts): CuteAFD +0.0054 further on K3.25, +0.0090 on K4 (top-20 measure). [Precision](results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md)
-- **Speed: CuteAFD generates faster; under concurrency the vLLM fork's first tokens come sooner.** One stream: 114-168 tokens/s on the vLLM fork, 120-235 on CuteAFD (K3.25). First token, one request: 1K prompt 0.25 s and 0.41 s, 128K prompt 35.1 s and 29.6 s. With 4-16 requests at once the vLLM fork's first tokens come sooner in most cells, while tokens per second are level or ahead on CuteAFD except at 1K × 8 (v4.0.0, measured at 1 and 4 streams: CuteAFD's first token is level or sooner in every cell). [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md)
-- **A CuteAFD setting trades about 4% first-token time for precision.** W8A16 prefill closes about 59% of the long-code difference on K3.25 (8K prose prompt 1.808 → 1.878 s); W8A16 prefill with the amax scale rule closes about two thirds on K4 (32K code prompt 7.38 → 7.69 s), decode level. [Settings](results/2026-10-27-k4-vllm-cuteafd/f1k4/RESULTS-F1K4b.md)
-- **Long tasks: the same at the longest cap; CuteAFD finished more code at 32K.** At the 128K cap code passed every test in 7/8 (K3.25) and 8/8 (K4) on both engines, math 8/8. At the 32K cap CuteAFD finished 4/8 (K3.25) and 5/8 (K4) code tasks, the vLLM fork 0/8 and 0/8, consistent with CuteAFD's shorter code replies (0.74x and 0.77x the vLLM fork's median length at 128K); descriptive, n = 8. Needles in prompts of 256K to 1M tokens (K3.25): all found on both (exploratory); at 1M the first token took 270 s on the vLLM fork and 254 s on CuteAFD. [Long tasks](results/2026-10-26-cuteafd-vs-vllm/l/SUMMARY.md)
-- **Practical.** Ready to serve in 382 s on the vLLM fork (JIT caches kept) and 89 s on CuteAFD. A repeated 8K prompt: 2.10 s on the vLLM fork, 0.017 s from CuteAFD's prefix cache. Only CuteAFD honours "thinking off". K4 KV cache: 1,377,179 tokens on the vLLM fork, 447,488 on CuteAFD v3.0.1 (1,931,264 on v4.0.0). [Running it](#running-it-observations-in-detail)
-
-## Does the precision difference matter?
-
-Distance from the BF16 model, lower is closer. Each panel is one measure on one text set; compare rows within a panel.
-
-| Panel and measure | Row | KL from BF16 |
+| Question | Current answer | Strength |
 |---|---|---|
-| K3.25 · BF16 teacher panel (P-A) · full-vocabulary KL | vLLM fork | 0.0458 |
-|  | CuteAFD | 0.0476 |
-| K3.25 · tpurtell's fidelity set (P-B), all generated positions · coarse KL | Official FP8 model (tpurtell's baseline) | 0.0216 |
-|  | vLLM fork | 0.0451 |
-|  | CuteAFD | 0.0484 |
-|  | CuteAFD, W8A16 prefill | 0.0468 |
-| K3.25 · the same set, 8-16K long code · coarse KL | vLLM fork | 0.0504 |
-|  | CuteAFD | 0.0557 |
-|  | CuteAFD, W8A16 prefill | 0.0525 |
-| K3.25 and K4 · BF16 teacher panel (P-A; can favour K4) · top-20 KL (KL20) | K3.25, vLLM fork | 0.0365 |
-|  | K3.25, CuteAFD | 0.0380 |
-|  | K4, vLLM fork | 0.0192 |
-|  | K4, CuteAFD | 0.0219 |
-| CuteAFD v5.0.0, four K4-class configurations · fidelity set (P-B), to 14.4K · coarse KL | Official FP8 model (tpurtell's baseline) | 0.0216 |
-|  | anchor (BF16 core; the reference) | 0.0328 |
-|  | hqa (BF16 q_b_proj, o_proj; rest K6) | 0.0302 |
-|  | compact (K6 core) | 0.0314 |
-|  | exlr8-k4 (EXLR8 K4 checkpoint) | 0.0360 |
+| Where does most of a configuration's distance from the BF16 model come from: the routed experts, the core, or the engine? | Mostly from the routed experts: 3.25-bit to 4-bit experts moved teacher-panel KL by −0.0195; the engine moved it by +0.0035 at most and the core by less. ([precision](https://urbanastrola.github.io/cuteafd-eval/precision.html#s-S-experts)) | established |
+| On the same weights, is CuteAFD farther from the BF16 model than the vLLM fork? | Slightly: +0.0017 (K3.25) and +0.0035 (K4) on the teacher panel, +0.0054 and +0.0090 on long code; not detected below 8K or in NLL at 32K-128K. ([precision](https://urbanastrola.github.io/cuteafd-eval/precision.html#s-S-engine-gap)) | established |
+| How much of CuteAFD's long-code gap do its FP8 settings account for? | On K3.25 most of the long-code gap goes with W8A16 prefill; on K4 no setting tried closes it (best: W8A16 + amax, −0.0061 of +0.0090). ([precision](https://urbanastrola.github.io/cuteafd-eval/precision.html#s-S-fp8-settings)) | supported |
+| Does distance from BF16, measured to 14.4K, predict accuracy at long context? | Only in part: K3.25-Core-FP8 is farthest and scored lowest at 127K, but compact sits with hqa and anchor on distance and scored below hqa at 127K. ([precision](https://urbanastrola.github.io/cuteafd-eval/precision.html#s-S-distance-tasks)) | indicated |
+| Can distances from BF16 be compared across studies and CuteAFD releases? | Yes on CuteAFD: the same weights give the same rows across v3.0.1, v4.0.0 and v5.0.0 (K3.25-Core-FP8 0.0476 on all three). ([precision](https://urbanastrola.github.io/cuteafd-eval/precision.html#s-S-reproducible)) | established |
+| Does accuracy on long-context tasks fall with length, and does core precision cause the fall? | Yes, in every configuration including the BF16 core (anchor 0.985 at 4K to 0.918 at 127K); much of it is replies that did not finish. ([long-tasks](https://urbanastrola.github.io/cuteafd-eval/long-tasks.html#s-S-long-fall)) | supported |
+| Where does a configuration's precision show up as a cost on long-context tasks? | K3.25-Core-FP8 scored 0.051-0.058 below three 4-bit-expert configurations at 127K; nothing was detected at 4K and 16K. ([long-tasks](https://urbanastrola.github.io/cuteafd-eval/long-tasks.html#s-S-long-cost)) | supported |
+| Does the compact attention mode cost accuracy at long context? | Against hqa at 127K, yes (+0.037); against the BF16 core, not detected. ([long-tasks](https://urbanastrola.github.io/cuteafd-eval/long-tasks.html#s-S-long-cost-compact)) | indicated |
+| Do long replies (to 130K tokens) finish and pass their checks on both engines? | Yes for code and math on both engines (7-8 of 8 at the 130K cap); JSON validity varies; CuteAFD's replies are shorter. ([long-tasks](https://urbanastrola.github.io/cuteafd-eval/long-tasks.html#s-S-long-output)) | supported |
+| Do the engines accept and use prompts of 256K to 1M tokens? | In a one-request pilot, yes: both engines found the needle at 256K-1M tokens. ([long-tasks](https://urbanastrola.github.io/cuteafd-eval/long-tasks.html#s-S-long-retrieval)) | indicated |
+| Does the core's precision change when the model decides to stop thinking on science questions? | Not detected on either engine (11 + 30 questions on the vLLM fork, 41 on CuteAFD); shifts beyond about 0.05 in log p are excluded. ([thinking](https://urbanastrola.github.io/cuteafd-eval/thinking.html#s-S-think-stop)) | established |
+| Does the core's precision change how long the model thinks in free generation on science questions? | Not known: one question on one engine, inconclusive (0.80 [0.51, 1.14]). ([thinking](https://urbanastrola.github.io/cuteafd-eval/thinking.html#s-S-think-science-length)) | open |
+| Why does CuteAFD's BF16-core arm think shorter on code than its native 6-bit-core arm? | Mostly CuteAFD's FP8 KDA setting: switching it off lengthened code thinking 1.31x, about the whole gap; on the vLLM fork the two cores think alike (1.00 [0.96, 1.04]). ([thinking](https://urbanastrola.github.io/cuteafd-eval/thinking.html#s-S-think-code-kda)) | supported |
+| Does shorter thinking cost correctness on code? | Not settled: the 1.26x length gap came with no detected pass-rate difference (+1.6 points [−7.8, +10.9]), but an all-BF16-path arm passed more often in a post hoc look. ([thinking](https://urbanastrola.github.io/cuteafd-eval/thinking.html#s-S-think-correctness)) | open |
+| What does CuteAFD v5's default attention mode (hqa) trade against a BF16 core? | 4,266 MiB less than the BF16 core, with no task cost detected (+0.003 [−0.005, +0.012]). ([settings](https://urbanastrola.github.io/cuteafd-eval/settings.html#s-S-set-attention)) | supported |
+| What does the compact attention mode trade against hqa? | 2,568 MiB less than hqa, and below hqa at 127K (+0.037). ([settings](https://urbanastrola.github.io/cuteafd-eval/settings.html#s-S-set-compact)) | indicated |
+| What does turning CuteAFD's FP8 settings off cost in speed and memory? | W8A16 prefill: about 4% first-token time; BF16 KDA and head: a smaller KV pool (1,931,264 to 1,215,488 tokens on K4-Core-K6), and BF16 KDA did not fit a K4 serving launch on v3.0.1. ([settings](https://urbanastrola.github.io/cuteafd-eval/settings.html#s-S-set-costs)) | supported |
+| Between the two 4-bit checkpoints, K4 and K4-Core-K6, is either closer to the BF16 model? | Neither on both sets: level on the teacher panel (which can favour K4), K4-Core-K6 closer on the fidelity set (−0.0049). ([checkpoints](https://urbanastrola.github.io/cuteafd-eval/checkpoints.html#s-S-ckpt-k6-k4)) | open |
+| How does the EXLR8 K4 checkpoint compare with the K4-Core-K6 configurations? | Not detected to differ on tasks over four passes; farther from BF16 on the fidelity set, level on the teacher panel. ([checkpoints](https://urbanastrola.github.io/cuteafd-eval/checkpoints.html#s-S-ckpt-exlr8)) | supported |
+| Is CuteAFD faster than the vLLM fork on this machine? | On v4.0.0, faster or level in every measured cell on K3.25 and K4 (0 slower); v3.0.1 was slower at 1K with 8 streams and in first token with many streams. ([speed](https://urbanastrola.github.io/cuteafd-eval/speed.html#s-S-speed-engines)) | established |
+| Does K4-Core-K6's 6-bit core cost speed on CuteAFD? | Slower than K4 by 5-15% (v4 run); per-cell bands for this contrast were not published. ([speed](https://urbanastrola.github.io/cuteafd-eval/speed.html#s-S-speed-k6)) | indicated |
+| How much context fits, and how long does a start take? | CuteAFD v4.0.0: larger KV pools (1,931,264 vs 1,377,179 tokens on K4) and ready in 81-91 s against 257-349 s. ([running](https://urbanastrola.github.io/cuteafd-eval/running.html#s-S-run-capacity)) | established |
+| Does the same request give the same result twice? | CuteAFD: bit-identical across launches, days and releases. vLLM fork: varies beyond its first prefill chunk. ([running](https://urbanastrola.github.io/cuteafd-eval/running.html#s-S-run-determinism)) | established |
+| Do the engines reuse a repeated prompt? | CuteAFD: yes (0.017 s for a repeated 8K prompt). vLLM fork: only in whole 4,352-token blocks, nothing below 17,408 tokens. ([running](https://urbanastrola.github.io/cuteafd-eval/running.html#s-S-run-prefix)) | supported |
+| Does multi-turn tool calling differ between the engines or checkpoints? | All arms 158-163 of 176; the engines differ on 5-7 of 88 scenarios; CuteAFD repeats exactly. ([tools](https://urbanastrola.github.io/cuteafd-eval/tools.html#s-S-tools)) | supported |
+| Do leads found after looking at the data hold on new data? | Not in these runs: five leads found after looking each shrank or failed on new data or more passes. ([method](https://urbanastrola.github.io/cuteafd-eval/method.html#s-M-leads)) | established |
 
-KL is how far an engine's next-token probabilities are from the BF16 model's on the same text (0 is
-identical, lower is closer; units: nats).
+## Studies
 
-- **The quantization's own distance dwarfs the engine difference.** On tpurtell's set his official FP8 model scores
-  0.0216, the 3.25-bit checkpoint 0.0451 (vLLM fork) and 0.0484 (CuteAFD): the engine difference is
-  7% of the vLLM fork's distance (11% on long code). K4 is closer than K3.25 on both panels: 0.53-0.58 of K3.25's
-  top-20 distance on the teacher panel, 0.69-0.75 on tpurtell's set. The teacher panel is drawn from the corpus K4's
-  producer published, so it can favour K4 ([Three checkpoints](results/2026-10-30-cuteafd-v4/)).
-- **tpurtell's bar** counts a paired change below 0.005 KL or 0.5 top-1 points as within it (defined for changes to one
-  engine; applied here by analogy). K3.25 overall is inside on KL (+0.0033, interval to +0.0049), not on
-  top-1 (−0.46 points, to −0.73); long code is not shown inside on either checkpoint
-  (+0.0054, +0.0090); K4 with W8A16 prefill + amax reads +0.0030 (to +0.0049).
-- **On tasks**, code and math checks at the 128K cap and the needle checks came out the same on both engines.
-- **Not measured:** the distance from BF16 beyond 14.4K tokens (no reference exists there) and on the decode path
-  (scoring runs prompts through prefill).
-
-## Pick by workload
-
-What the published results show for common workloads, on this machine and these checkpoints. They describe the
-measurements; they are not a general ranking.
-
-| Workload | The data shows | Key numbers (vLLM fork first, CuteAFD second) | Evidence |
-|---|---|---|---|
-| Long code (8-16K), closest to BF16 | vLLM fork closer to BF16 | KL at 8-16K: 0.0504 vs 0.0557 (K3.25); 0.0334 vs 0.0424 (K4, top-20) | [Precision](results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md) |
-| CuteAFD on K3.25, closer to BF16 | W8A16 prefill closes about 59% of the difference | difference +0.0054 → +0.0022; first token +3.8% to +4.5% per cell | [Settings](results/2026-10-26-cuteafd-vs-vllm/f1/RESULTS-F1.md) |
-| CuteAFD on K4, two RTX GPUs | W8A16 prefill + amax scale rule closes about two thirds; the BF16 options do not fit | difference +0.0090 → +0.0030; first token +4.0% to +4.2% per cell | [Settings](results/2026-10-27-k4-vllm-cuteafd/f1k4/RESULTS-F1K4b.md) |
-| One request at a time | CuteAFD generates faster | 114-168 vs 120-235 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
-| Long prompts, one at a time | CuteAFD's first token sooner | 128K: 35.1 s vs 29.6 s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
-| Short prompts, many at once | v3.0.1: vLLM fork's first token sooner; tokens/s higher on the vLLM fork at 1K × 8, level at 1K × 16. v4.0.0 at 4 streams: CuteAFD's first token level or sooner, tokens/s higher (8 and 16 streams not rerun) | 1K × 8: 1.44 s vs 2.76 s, 345-454 vs 321-410 tok/s; 1K × 16: 2.38 s vs 4.31 s, 378-508 vs 397-516 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md) |
-| Many long prompts at once | vLLM fork's first tokens sooner; CuteAFD's tokens/s higher | 32K × 16: 72 vs 106 s, 100-105 vs 107-112 tok/s | [Speed](results/2026-10-26-cuteafd-vs-vllm/t/CAVEATS.md) |
-| Repeated long prefix | CuteAFD reuses it | 8K repeated: 2.10 vs 0.017 s | [Running it](results/2026-10-26-cuteafd-vs-vllm/f2/RESULTS-F2.md) |
-| Multi-turn tool calling (agents) | both pass near the test's ceiling; scores overlap; CuteAFD's turns come sooner | tool-eval-bench, 88 scenarios: 160-163 vs 163 of 176 (K3.25), 158-163 vs 158 (K4); median turn 4.8-5.3 vs 2.7-3.1 s at 8 at once | [Tool calling](results/2026-11-02-tool-calling/) |
-| Long replies (to 128K) | same code and math at the 128K cap; CuteAFD finished more code at 32K | 128K code: 7/8 vs 7/8; 32K code finished: 0/8 vs 4/8 (K3.25) | [Long tasks](results/2026-10-26-cuteafd-vs-vllm/l/SUMMARY.md) |
-| Switching models often | CuteAFD starts faster | 382 vs 89 s | [Running it](results/2026-10-27-vllm-startup-cache/) |
-| Many long contexts at once (K4) | v3.0.1: vLLM fork holds about 3x the KV cache; v4.0.0: CuteAFD holds 1.4x | 1,377,179 vs 447,488 tokens (v3.0.1); 1,377,179 vs 1,931,264 (v4.0.0) | [Running it](results/2026-10-27-k4-vllm-cuteafd/startup/startup.json) |
-| K4 on CuteAFD, two RTX GPUs | context up to 262,144 tokens (MAX_CONTEXT_TOKENS); the 256K-1M needle checks ran on K3.25 | 262,144 tokens | [Running it](results/2026-10-27-k4-vllm-cuteafd/METHOD.md) |
-
-## Settings measured
-
-The configurations measured here, as files you can copy; with each, what it measured. **Measured, not a
-recommendation.** The exact files are in [repro/](repro/); checkpoints download as in
-[Reproduce, step 1](repro/REPRODUCE.md).
-
-**vLLM fork v0.9.2, both checkpoints.** Startup 697 → 382 s with the JIT caches kept (K3.25).
-
-```bash
-# the launcher: tpurtell's vLLM fork repository at tag v0.9.0; its start.sh runs the v0.9.2 image pinned below
-git clone https://github.com/tpurtell/glm-5.3-flash-ext3-2x-rtx && cd glm-5.3-flash-ext3-2x-rtx && git checkout v0.9.0
-export IMAGE=ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx@sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2
-export MODEL_PROFILE=k325                # k4 for the K4 checkpoint
-export GPU_MEMORY_UTILIZATION=0.95       # the default 0.97 does not start beside a desktop session
-export PORT=127.0.0.1:8001               # the default publishes port 8001 on every interface
-# keep the JIT caches inside the cache directory the container already keeps between starts
-export DEBUG_ENV="TILELANG_CACHE_DIR=/root/.cache/tilelang
-  TRITON_CACHE_DIR=/root/.cache/triton
-  TORCHINDUCTOR_CACHE_DIR=/root/.cache/torchinductor
-  CUDA_CACHE_PATH=/root/.cache/nv/ComputeCache"
-./start.sh
-```
-
-**CuteAFD v3.0.1: the launcher.** On a host without `/dev/infiniband`, apply the guard in
-[repro/cuteafd/patches/](repro/cuteafd/patches/) first.
-
-```bash
-git clone https://github.com/tpurtell/cuteafd && cd cuteafd && git checkout v3.0.1
-mkdir -p local                           # save the config below as local/<name>.config, then:
-./run.sh --config local/<name>.config --restart
-```
-
-**CuteAFD on K3.25, as shipped** (`glm53-flash-exl3-k3.25-core-fp8-2rtx.config`; `ADDR`, `MAX_OUTPUT_TOKENS` and `USAGE`
-are the local settings: the launcher defaults are `0.0.0.0` under host networking, a 4,096-token output limit, and
-request logging on).
-
-```bash
-MODEL_ID=wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8
-MODEL_REVISION=d31ebc921f1f098b4a56d37aaccb3cdef4096184
-GLM5_FLASH_FP8_MODEL_ID=off
-SPECULATOR=dflash2
-SPECULATOR_MODEL_ID=incoai/GLM-5.3-Flash-DFlash2
-SPECULATOR_MODEL_REVISION=bf582e4eacc1810f76656d1811693ff6c6737d2a
-POOL_TOKENS=auto
-EXPERT_BACKEND=local
-SPARK_COUNT=0
-RTX_GPUS=2
-COORDINATOR_GPU=0
-ADDR=127.0.0.1:8001
-MAX_OUTPUT_TOKENS=393216
-USAGE=off
-COORDINATOR_DOCKER_INFERENCE=ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a
-```
-
-**With the measured setting, W8A16 prefill:** append the line below. Measured: long-code difference from the vLLM fork
-+0.0054 → +0.0022, first token +3.8% to +4.5% per cell, decode
-0.99x (scoring launches, follow-up F1).
-
-```bash
-GLM5_FLASH_FP8_PREFILL=off
-```
-
-**CuteAFD on K4, as shipped** (`glm53-flash-exl3-k4-2rtx.config`; `MAX_CONTEXT_TOKENS=262144` is needed on two RTX GPUs,
-where the planner refuses K4 at its default). Measured: KV pool 447,488 tokens, 16 requests at once.
-
-```bash
-MODEL_ID=brandonmusic/GLM-5.3-Flash-tr3-4bpw
-MODEL_REVISION=a5fee929cf4888b1824323e33e8a19b60129e025
-GLM5_FLASH_FP8_MODEL_ID=off
-SPECULATOR=dflash2
-SPECULATOR_MODEL_ID=incoai/GLM-5.3-Flash-DFlash2
-SPECULATOR_MODEL_REVISION=bf582e4eacc1810f76656d1811693ff6c6737d2a
-POOL_TOKENS=auto
-MAX_CONTEXT_TOKENS=262144
-VISION=off
-EXPERT_BACKEND=local
-SPARK_COUNT=0
-RTX_GPUS=2
-COORDINATOR_GPU=0
-ADDR=127.0.0.1:8001
-MAX_OUTPUT_TOKENS=393216
-USAGE=off
-COORDINATOR_DOCKER_INFERENCE=ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a
-```
-
-**With the measured setting, W8A16 prefill + amax scale rule:** append the two lines below. Measured: long-code
-difference +0.0090 → +0.0030, teacher panel no longer resolved, first token +4.0% to
-+4.2% per cell, decode level, the same memory.
-
-```bash
-GLM5_FLASH_FP8_PREFILL=off
-FP8_SCALES=amax
-```
-
-## Speed in numbers
-
-|  | K3.25: vLLM fork | K3.25: CuteAFD | K4: vLLM fork | K4: CuteAFD |
-|---|---|---|---|---|
-| Decode, 1 stream, tok/s | 114-168 | 120-235 | 108-164 | 116-220 |
-| Decode per stream, 4 streams (1K-8K), tok/s | 59-99 | 61-117 | 55-93 | 63-114 |
-| First token, 1K | 0.25 s | 0.41 s | 0.27 s | 0.42 s |
-| First token, 8K | 2.11 s | 1.80 s | 2.20 s | 1.84 s |
-| First token, 32K | 8.70 s | 7.26 s | 9.05 s | 7.38 s |
-| First token, 128K | 35.1 s | 29.6 s | 36.4 s | 30.1 s |
-| Startup to the ready line | 382 s (697 s without JIT caches) | 89 s | 257 s warm, 307 s cold | 86 s warm, 76 s cold |
-| KV cache, tokens | 4,707,515 | 4,726,784 | 1,377,179 | 447,488 |
-
-Decode: range over content types and 1K-128K prompts; first token: median over content types, one request at a time; 1,024 tokens per request. Startup and KV cache: [Running it](#startup). Every speed cell: [Speed](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md).
-
-## How sure are we
-
-- **K3.25:** frozen protocol. After the runs, a separate reviewer who did not run the measurements re-ran the
-  scorers and checked the claims against the receipts; its corrections are applied ([Review](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)).
-  It covered the precision and speed blocks and the vLLM fork's long output; it did **not** cover CuteAFD's long output,
-  the follow-ups F1-F3 (it saw their designs and the F1 baseline speed run), the drift repeats, the startup measurement
-  or the needle pilot. CuteAFD is paired with three vLLM runs from two launches. Thin: 8 long replies per content type,
-  six long documents. K3.25 speed noise: a repeat hours later moved the median by under 2% and single cells by up to 13%; single-cell ratios within ±10% read as level.
-- **K4:** frozen protocol; **no separate review** of any part of it, its settings follow-ups included. CuteAFD is
-  paired with two vLLM launches. K4 speed noise: a ±8% band declared before the run (both engines' drift repeats stayed inside it); single-cell ratios within ±8% read as level.
-- **One machine:** two RTX PRO 6000 Blackwell Max-Q cards at 300 W, with a desktop session using about 2 GB on GPU 1;
-  speed on other power limits or cards was not measured.
-
-## Terms
-
-- **AFD**: attention/FFN disaggregation: attention and the expert layers run as separate workers.
-- **BF16 model**: the original, unquantized model; the precision reference.
-- **K3.25, K4, K4-Core-K6**: the three quantized checkpoints: 3.25-bit, 4-bit, and 4-bit experts with a 6-bit core (EXL3).
-- **FP8**: 8-bit floating point, CuteAFD's format for the other weights.
-- **KL**: distance between next-token distributions, in nats; 0 is identical.
-- **Coarse KL, KL20, KL_pb20, KL20n**: KL over the reference's top 1,024 tokens plus the rest (tpurtell's rule); over each engine's top 20 (K4, teacher panel); the top-20 form of tpurtell's rule (K4, fidelity set); top 20 shared by two engines (K4, long texts).
-- **Top-1**: how often the most likely next token matches the reference's.
-- **P-A, P-B, Q2**: the text sets: BF16 teacher texts (2K tokens), tpurtell's fidelity set (to 14.4K), six long documents.
-- **Long code (8-16K)**: P-B's longest prompts, all code reading.
-- **95% interval, resolved**: a difference's likely range; resolved if it excludes zero.
-- **Level**: a speed ratio inside the noise band: not a difference.
-- **Prefill, decode**: reading the prompt; generating tokens.
-- **First token**: time until the first generated token.
-- **Stream**: one request in flight.
-- **W8A8, W8A16**: CuteAFD prefill with 8-bit or 16-bit activations.
-- **Scale rule**: how CuteAFD makes FP8 scales from BF16 weights at load: pow2 (powers of two, the default), amax (from the largest value), best (the launcher's third rule).
-- **KDA, head**: linear-attention projections; the final vocabulary layer.
-- **Drafter**: DFlash2, a small model that proposes tokens for the main model to check (speculative decoding).
-- **Serving, scoring launch**: the engine as users run it; the same engine with the endpoints that return per-position probabilities for precision scoring.
-- **Block Q, T, L**: the measurement blocks: precision, speed (throughput), long output.
-- **Run labels**: K3.25: V1 and V1r (vLLM fork, one launch), V2 (a second launch), C1 (CuteAFD), C0 (CuteAFD control on K3.25-v1); K4: V-r1 and V-r2 (two vLLM launches), C-r1 (CuteAFD).
-- **Prefix cache**: reuse of a repeated prompt's processed state.
-- **JIT caches**: kernels compiled at startup, kept between starts.
-- **Thinking**: the model's reasoning before its answer; always on here.
-- **tool-eval-bench**: an open benchmark of 88 multi-turn tool-calling scenarios, each graded pass (2 points), partial (1) or fail (0); 176 points in all. Its own rubric is on the Tool calling page.
-
-## Status
-
-- Block Q, precision (V1, C1, C0): done
-- Block Q per-position scores (P-B, Q2) and tail and position statistics (P-A, P-B, Q2): done
-- Block T, throughput: vLLM fork v0.9.2 (V1): done
-- Block T, throughput: CuteAFD v3.0.1 (C1): done
-- Block L, long output: vLLM fork v0.9.2 (V1): done
-- Block L, long output: CuteAFD v3.0.1 (C1): done
-- Follow-up F1, CuteAFD FP8 switches: precision at 8-16K and speed (outside the frozen protocol): done
-- Follow-up F2, vLLM prefix-cache reuse on repeated prompts (outside the frozen protocol): done
-- Follow-up F3, second vLLM launch for precision (outside the frozen protocol): done
-- Drift check, repeat subset on both engines: done
-- GPU telemetry during the later runs (summary): done
-- K4: Startup and smoke checks (Stage 1, before the freeze): done
-- K4: Block Q, precision (top-20 measures): P-A, P-B, Q2: done
-- K4: Block Q per-position scores and tails (P-A, P-B, Q2): done
-- K4: Block T, throughput, with drift repeats: done
-- K4: Block L, long output: done
-- K4: Follow-ups F1-K4 (W8A16 prefill), F1-K4b (FP8 switches), K4c (W8A16 + amax) and K4d (W8A16 + best), CuteAFD on K4 (outside the frozen protocol): done
-- K4: Follow-up K4e: CuteAFD W8A16 + amax under the full Block T grid and Block L (outside the frozen protocol): done
-- K4: Q2 document c2: rows where vLLM differs from itself: done
+Kind, from each run's RUN.json: *measurement* (a frozen protocol), *exploratory* (criteria fixed before computing, but not a full protocol), *check* (source reading or CPU checks).
 
 <!-- results:start -->
-## Results in detail
-
-Tables built from the published receipts; text and intervals per run in each run's README:
-[`results/2026-10-26-cuteafd-vs-vllm`](results/2026-10-26-cuteafd-vs-vllm/) (K3.25, with
-[`SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/SUMMARY.md) and the separate review
-[`AUDIT-2026-10-27.md`](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)) and
-[`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/) (K4), both CuteAFD v3.0.1, and
-[`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/) (CuteAFD v4.0.0 on all three checkpoints) and
-[`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/) (multi-turn tool calling), and the investigation
-[`results/2026-11-02-thinking-length`](results/2026-11-02-thinking-length/) (thinking length and the 6-bit core, vLLM fork) and
-[`results/2026-11-03-cuteafd-core-swap`](results/2026-11-03-cuteafd-core-swap/) (the same question on CuteAFD: core or experts), with its
-follow-ups [`results/2026-11-05-code-thinking`](results/2026-11-05-code-thinking/) (16 code prompts, CuteAFD) and
-[`results/2026-11-06-vllm-code-thinking`](results/2026-11-06-vllm-code-thinking/) (the same prompts on the vLLM fork; two
-exploratory follow-ups are listed under other runs), and
-[`results/2026-11-10-context-probe`](results/2026-11-10-context-probe/) (CuteAFD v5.0.0: three core precisions on graded
-tasks from 4K to 127K tokens, and an EXLR8 K4 reference checkpoint added later). One machine, one model family, one
-tokenizer; intervals are 95% bootstrap intervals over windows or documents.
-
-### K3.25: precision by context bucket
-
-Panel P-B, generated rows, against the mean of the three vLLM runs (two launches; `pb-vs-vllm-mean3.json`). The 8-16K bucket is block B, long code reading; whether length or content drives the difference is not separated here. F1c and F1d are follow-up F1 arms of CuteAFD, outside the frozen protocol. History: the tokens before each scored position. Tails (p99, p99.9) and KL by position: [`q/tails/`](results/2026-10-26-cuteafd-vs-vllm/q/tails/).
-
-| Bucket | Rows | History, tokens (min / median / max) | KL, CuteAFD − vLLM | Top-1, CuteAFD − vLLM | KL, F1c (W8A16 prefill) − vLLM | KL, F1d (KDA, head, prefill) − vLLM |
-|---|---|---|---|---|---|---|
-| all generated rows | 15,104 | 1,084 / 5,751.5 / 14,402 | +0.0033 [+0.0016, +0.0049] | -0.46 pts [-0.73, -0.17] | +0.0017 [+0.0006, +0.0028] | +0.0010 [-0.0002, +0.0021] |
-| 0-2K | 4,035 | 1,084 / 1,735 / 2,361 | +0.0017 [-0.0006, +0.0044] | -0.38 pts [-0.88, +0.05] | +0.0007 [-0.0010, +0.0027] | +0.0008 [-0.0011, +0.0028] |
-| 2-8K | 3,547 | 2,083 / 4,254 / 5,781 | +0.0007 [-0.0029, +0.0032] | +0.19 pts [-0.16, +0.52] | +0.0016 [+0.0007, +0.0026] | -0.0001 [-0.0017, +0.0013] |
-| 8-16K | 7,522 | 10,284 / 12,069 / 14,402 | +0.0054 [+0.0034, +0.0074] | -0.81 pts [-1.22, -0.44] | +0.0022 [+0.0005, +0.0041] | +0.0016 [-0.0005, +0.0033] |
-
-### K3.25: throughput
-
-Block T, median of 3 replicates per cell (thinking on, 1,024 output tokens, every prompt unique, a distinct seed per
-request). With thinking on, "code" and "json" cells measure reasoning text about a code or JSON prompt. Full grid:
-[`t/T-SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/t/T-SUMMARY.md); caveats:
-[`t/CAVEATS.md`](results/2026-10-26-cuteafd-vs-vllm/t/CAVEATS.md).
-
-| Input | Content | Decode tok/s per stream, 1 stream: vLLM | CuteAFD | Streams | Aggregate tok/s: vLLM | CuteAFD | TTFT s, 1 stream: vLLM | CuteAFD |
-|---|---|---|---|---|---|---|---|---|
-| 1K | prose | 120.7 | 125.7 | 16 | 377.9 | 397.0 | 0.25 | 0.41 |
-| 1K | code | 145.2 | 196.0 | 16 | 476.8 | 483.6 | 0.25 | 0.41 |
-| 1K | reasoning | 161.2 | 228.0 | 16 | 508.1 | 516.2 | 0.26 | 0.41 |
-| 1K | json | 130.8 | 154.9 | 16 | 473.1 | 462.1 | 0.25 | 0.40 |
-| 8K | prose | 117.4 | 119.8 | 16 | 233.1 | 244.9 | 2.11 | 1.80 |
-| 8K | code | 151.1 | 174.6 | 16 | 263.7 | 278.0 | 2.10 | 1.80 |
-| 8K | reasoning | 168.4 | 234.7 | 16 | 255.5 | 277.7 | 2.11 | 1.81 |
-| 8K | json | 130.1 | 146.1 | 16 | 260.0 | 271.1 | 2.11 | 1.80 |
-| 32K | prose | 114.4 | 121.4 | 16 | 99.6 | 106.6 | 8.71 | 7.26 |
-| 32K | code | 148.0 | 169.3 | 16 | 105.1 | 112.1 | 8.70 | 7.27 |
-| 128K | prose | 119.5 | 122.9 | 4 | 27.5 | 30.6 | 35.08 | 29.58 |
-| 128K | code | 150.2 | 165.3 | 4 | 28.2 | 31.3 | 35.02 | 29.57 |
-
-CuteAFD v3.0.1: 1,008 measured requests in 132 batches, 0 errors, 0 replies with `</think>` in the content; vLLM fork v0.9.2: 1,008 measured requests in 132 batches, 0 errors, 0 replies with `</think>` in the content.
-
-### K3.25: long output
-
-Block L per stage: 4 contents × 4 prompts × 2 seeds, 8 requests in flight; L3s is one request at a time. Checks: code
-against a hidden pytest suite, JSON against a schema, reasoning against the MATH-500 answer, prose by words written over
-words required. The terminal-loop counts on code replies come from the detector counting the answer restating code drafted in the reasoning; no periodic structure was found in them (audit U5). The code, JSON and prose tasks were sized for thinking off: at the L1 and L2 caps, and for the 1,030-record JSON task at L3, the reasoning leaves too little room for the answer, so those cells measure stop-versus-cap rather than task completion. Detail: [`l/SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/l/SUMMARY.md).
-
-| Stage | Cap | Content | Requests | vLLM: finished / at cap / terminal loops | vLLM: check | vLLM: decode tok/s | CuteAFD: finished / at cap / terminal loops | CuteAFD: check | CuteAFD: decode tok/s |
-|---|---|---|---|---|---|---|---|---|---|
-| L1 | 8K | prose | 8 | 0 / 8 / 0 | words/required 0.00 | 43.0 | 0 / 8 / 0 | words/required 0.00 | 40.7 |
-| L1 | 8K | code | 8 | 0 / 8 / 0 | all tests pass 0/8 | 54.2 | 0 / 8 / 0 | all tests pass 0/8 | 54.9 |
-| L1 | 8K | reasoning | 8 | 8 / 0 / 0 | correct 8/8 | 71.9 | 8 / 0 / 0 | correct 8/8 | 106.2 |
-| L1 | 8K | json | 8 | 0 / 8 / 0 | valid 0/8 | 55.1 | 0 / 8 / 0 | valid 0/8 | 59.9 |
-| L2 | 32K | prose | 8 | 1 / 7 / 0 | words/required 0.83 | 43.7 | 0 / 8 / 0 | words/required 0.48 | 40.1 |
-| L2 | 32K | code | 8 | 0 / 8 / 0 | all tests pass 0/8 | 55.0 | 4 / 4 / 2 | all tests pass 4/8 | 59.3 |
-| L2 | 32K | reasoning | 8 | 8 / 0 / 0 | correct 8/8 | 69.8 | 8 / 0 / 0 | correct 8/8 | 98.7 |
-| L2 | 32K | json | 8 | 2 / 6 / 0 | valid 2/8 | 60.8 | 2 / 6 / 0 | valid 2/8 | 73.4 |
-| L3 | 128K | prose | 8 | 8 / 0 / 0 | words/required 0.95 | 41.5 | 8 / 0 / 0 | words/required 1.05 | 39.3 |
-| L3 | 128K | code | 8 | 8 / 0 / 6 | all tests pass 7/8 | 55.6 | 8 / 0 / 4 | all tests pass 7/8 | 58.2 |
-| L3 | 128K | reasoning | 8 | 8 / 0 / 0 | correct 8/8 | 71.3 | 8 / 0 / 0 | correct 8/8 | 89.2 |
-| L3 | 128K | json | 8 | 6 / 2 / 0 | valid 6/8 | 65.5 | 7 / 1 / 0 | valid 4/8 | 81.8 |
-| L3s | 128K, 1 stream | prose | 1 | 1 / 0 / 0 | words/required 0.77 | 113.6 | 1 / 0 / 0 | words/required 0.78 | 126.5 |
-| L3s | 128K, 1 stream | code | 1 | 1 / 0 / 1 | all tests pass 1/1 | 139.8 | 1 / 0 / 0 | all tests pass 1/1 | 165.4 |
-| L3s | 128K, 1 stream | reasoning | 1 | 1 / 0 / 0 | correct 1/1 | 170.3 | 1 / 0 / 0 | correct 1/1 | 238.7 |
-| L3s | 128K, 1 stream | json | 1 | 1 / 0 / 0 | valid 1/1 | 156.8 | 1 / 0 / 0 | valid 1/1 | 195.0 |
-
-### K4: precision (top-20 measures)
-
-Run [`results/2026-10-27-k4-vllm-cuteafd/`](results/2026-10-27-k4-vllm-cuteafd/) ([`METHOD.md`](results/2026-10-27-k4-vllm-cuteafd/METHOD.md)); brandonmusic's GLM-5.3-Flash-tr3-4bpw ("K4"; author Local Inference
-Lab, Inc.; attribution in [`NOTICE.md`](NOTICE.md)). Its precision numbers are **top-20 measures** (KL20, KL_pb20):
-never read them against the full-vocabulary or coarse KL above as the same quantity. CuteAFD against the per-row mean
-of two vLLM launches.
-
-| Measure (top-20) | Scored history, tokens (min / median / max) | vLLM (mean of 2 launches) | CuteAFD | CuteAFD − vLLM [95%] | vLLM launch 2 − launch 1 | Reading |
-|---|---|---|---|---|---|---|
-| P-A, teacher KL20 (25 windows × 2,048 tokens) | 1 / 1,024 / 2,047 | 0.0192 | 0.0219 | +0.0027 [+0.0012, +0.0047] | +0.0000 | differs |
-| P-A, top-1 agreement with the teacher | 1 / 1,024 / 2,047 | 95.28% | 94.73% | -0.55 pts [-0.72, -0.37] | +0.00 pts | differs |
-| P-A, NLL of the actual token | 1 / 1,024 / 2,047 | 1.0627 | 1.0653 | +0.0026 [+0.0005, +0.0048] | +0.0000 | differs |
-| P-B, generated rows, KL_pb20 | 1,084 / 5,751.5 / 14,402 | 0.0305 | 0.0358 | +0.0053 [+0.0033, +0.0076] | -0.0002 | differs |
-| P-B 0-2K | 1,084 / 1,735 / 2,361 | 0.0325 | 0.0343 | +0.0018 [-0.0007, +0.0049] | +0.0004 | not resolved |
-| P-B 2-8K | 2,083 / 4,254 / 5,781 | 0.0219 | 0.0235 | +0.0015 [+0.0005, +0.0027] | +0.0004 | differs |
-| P-B 8-16K | 10,284 / 12,069 / 14,402 | 0.0334 | 0.0424 | +0.0090 [+0.0062, +0.0122] | -0.0009 | differs |
-| P-B block B (long code reading; the 8-16K windows) | 10,790 / 12,083 / 13,388 | 0.0372 | 0.0469 | +0.0098 [+0.0064, +0.0137] | -0.0012 | differs |
-| P-B, generated rows, top-1 agreement | 1,084 / 5,751.5 / 14,402 | 94.93% | 94.59% | -0.34 pts [-0.62, -0.09] | +0.11 pts | differs |
-| Q2, NLL on human-written text, 32K-128K (6 documents, t-interval) | 28,672 / 63,487.5 / 131,071 | 1.2434 | 1.2510 | +0.0076 [-0.0076, +0.0228] | +0.0003 | not resolved |
-
-### K4: throughput
-
-| Input × streams | Contents | Decode per stream, CuteAFD ÷ vLLM (readings) | Aggregate, CuteAFD ÷ vLLM (readings) | First token, s: vLLM / CuteAFD (median over contents) |
-|---|---|---|---|---|
-| 1K × 1 | code, json, prose, reasoning | 1.12-1.34x (4 faster) | 1.10-1.27x (4 faster) | 0.27 / 0.42 |
-| 1K × 4 | code, json, prose, reasoning | 1.15-1.23x (4 faster) | 1.06-1.12x (1 faster, 3 level) | 0.87 / 1.26 |
-| 8K × 1 | code, json, prose, reasoning | 1.05-1.38x (3 faster, 1 level) | 1.10-1.28x (4 faster) | 2.20 / 1.84 |
-| 8K × 4 | code, json, prose, reasoning | 1.11-1.15x (4 faster) | 1.09-1.18x (4 faster) | 5.72 / 5.30 |
-| 32K × 1 | code, prose | 1.12-1.19x (2 faster) | 1.17-1.21x (2 faster) | 9.05 / 7.38 |
-| 32K × 4 | code, prose | 1.54-1.59x (2 faster) | 1.12x (2 faster) | 24.02 / 27.56 |
-| 128K × 1 | code, prose | 1.06-1.19x (1 faster, 1 level) | 1.18-1.20x (2 faster) | 36.36 / 30.08 |
-
-Detail, K4 against K3.25 under the same top-20 definition, startup, Block L and the follow-ups:
-[`results/2026-10-27-k4-vllm-cuteafd/README.md`](results/2026-10-27-k4-vllm-cuteafd/README.md).
-
+| Run | Kind | Question | Findings |
+|---|---|---|---|
+| [2026-10-26](results/2026-10-26-cuteafd-setup-checks) | check | Are the Core-FP8 checkpoint's bytes what its provenance says relative to K3.25-v1, and does CuteAFD v3.0.1 share, in source, the vLLM-engine issues D1-D7 and E1 found in earlier evaluation? | 14 |
+| [2026-10-26](results/2026-10-26-cuteafd-vs-vllm) | measurement | How do tpurtell's CuteAFD v3.0.1 and his vLLM fork v0.9.2, each as shipped on GLM-5.3-Flash EXL3 K3.25 with identical expert bytes on 2 RTX PRO 6000 Max-Q, compare in teacher-anchored precision, serving throughput and long-output behaviour under a frozen protocol? | 67 |
+| [2026-10-26](results/2026-10-26-e1-router-route) | exploratory | Are CuteAFD's GLM-5.3-Flash router logits bit-identical across the switch between its skinny GEMV route (up to 160 rows) and its TMA tensor-core route, a question its source audit left open? | 4 |
+| [2026-10-27](results/2026-10-27-k4-vllm-cuteafd) | measurement | With brandonmusic's K4 checkpoint, how do tpurtell's vLLM fork v0.9.2 and CuteAFD v3.0.1 compare in distance from BF16, throughput and long-output behaviour under a protocol frozen before the first comparison request, and which CuteAFD settings move its precision difference? | 49 |
+| [2026-10-27](results/2026-10-27-long-context-pilot) | exploratory | Do tpurtell's vLLM fork v0.9.2 and CuteAFD v3.0.1, serving K3.25, accept prompts of 256K, 512K and 1M tokens and return planted needles from them? | 2 |
+| [2026-10-27](results/2026-10-27-vllm-startup-cache) | measurement | How much does persisting the TileLang, Triton, TorchInductor and CUDA JIT caches shorten the startup of tpurtell's vLLM fork v0.9.2 on this setup? | 5 |
+| [2026-10-30](results/2026-10-30-cuteafd-v4) | measurement | Does CuteAFD v4.0.0 change precision, speed, memory and long-output behaviour against v3.0.1 and against tpurtell's vLLM fork v0.9.2 on K3.25 and K4, and how far is each checkpoint, including K4-Core-K6, from BF16? | 44 |
+| [2026-11-02](results/2026-11-02-thinking-length) | measurement | Does storing K4-Core-K6's 316 core tensors in 6 bits instead of BF16 make the model think longer, on the vLLM fork with a local loader modification? | 22 |
+| [2026-11-02](results/2026-11-02-tool-calling) | measurement | Does multi-turn tool calling work, and does its tool-eval-bench outcome differ, between CuteAFD v4.0.0 and tpurtell's vLLM fork v0.9.2 (same K4 checkpoint; on K3.25 each engine runs its own variant, Core-FP8 on CuteAFD and v1 on the vLLM fork)? | 9 |
+| [2026-11-03](results/2026-11-03-cuteafd-core-swap) | measurement | On CuteAFD v4.0.0, is K4-Core-K6's longer thinking against K4 associated with its 6-bit core or with its routed experts? | 19 |
+| [2026-11-05](results/2026-11-05-attn-position) | exploratory | On the 93 fixed science-question traces, does the core's effect on next-token distributions or on the stop decision build up with position, and do q_b and the output projections in BF16 together move the stop decision? | 18 |
+| [2026-11-05](results/2026-11-05-code-thinking) | measurement | On code tasks on CuteAFD v4.0.0, does K4-Core-K6 with its native 6-bit core think longer than the same checkpoint with its BF16 core converted to FP8 at load? | 6 |
+| [2026-11-06](results/2026-11-06-cuteafd-fp8-ablation) | measurement | On CuteAFD v4.0.0, which of the FP8 settings applied to the BF16-core checkpoint (KDA projections, vocabulary head, prefill activations) goes with its shorter code reasoning against the native 6-bit core? | 22 |
+| [2026-11-06](results/2026-11-06-new-questions) | exploratory | Does the q_b + output-projection stop-decision shift found on 11 science-question questions, and the core's (absent) effect on the stop decision, hold on 30 new questions on both engines? | 19 |
+| [2026-11-06](results/2026-11-06-vllm-code-thinking) | measurement | On the vLLM fork with the route-b loader, where only the core's weight values differ between arms, does K4-Core-K6's 6-bit core change code thinking length against the original BF16 core, and does the result agree with CuteAFD's? | 11 |
+| [2026-11-10](results/2026-11-10-context-probe) | measurement | On CuteAFD v5.0.0 with two RTX PRO 6000, what does the precision of the tensors outside the K4 experts (BF16 core, BF16 q_b_proj and o_proj with K6 elsewhere, K6 core) buy on graded tasks as context grows from 4K to 127K tokens, delivered as one message and over eight turns? | 62 |
 <!-- results:end -->
 
-## Running it: observations in detail
+## Checking the numbers
 
-Each item is the behaviour as measured or as read in source, with how it is known. None is a claim about output quality.
-
-### Capacity
-
-|  | vLLM fork | CuteAFD |
-|---|---|---|
-| K3.25, KV cache at startup | 4,707,515 tokens | 4,726,784 tokens |
-| K4, KV cache at startup | 1,377,179 tokens | 447,488 tokens (scoring launch 451,584) |
-| Requests at once | 16 (`max-num-seqs`) | 16 (`CONCURRENCY` default) |
-
-K3.25 leaves room for about 4.7 million tokens of KV cache on both engines; K4 for far fewer (1.38 million on the
-vLLM fork, 447,488 on CuteAFD). K3.25's weights take about 69 GiB per GPU on the vLLM fork (its startup log); K4's
-weight size is not in the published files. The smaller K4 pools are consistent with its 4-bit experts taking more
-memory than K3.25's 3.25-bit ones, but that was not measured, and why CuteAFD's K4 pool is smaller than the vLLM fork's
-was not examined beyond the planner's lines below. These are v3.0.1 pools. On CuteAFD v4.0.0 the serving pools are
-5,799,424 (K3.25), 1,931,264 (K4) and 2,240,512 (K4-Core-K6) tokens, against the vLLM fork's 4,762,898 and 1,377,179
-in the same run ([`results/2026-10-30-cuteafd-v4`](results/2026-10-30-cuteafd-v4/)).
-
-CuteAFD on K4 needs one local setting on two RTX GPUs: at its defaults the planner refuses K4 (pool 260,608 tokens,
-below its 1,048,576-token context floor); `MAX_CONTEXT_TOKENS=262144` gives a 447,488-token pool beside the desktop's
-context on GPU 1 (the dry run predicted 605,696). Its BF16 KDA and BF16 head options do not fit a K4 serving launch. With that setting CuteAFD
-serves K4 with prompts up to 262,144 tokens; the needle checks at 256K-1M tokens ran on K3.25.
-
-### Startup
-
-Startup time is the cost of switching models. "Ready" here is the engine's ready line in its server log: for K3.25
-counted from container start (measured from the server logs:
-[`results/2026-10-27-vllm-startup-cache`](results/2026-10-27-vllm-startup-cache/)). CuteAFD v3.0.1 is ready in 89 s: its
-kernels are compiled ahead of time and shipped in the image (`PROGRAMS.json`), so there is no startup JIT; its CPU
-planner computes the memory layout up front, so there is no profiling pass; and the experts load through a parallel
-shared read in 30.6 s. On this setup, the container keeps `~/.cache` between starts but not the TileLang, Triton,
-TorchInductor and CUDA kernel caches, so the vLLM fork v0.9.2 compiled 49 TileLang kernels at every start and was ready
-in 697 s (11.6 min). Persisting those caches (pointing `TILELANG_CACHE_DIR`, `TRITON_CACHE_DIR`,
-`TORCHINDUCTOR_CACHE_DIR` and `CUDA_CACHE_PATH` into the cache directory the container already keeps) brings it to
-382 s (6.4 min, −45%):
-
-| Phase | Caches not persisted | Caches persisted, warm |
-|---|---|---|
-| Process start and weight loading | 242 s (weights 135.7 s) | 254 s (weights 139.3 s) |
-| TileLang JIT | 222 s (49 compiles) | 0 compiles |
-| CUDA graph capture | 153 s | 58 s (43 s of it capturing graphs) |
-| Warm-up (4 passes) | about 73 s | about 64 s |
-| **Ready** | **697 s** | **382 s** |
-
-The first start after the change fills the caches and takes 714 s; later starts are warm. What remains is mostly
-weight loading (about 4 minutes including loader overhead). Other projects keep these caches between starts the same
-way ([blackwell-llm-docker#73](https://github.com/local-inference-lab/blackwell-llm-docker/pull/73), which reports about
-3.2 min of TileLang compiling per restart; [sglang#39364](https://github.com/sgl-project/sglang/pull/39364); vLLM's
-[Docker guide](https://docs.vllm.ai/en/stable/deployment/docker/) mounts the Hugging Face cache and `~/.cache/vllm`).
-
-On K4, counted from the start command (Stage 1 of the K4 run; one cold and one warm start per engine,
-descriptive). The vLLM fork's 257 s warm start is not directly comparable with K3.25's 382 s: a different checkpoint,
-measured in a different session (K3.25: the JIT-cache measurement of 2026-10-27 morning; K4: that evening, with the same
-cache overlay); what differs between the two starts was not broken down. CuteAFD's K4 cold and warm starts (76 s and
-86 s) are one start each, so their 10 s difference is not read as an effect.
-
-| Launch | To /v1/models | To ready | Capacity at startup |
-|---|---|---|---|
-| vLLM cold | 249 s | 307 s | 1,377,179 tokens, 16 requests |
-| vLLM warm | 200 s | 257 s | 1,377,179 tokens, 16 requests |
-| CuteAFD cold | 74 s | 76 s | 447,488 tokens, 16 requests |
-| CuteAFD warm | 79 s | 86 s | 447,488 tokens, 16 requests |
-| CuteAFD scoring launch | 88 s | 90 s | 451,584 tokens, 16 requests |
-
-### Prefix cache
-
-- **vLLM prefix-cache reuse is in whole 4,352-token blocks, without the last two blocks of a prompt** (measured, F2):
-  repeated prompts of 1K to 8,704 tokens got 0 cached tokens; a 17,408-token prompt got 4,352, then 8,704. The server
-  log shows the MLA cache groups at block size 4,352 in `align` mode. The v0.9.0 opt-in boundary lookup
-  (`GLM53_DFLASH_BOUNDARY_LOOKUP`, default 0) was not tested.
-- **CuteAFD restored a repeated 8K prompt from its prefix cache in 0.017 s** (Block T cached cell; the vLLM fork took
-  2.10 s, uncached). Its serving launch keeps 20 entries. The K4 scoring launch turns the prefix cache off
-  (`PREFIX_CACHE_ENTRIES=0`) to fit the full prefill-logits buffer beside the desktop's context; scoring probes never
-  read the prefix cache, so no scored value changes.
-
-### Thinking off and control tokens
-
-- **Thinking off: the two stacks render different prompts** (prompt measured with one request; parser behaviour read in
-  source). The checkpoint's chat template, byte-identical on both stacks, has no thinking switch and always ends with
-  `<|assistant|><think>`. CuteAFD renders `enable_thinking: false` as an empty `<think></think>` (one more prompt
-  token). vLLM renders the same prompt with the flag on or off (147 prompt tokens both times), and with it off its
-  reasoning parser returns the generated reasoning as content. Thinking off would therefore give the two engines
-  different prompts and different generated content, so every generation request in Blocks T and L runs with thinking on.
-- **Control-token strings in user text** (measured in Block T and the K4 smoke checks). The 128K code prompts contain
-  literal `<think>` and `</think>` strings; the vLLM stack parses them as control tokens, CuteAFD keeps them as text, so
-  those prompts are 24 tokens longer on CuteAFD.
-- **Multi-turn reasoning history** (rendered offline with each template; prompt tokens measured on both engines,
-  [`results/2026-11-02-tool-calling`](results/2026-11-02-tool-calling/)). Clients that send an assistant turn's
-  reasoning back in the history (tool-calling agents do) get different prompts by default: K4's chat template drops
-  reasoning from earlier user turns, the template the vLLM fork serves keeps it, and CuteAFD renders each checkpoint's
-  own template. With `chat_template_kwargs: {"clear_thinking": false}` all three templates (K4, the vLLM fork's,
-  K4-Core-K6) render byte-identical text, and both engines reported the same prompt tokens on every checkpoint.
-
-### Launcher defaults that matter
-
-- **CuteAFD** (read in the launcher): output limit 4,096 tokens, which clamps longer requests (the runs here set
-  `MAX_OUTPUT_TOKENS=393216`; with it, a 12,000-token request ran to its `max_tokens`, measured); request logging on
-  unless `USAGE=off`; listen address `0.0.0.0` under host networking unless `ADDR` is set; the coordinator launch passes
-  `--device=/dev/infiniband`, which Docker requires to exist (the runs here pass it only when it exists, in the same form
-  as the repository's `wip.sh`: [`repro/cuteafd/patches/`](repro/cuteafd/patches/)). Its `swiglu_limit` is a compiled
-  constant (10, this checkpoint's declared value); the value in `config.json` is parsed but not compared with it.
-- **vLLM fork**: the runs use the v0.9.2 release image with the v0.9.0 repository's `start.sh` (its `IMAGE`
-  override; the launcher is otherwise unchanged). Its GPU memory utilization defaults to 0.97, which does not start beside a desktop session on GPU 1
-  (the runs use 0.95), and its port is published as `PORT` (default `8001`, on every interface; the runs use
-  `127.0.0.1:8001`). The K4 launches also carried the stack's local environment overlay unchanged: the JIT caches
-  above and a host-memory stopgap that calls `malloc_trim` in the workers periodically (noted in
-  [`repro/k4/vllm/env.sh`](repro/k4/vllm/env.sh)).
-
-### Determinism and drafting
-
-- **vLLM's multi-chunk prefill is not run-to-run deterministic** (measured, Block Q captures, each run alone on the
-  server). Rows inside the first 2,045-token prefill chunk are bit-identical between runs; rows beyond it almost never
-  are. CuteAFD's repeats are byte-identical. CuteAFD is therefore compared with the mean of three vLLM runs from two
-  launches (K3.25) or of two launches (K4).
-- **Same seed, same prompt** (K4 smoke check, 3 prompts): CuteAFD returned identical text 3 of 3 times, the vLLM fork
-  1 of 3; the cause was not examined. Repeats in these runs always use distinct seeds.
-- **Draft acceptance** (measured on vLLM, drift subset): 1.53 of 3 drafted tokens accepted per verify step (51%).
-  CuteAFD drafts adaptively and exposes no acceptance counter on its API.
-
-### Other engine observations
-
-- **CuteAFD converts K4's BF16 projections to FP8 at load** (read in source before the K4 freeze): attention, dense and
-  shared projections in 128×128 blocks with pow2 scales, head and KDA projections per row. On K3.25 those projections
-  came from the official FP8 checkpoint (Core-FP8); the vLLM fork serves them in BF16.
-- **CuteAFD's router logits differ slightly between its two GEMM routes** (measured on one GPU, exploratory): across the
-  160/161-row switch 0.36% of logits are bit-equal, the largest difference is 8.2e-5, and the top-8 expert set differs in
-  2 of 64,000 rows; within each route the logits do not depend on the row count, and decode steps stay on one route.
-  This is numerical variation between routes, the same kind as observed on the vLLM engine:
-  [`results/2026-10-26-e1-router-route`](results/2026-10-26-e1-router-route/).
-- **Earlier vLLM-engine items D1-D7 in CuteAFD** (read in source, not measured): the source audit maps the seven items
-  from earlier evaluation (five of them addressed in tpurtell's v0.9.2) onto CuteAFD. For four, CuteAFD covers the same
-  case in its own code; three do not arise in its design:
-  [`results/2026-10-26-cuteafd-setup-checks`](results/2026-10-26-cuteafd-setup-checks/).
-
-## Setup
-
-**Hardware.** 2× NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition (300 W), driver 595.84, Linux 7.0, IOMMU in
-pass-through mode. Besides the engine under test, the only processes on the GPUs were desktop graphics clients (about
-2 GB on GPU 1), the same for both engines.
-
-| | vLLM fork (V1) | CuteAFD (C1) | CuteAFD control (C0, Block Q only) |
-|---|---|---|---|
-| Engine | tpurtell/glm-5.3-flash-ext3-2x-rtx v0.9.2 (tag `f18f51f5`) | tpurtell/cuteafd v3.0.1 (`9098781f`) | same as C1 |
-| Image | `ghcr.io/tpurtell/glm-5.3-flash-exl3-4bpw-2x-rtx:v0.9.2`, index `sha256:ea0430aa772e8cedfef1cdf80c30f4962ba43bb0991ac329950067ba1375f3e2` | `ghcr.io/tpurtell/cuteafd-coordinator:v3.0.1@sha256:392db7c0bdd39ec5aacda800f9a3ada70342721a2357ad1ec09ad0ef5981459a` | same as C1 |
-| Checkpoint | `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-v1` @ `0490d2f708b12145f6516555ab066aaeb401cd21` | `wrldsuksgo2mars/GLM-5.3-Flash-EXL3-K3.25-Core-FP8` @ `d31ebc921f1f098b4a56d37aaccb3cdef4096184` | K3.25-v1 @ `0490d2f7`, `GLM5_FLASH_FP8_MODEL_ID=off` |
-| Expert bytes | K3.25-v1 | identical to K3.25-v1: 150,047 of 150,047 base tensors byte-checked | K3.25-v1 |
-| Projections | BF16 | official FP8 E4M3 (179 tensors) | FP8, quantized at load |
-| Drafter | DFlash2, 3 draft tokens fixed, BF16, `incoai/GLM-5.3-Flash-DFlash2` @ `bf582e4e` | DFlash2, same checkpoint, adaptive depth, FP8 drafter | same as C1 |
-| KV cache | FP8 MLA, 4,707,515 tokens | FP8 MLA latent, 4,726,784 tokens | |
-| Request limit | 16 (`max-num-seqs`) | 16 (`CONCURRENCY` default) | |
-| Startup to ready | 382 s with the JIT caches persisted on this setup (697 s without) | 89 s (kernels compiled ahead of time) | |
-| Prefix cache | on, `align` mode (reuse in 4,352-token blocks, F2) | on (engine default) | |
-| Attention and indexer | MLA layers owned whole by one GPU (`split:25`); FP8 index keys | MLA split by token across both GPUs (`context`); BF16 index keys | as C1 |
-| Logits | BF16 before log-softmax | FP32 | as C1 |
-| Local deltas | GPU memory utilization 0.95 (upstream 0.97, which does not start beside the desktop); listen address; launched with the v0.9.0 repository's start script and the v0.9.2 image | listen address 127.0.0.1:8001, request logging off (`USAGE=off`), `MAX_OUTPUT_TOKENS=393216`, the infiniband guard | as C1 |
-
-Block Q additionally needs each engine's scoring path: CuteAFD's bench endpoint (`ENABLE_BENCH=on`, an API key,
-`FULL_PREFILL_LOGITS=on`), and on vLLM a prompt-logprob capture plugin ([`repro/stage0/capture-vllm`](repro/stage0/capture-vllm/)).
-The FP8 projections in Core-FP8 are reproducible from K3.25-v1's BF16 tensors with amax/448 128×128 block scales
-(99.99998% of E4M3 codes equal): [`results/2026-10-26-cuteafd-setup-checks`](results/2026-10-26-cuteafd-setup-checks/).
-Exact launch files: [`repro/cuteafd/`](repro/cuteafd/) and [`repro/REPRODUCE.md`](repro/REPRODUCE.md). GPU telemetry from
-2026-10-27 01:06 on (after both engines' Block T): both GPUs at the 300 W cap while busy, GPU 0 median 1,890 MHz and 87 °C
-([`telemetry/`](results/2026-10-26-cuteafd-vs-vllm/telemetry/)).
-
-The K4 measurement used the same engines, images, drafter and machine with brandonmusic's GLM-5.3-Flash-tr3-4bpw
-(`brandonmusic/GLM-5.3-Flash-tr3-4bpw` @ `a5fee929`) on both arms; its arms, declared differences and settings are in
-[`METHOD.md`](results/2026-10-27-k4-vllm-cuteafd/METHOD.md).
-
-## Confounds
-
-What else differs between the two arms, and how each block handles it.
-
-| Confound | What differs | How it is handled |
-|---|---|---|
-| Thinking-off rendering | CuteAFD renders off as `<think></think>`; vLLM's template ignores the flag | Blocks T and L run thinking on for every request (amendment A2), so both engines get the same prompt. |
-| Chat template | Byte-identical Z.ai template on both; prompt token counts differ by one only when thinking is off | Thinking on everywhere; each request's real `prompt_tokens` is recorded. Block Q uses raw token ids, no template. |
-| Prefix cache | CuteAFD restores repeated prompts from its cache; vLLM's `align` mode reuses whole 4,352-token blocks only, not the last two of a prompt (F2) | Every Block T and L prompt starts with a per-request nonce line, so no prompt is served from cache; one small cell measures cached prompts on purpose. vLLM's prompt-logprob requests skip the cache lookup. |
-| FP8 vs BF16 arithmetic | CuteAFD: MLA, shared and dense projections, KDA projections and output head in FP8; vLLM: BF16 GEMMs. KV FP8 on both; router output FP32 on both | Part of what is compared: each engine as its author ships it. C0 isolates the projection source inside CuteAFD; follow-up F1 the optional FP8 paths. A vLLM arm on Core-FP8 would need a loader change and is not run. |
-| Determinism | CuteAFD repeats are byte-identical; vLLM's rows beyond the first 2,045-token prefill chunk vary from run to run (every capture ran alone, so this is not batching) | CuteAFD is paired against the mean of three vLLM runs from two launches (F3); within-engine repeats are reported next to every difference. |
-| Prefill shape | vLLM chunks prefill at about 2,048 tokens; CuteAFD prefills token 0 alone, then up to 8,192 rows over 2 lanes | Recorded per arm, not forced. |
-| P-B trailing context rows | The panel's trailing context rows (excluded from the primary metrics) are 30 copies of one unrelated file; there, KL is 0.7-3.1 nat between engines and up to 1.96 nat between two vLLM runs | These rows react strongly to any numerical change, so they are not used as a precision probe; only generated rows are primary, as tpurtell's rule specifies. |
-| Teacher context limit | No BF16 reference beyond 14,403 tokens (P-B's longest window) | Beyond 14K, Q2 compares the engines with each other and with their own repeats; it does not say which is closer to BF16. |
-| Load condition | CuteAFD's scoring path takes an exclusive bench slot | Block Q is scored on idle servers only; batch-dependent numerics are covered only by the router route test. |
-| Speculation | vLLM drafts 3 tokens per step with a BF16 drafter; CuteAFD drafts adaptively with an FP8 drafter | Both as shipped. vLLM accepts 1.53 of 3 drafted tokens per step (drift subset); CuteAFD's API exposes no acceptance counter. |
-| Order and drift | Engines run one after the other on one machine | Order V then C; a drift repeat of 16 cells on each engine, hours later: medians within ±2%, single cells up to about ±13%. GPU telemetry from 01:06 on: both GPUs at the 300 W cap while busy. |
-| Request inputs | Per-request nonces differ between the engines (prompt bodies identical); the 128K code prompts contain control-token strings that vLLM parses and CuteAFD keeps as text (24 tokens) | Reported per cell; the effect on throughput is small. The drift repeats reuse each engine's own nonces, so they are byte-identical to that engine's earlier cells. |
-| Other arithmetic and geometry | Attention placement (vLLM `split:25`, CuteAFD `context`), index-key format (FP8 vs BF16), KDA output sharding, logits (BF16 vs FP32), prefill chunking | Part of each engine as shipped; listed so the precision differences are not read as one cause. F1 tests the switches CuteAFD exposes. |
-
-Fixtures are not comparable across model families, and NLL is per tokenizer; every number here is one model family
-and one tokenizer.
-
-## Timeline
-
-Chronological, times UTC−7. K3.25 checkpoint first ([`results/2026-10-26-cuteafd-vs-vllm`](results/2026-10-26-cuteafd-vs-vllm/)), then K4.
-
-2026-10-26:
-
-- **14:14-14:47.** CuteAFD v3.0.1 cloned at its release tag; local config and the infiniband guard; Core-FP8 checkpoint
-  byte-checked against K3.25-v1 (expert bytes identical) and its FP8 projections checked against K3.25-v1's BF16; source
-  audit; first start, ready in 89 s.
-- **15:04.** Router route test on CuteAFD (one GPU, about a minute; exploratory).
-- **15:56-16:38.** Zero-GPU discovery for a higher-fidelity comparison; prompt sources fetched with revisions, licences
-  and hashes; the Stage 0 instruments built and tested on CPU.
-- **16:32.** CuteAFD Block Q captures begin, before the protocol is frozen (declared in amendment A1: instruments fixed
-  and not tuned, no vLLM precision result yet).
-- **~17:15.** Amendment A1. Amendment A2: thinking on for every Block T and L request, sampling from the checkpoint's
-  generation config, prompt set and drivers frozen by hash.
-- **17:32.** Protocol frozen (`protocol/FROZEN.json`).
-- **17:47 to before 18:35.** vLLM Block Q captures (capture plugin, then the normal server restored); Block Q scored on
-  CPU by 18:40.
-- **17:59.** Thinking-off check on vLLM (one request): the same 147-token prompt with thinking on and off; with it
-  off, the reasoning parser returns the generated reasoning as content.
-- **18:35-20:35.** Block T on vLLM: 1,008 measured requests, 0 errors.
-- **20:36-22:39.** Block L on vLLM, stages L1 to L3s, 100 requests, 0 errors; analysed.
-- **22:39.** Block T on CuteAFD started.
-- **23:20.** Follow-ups F1 (CuteAFD FP8 ablation) and F2 (vLLM prefix cache) declared, after the Block Q results were
-  known; they are labelled as outside the frozen protocol and are reported separately.
-
-2026-10-27:
-
-- **00:29.** Block T on CuteAFD finished (started 22:39): 1,008 measured requests, 0 errors.
-- **~00:30.** F1 amendment A1: a speed subset per F1 arm, declared before any F1 request.
-- **00:31-01:40.** F1: four CuteAFD scoring launches (KDA projections, head, prefill GEMMs, all three) on panel P-B,
-  each with its speed subset, plus a speed baseline on the unchanged scoring launch.
-- **01:04. Separate review** of Blocks Q, T and vLLM's Block L by a reviewer who did not run the measurements,
-  read-only and CPU only
-  ([`AUDIT-2026-10-27.md`](results/2026-10-26-cuteafd-vs-vllm/AUDIT-2026-10-27.md)). Results it established, written at
-  the top of [`q/RESULTS-Q.md`](results/2026-10-26-cuteafd-vs-vllm/q/RESULTS-Q.md):
-  - **vLLM's run-to-run variation comes from multi-chunk prefill.** Every vLLM capture ran alone; rows inside the first
-    2,045-token prefill chunk are bit-identical between runs, rows beyond it almost never are.
-  - **The headline pairs CuteAFD against the mean of the vLLM runs**, since one vLLM run is one draw of a varying engine.
-    The 2-8K top-1 difference against the first run does not hold against the second.
-  - **Length and content are not separated.** The 8-16K bucket is block B, long code reading; within block A, the only
-    block present at every length, the KL difference is flat.
-  - **Q2: no NLL difference larger than about ±0.005 nat at 32K-128K** on 6 documents. Per-type intervals rest on 3
-    documents each; engine-vs-engine disagreement is about 1.8x vLLM's own run-to-run disagreement on matched documents.
-  - **Trailing context rows are sensitive to any numerical change.** They are 30 copies of one unrelated file, and vLLM
-    differs from itself there by up to 1.96 nat; they are not used as a precision probe.
-  - **C0 control:** C1 − C0 −0.0003 [−0.0019, +0.0014].
-- **~01:15.** Declared after the audit and before any of these requests: the drift subset, F3 (a second vLLM launch
-  for precision) and vLLM draft-acceptance counters; GPU telemetry logged every 5 s.
-- **01:42-03:21.** Block L on CuteAFD, stages L1 to L3s, 100 requests, every gate passed; analysed together with
-  vLLM's run.
-- **03:22-03:35.** Drift repeat on CuteAFD (same launch, same seeds and nonces as its Block T cells).
-- **03:35-03:51.** F3: a fresh vLLM capture launch, P-B and P-A captured once more (run V2).
-- **04:03-04:17.** Drift repeat on vLLM (fresh normal launch) with acceptance counters; F2 prefix-cache lengths.
-- **04:32. Evaluation complete.** Every slot of the run done; summary written
-  ([`SUMMARY.md`](results/2026-10-26-cuteafd-vs-vllm/SUMMARY.md)).
-- **10:55-11:14.** vLLM JIT caches persisted on this setup (TileLang, Triton, TorchInductor and CUDA, into the cache
-  directory the container already keeps): startup 697 → 382 s; the first start after the change fills the caches (714 s)
-  ([`results/2026-10-27-vllm-startup-cache`](results/2026-10-27-vllm-startup-cache/)).
-- **13:03-13:34.** Needle pilot on both engines with K3.25, prompts of 256K, 512K and 1M tokens, one request each (exploratory; [`results/2026-10-27-long-context-pilot`](results/2026-10-27-long-context-pilot/)).
-
-2026-10-27 (evening), K4 checkpoint ([`results/2026-10-27-k4-vllm-cuteafd`](results/2026-10-27-k4-vllm-cuteafd/); no separate review of this run):
-
-- **17:34-17:51.** K4 startup and smoke checks on both engines (one cold and one warm start each, and CuteAFD's scoring
-  launch).
-- **17:58.** K4 protocol frozen, before any comparison request (`FROZEN.json` sha256 `368e1700…`;
-  [`METHOD.md`](results/2026-10-27-k4-vllm-cuteafd/METHOD.md)).
-- **18:03-19:48.** K4 Block Q: vLLM launch 1, CuteAFD's scoring launch (every panel twice, byte-identical), vLLM launch 2.
-- **19:54-23:25.** K4 Block T: vLLM 19:54-20:47 and its drift subset 20:47-20:58; CuteAFD 22:12-22:57 and
-  its drift subset 22:57-23:07; a final vLLM drift subset 23:13-23:25. 264 measured requests per engine, 0 errors.
-- **Before 23:31.** Follow-up F1-K4 (W8A16 prefill) declared, after the Block Q results.
-- **23:31-00:32.** F1-K4: CuteAFD scoring launch with W8A16 prefill; speed on serving launches 23:50-00:00 (as shipped),
-  00:02-00:12 (W8A16), 00:14-00:24 (as shipped).
-
-2026-10-28:
-
-- **From 00:38.** K4 Block L on both engines, vLLM first; analysed afterwards with the frozen K3.25 analyser and the
-  review's loop rule.
-- **To 12:47.** Follow-up F1-K4b (CuteAFD's other FP8 switches) declared before any of its requests; planner dry runs
-  (BF16 KDA projections do not fit a serving launch with K4); the amax and best scale rules captured.
-- **13:05-13:10.** F1-K4b amendments B1 and B2: drafter-off scoring launches for the BF16 head and KDA arms, gated by a
-  control whose rows were byte-identical to as shipped on all 157,671 scored rows.
-- **14:45-15:19.** K4c (W8A16 + amax), declared before any of its requests: speed on serving
-  launches 14:45-14:55 (as shipped), 14:57-15:07, 15:09-15:19 (as shipped).
-- **17:13-17:47.** K4d (W8A16 + best), declared before any of its requests: speed
-  17:13-17:23, 17:25-17:35, 17:37-17:47.
-
-
-## Other runs
-
-Not part of the comparison above. Exploratory runs and checks are labelled as such in their folders and never share a
-table with the measured results.
-
-| Run | Kind | What it is |
-|---|---|---|
-| [`2026-10-26-cuteafd-setup-checks`](results/2026-10-26-cuteafd-setup-checks/) | check | Core-FP8 expert bytes and FP8 projections checked against K3.25-v1; CuteAFD source audit |
-| [`2026-10-26-e1-router-route`](results/2026-10-26-e1-router-route/) | exploratory | CuteAFD router logits across its 160/161-row route switch (one GPU, one kernel) |
-| [`2026-10-27-long-context-pilot`](results/2026-10-27-long-context-pilot/) | exploratory | Needle retrieval at 256K, 512K and 1M tokens, both engines, K3.25 (one request per prompt and engine) |
-| [`2026-10-27-vllm-startup-cache`](results/2026-10-27-vllm-startup-cache/) | measurement | vLLM v0.9.2 startup time with and without persisted JIT caches, and CuteAFD's for comparison |
-| [`2026-11-05-attn-position`](results/2026-11-05-attn-position/) | exploratory | Does the core's effect grow with position? Position analysis of the fixed-trace dumps, and the vLLM fork with q_b and the output projections in BF16 together |
-| [`2026-11-06-new-questions`](results/2026-11-06-new-questions/) | exploratory | New questions: the q_b + output-projection stop-decision shift and the core, on 30 questions not used before |
-
-## Reproduce
-
-[`repro/REPRODUCE.md`](repro/REPRODUCE.md) walks through it step by step: the engines and checkpoints, the CuteAFD
-configs and launcher patch, the vLLM capture plugin, the prompt build (with hashes to confirm), the drivers, the scorers
-and the analysis. Adding a new engine version, arm or follow-up: [`iterations/`](iterations/).
-
-```bash
-python3 tools/verify.py          # manifests, published-copy hashes, labels, content scan
-python3 tools/build_readme.py    # rebuild this README and the run summaries from results/
-python3 tools/build_site.py      # rebuild the site in docs/
-python3 tools/build_findings.py  # docs/findings.json and docs/llms.txt
-```
-
-The tools in `tools/` need Python 3.10+ and its standard library only; the scorers in `repro/stage0/scorers/` also
-need numpy and scipy.
+`python3 tools/build.py --check` re-reads every finding's value from its file, refuses any number in a finding,
+judgement or page that does not trace to the data, and checks that every published file under `results/` belongs to
+exactly one goal of the run index. Corrections made when the site was rebuilt are listed on the
+[audit page](https://urbanastrola.github.io/cuteafd-eval/audit.html#corrections).
 
 ## Layout
 
 ```
-protocol/                     the frozen protocol, amendments, follow-ups, dataset provenance; HASHES.json ties copies to the frozen hashes
-results/<date>-<run>/         RUN.json (kind, arms, slot status), README.md, MANIFEST.json, per-block summaries
-repro/                        REPRODUCE.md; stage0/ (drivers, scorers, capture plugin, prompt build); cuteafd/ (configs, patch, plan receipts); k4/ (K4 launch files);
-                              vllm-k6-loader/ (local loader modification of the vLLM fork, not a tpurtell release)
-iterations/                   how a new iteration is frozen, run, exported and verified; TEMPLATE/
-tools/                        verify.py, build_readme.py, build_site.py (its charts: site_charts.py), build_findings.py, README templates
-docs/                         the results site (GitHub Pages, served from main /docs), built by tools/build_site.py
-MANIFEST.json                 sha256 of every file in the repository
+results/<date>-<run>/   one folder per run: RUN.json, README.md, MANIFEST.json, summaries, receipts (frozen)
+protocol/               the first comparison's frozen protocol, amendments, follow-ups and sources
+repro/                  REPRODUCE.md, drivers, scorers, launch files, the local loader modification of the vLLM fork
+site/                   run index, findings, judgements and page text: the source of the site and of this README
+tools/                  build.py (checks, site, README), check_runs.py, tables.py, kl_tails.py, verify.py
+docs/                   the site (GitHub Pages), built from site/ by tools/build.py
 ```
 
-Published copies replace local paths with placeholders such as `<run>/`, `<runs>/`, `<datasets>/`, `<cuteafd>/`,
-`<hf-hub>/`, so those files differ from their frozen hashes; `protocol/HASHES.json` lists which files are byte-identical.
-No logit dumps, token ids or generated reply texts are published: summaries, receipts, small JSON, and per-position scores
-as compact CSV (`q/rows/`).
+Published copies replace local paths with placeholders such as `<run>/` and `<hf-hub>/`. No logit dumps, token ids
+or generated reply texts are published.
 
-## Licenses
+## Licences
 
-Code: Apache-2.0 (`LICENSE`). Results and documentation: CC BY 4.0 (`LICENSE-DATA.md`). Third-party material (prompt sources, tpurtell's fidelity set,
-both engines, the checkpoints) is attributed in [`NOTICE.md`](NOTICE.md) and stays under its own licence. Cite with
-[`CITATION.cff`](CITATION.cff).
+Code: Apache-2.0 (`LICENSE`). Results and documentation: CC BY 4.0 (`LICENSE-DATA.md`). Third-party material is
+attributed in [`NOTICE.md`](NOTICE.md) and stays under its own licence. Cite with [`CITATION.cff`](CITATION.cff).

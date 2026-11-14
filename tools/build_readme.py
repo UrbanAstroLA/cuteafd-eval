@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Build README.md and the comparison run's summaries from the published results.
+"""Build the comparison run's README and block summaries from the published results.
 
     python3 tools/build_readme.py
 
 Reads results/<run>/ (SUMMARY.md, RUN.json, Block Q score summaries, Block T receipts, Block L analyses) and writes:
-  README.md                                     from tools/README.template.md
   results/2026-10-26-cuteafd-vs-vllm/README.md  per-block detail and slot status
   results/2026-10-26-cuteafd-vs-vllm/t/SUMMARY.md   (only while the run has no T-SUMMARY.md of its own)
   results/2026-10-26-cuteafd-vs-vllm/l/SUMMARY.md
@@ -1427,9 +1426,8 @@ def render(template, out, prefix):
 
 def main():
     write_t_summary(); write_l_summary(); write_k4_docs()
-    render("README.template.md", ROOT / "README.md", f"results/{RUN}/")
     render("RUN-README.template.md", D / "README.md", "")
-    print("wrote README.md, results/%s/README.md, l/SUMMARY.md" % RUN)
+    print("wrote results/%s/README.md, l/SUMMARY.md" % RUN)
 
 
 if __name__ == "__main__":

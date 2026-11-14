@@ -37,7 +37,7 @@ Kind, from each run's RUN.json: *measurement* (a frozen protocol), *exploratory*
 
 ## Checking the numbers
 
-`python3 next/tools/build.py --check` re-reads every finding's value from its file, refuses any number in a finding,
+`python3 tools/build.py --check` re-reads every finding's value from its file, refuses any number in a finding,
 judgement or page that does not trace to the data, and checks that every published file under `results/` belongs to
 exactly one goal of the run index. Corrections made when the site was rebuilt are listed on the
 [audit page]({{site}}audit.html#corrections).
@@ -48,9 +48,9 @@ exactly one goal of the run index. Corrections made when the site was rebuilt ar
 results/<date>-<run>/   one folder per run: RUN.json, README.md, MANIFEST.json, summaries, receipts (frozen)
 protocol/               the first comparison's frozen protocol, amendments, follow-ups and sources
 repro/                  REPRODUCE.md, drivers, scorers, launch files, the local loader modification of the vLLM fork
-next/site/              run index, findings, judgements and page text: the source of the site
-next/tools/             build.py (checks and site), check_runs.py, tables.py
-docs/                   the site, built from next/site
+site/                   run index, findings, judgements and page text: the source of the site and of this README
+tools/                  build.py (checks, site, README), check_runs.py, tables.py, kl_tails.py, verify.py
+docs/                   the site (GitHub Pages), built from site/ by tools/build.py
 ```
 
 Published copies replace local paths with placeholders such as `<run>/` and `<hf-hub>/`. No logit dumps, token ids

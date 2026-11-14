@@ -39,11 +39,12 @@ Create `results/<date>-<run>/` with:
 - the per-block summaries and receipts: small JSON and markdown only, no logit dumps, per-row files or generated texts;
 - paths replaced by placeholders (`<run>/`, `<datasets>/`, …).
 
-Then add a dated line to the ledger in `tools/README.template.md`, and rebuild:
+Then index the run (`site/runs/<run>.json`: its goals and the files each owns), state its findings
+(`site/findings/<run>.json`, one measured quantity each, with evidence pointers into its folder), place them on a page
+(`site/pages/`), and rebuild:
 
 ```bash
-python3 tools/build_readme.py
-python3 tools/build_site.py
+python3 tools/build.py
 ```
 
 Once published, a result later found to be confounded keeps its folder: its `kind` becomes `withdrawn`, its README opens

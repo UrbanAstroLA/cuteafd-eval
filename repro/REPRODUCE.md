@@ -235,8 +235,8 @@ Put the summaries into `results/<run>/` (local paths replaced by placeholders), 
 of this repository (the tools need only the Python standard library):
 
 ```bash
-python3 tools/build_readme.py          # README.md and the run summaries from results/
-python3 tools/build_site.py            # the site in docs/
+python3 tools/build_readme.py          # the comparison run's README and block summaries in results/
+python3 tools/build.py                 # the site in docs/ and README.md, from site/ (checks every number first)
 python3 tools/kl_tails.py --check      # the published tails, recomputed from the per-position files
 python3 tools/verify.py                # manifests, published-copy hashes, labels, links, content scan
 ```

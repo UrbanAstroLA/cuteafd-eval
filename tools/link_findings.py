@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Writes each goal's `findings` list in next/site/runs/<run>.json from the findings' own `goal` fields.
+"""Writes each goal's `findings` list in site/runs/<run>.json from the findings' own `goal` fields.
 
   link_findings.py [RUN ...]   the finding is the source of truth for which goal it answers; run after adding
                               findings (only the named runs' index files are rewritten when runs are given)

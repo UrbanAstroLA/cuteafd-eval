@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Checks the run index (next/site/runs/<run>.json) against the published run folders. Standard library only.
+"""Checks the run index (site/runs/<run>.json) against the published run folders. Standard library only.
 
   check_runs.py [run ...]     checks the named runs (default: every run folder under results/)
 
@@ -14,8 +14,8 @@ import sys
 from pathlib import Path
 
 sys.dont_write_bytecode = True
-REPO = Path(__file__).resolve().parents[2]
-RUNS = REPO / "next" / "site" / "runs"
+REPO = Path(__file__).resolve().parents[1]
+RUNS = REPO / "site" / "runs"
 RUN_KEYS = ("id", "date", "title", "kind", "question", "engines", "checkpoints", "hardware", "protocol", "goals",
             "run_files")
 GOAL_KEYS = ("id", "question", "added", "design", "files", "result_docs", "status", "headline", "findings")

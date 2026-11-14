@@ -1,0 +1,32 @@
+{
+ "about": "Section anchors of earlier versions of the site that the current pages no longer carry, mapped to the section that now holds that content, so links shared before the rebuild still land on the right section. On a page the build places an empty element with the old id just before the new section; a page that moved (a redirect stub) maps the anchor when it forwards. tools/build.py refuses to drop any anchor the published site carries unless it is listed here.",
+ "pages": {
+  "checkpoints.html": {"at-a-glance": "list", "k4-vs-k325": "how-often", "measures": "list"},
+  "index.html": {"findings": "answers", "does-it-matter": "answers", "does-it-matter-chart": "answers", "pick-by-workload": "answers",
+                 "speed-in-numbers": "answers", "how-sure": "use", "terms": "use", "pages": "use"},
+  "long-tasks.html": {"needles": "long-prompts", "long-k325": "long-output", "long-k4": "long-output"},
+  "method.html": {"versions": "setup", "files": "protocols", "scored": "what-was-measured", "confounds": "resolves",
+                  "limits": "resolves", "status": "timeline", "other-runs": "timeline"},
+  "precision.html": {"checkpoints": "table", "fidelity-set": "table", "long-text": "tables", "notes": "reproducible"},
+  "reproduce.html": {"k4-launch": "0-what-you-need"},
+  "research.html": {"tails": "tables", "tails-k325-pa": "tables", "tails-k325-pb": "tables", "tails-k325-q2": "tables",
+                    "tails-k4": "tables", "tails-k4-pa": "tables", "tails-k4-pb": "tables", "tails-k4-q2": "tables",
+                    "buckets": "tables", "k4-full": "table", "mechanism": "sources", "c2": "engines",
+                    "follow-up-designs": "limits"},
+  "running.html": {"launch-configs": "configs", "startup-chart": "capacity", "launcher-defaults": "launcher",
+                   "other-observations": "launcher"},
+  "settings.html": {"all-settings": "costs", "settings-map": "costs", "map-k325": "costs", "map-k4": "costs", "k4e": "costs"},
+  "speed.html": {"how-to-read": "cells", "k325": "cells", "dec-k325": "tables", "ttft-k325": "tables", "agg-k325": "tables",
+                 "k4": "cells", "dec-k4": "tables", "ttft-k4": "tables", "agg-k4": "tables", "k4-concurrency": "cells"},
+  "thinking.html": {"at-a-glance": "code", "length": "science-length", "length-ratios": "science-length",
+                    "free-generation": "science-length", "stop-both": "stop-decision", "stop-decision-both": "stop-decision",
+                    "fit": "correctness", "fp8": "code", "cuteafd": "code", "design": "code", "position": "lead",
+                    "loops": "limits", "reproduce": "limits", "open": "limits", "caveats": "limits"},
+  "tools.html": {"at-a-glance": "details", "splits": "details", "k6": "details", "categories": "details", "rubric": "details",
+                 "method": "details", "not-covered": "limits"},
+  "v4.html": {"setup": "findings", "precision": "findings", "speed": "findings", "memory": "findings", "long-outputs": "findings",
+              "v4-vs-v3": "findings", "tool-calling": "findings", "not-covered": "findings"},
+  "v5.html": {"trades": "memory", "trade-terms": "arms", "layout": "bits", "bf16-scale": "bf16", "k325-scale": "k325",
+              "families": "by-family", "reproduce": "repro"}
+ }
+}
